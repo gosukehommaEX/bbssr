@@ -44,7 +44,7 @@
 #' @author Gosuke Homma (\email{my.name.is.gosuke@@gmail.com})
 #' @export
 #' @import fpCompare
-#' @import stats
+#' @import stats pbinom
 BinaryPower <- function(p1, p2, N1, N2, alpha, Test) {
   # Check that p1 and p2 are the same length
   if(length(p1) %!=% length(p2)) stop('p1 and p2 should be the same length')

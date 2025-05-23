@@ -8,7 +8,9 @@ Authors@R: person("Gosuke", "Homma", email = "my.name.is.gosuke@gmail.com",
 Description: Provides functions for calculating power, sample size, and rejection regions for two-arm trials with binary endpoints using exact statistical tests. Supports five different test methods: Pearson chi-squared test, Fisher exact test, Fisher mid-p test, Z-pooled exact unconditional test, and Boschloo exact unconditional test. Also includes functionality for blinded sample size re-estimation (BSSR).
 License: MIT + file LICENSE
 Depends: R (>= 3.5.0)
-Imports: fpCompare
+Imports: 
+    fpCompare,
+    stats
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2

@@ -57,7 +57,7 @@
 #' @author Gosuke Homma (\email{my.name.is.gosuke@@gmail.com})
 #' @export
 #' @import fpCompare
-#' @import stats
+#' @import stats qnorm
 BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test) {
   # Step 0 (calculate the required sample size for the one-sided Pearson chi-squared test based on the normal approximation)
   p <- (r * p1 + p2) / (1 + r)

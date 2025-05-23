@@ -35,7 +35,7 @@
 #' @author Gosuke Homma (\email{my.name.is.gosuke@@gmail.com})
 #' @export
 #' @import fpCompare
-#' @import stats
+#' @import stats pnorm dbinom phyper dhyper
 BinaryRR <- function(N1, N2, alpha, Test) {
   if((Test == 'Chisq') | (Test == 'Z-pool')) {
     # Test statistics for the Chisq over all combinations of i(=0,...,N1) and j(=0,...,N2)
