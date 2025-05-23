@@ -58,7 +58,7 @@ power.BSSR = tibble(
   rename(Theta = p, Power = power.BSSR)
 
 # Display a figure
-fig.README = power.BSSR %>% 
+power.BSSR %>% 
   ggplot(aes(x = Theta, y = Power)) +
   geom_line(aes(color = Rule), linewidth = 1.2) +
   theme_bw() +
@@ -74,10 +74,10 @@ fig.README = power.BSSR %>%
   ) +
   labs(x = expression(theta)) +
   theme(
-    text = element_text(size = 20),
+    text = element_text(size = 40),
     panel.spacing = unit(-0.1, 'lines'),
     legend.key.width = unit(2, 'cm'),
-    legend.text = element_text(size = 20),
+    legend.text = element_text(size = 40),
     legend.title = element_blank(),
     legend.title.position = 'top',
     legend.position = 'bottom'
