@@ -86,4 +86,4 @@ figure = results %>%
 
 ## References
 
-Kang et al.(20XX)). Title
+xxx et al.(20XX). Title
