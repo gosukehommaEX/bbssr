@@ -68,16 +68,12 @@ BinaryPowerBSSR <- function(asmd.p1, asmd.p2, p, Delta.A, Delta.T, N1, N2, omega
   N11 <- ceiling(omega * N1)
   N12 <- ceiling(omega * N2)
   # Estimate pooled proportion under blinded fashion
-  hat.p <- outer(0:N11, 0:N12, '+') / (N11 + N12)
-  # Unique values of \hat{p}
-  U.hat.p <- unique(c(hat.p))
-  # Assign IDs which hat.p is matched to U.hat.p
-  match.ID <- matrix(match(hat.p, U.hat.p), nrow = N11 + 1, ncol = N12 + 1)
+  hat.p <- c(outer(0:N11, 0:N12, '+') / (N11 + N12))
   # Derive hat{p}_{1} and hat{p}_{2} using hat{p} and Delta
-  hat.p1 <- pmin(1, U.hat.p + (1 / (1 + r)) * Delta.A)
-  hat.p2 <- pmax(0, U.hat.p - (r / (1 + r)) * Delta.A)
+  hat.p1 <- pmin(1, hat.p + (1 / (1 + r)) * Delta.A)
+  hat.p2 <- pmax(0, hat.p - (r / (1 + r)) * Delta.A)
   # Sample size re-estimation
-  BSSR.N2 <- sapply(seq(U.hat.p), function(i) BinarySampleSize(hat.p1[i], hat.p2[i], r, alpha, tar.power, Test)[['N2']])
+  BSSR.N2 <- sapply(seq(hat.p), function(i) BinarySampleSize(hat.p1[i], hat.p2[i], r, alpha, tar.power, Test)[['N2']])
   if(restricted == TRUE) { N22 <- pmax(N2, BSSR.N2) - N12 } else { N22 <- pmax(N12, BSSR.N2) - N12 }
   N21 <- r * N22
   # Final sample sizes
@@ -86,13 +82,14 @@ BinaryPowerBSSR <- function(asmd.p1, asmd.p2, p, Delta.A, Delta.T, N1, N2, omega
   hat.N <- hat.N1 + hat.N2
   if(weighted == TRUE) {
     # Define weights
-    prod.binom.prob <- outer(dbinom(0:N11, N11, asmd.p1), dbinom(0:N12, N12, asmd.p2))
-    w.h <- as.numeric(tapply(prod.binom.prob, match.ID, FUN = sum))
+    w.h <- c(outer(dbinom(0:N11, N11, asmd.p1), dbinom(0:N12, N12, asmd.p2)))
     N.w <- ceiling(sum(hat.N * w.h))
     # Final sample sizes
     hat.N <- pmax(hat.N, N.w)
     hat.N2 <- ceiling(hat.N / (1 + r))
     hat.N1 <- ceiling(r * hat.N2)
+    N21 <- hat.N1 - N11
+    N22 <- hat.N2 - N12
   }
   # True proportion for each treatment group
   p1 <- p + (1 / (1 + r)) * Delta.T
@@ -108,18 +105,23 @@ BinaryPowerBSSR <- function(asmd.p1, asmd.p2, p, Delta.A, Delta.T, N1, N2, omega
   dbinom1 <- outer(X = 0:N11, Y = p1, function(X, Y) dbinom(X, N11, Y))
   dbinom2 <- outer(X = 0:N12, Y = p2, function(X, Y) dbinom(X, N12, Y))
   # Powers given \hat{N}_{1} and \hat{N}_{2}
+  x11 <- c(row(matrix(0, nrow = N11 + 1, ncol = N12 + 1)) - 1)
+  x12 <- c(col(matrix(0, nrow = N11 + 1, ncol = N12 + 1)) - 1)
   power.stage2 <- do.call(
     cbind,
-    lapply(seq(U.hat.p), function(i) {
+    lapply(seq(hat.p), function(i) {
       # Set rejection region
       RR <- BinaryRR(hat.N1[i], hat.N2[i], alpha, Test)
+      RR <- RR[(x11[i] + 1):(x11[i] + 1 + N21[i]), (x12[i] + 1):(x12[i] + 1 + N22[i])]
       # Return power
-      sapply(seq(p), function(j) c(dbinom(0:hat.N1[i], hat.N1[i], p1[j]) %*% pbinom(rowSums(RR) - 1, hat.N2[i], p2[j])))
+      sapply(seq(p), function(j) {
+        c(dbinom(0:N21[i], N21[i], p1[j]) %*% pbinom(rowSums(RR) - 1, N22[i], p2[j]))
+      })
     })
   )
   # Final power for BSSR
   power.BSSR <- sapply(seq(p), function(k) {
-    sum(c(dbinom1[, k] %o% dbinom2[, k]) * power.stage2[k, match(hat.p, U.hat.p)], na.rm = TRUE)
+    sum(c(dbinom1[, k] %o% dbinom2[, k]) * power.stage2[k, ], na.rm = TRUE)
   })
   # Powers without BSSR (i.e., traditional design)
   power.TRAD <- BinaryPower(p1, p2, N1, N2, alpha, Test)
