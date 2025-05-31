@@ -17,38 +17,44 @@ BinaryPowerBSSR(
   alpha,
   tar.power,
   Test,
+  BB = FALSE,
+  gamma = 1e-04,
   restricted,
   weighted
 )
 }
 \arguments{
-\item{asmd.p1}{Assumed proportion of responders for group 1}
+\item{asmd.p1}{Assumed proportion of responders for group 1.}
 
-\item{asmd.p2}{Assumed proportion of responders for group 2}
+\item{asmd.p2}{Assumed proportion of responders for group 2.}
 
-\item{p}{Vector of pooled proportions of responders from both groups (can specify multiple values)}
+\item{p}{Vector of pooled proportions of responders from both groups (can specify multiple values).}
 
-\item{Delta.A}{Assumed treatment effect (risk difference)}
+\item{Delta.A}{Assumed treatment effect (risk difference).}
 
-\item{Delta.T}{True treatment effect (risk difference)}
+\item{Delta.T}{True treatment effect (risk difference).}
 
-\item{N1}{Initial sample size of group 1}
+\item{N1}{Initial sample size of group 1.}
 
-\item{N2}{Initial sample size of group 2}
+\item{N2}{Initial sample size of group 2.}
 
-\item{omega}{Fraction of sample size used for interim analysis (i.e., for BSSR)}
+\item{omega}{Fraction of sample size used for interim analysis (i.e., for BSSR).}
 
-\item{r}{Allocation ratio to group 1}
+\item{r}{Allocation ratio to group 1.}
 
-\item{alpha}{One-sided level of significance}
+\item{alpha}{One-sided level of significance.}
 
-\item{tar.power}{Target power}
+\item{tar.power}{Target power.}
 
-\item{Test}{Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'}
+\item{Test}{Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'.}
 
-\item{restricted}{Logical. If TRUE, restricted design is chosen}
+\item{BB}{Logical. If TRUE, apply Berger-Boos approach for 'Z-pool' and 'Boschloo' tests (default: FALSE).}
 
-\item{weighted}{Logical. If TRUE, weighted approach is chosen}
+\item{gamma}{Berger-Boos parameter for confidence interval adjustment (default: 0.0001).}
+
+\item{restricted}{Logical. If TRUE, restricted design is chosen.}
+
+\item{weighted}{Logical. If TRUE, weighted approach is chosen.}
 }
 \value{
 A data frame containing:
@@ -80,7 +86,7 @@ The function supports the following five one-sided tests:
 result <- BinaryPowerBSSR(
   asmd.p1 = 0.45,
   asmd.p2 = 0.09,
-  p = seq(0.14, 0.23, by = 0.01),
+  p = seq(0, 1, by = 0.01),
   Delta.A = 0.36,
   Delta.T = 0.36,
   N1 = 24,
@@ -90,13 +96,12 @@ result <- BinaryPowerBSSR(
   alpha = 0.025,
   tar.power = 0.8,
   Test = 'Z-pool',
+  BB = FALSE,
+  gamma = 0.0001,
   restricted = FALSE,
   weighted = TRUE
 )
 print(result)
 }
 
-}
-\author{
-Gosuke Homma (\email{my.name.is.gosuke@gmail.com})
 }

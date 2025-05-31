@@ -4,16 +4,20 @@
 \alias{BinaryRR}
 \title{Rejection Region for Two-Arm Trials with Binary Endpoints}
 \usage{
-BinaryRR(N1, N2, alpha, Test)
+BinaryRR(N1, N2, alpha, Test, BB = FALSE, gamma = 1e-04)
 }
 \arguments{
-\item{N1}{Sample size for group 1}
+\item{N1}{Sample size for group 1.}
 
-\item{N2}{Sample size for group 2}
+\item{N2}{Sample size for group 2.}
 
-\item{alpha}{One-sided level of significance}
+\item{alpha}{One-sided level of significance.}
 
-\item{Test}{Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'}
+\item{Test}{Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'.}
+
+\item{BB}{Logical. If TRUE, apply Berger-Boos approach for 'Z-pool' and 'Boschloo' tests (default: FALSE).}
+
+\item{gamma}{Berger-Boos parameter for confidence interval adjustment (default: 0.0001).}
 }
 \value{
 A logical matrix representing the rejection region (RR). Matrix dimensions
@@ -21,7 +25,8 @@ are (N1+1) x (N2+1), where TRUE indicates rejection of the null hypothesis.
 }
 \description{
 Provides a rejection region (RR) for two-arm trials with binary endpoints using
-various exact statistical tests. The function supports five different one-sided tests.
+various exact statistical tests. The function supports five different one-sided tests
+with optional Berger-Boos approach based on Clopper-Pearson confidence intervals.
 }
 \details{
 The function supports the following five one-sided tests:
@@ -32,6 +37,10 @@ The function supports the following five one-sided tests:
 \item The Z-pooled exact unconditional test (Z-pool)
 \item The Boschloo exact unconditional test (Boschloo)
 }
+
+When BB = TRUE, the Berger-Boos approach based on Clopper-Pearson
+confidence intervals is applied to 'Z-pool' and 'Boschloo' tests for improved
+computational efficiency while maintaining statistical validity.
 }
 \examples{
 \dontrun{
@@ -42,9 +51,10 @@ alpha <- 0.025
 Test <- 'Boschloo'
 RR <- BinaryRR(N1, N2, alpha, Test)
 print(RR)
+
+# Calculate rejection region with Berger-Boos approach
+RR_BB <- BinaryRR(N1, N2, alpha, Test, BB = TRUE)
+print(RR_BB)
 }
 
-}
-\author{
-Gosuke Homma (\email{my.name.is.gosuke@gmail.com})
 }

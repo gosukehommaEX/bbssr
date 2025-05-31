@@ -4,20 +4,22 @@
 #' re-estimation (BSSR) is implemented. The function supports five different statistical tests
 #' and allows for both restricted and unrestricted designs with optional weighted approaches.
 #'
-#' @param asmd.p1 Assumed proportion of responders for group 1
-#' @param asmd.p2 Assumed proportion of responders for group 2
-#' @param p Vector of pooled proportions of responders from both groups (can specify multiple values)
-#' @param Delta.A Assumed treatment effect (risk difference)
-#' @param Delta.T True treatment effect (risk difference)
-#' @param N1 Initial sample size of group 1
-#' @param N2 Initial sample size of group 2
-#' @param omega Fraction of sample size used for interim analysis (i.e., for BSSR)
-#' @param r Allocation ratio to group 1
-#' @param alpha One-sided level of significance
-#' @param tar.power Target power
-#' @param Test Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'
-#' @param restricted Logical. If TRUE, restricted design is chosen
-#' @param weighted Logical. If TRUE, weighted approach is chosen
+#' @param asmd.p1 Assumed proportion of responders for group 1.
+#' @param asmd.p2 Assumed proportion of responders for group 2.
+#' @param p Vector of pooled proportions of responders from both groups (can specify multiple values).
+#' @param Delta.A Assumed treatment effect (risk difference).
+#' @param Delta.T True treatment effect (risk difference).
+#' @param N1 Initial sample size of group 1.
+#' @param N2 Initial sample size of group 2.
+#' @param omega Fraction of sample size used for interim analysis (i.e., for BSSR).
+#' @param r Allocation ratio to group 1.
+#' @param alpha One-sided level of significance.
+#' @param tar.power Target power.
+#' @param Test Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'.
+#' @param BB Logical. If TRUE, apply Berger-Boos approach for 'Z-pool' and 'Boschloo' tests (default: FALSE).
+#' @param gamma Berger-Boos parameter for confidence interval adjustment (default: 0.0001).
+#' @param restricted Logical. If TRUE, restricted design is chosen.
+#' @param weighted Logical. If TRUE, weighted approach is chosen.
 #'
 #' @return A data frame containing:
 #' \describe{
@@ -43,7 +45,7 @@
 #' result <- BinaryPowerBSSR(
 #'   asmd.p1 = 0.45,
 #'   asmd.p2 = 0.09,
-#'   p = seq(0.14, 0.23, by = 0.01),
+#'   p = seq(0, 1, by = 0.01),
 #'   Delta.A = 0.36,
 #'   Delta.T = 0.36,
 #'   N1 = 24,
@@ -53,17 +55,19 @@
 #'   alpha = 0.025,
 #'   tar.power = 0.8,
 #'   Test = 'Z-pool',
+#'   BB = FALSE,
+#'   gamma = 0.0001,
 #'   restricted = FALSE,
 #'   weighted = TRUE
 #' )
 #' print(result)
 #' }
 #'
-#' @author Gosuke Homma (\email{my.name.is.gosuke@@gmail.com})
 #' @export
 #' @import fpCompare
 #' @import stats dbinom pbinom
-BinaryPowerBSSR <- function(asmd.p1, asmd.p2, p, Delta.A, Delta.T, N1, N2, omega, r, alpha, tar.power, Test, restricted, weighted) {
+BinaryPowerBSSR <- function(asmd.p1, asmd.p2, p, Delta.A, Delta.T, N1, N2, omega, r, alpha,
+                            tar.power, Test, BB = FALSE, gamma = 0.0001, restricted, weighted) {
   # Initial sample sizes used for BSSR
   N11 <- ceiling(omega * N1)
   N12 <- ceiling(omega * N2)
@@ -73,7 +77,9 @@ BinaryPowerBSSR <- function(asmd.p1, asmd.p2, p, Delta.A, Delta.T, N1, N2, omega
   hat.p1 <- pmin(1, hat.p + (1 / (1 + r)) * Delta.A)
   hat.p2 <- pmax(0, hat.p - (r / (1 + r)) * Delta.A)
   # Sample size re-estimation
-  BSSR.N2 <- sapply(seq(hat.p), function(i) BinarySampleSize(hat.p1[i], hat.p2[i], r, alpha, tar.power, Test)[['N2']])
+  BSSR.N2 <- sapply(seq(hat.p), function(i) {
+    BinarySampleSize(hat.p1[i], hat.p2[i], r, alpha, tar.power, Test, BB, gamma)[['N2']]
+  })
   if(restricted == TRUE) { N22 <- pmax(N2, BSSR.N2) - N12 } else { N22 <- pmax(N12, BSSR.N2) - N12 }
   N21 <- r * N22
   # Final sample sizes
@@ -111,7 +117,7 @@ BinaryPowerBSSR <- function(asmd.p1, asmd.p2, p, Delta.A, Delta.T, N1, N2, omega
     cbind,
     lapply(seq(hat.p), function(i) {
       # Set rejection region
-      RR <- BinaryRR(hat.N1[i], hat.N2[i], alpha, Test)
+      RR <- BinaryRR(hat.N1[i], hat.N2[i], alpha, Test, BB, gamma)
       RR <- RR[(x11[i] + 1):(x11[i] + 1 + N21[i]), (x12[i] + 1):(x12[i] + 1 + N22[i])]
       # Return power
       sapply(seq(p), function(j) {
@@ -124,7 +130,7 @@ BinaryPowerBSSR <- function(asmd.p1, asmd.p2, p, Delta.A, Delta.T, N1, N2, omega
     sum(c(dbinom1[, k] %o% dbinom2[, k]) * power.stage2[k, ], na.rm = TRUE)
   })
   # Powers without BSSR (i.e., traditional design)
-  power.TRAD <- BinaryPower(p1, p2, N1, N2, alpha, Test)
+  power.TRAD <- BinaryPower(p1, p2, N1, N2, alpha, Test, BB, gamma)
   # Output
   out <- data.frame(p1, p2, p, power.BSSR, power.TRAD)
   return(out)
