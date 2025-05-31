@@ -37,6 +37,7 @@
 #' @export
 #' @import stats qbeta
 ClopperPearsonCI <- function(x, n, alpha) {
+
   # Input validation
   if (n < 0 || x < 0 || x > n) {
     stop('Invalid input: n must be non-negative, x must be between 0 and n')
@@ -44,19 +45,23 @@ ClopperPearsonCI <- function(x, n, alpha) {
   if (alpha <= 0 || alpha >= 1) {
     stop('alpha must be between 0 and 1')
   }
+
   # Handle edge case: n = 0
   if (n == 0) return(c(0, 1))
+
   # Lower bound
   if (x == 0) {
     lower <- 0
   } else {
     lower <- qbeta(alpha / 2, x, n - x + 1)
   }
+
   # Upper bound
   if (x == n) {
     upper <- 1
   } else {
     upper <- qbeta(1 - alpha / 2, x + 1, n - x)
   }
+
   return(c(lower, upper))
 }
