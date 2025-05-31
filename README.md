@@ -6,14 +6,12 @@
 
 ## Overview
 
-`ExactBinaryFamily` is an R package that provides methods to Provides functions for calculating power, sample size, and rejection regions
+`ExactBinaryFamily` is an R package that provides functions for calculating power, sample size, and rejection regions
     for two-arm trials with binary endpoints using exact statistical tests. Supports
     five different test methods: Pearson chi-squared test, Fisher exact test, 
     Fisher mid-p test, Z-pooled exact unconditional test, and Boschloo exact 
     unconditional test. Also includes functionality for blinded sample size 
     re-estimation (BSSR).
-
-For technical details about the methodology, please refer to xxx et al.(20XX).
 
 ## Installation
 
@@ -48,7 +46,8 @@ power.BSSR = tibble(
     BinaryPowerBSSR(
       asmd.p1 = 0.45, asmd.p2 = 0.09, p = seq(0, 1, by = 0.01),
       Delta.A = 0.36, Delta.T = 0.36, N1, N2, omega = 0.5, r, 
-      alpha = 0.025, tar.power = 0.8, Test = 'Z-pool', restricted, weighted
+      alpha = 0.025, tar.power = 0.8, Test = 'Z-pool', 
+      BB = FALSE, gamma = 0.0001, restricted, weighted
     )
   ) %>% 
   mutate(
@@ -85,7 +84,3 @@ power.BSSR %>%
 ```
 
 <img src="man/figures/fig.README.png" width="100%"/>
-
-## References
-
-xxx et al.(20XX). Title
