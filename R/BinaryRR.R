@@ -75,7 +75,7 @@ BinaryRR <- function(N1, N2, alpha, Test, BB = FALSE, gamma = 0.0001) {
 
       if (BB) {
         # Apply Berger-Boos approach for Z-pool test
-        p.ij <- pvalBB(i, j, N1, N2, gamma, 'Z-pool')
+        p.ij <- pvalBB(i, j, N1, N2, gamma)
       } else {
         # Original Z-pool computation
         # Calculate P_H0(X1 = i, X2 = j | theta)
@@ -112,7 +112,7 @@ BinaryRR <- function(N1, N2, alpha, Test, BB = FALSE, gamma = 0.0001) {
 
       if (BB) {
         # Apply Berger-Boos approach for Boschloo test
-        p.ij <- pvalBB(i, j, N1, N2, gamma, 'Boschloo')
+        p.ij <- pvalBB(i, j, N1, N2, gamma)
       } else {
         # Original Boschloo computation
         # Calculate P_H0(X1 = i, X2 = j | theta)

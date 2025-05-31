@@ -2,14 +2,14 @@
 #'
 #' Computes p-values using the Berger-Boos approach for exact unconditional tests.
 #' This function provides computational efficiency while maintaining statistical
-#' accuracy by restricting the nuisance parameter space.
+#' accuracy by restricting the nuisance parameter space. It works for both Z-pooled
+#' and Boschloo tests based on the pre-sorted input order.
 #'
-#' @param x1 Vector of success counts for group 1.
-#' @param x2 Vector of success counts for group 2.
+#' @param x1 Vector of success counts for group 1 (pre-sorted by test statistic).
+#' @param x2 Vector of success counts for group 2 (pre-sorted by test statistic).
 #' @param N1 Sample size for group 1.
 #' @param N2 Sample size for group 2.
 #' @param gamma Berger-Boos parameter for confidence interval adjustment.
-#' @param Test Type of statistical test. Options: 'Z-pool' or 'Boschloo'.
 #'
 #' @return A numeric vector of p-values corresponding to each (x1,x2) pair
 #'
@@ -20,21 +20,29 @@
 #' maximum p-value over this restricted range. The final p-value includes
 #' the gamma adjustment as per the Berger-Boos methodology.
 #'
+#' The function assumes that the input vectors x1 and x2 are pre-sorted
+#' according to the test statistic (Z-statistic for Z-pool test in descending
+#' order, or Fisher p-values for Boschloo test in ascending order). This
+#' allows the function to work correctly for both test types without needing
+#' to know which specific test is being used.
+#'
 #' The function uses vectorized operations and optimized matrix computations
 #' to achieve high performance while maintaining consistency with non-BB
 #' approaches by using the same theta evaluation grid.
 #'
 #' @examples
 #' \dontrun{
-#' # Compute p-values for Z-pool test
-#' x1 <- c(8, 9, 10)
-#' x2 <- c(2, 3, 4)
-#' p.vals.Zpool.BB <- pvalBB(x1, x2, 20, 15, 0.001, 'Z-pool')
-#' print(p.vals.Zpool.BB)
+#' # For Z-pool test: x1, x2 should be sorted by Z-statistic (descending)
+#' x1 <- c(10, 9, 8)  # Pre-sorted by Z-statistic
+#' x2 <- c(4, 3, 2)   # Pre-sorted by Z-statistic
+#' p.vals.BB <- pvalBB(x1, x2, 20, 15, 0.001)
+#' print(p.vals.BB)
 #'
-#' # Compute p-values for Boschloo test
-#' p.vals.Boschloo.BB <- pvalBB(x1, x2, 20, 15, 0.001, 'Boschloo')
-#' print(p.vals.Boschloo.BB)
+#' # For Boschloo test: x1, x2 should be sorted by Fisher p-value (ascending)
+#' x1 <- c(8, 9, 10)  # Pre-sorted by Fisher p-value
+#' x2 <- c(2, 3, 4)   # Pre-sorted by Fisher p-value
+#' p.vals.BB <- pvalBB(x1, x2, 20, 15, 0.001)
+#' print(p.vals.BB)
 #' }
 #'
 #' @references
@@ -44,7 +52,7 @@
 #'
 #' @export
 #' @import stats dbinom
-pvalBB <- function(x1, x2, N1, N2, gamma, Test) {
+pvalBB <- function(x1, x2, N1, N2, gamma) {
   # Input validation
   if (length(x1) != length(x2)) {
     stop('x1 and x2 must have the same length')
@@ -57,9 +65,6 @@ pvalBB <- function(x1, x2, N1, N2, gamma, Test) {
   }
   if (gamma <= 0 || gamma >= 1) {
     stop('gamma must be between 0 and 1')
-  }
-  if (!Test %in% c('Z-pool', 'Boschloo')) {
-    stop("Test must be either 'Z-pool' or 'Boschloo'")
   }
 
   n_points <- length(x1)
@@ -114,6 +119,8 @@ pvalBB <- function(x1, x2, N1, N2, gamma, Test) {
 
     if (any(theta_in_interval)) {
       # Extract probabilities for relevant theta values
+      # For Z-pool: 1:k gives points with Z-stat >= current Z-stat (due to descending sort)
+      # For Boschloo: 1:k gives points with Fisher p-val <= current Fisher p-val (due to ascending sort)
       P_H0_restricted <- P_H0_all[1:k, theta_in_interval, drop = FALSE]
 
       # Compute cumulative p-value efficiently
