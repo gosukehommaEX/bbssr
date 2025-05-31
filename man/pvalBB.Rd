@@ -4,20 +4,18 @@
 \alias{pvalBB}
 \title{Optimized P-value Computation with Berger-Boos Approach}
 \usage{
-pvalBB(x1, x2, N1, N2, gamma, Test)
+pvalBB(x1, x2, N1, N2, gamma)
 }
 \arguments{
-\item{x1}{Vector of success counts for group 1.}
+\item{x1}{Vector of success counts for group 1 (pre-sorted by test statistic).}
 
-\item{x2}{Vector of success counts for group 2.}
+\item{x2}{Vector of success counts for group 2 (pre-sorted by test statistic).}
 
 \item{N1}{Sample size for group 1.}
 
 \item{N2}{Sample size for group 2.}
 
 \item{gamma}{Berger-Boos parameter for confidence interval adjustment.}
-
-\item{Test}{Type of statistical test. Options: 'Z-pool' or 'Boschloo'.}
 }
 \value{
 A numeric vector of p-values corresponding to each (x1,x2) pair
@@ -25,7 +23,8 @@ A numeric vector of p-values corresponding to each (x1,x2) pair
 \description{
 Computes p-values using the Berger-Boos approach for exact unconditional tests.
 This function provides computational efficiency while maintaining statistical
-accuracy by restricting the nuisance parameter space.
+accuracy by restricting the nuisance parameter space. It works for both Z-pooled
+and Boschloo tests based on the pre-sorted input order.
 }
 \details{
 This function implements the Berger-Boos approach for computing exact
@@ -34,21 +33,29 @@ intervals to restrict the theta parameter space, then computes the
 maximum p-value over this restricted range. The final p-value includes
 the gamma adjustment as per the Berger-Boos methodology.
 
+The function assumes that the input vectors x1 and x2 are pre-sorted
+according to the test statistic (Z-statistic for Z-pool test in descending
+order, or Fisher p-values for Boschloo test in ascending order). This
+allows the function to work correctly for both test types without needing
+to know which specific test is being used.
+
 The function uses vectorized operations and optimized matrix computations
 to achieve high performance while maintaining consistency with non-BB
 approaches by using the same theta evaluation grid.
 }
 \examples{
 \dontrun{
-# Compute p-values for Z-pool test
-x1 <- c(8, 9, 10)
-x2 <- c(2, 3, 4)
-p.vals.Zpool.BB <- pvalBB(x1, x2, 20, 15, 0.001, 'Z-pool')
-print(p.vals.Zpool.BB)
+# For Z-pool test: x1, x2 should be sorted by Z-statistic (descending)
+x1 <- c(10, 9, 8)  # Pre-sorted by Z-statistic
+x2 <- c(4, 3, 2)   # Pre-sorted by Z-statistic
+p.vals.BB <- pvalBB(x1, x2, 20, 15, 0.001)
+print(p.vals.BB)
 
-# Compute p-values for Boschloo test
-p.vals.Boschloo.BB <- pvalBB(x1, x2, 20, 15, 0.001, 'Boschloo')
-print(p.vals.Boschloo.BB)
+# For Boschloo test: x1, x2 should be sorted by Fisher p-value (ascending)
+x1 <- c(8, 9, 10)  # Pre-sorted by Fisher p-value
+x2 <- c(2, 3, 4)   # Pre-sorted by Fisher p-value
+p.vals.BB <- pvalBB(x1, x2, 20, 15, 0.001)
+print(p.vals.BB)
 }
 
 }
