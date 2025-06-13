@@ -1,0 +1,467 @@
+---
+title: "Statistical Methods in bbssr"
+author: "Gosuke Homma"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 3
+vignette: >
+  %\VignetteIndexEntry{Statistical Methods in bbssr}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 6,
+  fig.align = "center"
+)
+```
+
+## Introduction
+
+This vignette provides a detailed explanation of the statistical methods implemented in the `bbssr` package. We cover the theoretical foundations of blinded sample size re-estimation (BSSR) and the five exact statistical tests supported by the package.
+
+```{r load_packages, message=FALSE, warning=FALSE}
+library(bbssr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+```
+
+## Theoretical Foundation of BSSR
+
+### The Problem with Fixed Sample Sizes
+
+Traditional clinical trials use fixed sample sizes determined during the planning phase based on:
+- Assumed treatment effect size
+- Expected response rates in each group
+- Desired power and significance level
+
+However, these assumptions are often inaccurate, leading to:
+- **Underpowered studies** when the assumed effect size is too optimistic
+- **Overpowered studies** when the assumed effect size is too conservative
+- **Resource inefficiency** due to incorrect sample size planning
+- **Ethical concerns** about continuing underpowered trials
+
+### The BSSR Solution
+
+Blinded Sample Size Re-estimation addresses these issues by:
+
+1. **Interim Analysis**: Conducting an interim analysis using a fraction (ω) of the planned data
+2. **Pooled Estimation**: Estimating the pooled response rate without unblinding treatment assignments
+3. **Sample Size Adjustment**: Recalculating required sample size based on observed pooled data
+4. **Controlled Type I Error**: Maintaining exact statistical control throughout the process
+
+### Mathematical Framework
+
+Let's define the key parameters:
+
+- $n_1, n_2$: Initial sample sizes for groups 1 and 2
+- $X_1, X_2$: Number of responders in groups 1 and 2
+- $p_1, p_2$: True response probabilities
+- $\hat{p} = \frac{X_1 + X_2}{n_1 + n_2}$: Pooled response rate (observable)
+- $\Delta = p_1 - p_2$: Treatment effect (risk difference)
+- $\omega$: Fraction of data used for interim analysis
+
+## Exact Statistical Tests
+
+The `bbssr` package implements five exact statistical tests, each with different characteristics and optimal use cases.
+
+### 1. Pearson Chi-squared Test (`'Chisq'`)
+
+The one-sided Pearson chi-squared test uses the test statistic:
+
+$Z_{ij} = \frac{\hat{p}_1 - \hat{p}_2}{\sqrt{\hat{p}(1-\hat{p})\left(\frac{1}{n_1} + \frac{1}{n_2}\right)}}$
+
+where $\hat{p} = \frac{X_1 + X_2}{n_1 + n_2}$ is the pooled proportion.
+
+```{r chisq_example}
+# Example: Chi-squared test
+power_chisq <- BinaryPower(
+  p1 = 0.6, p2 = 0.4, 
+  N1 = 30, N2 = 30, 
+  alpha = 0.025, 
+  Test = 'Chisq'
+)
+print(paste("Chi-squared test power:", round(power_chisq, 3)))
+```
+
+**Characteristics:**
+- Good asymptotic properties for large samples
+- Computationally efficient
+- May be anti-conservative for small samples
+
+### 2. Fisher Exact Test (`'Fisher'`)
+
+The Fisher exact test conditions on the total number of successes and uses the hypergeometric distribution:
+
+$P(X_1 = k | X_1 + X_2 = s) = \frac{\binom{n_1}{k}\binom{n_2}{s-k}}{\binom{n_1+n_2}{s}}$
+
+```{r fisher_example}
+# Example: Fisher exact test
+power_fisher <- BinaryPower(
+  p1 = 0.6, p2 = 0.4, 
+  N1 = 30, N2 = 30, 
+  alpha = 0.025, 
+  Test = 'Fisher'
+)
+print(paste("Fisher exact test power:", round(power_fisher, 3)))
+```
+
+**Characteristics:**
+- Exact Type I error control
+- Conservative (actual α < nominal α)
+- Widely accepted by regulatory agencies
+- Conditional test
+
+### 3. Fisher Mid-p Test (`'Fisher-midP'`)
+
+The Fisher mid-p test reduces the conservatism of the Fisher exact test by including half the probability of the observed outcome:
+
+$p\text{-value} = P(X_1 > k | X_1 + X_2 = s) + 0.5 \cdot P(X_1 = k | X_1 + X_2 = s)$
+
+```{r fisher_midp_example}
+# Example: Fisher mid-p test
+power_midp <- BinaryPower(
+  p1 = 0.6, p2 = 0.4, 
+  N1 = 30, N2 = 30, 
+  alpha = 0.025, 
+  Test = 'Fisher-midP'
+)
+print(paste("Fisher mid-p test power:", round(power_midp, 3)))
+```
+
+**Characteristics:**
+- Less conservative than Fisher exact
+- Better power properties
+- Maintains approximate Type I error control
+
+### 4. Z-pooled Exact Unconditional Test (`'Z-pool'`)
+
+This test uses the Z-statistic but calculates exact p-values by considering all possible values of the nuisance parameter:
+
+$p\text{-value} = \max_{\theta} P_{\theta}(Z \geq z_{\text{obs}})$
+
+```{r zpool_example}
+# Example: Z-pooled test
+power_zpool <- BinaryPower(
+  p1 = 0.6, p2 = 0.4, 
+  N1 = 30, N2 = 30, 
+  alpha = 0.025, 
+  Test = 'Z-pool'
+)
+print(paste("Z-pooled test power:", round(power_zpool, 3)))
+```
+
+**Characteristics:**
+- Unconditional test
+- Good balance between power and conservatism
+- Computationally more intensive
+
+### 5. Boschloo Exact Unconditional Test (`'Boschloo'`)
+
+The Boschloo test is the most powerful exact unconditional test. It maximizes the p-value over all possible values of the nuisance parameter:
+
+$p\text{-value} = \max_{\theta} P_{\theta}(\text{rejection region})$
+
+```{r boschloo_example}
+# Example: Boschloo test
+power_boschloo <- BinaryPower(
+  p1 = 0.6, p2 = 0.4, 
+  N1 = 30, N2 = 30, 
+  alpha = 0.025, 
+  Test = 'Boschloo'
+)
+print(paste("Boschloo test power:", round(power_boschloo, 3)))
+```
+
+**Characteristics:**
+- Most powerful exact unconditional test
+- Maintains exact Type I error control
+- Computationally intensive
+- Optimal choice when computational resources allow
+
+### Test Comparison
+
+```{r test_comparison}
+# Compare all five tests
+tests <- c('Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', 'Boschloo')
+powers <- sapply(tests, function(test) {
+  BinaryPower(p1 = 0.6, p2 = 0.4, N1 = 30, N2 = 30, alpha = 0.025, Test = test)
+})
+
+comparison_df <- data.frame(
+  Test = tests,
+  Power = round(powers, 4),
+  Type = c("Asymptotic", "Conditional", "Conditional", "Unconditional", "Unconditional"),
+  Conservatism = c("Moderate", "High", "Moderate", "Moderate", "Low")
+)
+
+print(comparison_df)
+```
+
+## BSSR Methodology
+
+### Design Approaches
+
+#### 1. Restricted Design (`restricted = TRUE`)
+
+In the restricted design, the final sample size must be at least the originally planned sample size:
+
+$N_{\text{final}} \geq N_{\text{planned}}$
+
+This approach is conservative and ensures that the study duration doesn't exceed the originally planned timeline.
+
+#### 2. Unrestricted Design (`restricted = FALSE`)
+
+The unrestricted design allows both increases and decreases in sample size based on the interim data:
+
+$N_{\text{final}} = \max(N_{\text{interim}}, N_{\text{recalculated}})$
+
+This provides maximum flexibility but may extend or shorten the study duration.
+
+#### 3. Weighted Design (`weighted = TRUE`)
+
+The weighted approach uses a weighted average across all possible interim scenarios:
+
+$N_{\text{final}} = \max\left(N_{\text{scenario}}, \sum_{scenarios} w_h \cdot N_h\right)$
+
+where $w_h$ are weights based on the probability of each interim scenario.
+
+### BSSR Implementation Example
+
+```{r bssr_detailed}
+# Detailed BSSR example with different approaches
+bssr_results_list <- list()
+
+# Restricted approach
+bssr_results_list[["Restricted"]] <- BinaryPowerBSSR(
+  asmd.p1 = 0.45, asmd.p2 = 0.09, 
+  p = seq(0.1, 0.9, by = 0.1),
+  Delta.A = 0.36, Delta.T = 0.36, 
+  N1 = 24, N2 = 24, omega = 0.5, r = 1, 
+  alpha = 0.025, tar.power = 0.8, 
+  Test = 'Z-pool', 
+  restricted = TRUE, weighted = FALSE
+) %>% mutate(approach = "Restricted")
+
+# Unrestricted approach
+bssr_results_list[["Unrestricted"]] <- BinaryPowerBSSR(
+  asmd.p1 = 0.45, asmd.p2 = 0.09, 
+  p = seq(0.1, 0.9, by = 0.1),
+  Delta.A = 0.36, Delta.T = 0.36, 
+  N1 = 24, N2 = 24, omega = 0.5, r = 1, 
+  alpha = 0.025, tar.power = 0.8, 
+  Test = 'Z-pool', 
+  restricted = FALSE, weighted = FALSE
+) %>% mutate(approach = "Unrestricted")
+
+# Weighted approach
+bssr_results_list[["Weighted"]] <- BinaryPowerBSSR(
+  asmd.p1 = 0.45, asmd.p2 = 0.09, 
+  p = seq(0.1, 0.9, by = 0.1),
+  Delta.A = 0.36, Delta.T = 0.36, 
+  N1 = 24, N2 = 24, omega = 0.5, r = 1, 
+  alpha = 0.025, tar.power = 0.8, 
+  Test = 'Z-pool', 
+  restricted = FALSE, weighted = TRUE
+) %>% mutate(approach = "Weighted")
+
+# Combine results
+bssr_results <- do.call(rbind, bssr_results_list)
+
+# Summary statistics
+bssr_summary <- bssr_results %>%
+  group_by(approach) %>%
+  summarise(
+    mean_power_bssr = mean(power.BSSR),
+    mean_power_trad = mean(power.TRAD),
+    min_power_bssr = min(power.BSSR),
+    max_power_bssr = max(power.BSSR),
+    .groups = 'drop'
+  )
+
+print(bssr_summary)
+```
+
+## Power Calculations
+
+### Traditional vs BSSR Power
+
+```{r power_comparison_plot, fig.width=10, fig.height=6}
+# Create comprehensive power comparison
+power_data <- bssr_results %>%
+  select(approach, p, power.BSSR, power.TRAD) %>%
+  pivot_longer(
+    cols = c(power.BSSR, power.TRAD),
+    names_to = "design_type",
+    values_to = "power"
+  ) %>%
+  mutate(
+    design_type = case_when(
+      design_type == "power.BSSR" ~ "BSSR",
+      design_type == "power.TRAD" ~ "Traditional"
+    )
+  )
+
+ggplot(power_data, aes(x = p, y = power, color = design_type)) +
+  geom_line(linewidth = 1.2) +
+  facet_wrap(~approach, ncol = 3) +
+  geom_hline(yintercept = 0.8, linetype = "dashed", color = "gray") +
+  labs(
+    x = "Pooled Response Rate (θ)",
+    y = "Power",
+    color = "Design Type",
+    title = "Power Comparison: Traditional vs BSSR Designs",
+    subtitle = "Horizontal line shows target power = 0.8"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) +
+  scale_y_continuous(limits = c(0.7, 1.0))
+```
+
+## Practical Implementation Guidelines
+
+### Choosing the Right Test
+
+| Scenario | Recommended Test | Rationale |
+|----------|------------------|-----------|
+| Small samples (n < 30 per group) | Boschloo | Most powerful exact test |
+| Moderate samples (30-100 per group) | Z-pool | Good balance of power and computation |
+| Large samples (n > 100 per group) | Chisq | Asymptotically optimal, fast |
+| Regulatory submission | Fisher | Widely accepted, conservative |
+| Exploratory analysis | Fisher-midP | Less conservative than Fisher |
+
+### Choosing the BSSR Approach
+
+| Priority | Recommended Approach | Rationale |
+|----------|---------------------|-----------|
+| Timeline certainty | Restricted | Guarantees study doesn't extend |
+| Statistical efficiency | Unrestricted | Optimal sample size adaptation |
+| Robust performance | Weighted | Consistent across scenarios |
+
+### Sample Size Planning
+
+```{r sample_size_planning}
+# Sample size planning example
+planning_scenarios <- expand.grid(
+  p1 = c(0.4, 0.5, 0.6),
+  p2 = c(0.2, 0.3),
+  test = c('Fisher', 'Z-pool', 'Boschloo')
+) %>%
+  filter(p1 > p2)
+
+# Calculate sample sizes for each scenario
+sample_size_results <- list()
+for(i in 1:nrow(planning_scenarios)) {
+  result <- BinarySampleSize(
+    p1 = planning_scenarios$p1[i], 
+    p2 = planning_scenarios$p2[i], 
+    r = 1, 
+    alpha = 0.025, 
+    tar.power = 0.8, 
+    Test = planning_scenarios$test[i]
+  )
+  sample_size_results[[i]] <- result
+}
+
+# Combine results
+final_results <- do.call(rbind, sample_size_results)
+final_results <- final_results[, c("p1", "p2", "Test", "N1", "N2", "N", "Power")]
+
+print(final_results)
+```
+
+## Regulatory Considerations
+
+### Type I Error Control
+
+All methods in `bbssr` maintain exact Type I error control:
+
+```{r type1_error}
+# Demonstrate Type I error control under null hypothesis
+null_powers <- sapply(c('Fisher', 'Z-pool', 'Boschloo'), function(test) {
+  BinaryPower(p1 = 0.3, p2 = 0.3, N1 = 30, N2 = 30, alpha = 0.025, Test = test)
+})
+
+names(null_powers) <- c('Fisher', 'Z-pool', 'Boschloo')
+print("Type I error rates under null hypothesis:")
+print(round(null_powers, 4))
+```
+
+All values should be ≤ 0.025, confirming exact Type I error control.
+
+### Documentation Requirements
+
+For regulatory submissions, document:
+1. **Rationale for BSSR**: Why adaptive design is appropriate
+2. **Test selection**: Justification for chosen statistical test
+3. **Design approach**: Restricted vs unrestricted rationale
+4. **Simulation studies**: Demonstrate operating characteristics
+5. **Implementation plan**: Detailed interim analysis procedures
+
+## Advanced Topics
+
+### Multiple Allocation Ratios
+
+```{r allocation_ratios}
+# Compare different allocation ratios
+ratios <- c(1, 2, 3)
+ratio_results <- sapply(ratios, function(r) {
+  result <- BinarySampleSize(
+    p1 = 0.5, p2 = 0.3, r = r, 
+    alpha = 0.025, tar.power = 0.8, 
+    Test = 'Boschloo'
+  )
+  c(N1 = result$N1, N2 = result$N2, N_total = result$N)
+})
+
+colnames(ratio_results) <- paste0("r=", ratios)
+print("Sample sizes for different allocation ratios:")
+print(ratio_results)
+```
+
+### Sensitivity Analysis
+
+```{r sensitivity_analysis}
+# Sensitivity analysis for key parameters
+sensitivity_data <- expand.grid(
+  omega = c(0.3, 0.5, 0.7),
+  alpha = c(0.01, 0.025, 0.05)
+) %>%
+  rowwise() %>%
+  mutate(
+    avg_power = mean(BinaryPowerBSSR(
+      asmd.p1 = 0.45, asmd.p2 = 0.09, 
+      p = seq(0.2, 0.8, by = 0.1),
+      Delta.A = 0.36, Delta.T = 0.36, 
+      N1 = 24, N2 = 24, omega = omega, r = 1, 
+      alpha = alpha, tar.power = 0.8, 
+      Test = 'Z-pool', 
+      restricted = FALSE, weighted = FALSE
+    )$power.BSSR)
+  )
+
+print("Sensitivity analysis results:")
+print(sensitivity_data)
+```
+
+## Conclusion
+
+The `bbssr` package provides a comprehensive toolkit for implementing blinded sample size re-estimation in clinical trials with binary endpoints. The choice of statistical test and design approach should be based on:
+
+1. **Sample size considerations**
+2. **Regulatory requirements**
+3. **Computational constraints**
+4. **Risk tolerance**
+
+All methods maintain exact statistical validity while providing the flexibility needed for efficient clinical trial conduct.

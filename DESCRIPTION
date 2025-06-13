@@ -5,13 +5,31 @@ Version: 1.0.0
 Date: 2025-05-23
 Authors@R: person("Gosuke", "Homma", email = "my.name.is.gosuke@gmail.com", 
                   role = c("aut", "cre"))
-Description: Provides functions for calculating power, sample size, and rejection regions for two-arm trials with binary endpoints using exact statistical tests. Supports five different test methods: Pearson chi-squared test, Fisher exact test, Fisher mid-p test, Z-pooled exact unconditional test, and Boschloo exact unconditional test. Includes functionality for blinded sample size re-estimation (BSSR).
+Description: Provides comprehensive tools for blinded sample size re-estimation (BSSR) 
+    in two-arm clinical trials with binary endpoints. Unlike traditional fixed-sample 
+    designs, BSSR allows adaptive sample size adjustments during trials while 
+    maintaining statistical integrity and study blinding. Implements five exact 
+    statistical tests: Pearson chi-squared, Fisher exact, Fisher mid-p, Z-pooled 
+    exact unconditional, and Boschloo exact unconditional tests. Supports restricted, 
+    unrestricted, and weighted BSSR approaches with exact Type I error control.
 License: MIT + file LICENSE
+URL: https://github.com/gosukehommaEX/bbssr
+BugReports: https://github.com/gosukehommaEX/bbssr/issues
 Depends: R (>= 3.5.0)
 Imports: 
     fpCompare,
     stats
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    dplyr,
+    ggplot2,
+    tibble,
+    tidyr
+VignetteBuilder: knitr
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
+Config/testthat/edition: 3
