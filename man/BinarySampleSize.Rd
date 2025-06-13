@@ -4,24 +4,20 @@
 \alias{BinarySampleSize}
 \title{Sample Size Calculation for Two-Arm Trials with Binary Endpoints}
 \usage{
-BinarySampleSize(p1, p2, r, alpha, tar.power, Test, BB = FALSE, gamma = 1e-04)
+BinarySampleSize(p1, p2, r, alpha, tar.power, Test)
 }
 \arguments{
-\item{p1}{True probability of responders for group 1.}
+\item{p1}{True probability of responders for group 1}
 
-\item{p2}{True probability of responders for group 2.}
+\item{p2}{True probability of responders for group 2}
 
-\item{r}{Allocation ratio to group 1 (i.e., allocation ratio of group 1:group 2 = r:1, r > 0).}
+\item{r}{Allocation ratio to group 1 (i.e., allocation ratio of group 1:group 2 = r:1, r > 0)}
 
-\item{alpha}{One-sided level of significance.}
+\item{alpha}{One-sided level of significance}
 
-\item{tar.power}{Target power.}
+\item{tar.power}{Target power}
 
-\item{Test}{Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'.}
-
-\item{BB}{Logical. If TRUE, apply Berger-Boos approach for 'Z-pool' and 'Boschloo' tests (default: FALSE).}
-
-\item{gamma}{Berger-Boos parameter for confidence interval adjustment (default: 0.0001).}
+\item{Test}{Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'}
 }
 \value{
 A data frame containing:
@@ -41,7 +37,6 @@ A data frame containing:
 \description{
 Calculates the required sample size for two-arm trials with binary endpoints using
 various exact statistical tests. The function supports five different one-sided tests.
-This optimized version provides consistent results and improved computational efficiency.
 }
 \details{
 The function supports the following five one-sided tests:
@@ -53,19 +48,12 @@ The function supports the following five one-sided tests:
 \item The Boschloo exact unconditional test (Boschloo)
 }
 
-The optimized calculation uses a three-step approach:
+The calculation uses a three-step approach:
 \enumerate{
-\item Calculate conservative initial sample size (intentionally smaller than required)
-\item Use binary search for efficient range exploration when power gap is large
-\item Fine-tune with sequential search for precise final result
+\item Calculate initial sample size using normal approximation for chi-squared test
+\item Perform power calculation with the initial sample size
+\item Use grid search algorithm to find the optimal sample size
 }
-
-This approach ensures consistent results by always searching in the increasing direction
-and provides significant speed improvements through intelligent search algorithms.
-
-When BB = TRUE, the Berger-Boos approach based on Clopper-Pearson confidence intervals
-is applied to 'Z-pool' and 'Boschloo' tests for improved computational efficiency while
-maintaining statistical validity.
 }
 \examples{
 \dontrun{
@@ -78,12 +66,9 @@ print(result1)
 result2 <- BinarySampleSize(p1 = 0.5, p2 = 0.2, r = 3, alpha = 0.025,
                            tar.power = 0.9, Test = 'Fisher')
 print(result2)
-
-# Sample size for Boschloo test with Berger-Boos approach
-result3 <- BinarySampleSize(p1 = 0.6, p2 = 0.3, r = 1, alpha = 0.025,
-                           tar.power = 0.8, Test = 'Boschloo',
-                           BB = TRUE, gamma = 0.0001)
-print(result3)
 }
 
+}
+\author{
+Gosuke Homma (\email{my.name.is.gosuke@gmail.com})
 }

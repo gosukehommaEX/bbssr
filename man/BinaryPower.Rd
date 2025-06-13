@@ -4,24 +4,20 @@
 \alias{BinaryPower}
 \title{Power Calculation for Two-Arm Trials with Binary Endpoints}
 \usage{
-BinaryPower(p1, p2, N1, N2, alpha, Test, BB = FALSE, gamma = 1e-04)
+BinaryPower(p1, p2, N1, N2, alpha, Test)
 }
 \arguments{
-\item{p1}{True probability of responders for group 1 (can be a vector with different values).}
+\item{p1}{True probability of responders for group 1 (can be a vector with different values)}
 
-\item{p2}{True probability of responders for group 2 (can be a vector with different values).}
+\item{p2}{True probability of responders for group 2 (can be a vector with different values)}
 
-\item{N1}{Sample size for group 1.}
+\item{N1}{Sample size for group 1}
 
-\item{N2}{Sample size for group 2.}
+\item{N2}{Sample size for group 2}
 
-\item{alpha}{One-sided level of significance.}
+\item{alpha}{One-sided level of significance}
 
-\item{Test}{Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'.}
-
-\item{BB}{Logical. If TRUE, apply Berger-Boos approach for 'Z-pool' and 'Boschloo' tests (default: FALSE).}
-
-\item{gamma}{Berger-Boos parameter for confidence interval adjustment (default: 0.0001).}
+\item{Test}{Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'}
 }
 \value{
 A numeric value or vector of power values. If vectors are provided for p1 and p2,
@@ -30,7 +26,6 @@ a vector of powers corresponding to each combination will be returned.
 \description{
 Calculates power for two-arm trials with binary endpoints using exact statistical tests.
 The function supports five different one-sided tests and can handle vectors of probabilities.
-Supports optional Berger-Boos approach for improved computational efficiency.
 }
 \details{
 The function supports the following five one-sided tests:
@@ -43,9 +38,7 @@ The function supports the following five one-sided tests:
 }
 
 The power calculation is based on the exact distribution of the test statistic
-under the specified alternative hypothesis. When BB = TRUE, the Berger-Boos
-approach based on Clopper-Pearson confidence intervals is applied to 'Z-pool' and
-'Boschloo' tests for improved computational efficiency while maintaining statistical validity.
+under the specified alternative hypothesis.
 }
 \examples{
 \dontrun{
@@ -60,12 +53,9 @@ p2_vec <- c(0.2, 0.2, 0.2, 0.2)
 powers <- BinaryPower(p1 = p1_vec, p2 = p2_vec, N1 = 10, N2 = 40,
                      alpha = 0.025, Test = 'Fisher')
 print(powers)
-
-# Power calculation with Berger-Boos approach
-power_bb <- BinaryPower(p1 = 0.6, p2 = 0.3, N1 = 20, N2 = 20,
-                       alpha = 0.025, Test = 'Boschloo',
-                       BB = TRUE, gamma = 0.0001)
-print(power_bb)
 }
 
+}
+\author{
+Gosuke Homma (\email{my.name.is.gosuke@gmail.com})
 }
