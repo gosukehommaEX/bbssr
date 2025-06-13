@@ -2,16 +2,13 @@
 #'
 #' Calculates power for two-arm trials with binary endpoints using exact statistical tests.
 #' The function supports five different one-sided tests and can handle vectors of probabilities.
-#' Supports optional Berger-Boos approach for improved computational efficiency.
 #'
-#' @param p1 True probability of responders for group 1 (can be a vector with different values).
-#' @param p2 True probability of responders for group 2 (can be a vector with different values).
-#' @param N1 Sample size for group 1.
-#' @param N2 Sample size for group 2.
-#' @param alpha One-sided level of significance.
-#' @param Test Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'.
-#' @param BB Logical. If TRUE, apply Berger-Boos approach for 'Z-pool' and 'Boschloo' tests (default: FALSE).
-#' @param gamma Berger-Boos parameter for confidence interval adjustment (default: 0.0001).
+#' @param p1 True probability of responders for group 1 (can be a vector with different values)
+#' @param p2 True probability of responders for group 2 (can be a vector with different values)
+#' @param N1 Sample size for group 1
+#' @param N2 Sample size for group 2
+#' @param alpha One-sided level of significance
+#' @param Test Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'
 #'
 #' @return A numeric value or vector of power values. If vectors are provided for p1 and p2,
 #' a vector of powers corresponding to each combination will be returned.
@@ -27,9 +24,7 @@
 #' }
 #'
 #' The power calculation is based on the exact distribution of the test statistic
-#' under the specified alternative hypothesis. When BB = TRUE, the Berger-Boos
-#' approach based on Clopper-Pearson confidence intervals is applied to 'Z-pool' and
-#' 'Boschloo' tests for improved computational efficiency while maintaining statistical validity.
+#' under the specified alternative hypothesis.
 #'
 #' @examples
 #' \dontrun{
@@ -44,24 +39,17 @@
 #' powers <- BinaryPower(p1 = p1_vec, p2 = p2_vec, N1 = 10, N2 = 40,
 #'                      alpha = 0.025, Test = 'Fisher')
 #' print(powers)
-#'
-#' # Power calculation with Berger-Boos approach
-#' power_bb <- BinaryPower(p1 = 0.6, p2 = 0.3, N1 = 20, N2 = 20,
-#'                        alpha = 0.025, Test = 'Boschloo',
-#'                        BB = TRUE, gamma = 0.0001)
-#' print(power_bb)
 #' }
 #'
+#' @author Gosuke Homma (\email{my.name.is.gosuke@@gmail.com})
 #' @export
 #' @import fpCompare
 #' @import stats pbinom
-BinaryPower <- function(p1, p2, N1, N2, alpha, Test, BB = FALSE, gamma = 0.0001) {
+BinaryPower <- function(p1, p2, N1, N2, alpha, Test) {
   # Check that p1 and p2 are the same length
   if(length(p1) %!=% length(p2)) stop('p1 and p2 should be the same length')
-  # Set rejection region with optional Berger-Boos approach
-  RR <- BinaryRR(N1, N2, alpha, Test, BB = BB, gamma = gamma)
+  # Set rejection region
+  RR <- BinaryRR(N1, N2, alpha, Test)
   # Return power
-  sapply(seq(length(p1)), function(i) {
-    sum(dbinom(0:N1, N1, p1[i]) * pbinom(rowSums(RR) - 1, N2, p2[i]))
-  })
+  sapply(seq(length(p1)), function(i) sum(dbinom(0:N1, N1, p1[i]) * pbinom(rowSums(RR) - 1, N2, p2[i])))
 }
