@@ -62,7 +62,7 @@
 #' @author Gosuke Homma (\email{my.name.is.gosuke@@gmail.com})
 #' @export
 #' @import fpCompare
-#' @import stats dbinom pbinom
+#' @importFrom stats dbinom pbinom
 BinaryPowerBSSR <- function(asmd.p1, asmd.p2, p, Delta.A, Delta.T, N1, N2, omega, r, alpha, tar.power, Test, restricted, weighted) {
   # Initial sample sizes used for BSSR
   N11 <- ceiling(omega * N1)

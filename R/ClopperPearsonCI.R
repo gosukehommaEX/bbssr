@@ -35,7 +35,7 @@
 #' limits illustrated in the case of the binomial. Biometrika, 26(4), 404-413.
 #'
 #' @export
-#' @import stats qbeta
+#' @importFrom stats qbeta
 ClopperPearsonCI <- function(x, n, alpha) {
 
   # Input validation
