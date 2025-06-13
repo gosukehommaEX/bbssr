@@ -1,12 +1,12 @@
-# ExactBinaryFamily
+# bbssr
 
 <!-- badges: start -->
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/ExactBinaryFamily)](http://cran.r-project.org/package=ExactBinaryFamily)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/bbssr)](http://cran.r-project.org/package=bbssr)
 <!-- badges: end -->
 
 ## Overview
 
-`ExactBinaryFamily` is an R package that provides functions for calculating power, sample size, and rejection regions
+`bbssr` is an R package that provides functions for calculating power, sample size, and rejection regions
     for two-arm trials with binary endpoints using exact statistical tests. Supports
     five different test methods: Pearson chi-squared test, Fisher exact test, 
     Fisher mid-p test, Z-pooled exact unconditional test, and Boschloo exact 
@@ -15,18 +15,18 @@
 
 ## Installation
 
-You can install the development version of ExactBinaryFamily from GitHub with:
+You can install the development version of bbssr from GitHub with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("gosukehommaEX/ExactBinaryFamily")
+devtools::install_github("gosukehommaEX/bbssr")
 ```
 
 ## Usage
 
 ``` r
 # Load packages
-library(ExactBinaryFamily)
+library(bbssr)
 library(dplyr)
 library(ggplot2)
 
