@@ -1,3 +1,10 @@
+# bbssr 1.0.2
+
+## Minor Updates
+
+* Fixed title case in DESCRIPTION file for CRAN submission
+* Updated from "Re-estimation" to "Re-Estimation" as requested by CRAN
+
 # bbssr 1.0.1
 
 ## Minor Updates
