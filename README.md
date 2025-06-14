@@ -200,9 +200,9 @@ All methods in `bbssr` maintain exact Type I error control at the specified α l
 ## Vignettes
 
 For detailed examples and theoretical background, see:
-- `vignette("bbssr-introduction")` - Getting started guide
-- `vignette("bbssr-statistical-methods")` - Statistical methodology
-- `vignette("bbssr-validation")` - Function validation and performance comparison
+- [`vignette("bbssr-introduction")`](https://htmlpreview.github.io/?https://github.com/gosukehommaEX/bbssr/blob/main/doc/bbssr-introduction.html) - Getting started guide
+- [`vignette("bbssr-statistical-methods")`](https://htmlpreview.github.io/?https://github.com/gosukehommaEX/bbssr/blob/main/doc/bbssr-statistical-methods.html) - Statistical methodology
+- [`vignette("bbssr-validation")`](https://htmlpreview.github.io/?https://github.com/gosukehommaEX/bbssr/blob/main/doc/bbssr-validation.html) - Function validation and performance comparison
 
 ## License
 
