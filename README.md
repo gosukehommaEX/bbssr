@@ -221,7 +221,7 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Author
 
-**Gosuke Homma** - [my.name.is.gosuke@gmail.com](mailto:my.name.is.gosuke@gmail.com)
+**Gosuke Homma**
 
 ---
 
