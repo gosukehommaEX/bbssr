@@ -200,20 +200,6 @@ All methods in `bbssr` maintain exact Type I error control at the specified α l
 For detailed examples and theoretical background, see:
 - `vignette("bbssr-introduction")` - Getting started guide
 - `vignette("bbssr-statistical-methods")` - Statistical methodology
-- `vignette("bbssr-design-comparison")` - Comparing BSSR approaches
-
-## Citation
-
-If you use `bbssr` in your research, please cite:
-
-```
-Homma, G. (2025). bbssr: Blinded Sample Size Re-estimation for Binary Endpoints. 
-R package version 1.0.0. https://CRAN.R-project.org/package=bbssr
-```
-
-## Contributing
-
-Contributions are welcome! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
 ## License
 
