@@ -1,6 +1,6 @@
 # bbssr: Blinded Sample Size Re-estimation for Binary Endpoints
 
-<img src="hex_stickers/bbssr_sticker.png" align="right" height="139" />
+<img src="man/figures/bbssr_sticker.png" align="right" height="139" />
 
 <!-- badges: start -->
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/bbssr)](http://cran.r-project.org/package=bbssr)
