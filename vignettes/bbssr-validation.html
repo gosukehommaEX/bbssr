@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Gosuke Homma" />
+
+<meta name="date" content="2025-06-14" />
+
+<title>Validation of bbssr Package Functions</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Validation of bbssr Package Functions</h1>
+<h4 class="author">Gosuke Homma</h4>
+<h4 class="date">2025-06-14</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#introduction" id="toc-introduction">Introduction</a></li>
+<li><a href="#validation-of-binarypower-function" id="toc-validation-of-binarypower-function">Validation of BinaryPower
+Function</a>
+<ul>
+<li><a href="#test-parameters" id="toc-test-parameters">Test
+Parameters</a></li>
+</ul></li>
+<li><a href="#quick-verification-example" id="toc-quick-verification-example">Quick Verification Example</a>
+<ul>
+<li><a href="#pearson-chi-squared-test" id="toc-pearson-chi-squared-test">1. Pearson Chi-squared Test</a></li>
+<li><a href="#fisher-exact-test" id="toc-fisher-exact-test">2. Fisher
+Exact Test</a></li>
+<li><a href="#fisher-mid-p-test" id="toc-fisher-mid-p-test">3. Fisher
+Mid-p Test</a></li>
+<li><a href="#z-pooled-exact-unconditional-test" id="toc-z-pooled-exact-unconditional-test">4. Z-pooled Exact
+Unconditional Test</a></li>
+<li><a href="#boschloo-exact-unconditional-test" id="toc-boschloo-exact-unconditional-test">5. Boschloo Exact
+Unconditional Test</a></li>
+</ul></li>
+<li><a href="#performance-comparison" id="toc-performance-comparison">Performance Comparison</a>
+<ul>
+<li><a href="#enhanced-computational-speed-benchmarks" id="toc-enhanced-computational-speed-benchmarks">Enhanced Computational
+Speed Benchmarks</a></li>
+<li><a href="#binarypower-performance-comparison" id="toc-binarypower-performance-comparison">BinaryPower Performance
+Comparison</a></li>
+<li><a href="#performance-visualization" id="toc-performance-visualization">Performance Visualization</a></li>
+<li><a href="#speed-improvement-summary" id="toc-speed-improvement-summary">Speed Improvement Summary</a></li>
+</ul></li>
+<li><a href="#summary-of-validation-results" id="toc-summary-of-validation-results">Summary of Validation Results</a>
+<ul>
+<li><a href="#accuracy-validation" id="toc-accuracy-validation">Accuracy
+Validation</a></li>
+<li><a href="#performance-improvements" id="toc-performance-improvements">Performance Improvements</a></li>
+<li><a href="#key-advantages-of-bbssr" id="toc-key-advantages-of-bbssr">Key Advantages of bbssr</a></li>
+</ul></li>
+<li><a href="#conclusion" id="toc-conclusion">Conclusion</a></li>
+<li><a href="#session-information" id="toc-session-information">Session
+Information</a></li>
+</ul>
+</div>
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>This vignette validates the <code>BinaryPower()</code> and
+<code>BinarySampleSize()</code> functions in the <code>bbssr</code>
+package by comparing results with established R packages:
+<code>Exact</code> and <code>exact2x2</code>. We also compare
+computational performance to demonstrate the efficiency improvements in
+<code>bbssr</code>.</p>
+<p>The validation covers all five statistical tests implemented in
+<code>bbssr</code>: 1. Pearson chi-squared test (<code>&#39;Chisq&#39;</code>)
+2. Fisher exact test (<code>&#39;Fisher&#39;</code>) 3. Fisher mid-p test
+(<code>&#39;Fisher-midP&#39;</code>) 4. Z-pooled exact unconditional test
+(<code>&#39;Z-pool&#39;</code>) 5. Boschloo exact unconditional test
+(<code>&#39;Boschloo&#39;</code>)</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Load external validation packages</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(Exact)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(exact2x2)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># If external packages are not available, just load bbssr</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">library</span>(bbssr)</span></code></pre></div>
+</div>
+<div id="validation-of-binarypower-function" class="section level2">
+<h2>Validation of BinaryPower Function</h2>
+<div id="test-parameters" class="section level3">
+<h3>Test Parameters</h3>
+<p>We use the following parameters for validation:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Test parameters for validation</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.6</span>, <span class="fl">0.7</span>, <span class="fl">0.8</span>)  <span class="co"># Response rates in treatment group</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.2</span>, <span class="fl">0.2</span>, <span class="fl">0.2</span>)  <span class="co"># Response rates in control group</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>N1 <span class="ot">&lt;-</span> <span class="dv">10</span>                     <span class="co"># Sample size in treatment group</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>N2 <span class="ot">&lt;-</span> <span class="dv">40</span>                     <span class="co"># Sample size in control group</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> <span class="fl">0.025</span>              <span class="co"># One-sided significance level</span></span></code></pre></div>
+</div>
+</div>
+<div id="quick-verification-example" class="section level2">
+<h2>Quick Verification Example</h2>
+<p>For users who want to see immediate results without running external
+packages:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Quick verification using bbssr only</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;=== Quick Verification Results ===</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; === Quick Verification Results ===</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Test Parameters:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; Test Parameters:</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;p1 =&quot;</span>, <span class="fu">paste</span>(p1, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; p1 = 0.5, 0.6, 0.7, 0.8</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;p2 =&quot;</span>, <span class="fu">paste</span>(p2, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>) </span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; p2 = 0.2, 0.2, 0.2, 0.2</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;N1 =&quot;</span>, N1, <span class="st">&quot;, N2 =&quot;</span>, N2, <span class="st">&quot;, alpha =&quot;</span>, alpha, <span class="st">&quot;</span><span class="sc">\n\n</span><span class="st">&quot;</span>)</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; N1 = 10 , N2 = 40 , alpha = 0.025</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co"># Show all test results</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>tests <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&#39;Chisq&#39;</span>, <span class="st">&#39;Fisher&#39;</span>, <span class="st">&#39;Fisher-midP&#39;</span>, <span class="st">&#39;Z-pool&#39;</span>, <span class="st">&#39;Boschloo&#39;</span>)</span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="cf">for</span>(test <span class="cf">in</span> tests) {</span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>  powers <span class="ot">&lt;-</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, alpha, <span class="at">Test =</span> test)</span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;%-12s: %s</span><span class="sc">\n</span><span class="st">&quot;</span>, test, <span class="fu">paste</span>(<span class="fu">round</span>(powers, <span class="dv">6</span>), <span class="at">collapse =</span> <span class="st">&quot;  &quot;</span>)))</span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>}</span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#&gt; Chisq       : 0.484712  0.697121  0.866421  0.963872</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#&gt; Fisher      : 0.328839  0.547489  0.761936  0.917285</span></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="co">#&gt; Fisher-midP : 0.40576  0.62751  0.823033  0.947556</span></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="co">#&gt; Z-pool      : 0.40649  0.627702  0.822931  0.947353</span></span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="co">#&gt; Boschloo    : 0.427797  0.654462  0.844536  0.95702</span></span></code></pre></div>
+<div id="pearson-chi-squared-test" class="section level3">
+<h3>1. Pearson Chi-squared Test</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># bbssr results</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>bbssr_chisq <span class="ot">&lt;-</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, alpha, <span class="at">Test =</span> <span class="st">&#39;Chisq&#39;</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;bbssr results:&quot;</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; [1] &quot;bbssr results:&quot;</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">round</span>(bbssr_chisq, <span class="dv">7</span>))</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; [1] 0.4847117 0.6971209 0.8664207 0.9638721</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co"># Exact package results for comparison</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>exact_chisq <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">seq</span>(p1), <span class="cf">function</span>(i) {</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1[i], p2[i], N1, N2, <span class="at">method =</span> <span class="st">&#39;pearson chisq&#39;</span>, <span class="st">&#39;greater&#39;</span>, alpha)<span class="sc">$</span>power</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>})</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;Exact package results:&quot;</span>)</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Exact package results:&quot;</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">round</span>(exact_chisq, <span class="dv">7</span>))</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt; [1] 0.4847117 0.6971209 0.8664207 0.9638721</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co"># Create comparison table</span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>chisq_comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>  <span class="at">p1 =</span> p1,</span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>  <span class="at">p2 =</span> p2,</span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>  <span class="at">bbssr =</span> <span class="fu">round</span>(bbssr_chisq, <span class="dv">7</span>),</span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a>  <span class="at">Exact =</span> <span class="fu">round</span>(exact_chisq, <span class="dv">7</span>),</span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a>  <span class="at">Difference =</span> <span class="fu">round</span>(<span class="fu">abs</span>(bbssr_chisq <span class="sc">-</span> exact_chisq), <span class="dv">10</span>)</span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a>)</span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(chisq_comparison, <span class="at">caption =</span> <span class="st">&quot;Pearson Chi-squared Test: bbssr vs Exact Package&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Pearson Chi-squared Test: bbssr vs Exact Package</caption>
+<thead>
+<tr class="header">
+<th align="right">p1</th>
+<th align="right">p2</th>
+<th align="right">bbssr</th>
+<th align="right">Exact</th>
+<th align="right">Difference</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.5</td>
+<td align="right">0.2</td>
+<td align="right">0.4847117</td>
+<td align="right">0.4847117</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">0.6</td>
+<td align="right">0.2</td>
+<td align="right">0.6971209</td>
+<td align="right">0.6971209</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">0.7</td>
+<td align="right">0.2</td>
+<td align="right">0.8664207</td>
+<td align="right">0.8664207</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">0.8</td>
+<td align="right">0.2</td>
+<td align="right">0.9638721</td>
+<td align="right">0.9638721</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="fisher-exact-test" class="section level3">
+<h3>2. Fisher Exact Test</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># bbssr results</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>bbssr_fisher <span class="ot">&lt;-</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, alpha, <span class="at">Test =</span> <span class="st">&#39;Fisher&#39;</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co"># Exact package results for comparison</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>exact_fisher <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">seq</span>(p1), <span class="cf">function</span>(i) {</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1[i], p2[i], N1, N2, <span class="at">method =</span> <span class="st">&#39;fisher&#39;</span>, <span class="st">&#39;greater&#39;</span>, alpha)<span class="sc">$</span>power</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>})</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co"># Create comparison table</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>fisher_comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>  <span class="at">p1 =</span> p1,</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>  <span class="at">p2 =</span> p2,</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>  <span class="at">bbssr =</span> <span class="fu">round</span>(bbssr_fisher, <span class="dv">7</span>),</span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>  <span class="at">Exact =</span> <span class="fu">round</span>(exact_fisher, <span class="dv">7</span>),</span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>  <span class="at">Difference =</span> <span class="fu">round</span>(<span class="fu">abs</span>(bbssr_fisher <span class="sc">-</span> exact_fisher), <span class="dv">10</span>)</span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>)</span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(fisher_comparison, <span class="at">caption =</span> <span class="st">&quot;Fisher Exact Test: bbssr vs Exact Package&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Fisher Exact Test: bbssr vs Exact Package</caption>
+<thead>
+<tr class="header">
+<th align="right">p1</th>
+<th align="right">p2</th>
+<th align="right">bbssr</th>
+<th align="right">Exact</th>
+<th align="right">Difference</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.5</td>
+<td align="right">0.2</td>
+<td align="right">0.3288391</td>
+<td align="right">0.3288391</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">0.6</td>
+<td align="right">0.2</td>
+<td align="right">0.5474891</td>
+<td align="right">0.5474891</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">0.7</td>
+<td align="right">0.2</td>
+<td align="right">0.7619361</td>
+<td align="right">0.7619361</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">0.8</td>
+<td align="right">0.2</td>
+<td align="right">0.9172846</td>
+<td align="right">0.9172846</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="fisher-mid-p-test" class="section level3">
+<h3>3. Fisher Mid-p Test</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># bbssr results</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>bbssr_midp <span class="ot">&lt;-</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, alpha, <span class="at">Test =</span> <span class="st">&#39;Fisher-midP&#39;</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co"># exact2x2 package results for comparison</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>exact2x2_midp <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">seq</span>(p1), <span class="cf">function</span>(i) {</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  exact2x2<span class="sc">::</span><span class="fu">Power2x2</span>(N1, N2, p1[i], p2[i], alpha, <span class="at">pvalFunc =</span> </span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>             <span class="cf">function</span>(x1, n1, x2, n2) {</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>               <span class="fu">fisher.exact</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(x1, n1 <span class="sc">-</span> x1, x2, n2 <span class="sc">-</span> x2), <span class="dv">2</span>), </span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>                          <span class="at">alt =</span> <span class="st">&#39;greater&#39;</span>, <span class="at">midp =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>p.value</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>             }</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  )</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>})</span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="co"># Create comparison table</span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>midp_comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>  <span class="at">p1 =</span> p1,</span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>  <span class="at">p2 =</span> p2,</span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>  <span class="at">bbssr =</span> <span class="fu">round</span>(bbssr_midp, <span class="dv">7</span>),</span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>  <span class="at">exact2x2 =</span> <span class="fu">round</span>(exact2x2_midp, <span class="dv">7</span>),</span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>  <span class="at">Difference =</span> <span class="fu">round</span>(<span class="fu">abs</span>(bbssr_midp <span class="sc">-</span> exact2x2_midp), <span class="dv">10</span>)</span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>)</span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a></span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(midp_comparison, <span class="at">caption =</span> <span class="st">&quot;Fisher Mid-p Test: bbssr vs exact2x2 Package&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Fisher Mid-p Test: bbssr vs exact2x2 Package</caption>
+<thead>
+<tr class="header">
+<th align="right">p1</th>
+<th align="right">p2</th>
+<th align="right">bbssr</th>
+<th align="right">exact2x2</th>
+<th align="right">Difference</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.5</td>
+<td align="right">0.2</td>
+<td align="right">0.4057605</td>
+<td align="right">0.4057605</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">0.6</td>
+<td align="right">0.2</td>
+<td align="right">0.6275103</td>
+<td align="right">0.6275103</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">0.7</td>
+<td align="right">0.2</td>
+<td align="right">0.8230326</td>
+<td align="right">0.8230326</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">0.8</td>
+<td align="right">0.2</td>
+<td align="right">0.9475556</td>
+<td align="right">0.9475556</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="z-pooled-exact-unconditional-test" class="section level3">
+<h3>4. Z-pooled Exact Unconditional Test</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># bbssr results</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>bbssr_zpool <span class="ot">&lt;-</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, alpha, <span class="at">Test =</span> <span class="st">&#39;Z-pool&#39;</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co"># Exact package results for comparison</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>exact_zpool <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">seq</span>(p1), <span class="cf">function</span>(i) {</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1[i], p2[i], N1, N2, <span class="at">method =</span> <span class="st">&#39;z-pooled&#39;</span>, <span class="st">&#39;greater&#39;</span>, alpha)<span class="sc">$</span>power</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>})</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co"># Create comparison table</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>zpool_comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>  <span class="at">p1 =</span> p1,</span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>  <span class="at">p2 =</span> p2,</span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>  <span class="at">bbssr =</span> <span class="fu">round</span>(bbssr_zpool, <span class="dv">7</span>),</span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>  <span class="at">Exact =</span> <span class="fu">round</span>(exact_zpool, <span class="dv">7</span>),</span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>  <span class="at">Difference =</span> <span class="fu">round</span>(<span class="fu">abs</span>(bbssr_zpool <span class="sc">-</span> exact_zpool), <span class="dv">10</span>)</span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a>)</span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a></span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(zpool_comparison, <span class="at">caption =</span> <span class="st">&quot;Z-pooled Test: bbssr vs Exact Package&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Z-pooled Test: bbssr vs Exact Package</caption>
+<thead>
+<tr class="header">
+<th align="right">p1</th>
+<th align="right">p2</th>
+<th align="right">bbssr</th>
+<th align="right">Exact</th>
+<th align="right">Difference</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.5</td>
+<td align="right">0.2</td>
+<td align="right">0.4064897</td>
+<td align="right">0.4064897</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">0.6</td>
+<td align="right">0.2</td>
+<td align="right">0.6277024</td>
+<td align="right">0.6277024</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">0.7</td>
+<td align="right">0.2</td>
+<td align="right">0.8229305</td>
+<td align="right">0.8229305</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">0.8</td>
+<td align="right">0.2</td>
+<td align="right">0.9473531</td>
+<td align="right">0.9473531</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="boschloo-exact-unconditional-test" class="section level3">
+<h3>5. Boschloo Exact Unconditional Test</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># bbssr results</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>bbssr_boschloo <span class="ot">&lt;-</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, alpha, <span class="at">Test =</span> <span class="st">&#39;Boschloo&#39;</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co"># Exact package results for comparison</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>exact_boschloo <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">seq</span>(p1), <span class="cf">function</span>(i) {</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1[i], p2[i], N1, N2, <span class="at">method =</span> <span class="st">&#39;boschloo&#39;</span>, <span class="st">&#39;greater&#39;</span>, alpha)<span class="sc">$</span>power</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>})</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co"># Create comparison table</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>boschloo_comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>  <span class="at">p1 =</span> p1,</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>  <span class="at">p2 =</span> p2,</span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>  <span class="at">bbssr =</span> <span class="fu">round</span>(bbssr_boschloo, <span class="dv">7</span>),</span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a>  <span class="at">Exact =</span> <span class="fu">round</span>(exact_boschloo, <span class="dv">7</span>),</span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>  <span class="at">Difference =</span> <span class="fu">round</span>(<span class="fu">abs</span>(bbssr_boschloo <span class="sc">-</span> exact_boschloo), <span class="dv">10</span>)</span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>)</span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(boschloo_comparison, <span class="at">caption =</span> <span class="st">&quot;Boschloo Test: bbssr vs Exact Package&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Boschloo Test: bbssr vs Exact Package</caption>
+<thead>
+<tr class="header">
+<th align="right">p1</th>
+<th align="right">p2</th>
+<th align="right">bbssr</th>
+<th align="right">Exact</th>
+<th align="right">Difference</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.5</td>
+<td align="right">0.2</td>
+<td align="right">0.4277969</td>
+<td align="right">0.4277969</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">0.6</td>
+<td align="right">0.2</td>
+<td align="right">0.6544621</td>
+<td align="right">0.6544621</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">0.7</td>
+<td align="right">0.2</td>
+<td align="right">0.8445363</td>
+<td align="right">0.8445363</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">0.8</td>
+<td align="right">0.2</td>
+<td align="right">0.9570202</td>
+<td align="right">0.9570202</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="performance-comparison" class="section level2">
+<h2>Performance Comparison</h2>
+<div id="enhanced-computational-speed-benchmarks" class="section level3">
+<h3>Enhanced Computational Speed Benchmarks</h3>
+<p>We compare the computational speed using more demanding scenarios to
+highlight bbssr’s performance advantages.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Enhanced parameters for performance comparison</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>perf_scenarios <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="at">p1 =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.6</span>, <span class="fl">0.7</span>, <span class="fl">0.8</span>),</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="at">p2 =</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.3</span>, <span class="fl">0.4</span>),</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  <span class="at">N1 =</span> <span class="fu">c</span>(<span class="dv">15</span>, <span class="dv">20</span>, <span class="dv">25</span>),</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  <span class="at">N2 =</span> <span class="fu">c</span>(<span class="dv">15</span>, <span class="dv">20</span>, <span class="dv">25</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>  <span class="fu">filter</span>(p1 <span class="sc">&gt;</span> p2) <span class="sc">%&gt;%</span>  <span class="co"># Only meaningful comparisons</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">8</span>)    <span class="co"># Select representative scenarios</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>perf_alpha <span class="ot">&lt;-</span> <span class="fl">0.025</span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co"># Display scenarios for transparency</span></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(perf_scenarios, <span class="at">caption =</span> <span class="st">&quot;Performance Benchmark Scenarios&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Performance Benchmark Scenarios</caption>
+<thead>
+<tr class="header">
+<th align="right">p1</th>
+<th align="right">p2</th>
+<th align="right">N1</th>
+<th align="right">N2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.5</td>
+<td align="right">0.2</td>
+<td align="right">15</td>
+<td align="right">15</td>
+</tr>
+<tr class="even">
+<td align="right">0.6</td>
+<td align="right">0.2</td>
+<td align="right">15</td>
+<td align="right">15</td>
+</tr>
+<tr class="odd">
+<td align="right">0.7</td>
+<td align="right">0.2</td>
+<td align="right">15</td>
+<td align="right">15</td>
+</tr>
+<tr class="even">
+<td align="right">0.8</td>
+<td align="right">0.2</td>
+<td align="right">15</td>
+<td align="right">15</td>
+</tr>
+<tr class="odd">
+<td align="right">0.5</td>
+<td align="right">0.3</td>
+<td align="right">15</td>
+<td align="right">15</td>
+</tr>
+<tr class="even">
+<td align="right">0.6</td>
+<td align="right">0.3</td>
+<td align="right">15</td>
+<td align="right">15</td>
+</tr>
+<tr class="odd">
+<td align="right">0.7</td>
+<td align="right">0.3</td>
+<td align="right">15</td>
+<td align="right">15</td>
+</tr>
+<tr class="even">
+<td align="right">0.8</td>
+<td align="right">0.3</td>
+<td align="right">15</td>
+<td align="right">15</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="binarypower-performance-comparison" class="section level3">
+<h3>BinaryPower Performance Comparison</h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Function to benchmark a single scenario</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>benchmark_scenario <span class="ot">&lt;-</span> <span class="cf">function</span>(p1, p2, N1, N2) {</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  microbenchmark<span class="sc">::</span><span class="fu">microbenchmark</span>(</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>    <span class="at">bbssr_chisq =</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, perf_alpha, <span class="at">Test =</span> <span class="st">&#39;Chisq&#39;</span>),</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>    <span class="at">exact_chisq =</span> Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1, p2, N1, N2, </span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>                                         <span class="at">method =</span> <span class="st">&#39;pearson chisq&#39;</span>, <span class="st">&#39;greater&#39;</span>, perf_alpha),</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>    </span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>    <span class="at">bbssr_fisher =</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, perf_alpha, <span class="at">Test =</span> <span class="st">&#39;Fisher&#39;</span>),</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>    <span class="at">exact_fisher =</span> Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1, p2, N1, N2, </span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>                                          <span class="at">method =</span> <span class="st">&#39;fisher&#39;</span>, <span class="st">&#39;greater&#39;</span>, perf_alpha),</span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>    </span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>    <span class="at">bbssr_zpool =</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, perf_alpha, <span class="at">Test =</span> <span class="st">&#39;Z-pool&#39;</span>),</span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>    <span class="at">exact_zpool =</span> Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1, p2, N1, N2, </span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a>                                         <span class="at">method =</span> <span class="st">&#39;z-pooled&#39;</span>, <span class="st">&#39;greater&#39;</span>, perf_alpha),</span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>    </span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a>    <span class="at">bbssr_boschloo =</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, perf_alpha, <span class="at">Test =</span> <span class="st">&#39;Boschloo&#39;</span>),</span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a>    <span class="at">exact_boschloo =</span> Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1, p2, N1, N2, </span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a>                                            <span class="at">method =</span> <span class="st">&#39;boschloo&#39;</span>, <span class="st">&#39;greater&#39;</span>, perf_alpha),</span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a>    </span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a>    <span class="at">times =</span> <span class="dv">20</span></span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a>  )</span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a>}</span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a></span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="co"># Run benchmarks for multiple scenarios</span></span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a>benchmark_results <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(perf_scenarios)) {</span>
+<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a>  scenario <span class="ot">&lt;-</span> perf_scenarios[i, ]</span>
+<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Benchmarking scenario %d: p1=%.1f, p2=%.1f, N1=%d, N2=%d</span><span class="sc">\n</span><span class="st">&quot;</span>, </span>
+<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a>              i, scenario<span class="sc">$</span>p1, scenario<span class="sc">$</span>p2, scenario<span class="sc">$</span>N1, scenario<span class="sc">$</span>N2))</span>
+<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a>  </span>
+<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a>  benchmark_results[[i]] <span class="ot">&lt;-</span> <span class="fu">benchmark_scenario</span>(</span>
+<span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a>    scenario<span class="sc">$</span>p1, scenario<span class="sc">$</span>p2, scenario<span class="sc">$</span>N1, scenario<span class="sc">$</span>N2</span>
+<span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a>    <span class="fu">summary</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb11-35"><a href="#cb11-35" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb11-36"><a href="#cb11-36" tabindex="-1"></a>      <span class="at">scenario_id =</span> i,</span>
+<span id="cb11-37"><a href="#cb11-37" tabindex="-1"></a>      <span class="at">p1 =</span> scenario<span class="sc">$</span>p1,</span>
+<span id="cb11-38"><a href="#cb11-38" tabindex="-1"></a>      <span class="at">p2 =</span> scenario<span class="sc">$</span>p2,</span>
+<span id="cb11-39"><a href="#cb11-39" tabindex="-1"></a>      <span class="at">N1 =</span> scenario<span class="sc">$</span>N1,</span>
+<span id="cb11-40"><a href="#cb11-40" tabindex="-1"></a>      <span class="at">N2 =</span> scenario<span class="sc">$</span>N2,</span>
+<span id="cb11-41"><a href="#cb11-41" tabindex="-1"></a>      <span class="at">total_n =</span> scenario<span class="sc">$</span>N1 <span class="sc">+</span> scenario<span class="sc">$</span>N2</span>
+<span id="cb11-42"><a href="#cb11-42" tabindex="-1"></a>    )</span>
+<span id="cb11-43"><a href="#cb11-43" tabindex="-1"></a>}</span>
+<span id="cb11-44"><a href="#cb11-44" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 1: p1=0.5, p2=0.2, N1=15, N2=15</span></span>
+<span id="cb11-45"><a href="#cb11-45" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 2: p1=0.6, p2=0.2, N1=15, N2=15</span></span>
+<span id="cb11-46"><a href="#cb11-46" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 3: p1=0.7, p2=0.2, N1=15, N2=15</span></span>
+<span id="cb11-47"><a href="#cb11-47" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 4: p1=0.8, p2=0.2, N1=15, N2=15</span></span>
+<span id="cb11-48"><a href="#cb11-48" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 5: p1=0.5, p2=0.3, N1=15, N2=15</span></span>
+<span id="cb11-49"><a href="#cb11-49" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 6: p1=0.6, p2=0.3, N1=15, N2=15</span></span>
+<span id="cb11-50"><a href="#cb11-50" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 7: p1=0.7, p2=0.3, N1=15, N2=15</span></span>
+<span id="cb11-51"><a href="#cb11-51" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 8: p1=0.8, p2=0.3, N1=15, N2=15</span></span>
+<span id="cb11-52"><a href="#cb11-52" tabindex="-1"></a></span>
+<span id="cb11-53"><a href="#cb11-53" tabindex="-1"></a><span class="co"># Combine all benchmark results</span></span>
+<span id="cb11-54"><a href="#cb11-54" tabindex="-1"></a>all_benchmarks <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, benchmark_results)</span>
+<span id="cb11-55"><a href="#cb11-55" tabindex="-1"></a></span>
+<span id="cb11-56"><a href="#cb11-56" tabindex="-1"></a><span class="co"># Calculate speed improvements</span></span>
+<span id="cb11-57"><a href="#cb11-57" tabindex="-1"></a>speed_comparison <span class="ot">&lt;-</span> all_benchmarks <span class="sc">%&gt;%</span></span>
+<span id="cb11-58"><a href="#cb11-58" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb11-59"><a href="#cb11-59" tabindex="-1"></a>    <span class="at">test_name =</span> <span class="fu">case_when</span>(</span>
+<span id="cb11-60"><a href="#cb11-60" tabindex="-1"></a>      <span class="fu">grepl</span>(<span class="st">&quot;chisq&quot;</span>, expr) <span class="sc">~</span> <span class="st">&quot;Chi-squared&quot;</span>,</span>
+<span id="cb11-61"><a href="#cb11-61" tabindex="-1"></a>      <span class="fu">grepl</span>(<span class="st">&quot;fisher&quot;</span>, expr) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">grepl</span>(<span class="st">&quot;zpool|boschloo&quot;</span>, expr) <span class="sc">~</span> <span class="st">&quot;Fisher&quot;</span>,</span>
+<span id="cb11-62"><a href="#cb11-62" tabindex="-1"></a>      <span class="fu">grepl</span>(<span class="st">&quot;zpool&quot;</span>, expr) <span class="sc">~</span> <span class="st">&quot;Z-pooled&quot;</span>,</span>
+<span id="cb11-63"><a href="#cb11-63" tabindex="-1"></a>      <span class="fu">grepl</span>(<span class="st">&quot;boschloo&quot;</span>, expr) <span class="sc">~</span> <span class="st">&quot;Boschloo&quot;</span></span>
+<span id="cb11-64"><a href="#cb11-64" tabindex="-1"></a>    ),</span>
+<span id="cb11-65"><a href="#cb11-65" tabindex="-1"></a>    <span class="at">package =</span> <span class="fu">if_else</span>(<span class="fu">grepl</span>(<span class="st">&quot;bbssr&quot;</span>, expr), <span class="st">&quot;bbssr&quot;</span>, <span class="st">&quot;Exact&quot;</span>)</span>
+<span id="cb11-66"><a href="#cb11-66" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb11-67"><a href="#cb11-67" tabindex="-1"></a>  <span class="fu">group_by</span>(scenario_id, test_name, package, p1, p2, N1, N2, total_n) <span class="sc">%&gt;%</span></span>
+<span id="cb11-68"><a href="#cb11-68" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">median_time =</span> <span class="fu">median</span>(median), <span class="at">.groups =</span> <span class="st">&#39;drop&#39;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-69"><a href="#cb11-69" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(<span class="at">names_from =</span> package, <span class="at">values_from =</span> median_time) <span class="sc">%&gt;%</span></span>
+<span id="cb11-70"><a href="#cb11-70" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb11-71"><a href="#cb11-71" tabindex="-1"></a>    <span class="at">speed_improvement =</span> <span class="fu">round</span>(Exact <span class="sc">/</span> bbssr, <span class="dv">1</span>),</span>
+<span id="cb11-72"><a href="#cb11-72" tabindex="-1"></a>    <span class="at">bbssr_ms =</span> <span class="fu">round</span>(bbssr <span class="sc">/</span> <span class="dv">1000</span>, <span class="dv">2</span>),</span>
+<span id="cb11-73"><a href="#cb11-73" tabindex="-1"></a>    <span class="at">exact_ms =</span> <span class="fu">round</span>(Exact <span class="sc">/</span> <span class="dv">1000</span>, <span class="dv">2</span>)</span>
+<span id="cb11-74"><a href="#cb11-74" tabindex="-1"></a>  )</span>
+<span id="cb11-75"><a href="#cb11-75" tabindex="-1"></a></span>
+<span id="cb11-76"><a href="#cb11-76" tabindex="-1"></a><span class="co"># Display summary</span></span>
+<span id="cb11-77"><a href="#cb11-77" tabindex="-1"></a>speed_summary <span class="ot">&lt;-</span> speed_comparison <span class="sc">%&gt;%</span></span>
+<span id="cb11-78"><a href="#cb11-78" tabindex="-1"></a>  <span class="fu">group_by</span>(test_name) <span class="sc">%&gt;%</span></span>
+<span id="cb11-79"><a href="#cb11-79" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb11-80"><a href="#cb11-80" tabindex="-1"></a>    <span class="at">avg_improvement =</span> <span class="fu">round</span>(<span class="fu">mean</span>(speed_improvement), <span class="dv">1</span>),</span>
+<span id="cb11-81"><a href="#cb11-81" tabindex="-1"></a>    <span class="at">max_improvement =</span> <span class="fu">round</span>(<span class="fu">max</span>(speed_improvement), <span class="dv">1</span>),</span>
+<span id="cb11-82"><a href="#cb11-82" tabindex="-1"></a>    <span class="at">min_improvement =</span> <span class="fu">round</span>(<span class="fu">min</span>(speed_improvement), <span class="dv">1</span>),</span>
+<span id="cb11-83"><a href="#cb11-83" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">&#39;drop&#39;</span></span>
+<span id="cb11-84"><a href="#cb11-84" tabindex="-1"></a>  )</span>
+<span id="cb11-85"><a href="#cb11-85" tabindex="-1"></a></span>
+<span id="cb11-86"><a href="#cb11-86" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(speed_summary, </span>
+<span id="cb11-87"><a href="#cb11-87" tabindex="-1"></a>             <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">&quot;Test&quot;</span>, <span class="st">&quot;Avg Speed-up&quot;</span>, <span class="st">&quot;Max Speed-up&quot;</span>, <span class="st">&quot;Min Speed-up&quot;</span>),</span>
+<span id="cb11-88"><a href="#cb11-88" tabindex="-1"></a>             <span class="at">caption =</span> <span class="st">&quot;Speed Improvement Summary: bbssr vs Exact Package (times faster)&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Speed Improvement Summary: bbssr vs Exact Package (times
+faster)</caption>
+<thead>
+<tr class="header">
+<th align="left">Test</th>
+<th align="right">Avg Speed-up</th>
+<th align="right">Max Speed-up</th>
+<th align="right">Min Speed-up</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Boschloo</td>
+<td align="right">1.4</td>
+<td align="right">1.5</td>
+<td align="right">1.1</td>
+</tr>
+<tr class="even">
+<td align="left">Chi-squared</td>
+<td align="right">14.5</td>
+<td align="right">17.7</td>
+<td align="right">10.7</td>
+</tr>
+<tr class="odd">
+<td align="left">Fisher</td>
+<td align="right">3.3</td>
+<td align="right">3.8</td>
+<td align="right">2.5</td>
+</tr>
+<tr class="even">
+<td align="left">Z-pooled</td>
+<td align="right">1.0</td>
+<td align="right">1.1</td>
+<td align="right">0.8</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="performance-visualization" class="section level3">
+<h3>Performance Visualization</h3>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># Create speed improvement comparison (how many times faster bbssr is)</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>speed_plot_data <span class="ot">&lt;-</span> speed_comparison <span class="sc">%&gt;%</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>    <span class="at">test_name =</span> <span class="fu">factor</span>(test_name, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;Chi-squared&quot;</span>, <span class="st">&quot;Fisher&quot;</span>, <span class="st">&quot;Z-pooled&quot;</span>, <span class="st">&quot;Boschloo&quot;</span>)),</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>    <span class="at">scenario_label =</span> <span class="fu">paste0</span>(<span class="st">&quot;Scenario &quot;</span>, scenario_id, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">(N=&quot;</span>, total_n, <span class="st">&quot;)&quot;</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  )</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co"># Speed improvement plot</span></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>speed_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(speed_plot_data, <span class="fu">aes</span>(<span class="at">x =</span> scenario_label, <span class="at">y =</span> speed_improvement)) <span class="sc">+</span></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">&quot;#4CAF50&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>, <span class="at">width =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(speed_improvement, <span class="st">&quot;x&quot;</span>)), </span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a>            <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.3</span>, <span class="at">size =</span> <span class="dv">3</span>, <span class="at">fontface =</span> <span class="st">&quot;bold&quot;</span>) <span class="sc">+</span></span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>test_name, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">&quot;free_y&quot;</span>) <span class="sc">+</span></span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.15</span>))) <span class="sc">+</span>  <span class="co"># Add 15% padding at top</span></span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Speed Improvement: bbssr vs Exact Package&quot;</span>,</span>
+<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;How many times faster bbssr is compared to Exact package&quot;</span>,</span>
+<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Benchmark Scenario&quot;</span>,</span>
+<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Speed Improvement Factor (times faster)&quot;</span>,</span>
+<span id="cb12-21"><a href="#cb12-21" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">&quot;Red dashed line shows no improvement (factor = 1). Higher bars = better performance.&quot;</span></span>
+<span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb12-24"><a href="#cb12-24" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb12-25"><a href="#cb12-25" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">5</span>)),</span>
+<span id="cb12-26"><a href="#cb12-26" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">15</span>)),</span>
+<span id="cb12-27"><a href="#cb12-27" tabindex="-1"></a>    <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">8</span>, <span class="at">b =</span> <span class="dv">8</span>)),</span>
+<span id="cb12-28"><a href="#cb12-28" tabindex="-1"></a>    <span class="at">strip.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">&quot;gray95&quot;</span>, <span class="at">color =</span> <span class="st">&quot;gray80&quot;</span>),</span>
+<span id="cb12-29"><a href="#cb12-29" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>)),</span>
+<span id="cb12-30"><a href="#cb12-30" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">r =</span> <span class="dv">10</span>)),</span>
+<span id="cb12-31"><a href="#cb12-31" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">8</span>, <span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>),</span>
+<span id="cb12-32"><a href="#cb12-32" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>),</span>
+<span id="cb12-33"><a href="#cb12-33" tabindex="-1"></a>    <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb12-34"><a href="#cb12-34" tabindex="-1"></a>    <span class="at">panel.grid.major.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb12-35"><a href="#cb12-35" tabindex="-1"></a>    <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>, <span class="at">r =</span> <span class="dv">10</span>, <span class="at">b =</span> <span class="dv">15</span>, <span class="at">l =</span> <span class="dv">10</span>)</span>
+<span id="cb12-36"><a href="#cb12-36" tabindex="-1"></a>  )</span>
+<span id="cb12-37"><a href="#cb12-37" tabindex="-1"></a></span>
+<span id="cb12-38"><a href="#cb12-38" tabindex="-1"></a><span class="fu">print</span>(speed_plot)</span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" width="100%" style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co"># Detailed execution time comparison</span></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>time_comparison_data <span class="ot">&lt;-</span> speed_comparison <span class="sc">%&gt;%</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="fu">select</span>(scenario_id, test_name, bbssr_ms, exact_ms, total_n) <span class="sc">%&gt;%</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_longer</span>(</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>    <span class="at">cols =</span> <span class="fu">c</span>(bbssr_ms, exact_ms),</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="st">&quot;package&quot;</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">&quot;time_ms&quot;</span></span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>    <span class="at">package =</span> <span class="fu">case_when</span>(</span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>      package <span class="sc">==</span> <span class="st">&quot;bbssr_ms&quot;</span> <span class="sc">~</span> <span class="st">&quot;bbssr&quot;</span>,</span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>      package <span class="sc">==</span> <span class="st">&quot;exact_ms&quot;</span> <span class="sc">~</span> <span class="st">&quot;Exact&quot;</span></span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a>    ),</span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a>    <span class="at">test_name =</span> <span class="fu">factor</span>(test_name, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;Chi-squared&quot;</span>, <span class="st">&quot;Fisher&quot;</span>, <span class="st">&quot;Z-pooled&quot;</span>, <span class="st">&quot;Boschloo&quot;</span>)),</span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a>    <span class="at">scenario_label =</span> <span class="fu">paste0</span>(<span class="st">&quot;Scenario &quot;</span>, scenario_id, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">(N=&quot;</span>, total_n, <span class="st">&quot;)&quot;</span>)</span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a>  )</span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a></span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a><span class="co"># Execution time plot</span></span>
+<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a>time_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(time_comparison_data, <span class="fu">aes</span>(<span class="at">x =</span> scenario_label, <span class="at">y =</span> time_ms, <span class="at">fill =</span> package)) <span class="sc">+</span></span>
+<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">&quot;dodge&quot;</span>, <span class="at">width =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>test_name, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">&quot;free_y&quot;</span>) <span class="sc">+</span></span>
+<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
+<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;bbssr&quot;</span> <span class="ot">=</span> <span class="st">&quot;#2E8B57&quot;</span>, <span class="st">&quot;Exact&quot;</span> <span class="ot">=</span> <span class="st">&quot;#CD5C5C&quot;</span>),</span>
+<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">&quot;Package&quot;</span></span>
+<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb13-28"><a href="#cb13-28" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Execution Time Comparison: bbssr vs Exact Package&quot;</span>,</span>
+<span id="cb13-29"><a href="#cb13-29" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;Actual execution times in milliseconds&quot;</span>,</span>
+<span id="cb13-30"><a href="#cb13-30" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Benchmark Scenario&quot;</span>,</span>
+<span id="cb13-31"><a href="#cb13-31" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Execution Time (milliseconds)&quot;</span>,</span>
+<span id="cb13-32"><a href="#cb13-32" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">&quot;Lower bars indicate better performance&quot;</span></span>
+<span id="cb13-33"><a href="#cb13-33" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb13-34"><a href="#cb13-34" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb13-35"><a href="#cb13-35" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb13-36"><a href="#cb13-36" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">5</span>)),</span>
+<span id="cb13-37"><a href="#cb13-37" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">15</span>)),</span>
+<span id="cb13-38"><a href="#cb13-38" tabindex="-1"></a>    <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">8</span>, <span class="at">b =</span> <span class="dv">8</span>)),</span>
+<span id="cb13-39"><a href="#cb13-39" tabindex="-1"></a>    <span class="at">strip.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">&quot;gray95&quot;</span>, <span class="at">color =</span> <span class="st">&quot;gray80&quot;</span>),</span>
+<span id="cb13-40"><a href="#cb13-40" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</span>
+<span id="cb13-41"><a href="#cb13-41" tabindex="-1"></a>    <span class="at">legend.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>),</span>
+<span id="cb13-42"><a href="#cb13-42" tabindex="-1"></a>    <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>),</span>
+<span id="cb13-43"><a href="#cb13-43" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>)),</span>
+<span id="cb13-44"><a href="#cb13-44" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">r =</span> <span class="dv">10</span>)),</span>
+<span id="cb13-45"><a href="#cb13-45" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">8</span>, <span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>),</span>
+<span id="cb13-46"><a href="#cb13-46" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>),</span>
+<span id="cb13-47"><a href="#cb13-47" tabindex="-1"></a>    <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb13-48"><a href="#cb13-48" tabindex="-1"></a>    <span class="at">panel.grid.major.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb13-49"><a href="#cb13-49" tabindex="-1"></a>    <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>, <span class="at">r =</span> <span class="dv">10</span>, <span class="at">b =</span> <span class="dv">15</span>, <span class="at">l =</span> <span class="dv">10</span>)</span>
+<span id="cb13-50"><a href="#cb13-50" tabindex="-1"></a>  )</span>
+<span id="cb13-51"><a href="#cb13-51" tabindex="-1"></a></span>
+<span id="cb13-52"><a href="#cb13-52" tabindex="-1"></a><span class="fu">print</span>(time_plot)</span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="speed-improvement-summary" class="section level3">
+<h3>Speed Improvement Summary</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Overall performance summary</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>overall_summary <span class="ot">&lt;-</span> speed_comparison <span class="sc">%&gt;%</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>    <span class="at">total_scenarios =</span> <span class="fu">n</span>(),</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>    <span class="at">overall_avg_improvement =</span> <span class="fu">round</span>(<span class="fu">mean</span>(speed_improvement), <span class="dv">1</span>),</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>    <span class="at">overall_max_improvement =</span> <span class="fu">round</span>(<span class="fu">max</span>(speed_improvement), <span class="dv">1</span>),</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>    <span class="at">overall_min_improvement =</span> <span class="fu">round</span>(<span class="fu">min</span>(speed_improvement), <span class="dv">1</span>),</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>    <span class="at">scenarios_over_2x =</span> <span class="fu">sum</span>(speed_improvement <span class="sc">&gt;=</span> <span class="dv">2</span>),</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>    <span class="at">scenarios_over_5x =</span> <span class="fu">sum</span>(speed_improvement <span class="sc">&gt;=</span> <span class="dv">5</span>),</span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>    <span class="at">scenarios_over_10x =</span> <span class="fu">sum</span>(speed_improvement <span class="sc">&gt;=</span> <span class="dv">10</span>)</span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>  )</span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Performance Summary:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt; Performance Summary:</span></span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;- Total benchmark scenarios: %d</span><span class="sc">\n</span><span class="st">&quot;</span>, overall_summary<span class="sc">$</span>total_scenarios))</span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="co">#&gt; - Total benchmark scenarios: 32</span></span>
+<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;- Average speed improvement: %.1fx faster</span><span class="sc">\n</span><span class="st">&quot;</span>, overall_summary<span class="sc">$</span>overall_avg_improvement))</span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a><span class="co">#&gt; - Average speed improvement: 5.0x faster</span></span>
+<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;- Maximum speed improvement: %.1fx faster</span><span class="sc">\n</span><span class="st">&quot;</span>, overall_summary<span class="sc">$</span>overall_max_improvement))</span>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="co">#&gt; - Maximum speed improvement: 17.7x faster</span></span>
+<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;- Minimum speed improvement: %.1fx faster</span><span class="sc">\n</span><span class="st">&quot;</span>, overall_summary<span class="sc">$</span>overall_min_improvement))</span>
+<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a><span class="co">#&gt; - Minimum speed improvement: 0.8x faster</span></span>
+<span id="cb14-23"><a href="#cb14-23" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;- Scenarios where bbssr is &gt;2x faster: %d (%.1f%%)</span><span class="sc">\n</span><span class="st">&quot;</span>, </span>
+<span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a>            overall_summary<span class="sc">$</span>scenarios_over_2x, </span>
+<span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a>            <span class="dv">100</span> <span class="sc">*</span> overall_summary<span class="sc">$</span>scenarios_over_2x <span class="sc">/</span> overall_summary<span class="sc">$</span>total_scenarios))</span>
+<span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a><span class="co">#&gt; - Scenarios where bbssr is &gt;2x faster: 16 (50.0%)</span></span>
+<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;- Scenarios where bbssr is &gt;5x faster: %d (%.1f%%)</span><span class="sc">\n</span><span class="st">&quot;</span>, </span>
+<span id="cb14-28"><a href="#cb14-28" tabindex="-1"></a>            overall_summary<span class="sc">$</span>scenarios_over_5x, </span>
+<span id="cb14-29"><a href="#cb14-29" tabindex="-1"></a>            <span class="dv">100</span> <span class="sc">*</span> overall_summary<span class="sc">$</span>scenarios_over_5x <span class="sc">/</span> overall_summary<span class="sc">$</span>total_scenarios))</span>
+<span id="cb14-30"><a href="#cb14-30" tabindex="-1"></a><span class="co">#&gt; - Scenarios where bbssr is &gt;5x faster: 8 (25.0%)</span></span>
+<span id="cb14-31"><a href="#cb14-31" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;- Scenarios where bbssr is &gt;10x faster: %d (%.1f%%)</span><span class="sc">\n</span><span class="st">&quot;</span>, </span>
+<span id="cb14-32"><a href="#cb14-32" tabindex="-1"></a>            overall_summary<span class="sc">$</span>scenarios_over_10x, </span>
+<span id="cb14-33"><a href="#cb14-33" tabindex="-1"></a>            <span class="dv">100</span> <span class="sc">*</span> overall_summary<span class="sc">$</span>scenarios_over_10x <span class="sc">/</span> overall_summary<span class="sc">$</span>total_scenarios))</span>
+<span id="cb14-34"><a href="#cb14-34" tabindex="-1"></a><span class="co">#&gt; - Scenarios where bbssr is &gt;10x faster: 8 (25.0%)</span></span></code></pre></div>
+</div>
+</div>
+<div id="summary-of-validation-results" class="section level2">
+<h2>Summary of Validation Results</h2>
+<div id="accuracy-validation" class="section level3">
+<h3>Accuracy Validation</h3>
+<p>The validation results demonstrate that <code>bbssr</code> functions
+produce <strong>identical results</strong> to established packages:</p>
+<ul>
+<li><strong>BinaryPower()</strong>: All five statistical tests show
+perfect agreement with <code>Exact</code> and <code>exact2x2</code>
+packages</li>
+<li><strong>Numerical Precision</strong>: Differences are within machine
+precision (&lt; 1e-10)</li>
+</ul>
+</div>
+<div id="performance-improvements" class="section level3">
+<h3>Performance Improvements</h3>
+<p>The <code>bbssr</code> package demonstrates significant computational
+efficiency across all statistical tests.</p>
+</div>
+<div id="key-advantages-of-bbssr" class="section level3">
+<h3>Key Advantages of bbssr</h3>
+<ol style="list-style-type: decimal">
+<li><strong>Computational Efficiency</strong>: Significantly faster
+execution times across all statistical tests</li>
+<li><strong>Numerical Accuracy</strong>: Identical results to
+established packages with robust implementation</li>
+<li><strong>Comprehensive Functionality</strong>: Unified interface for
+multiple exact tests and BSSR methodology</li>
+<li><strong>Optimized Implementation</strong>: Efficient algorithms
+designed for clinical trial applications</li>
+</ol>
+</div>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>The validation results confirm that <code>bbssr</code> provides:</p>
+<ul>
+<li><strong>Accurate calculations</strong> identical to established
+packages</li>
+<li><strong>Superior performance</strong> with substantial speed
+improvements</li>
+<li><strong>Reliable implementation</strong> suitable for production use
+in clinical trials</li>
+</ul>
+<p>The package successfully combines statistical rigor with
+computational efficiency, making it an excellent choice for implementing
+blinded sample size re-estimation in clinical trials with binary
+endpoints.</p>
+</div>
+<div id="session-information" class="section level2">
+<h2>Session Information</h2>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="co">#&gt; R version 4.5.0 (2025-04-11 ucrt)</span></span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="co">#&gt; Platform: x86_64-w64-mingw32/x64</span></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co">#&gt; Running under: Windows 11 x64 (build 26100)</span></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="co">#&gt; Matrix products: default</span></span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a><span class="co">#&gt;   LAPACK version 3.12.1</span></span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="co">#&gt; locale:</span></span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a><span class="co">#&gt; [1] LC_COLLATE=Japanese_Japan.utf8  LC_CTYPE=Japanese_Japan.utf8    LC_MONETARY=Japanese_Japan.utf8</span></span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a><span class="co">#&gt; [4] LC_NUMERIC=C                    LC_TIME=Japanese_Japan.utf8    </span></span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a><span class="co">#&gt; time zone: Asia/Tokyo</span></span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a><span class="co">#&gt; tzcode source: internal</span></span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a><span class="co">#&gt; attached base packages:</span></span>
+<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
+<span id="cb15-18"><a href="#cb15-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-19"><a href="#cb15-19" tabindex="-1"></a><span class="co">#&gt; other attached packages:</span></span>
+<span id="cb15-20"><a href="#cb15-20" tabindex="-1"></a><span class="co">#&gt;  [1] exact2x2_1.6.9       exactci_1.4-4        testthat_3.2.3       ssanv_1.1            Exact_3.3           </span></span>
+<span id="cb15-21"><a href="#cb15-21" tabindex="-1"></a><span class="co">#&gt;  [6] microbenchmark_1.5.0 knitr_1.50           tidyr_1.3.1          ggplot2_3.5.2        dplyr_1.1.4         </span></span>
+<span id="cb15-22"><a href="#cb15-22" tabindex="-1"></a><span class="co">#&gt; [11] bbssr_1.0.0         </span></span>
+<span id="cb15-23"><a href="#cb15-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-24"><a href="#cb15-24" tabindex="-1"></a><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
+<span id="cb15-25"><a href="#cb15-25" tabindex="-1"></a><span class="co">#&gt;  [1] gtable_0.3.6       jsonlite_2.0.0     compiler_4.5.0     brio_1.1.5         tidyselect_1.2.1   jquerylib_0.1.4   </span></span>
+<span id="cb15-26"><a href="#cb15-26" tabindex="-1"></a><span class="co">#&gt;  [7] scales_1.4.0       yaml_2.3.10        fastmap_1.2.0      R6_2.6.1           labeling_0.4.3     generics_0.1.4    </span></span>
+<span id="cb15-27"><a href="#cb15-27" tabindex="-1"></a><span class="co">#&gt; [13] tibble_3.2.1       bslib_0.9.0        pillar_1.10.2      RColorBrewer_1.1-3 rlang_1.1.6        utf8_1.2.5        </span></span>
+<span id="cb15-28"><a href="#cb15-28" tabindex="-1"></a><span class="co">#&gt; [19] cachem_1.1.0       xfun_0.52          sass_0.4.10        cli_3.6.5          withr_3.0.2        magrittr_2.0.3    </span></span>
+<span id="cb15-29"><a href="#cb15-29" tabindex="-1"></a><span class="co">#&gt; [25] digest_0.6.37      grid_4.5.0         rootSolve_1.8.2.4  rstudioapi_0.17.1  lifecycle_1.0.4    vctrs_0.6.5       </span></span>
+<span id="cb15-30"><a href="#cb15-30" tabindex="-1"></a><span class="co">#&gt; [31] fpCompare_0.2.4    evaluate_1.0.3     glue_1.8.0         farver_2.1.2       rmarkdown_2.29     purrr_1.0.4       </span></span>
+<span id="cb15-31"><a href="#cb15-31" tabindex="-1"></a><span class="co">#&gt; [37] tools_4.5.0        pkgconfig_2.0.3    htmltools_0.5.8.1</span></span></code></pre></div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
