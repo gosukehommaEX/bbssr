@@ -1,75 +1,56 @@
 # bbssr: Blinded Sample Size Re-estimation for Binary Endpoints
 
 <!-- badges: start -->
-
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/bbssr)](http://cran.r-project.org/package=bbssr)
 [![R-CMD-check](https://github.com/gosukehommaEX/bbssr/workflows/R-CMD-check/badge.svg)](https://github.com/gosukehommaEX/bbssr/actions)
-[![Codecov test
-coverage](https://codecov.io/gh/gosukehommaEX/bbssr/branch/main/graph/badge.svg)](https://codecov.io/gh/gosukehommaEX/bbssr?branch=main)
-
 <!-- badges: end -->
 
 ## Overview
 
-`bbssr` is a comprehensive R package designed for **blinded sample size
-re-estimation (BSSR)** in two-arm clinical trials with binary endpoints.
-Unlike traditional fixed-sample designs, BSSR allows for adaptive sample
-size adjustments during the trial while maintaining the statistical
-integrity and blinding of the study.
+`bbssr` is a comprehensive R package designed for **blinded sample size re-estimation (BSSR)** in two-arm clinical trials with binary endpoints. Unlike traditional fixed-sample designs, BSSR allows for adaptive sample size adjustments during the trial while maintaining the statistical integrity and blinding of the study.
 
 ### Key Features
 
--   **Blinded Sample Size Re-estimation**: Implement adaptive trial
-    designs that adjust sample sizes based on pooled data without
-    unblinding treatment assignments
--   **Multiple Exact Statistical Tests**: Support for five different
-    exact statistical tests optimized for binary endpoints
--   **Flexible Design Options**: Choose between restricted,
-    unrestricted, and weighted BSSR approaches
--   **Comprehensive Power Analysis**: Calculate exact power for both
-    traditional and BSSR designs
--   **CRAN-Ready**: Fully documented with examples, vignettes, and
-    comprehensive test coverage
+- **Blinded Sample Size Re-estimation**: Implement adaptive trial designs that adjust sample sizes based on pooled data without unblinding treatment assignments
+- **Multiple Exact Statistical Tests**: Support for five different exact statistical tests optimized for binary endpoints
+- **Flexible Design Options**: Choose between restricted, unrestricted, and weighted BSSR approaches
+- **Comprehensive Power Analysis**: Calculate exact power for both traditional and BSSR designs
+- **CRAN-Ready**: Fully documented with examples, vignettes, and comprehensive test coverage
 
 ### Statistical Methods Supported
 
-The package implements five exact statistical tests specifically
-designed for binary endpoints in clinical trials:
+The package implements five exact statistical tests specifically designed for binary endpoints in clinical trials:
 
-1.  **Pearson chi-squared test** (`'Chisq'`) - One-sided exact test
-2.  **Fisher exact test** (`'Fisher'`) - Classical exact conditional
-    test
-3.  **Fisher mid-p test** (`'Fisher-midP'`) - Less conservative
-    alternative to Fisher exact
-4.  **Z-pooled exact unconditional test** (`'Z-pool'`) - Unconditional
-    exact test with pooled variance
-5.  **Boschloo exact unconditional test** (`'Boschloo'`) - Most powerful
-    unconditional exact test
+1. **Pearson chi-squared test** (`'Chisq'`) - One-sided exact test
+2. **Fisher exact test** (`'Fisher'`) - Classical exact conditional test
+3. **Fisher mid-p test** (`'Fisher-midP'`) - Less conservative alternative to Fisher exact
+4. **Z-pooled exact unconditional test** (`'Z-pool'`) - Unconditional exact test with pooled variance
+5. **Boschloo exact unconditional test** (`'Boschloo'`) - Most powerful unconditional exact test
 
 ## Why Use BSSR?
 
-Traditional clinical trials with fixed sample sizes often suffer from: -
-**Inefficient resource allocation** when initial assumptions are
-incorrect - **Underpowered studies** due to overly optimistic effect
-size estimates - **Ethical concerns** about continuing underpowered or
-overpowered trials
+Traditional clinical trials with fixed sample sizes often suffer from:
+- **Inefficient resource allocation** when initial assumptions are incorrect
+- **Underpowered studies** due to overly optimistic effect size estimates
+- **Ethical concerns** about continuing underpowered or overpowered trials
 
-BSSR addresses these issues by: - **Maintaining statistical validity**
-through exact methods - **Preserving blinding** by using only pooled
-response rates - **Optimizing sample sizes** based on observed data -
-**Improving trial efficiency** while controlling Type I error
+BSSR addresses these issues by:
+- **Maintaining statistical validity** through exact methods
+- **Preserving blinding** by using only pooled response rates
+- **Optimizing sample sizes** based on observed data
+- **Improving trial efficiency** while controlling Type I error
 
 ## Installation
 
 Install the released version from CRAN:
 
-``` r
+```r
 install.packages("bbssr")
 ```
 
 Or install the development version from GitHub:
 
-``` r
+```r
 # install.packages("devtools")
 devtools::install_github("gosukehommaEX/bbssr")
 ```
@@ -78,7 +59,7 @@ devtools::install_github("gosukehommaEX/bbssr")
 
 ### Basic Power Calculation
 
-``` r
+```r
 library(bbssr)
 
 # Calculate power for a traditional design
@@ -96,7 +77,7 @@ print(power_traditional)
 
 ### Sample Size Calculation
 
-``` r
+```r
 # Calculate required sample size
 sample_size <- BinarySampleSize(
   p1 = 0.5,           # Expected response rate in treatment group
@@ -112,7 +93,7 @@ print(sample_size)
 
 ### Blinded Sample Size Re-estimation
 
-``` r
+```r
 library(dplyr)
 
 # BSSR with different design rules
@@ -138,7 +119,7 @@ head(bssr_result)
 
 ## Advanced Example: Comparing BSSR Designs
 
-``` r
+```r
 library(bbssr)
 library(dplyr)
 library(ggplot2)
@@ -185,75 +166,63 @@ ggplot(power_comparison, aes(x = p, y = power.BSSR, color = Rule)) +
 
 ## Key Functions
 
-| Function             | Purpose                                              |
-|--------------------------------------|----------------------------------|
-| `BinaryPower()`      | Calculate power for traditional fixed-sample designs |
-| `BinarySampleSize()` | Calculate required sample size for given power       |
-| `BinaryPowerBSSR()`  | Calculate power for BSSR designs                     |
-| `BinaryRR()`         | Compute rejection regions for exact tests            |
-| `ClopperPearsonCI()` | Calculate exact confidence intervals                 |
+| Function | Purpose |
+|----------|---------|
+| `BinaryPower()` | Calculate power for traditional fixed-sample designs |
+| `BinarySampleSize()` | Calculate required sample size for given power |
+| `BinaryPowerBSSR()` | Calculate power for BSSR designs |
+| `BinaryRR()` | Compute rejection regions for exact tests |
+| `ClopperPearsonCI()` | Calculate exact confidence intervals |
 
 ## Design Options for BSSR
 
 ### Restricted Design (`restricted = TRUE`)
+- Conservative approach
+- Final sample size ≥ initially planned sample size
+- Maintains original study timeline
 
--   Conservative approach
--   Final sample size ≥ initially planned sample size
--   Maintains original study timeline
-
-### Unrestricted Design (`restricted = FALSE`)
-
--   Flexible approach
--   Allows both increases and decreases in sample size
--   Optimizes efficiency based on observed data
+### Unrestricted Design (`restricted = FALSE`)  
+- Flexible approach
+- Allows both increases and decreases in sample size
+- Optimizes efficiency based on observed data
 
 ### Weighted Design (`weighted = TRUE`)
-
--   Advanced approach
--   Uses weighted averaging across interim scenarios
--   Provides robust performance across different pooled response rates
+- Advanced approach
+- Uses weighted averaging across interim scenarios
+- Provides robust performance across different pooled response rates
 
 ## Statistical Validity
 
-All methods in `bbssr` maintain exact Type I error control at the
-specified α level. The package implements exact statistical tests rather
-than asymptotic approximations, ensuring validity even for small sample
-sizes commonly encountered in clinical trials.
+All methods in `bbssr` maintain exact Type I error control at the specified α level. The package implements exact statistical tests rather than asymptotic approximations, ensuring validity even for small sample sizes commonly encountered in clinical trials.
 
 ## Vignettes
 
-For detailed examples and theoretical background, see: -
-`vignette("bbssr-introduction")` - Getting started guide -
-`vignette("bbssr-statistical-methods")` - Statistical methodology -
-`vignette("bbssr-design-comparison")` - Comparing BSSR approaches
+For detailed examples and theoretical background, see:
+- `vignette("bbssr-introduction")` - Getting started guide
+- `vignette("bbssr-statistical-methods")` - Statistical methodology
+- `vignette("bbssr-design-comparison")` - Comparing BSSR approaches
 
 ## Citation
 
 If you use `bbssr` in your research, please cite:
 
-```         
+```
 Homma, G. (2025). bbssr: Blinded Sample Size Re-estimation for Binary Endpoints. 
 R package version 1.0.0. https://CRAN.R-project.org/package=bbssr
 ```
 
 ## Contributing
 
-Contributions are welcome! Please see our [Contributing
-Guidelines](CONTRIBUTING.md) for details.
+Contributions are welcome! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
 ## License
 
-This project is licensed under the MIT License - see the
-[LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## Author
 
-**Gosuke Homma**
+**Gosuke Homma** - [my.name.is.gosuke@gmail.com](mailto:my.name.is.gosuke@gmail.com)
 
-------------------------------------------------------------------------
+---
 
-**Note**: This package is designed for use by statisticians and clinical
-researchers familiar with adaptive trial designs. For regulatory
-submissions, please consult with biostatisticians and regulatory affairs
-specialists to ensure compliance with relevant guidelines (FDA, EMA,
-etc.).
+**Note**: This package is designed for use by statisticians and clinical researchers familiar with adaptive trial designs. For regulatory submissions, please consult with biostatisticians and regulatory affairs specialists to ensure compliance with relevant guidelines (FDA, EMA, etc.).
