@@ -1,0 +1,253 @@
+---
+title: "Introduction to bbssr: Blinded Sample Size Re-estimation for Binary Endpoints"
+author: "Gosuke Homma"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Introduction to bbssr: Blinded Sample Size Re-estimation for Binary Endpoints}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 6,
+  fig.align = "center"
+)
+```
+
+## Introduction
+
+The `bbssr` package provides comprehensive tools for implementing **blinded sample size re-estimation (BSSR)** in two-arm clinical trials with binary endpoints. This vignette introduces the key concepts and demonstrates how to use the main functions in the package.
+
+## What is Blinded Sample Size Re-estimation?
+
+Traditional clinical trials use fixed sample sizes determined during the planning phase. However, these calculations often rely on assumptions about treatment effects and response rates that may prove incorrect. BSSR addresses this limitation by allowing adaptive sample size adjustments during the trial while maintaining:
+
+- **Statistical validity** through exact Type I error control
+- **Study blinding** by using only pooled response data
+- **Regulatory acceptance** through well-established methodology
+
+## Key Advantages of BSSR
+
+1. **Maintains Blinding**: Only pooled response rates are used, preserving treatment allocation concealment
+2. **Exact Statistical Control**: Uses exact tests rather than asymptotic approximations
+3. **Flexible Designs**: Supports different adaptation rules (restricted/unrestricted/weighted)
+4. **Regulatory Compliance**: Based on established statistical methodology accepted by regulatory agencies
+
+## Getting Started
+
+```{r load_packages, message=FALSE}
+library(bbssr)
+library(dplyr)
+library(ggplot2)
+```
+
+## Basic Usage
+
+### Power Calculation for Traditional Design
+
+Let's start with a basic power calculation for a traditional fixed-sample design:
+
+```{r traditional_power}
+# Calculate power for a traditional design
+power_result <- BinaryPower(
+  p1 = 0.5,          # Response rate in treatment group
+  p2 = 0.2,          # Response rate in control group
+  N1 = 40,           # Sample size in treatment group
+  N2 = 40,           # Sample size in control group
+  alpha = 0.025,     # One-sided significance level
+  Test = 'Fisher'    # Fisher exact test
+)
+
+print(paste("Power:", round(power_result, 3)))
+```
+
+### Sample Size Calculation
+
+Now let's calculate the required sample size for a desired power:
+
+```{r sample_size}
+# Calculate required sample size
+sample_size_result <- BinarySampleSize(
+  p1 = 0.5,           # Expected response rate in treatment group
+  p2 = 0.2,           # Expected response rate in control group
+  r = 1,              # Allocation ratio (1:1)
+  alpha = 0.025,      # One-sided significance level
+  tar.power = 0.8,    # Target power
+  Test = 'Boschloo'   # Boschloo exact test (most powerful)
+)
+
+print(sample_size_result)
+```
+
+### Confidence Intervals
+
+The package also provides exact confidence intervals using the Clopper-Pearson method:
+
+```{r confidence_interval}
+# Calculate 95% confidence interval for 7 successes out of 20 trials
+ci_result <- ClopperPearsonCI(x = 7, n = 20, alpha = 0.05)
+print(paste("95% CI: [", round(ci_result[1], 3), ", ", round(ci_result[2], 3), "]", sep = ""))
+```
+
+## Blinded Sample Size Re-estimation (BSSR)
+
+### Basic BSSR Example
+
+Here's how to perform BSSR analysis:
+
+```{r bssr_basic}
+# Basic BSSR calculation
+bssr_result <- BinaryPowerBSSR(
+  asmd.p1 = 0.45,      # Assumed response rate in treatment group
+  asmd.p2 = 0.09,      # Assumed response rate in control group
+  p = seq(0.1, 0.9, by = 0.1), # Range of pooled response rates
+  Delta.A = 0.36,      # Assumed treatment effect (risk difference)
+  Delta.T = 0.36,      # True treatment effect
+  N1 = 24,             # Initial sample size in treatment group
+  N2 = 24,             # Initial sample size in control group
+  omega = 0.5,         # Fraction of data for interim analysis
+  r = 1,               # Allocation ratio
+  alpha = 0.025,       # Significance level
+  tar.power = 0.8,     # Target power
+  Test = 'Z-pool',     # Statistical test
+  restricted = FALSE,  # Unrestricted design
+  weighted = FALSE     # Non-weighted approach
+)
+
+# Display first few rows
+head(bssr_result)
+```
+
+### Comparing BSSR Design Rules
+
+One of the key features of `bbssr` is the ability to compare different BSSR design rules. Here's the comprehensive comparison as requested:
+
+```{r bssr_comparison, fig.width=10, fig.height=8}
+# Calculate power of the BSSR with binary endpoint
+power.BSSR <- tibble(
+  Rule = factor(
+    c('Restricted', 'Unrestricted', 'Weighted'), 
+    levels = c('Restricted', 'Unrestricted', 'Weighted')
+  ),
+  restricted = c(TRUE, FALSE, FALSE),
+  weighted = c(FALSE, FALSE, TRUE)
+) %>% 
+  group_by_all() %>% 
+  reframe(r = c(1, 2), N1 = c(24, 36), N2 = c(24, 18)) %>% 
+  group_by_all() %>% 
+  reframe(
+    BinaryPowerBSSR(
+      asmd.p1 = 0.45, asmd.p2 = 0.09, p = seq(0, 1, by = 0.01),
+      Delta.A = 0.36, Delta.T = 0.36, N1, N2, omega = 0.5, r, 
+      alpha = 0.025, tar.power = 0.8, Test = 'Z-pool', 
+      restricted, weighted
+    )
+  ) %>% 
+  mutate(
+    Rule = factor(Rule, levels = c('Restricted', 'Unrestricted', 'Weighted')),
+    r = paste0('r==', r)
+  ) %>% 
+  rename(Theta = p, Power = power.BSSR)
+
+# Display the figure
+power.BSSR %>% 
+  ggplot(aes(x = Theta, y = Power)) +
+  geom_line(aes(color = Rule), linewidth = 1.2) +
+  theme_bw() +
+  facet_grid(. ~ r, labeller = label_parsed) + 
+  geom_hline(yintercept = 0.8, color = 'gray', linetype = 'longdash', linewidth = 1.2) +
+  scale_x_continuous(
+    limits = c(0.1, 0.9),
+    breaks = seq(0.1, 0.9, l = 5)
+  ) +
+  scale_y_continuous(
+    limits = c(0.7, 1.0),
+    breaks = seq(0.7, 1.0, l = 7)
+  ) +
+  labs(x = expression(theta)) +
+  theme(
+    text = element_text(size = 12),
+    panel.spacing = unit(0.5, 'lines'),
+    legend.key.width = unit(1.5, 'cm'),
+    legend.text = element_text(size = 12),
+    legend.title = element_blank(),
+    legend.title.position = 'top',
+    legend.position = 'bottom'
+  )
+```
+
+## Understanding the Results
+
+### Design Rule Comparison
+
+The plot above shows three different BSSR approaches:
+
+- **Restricted Design**: Conservative approach where final sample size ≥ initial sample size
+- **Unrestricted Design**: Flexible approach allowing both increases and decreases
+- **Weighted Design**: Advanced approach using weighted averaging across scenarios
+
+### Key Observations
+
+1. **All designs maintain target power**: The horizontal dashed line shows the target power of 0.8
+2. **Weighted design shows robust performance**: More consistent power across different pooled response rates
+3. **Allocation ratio matters**: Different allocation ratios (r=1 vs r=2) show different patterns
+
+## Statistical Tests Available
+
+The package supports five different exact statistical tests:
+
+| Test | Code | Description | Characteristics |
+|------|------|-------------|----------------|
+| Pearson chi-squared | `'Chisq'` | One-sided exact test | Good for large samples |
+| Fisher exact | `'Fisher'` | Classical conditional test | Conservative, widely accepted |
+| Fisher mid-p | `'Fisher-midP'` | Less conservative Fisher | Better power than Fisher exact |
+| Z-pooled | `'Z-pool'` | Unconditional exact test | Good compromise |
+| Boschloo | `'Boschloo'` | Most powerful unconditional | Highest power, computationally intensive |
+
+### Test Comparison Example
+
+```{r test_comparison}
+# Compare different statistical tests
+tests <- c('Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', 'Boschloo')
+test_results <- sapply(tests, function(test) {
+  BinaryPower(p1 = 0.5, p2 = 0.2, N1 = 30, N2 = 30, alpha = 0.025, Test = test)
+})
+
+test_comparison_df <- data.frame(
+  Test = tests,
+  Power = round(test_results, 3)
+)
+
+print(test_comparison_df)
+```
+
+## Practical Considerations
+
+### When to Use BSSR
+
+BSSR is particularly valuable when:
+- Initial assumptions about response rates are uncertain
+- Regulatory efficiency is important
+- Maintaining study blinding is critical
+- Exact statistical control is required
+
+### Design Choice Guidelines
+
+- **Restricted**: Use when regulatory/logistical constraints limit sample size increases
+- **Unrestricted**: Use when flexibility is paramount and resources allow
+- **Weighted**: Use when robust performance across scenarios is desired
+
+## Next Steps
+
+This vignette provided a basic introduction to `bbssr`. For more advanced topics, see:
+
+- `vignette("bbssr-statistical-methods")` - Detailed statistical methodology
+- Package documentation: `help(package = "bbssr")`
