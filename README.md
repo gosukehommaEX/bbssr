@@ -15,6 +15,8 @@
 - **Multiple Exact Statistical Tests**: Support for five different exact statistical tests optimized for binary endpoints
 - **Flexible Design Options**: Choose between restricted, unrestricted, and weighted BSSR approaches
 - **Comprehensive Power Analysis**: Calculate exact power for both traditional and BSSR designs
+- **High-Performance Computing**: Optimized algorithms deliver significant speed improvements over existing packages
+- **Validated Accuracy**: Extensive validation confirms identical results to established packages (`Exact`, `exact2x2`) across multiple scenarios
 - **CRAN-Ready**: Fully documented with examples, vignettes, and comprehensive test coverage
 
 ### Statistical Methods Supported
@@ -200,6 +202,7 @@ All methods in `bbssr` maintain exact Type I error control at the specified α l
 For detailed examples and theoretical background, see:
 - `vignette("bbssr-introduction")` - Getting started guide
 - `vignette("bbssr-statistical-methods")` - Statistical methodology
+- `vignette("bbssr-validation")` - Function validation and performance comparison
 
 ## License
 
