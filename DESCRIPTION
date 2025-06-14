@@ -1,7 +1,7 @@
 Package: bbssr
 Type: Package
 Title: Blinded Sample Size Re-estimation for Binary Endpoints
-Version: 1.0.0
+Version: 1.0.1
 Date: 2025-05-23
 Authors@R: person("Gosuke", "Homma", email = "my.name.is.gosuke@gmail.com", 
                   role = c("aut", "cre"))

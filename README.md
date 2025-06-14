@@ -174,7 +174,6 @@ ggplot(power_comparison, aes(x = p, y = power.BSSR, color = Rule)) +
 | `BinarySampleSize()` | Calculate required sample size for given power |
 | `BinaryPowerBSSR()` | Calculate power for BSSR designs |
 | `BinaryRR()` | Compute rejection regions for exact tests |
-| `ClopperPearsonCI()` | Calculate exact confidence intervals |
 
 ## Design Options for BSSR
 

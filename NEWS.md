@@ -1,3 +1,11 @@
+# bbssr 1.0.1
+
+## Minor Updates
+
+* **Function Removal**: Removed `ClopperPearsonCI()` function as it was not being used in the main BSSR functionality
+* **Documentation Updates**: Updated all documentation to reflect the removal of confidence interval functionality
+* **Package Optimization**: Streamlined package to focus on core BSSR methods
+
 # bbssr 1.0.0
 
 ## Initial Release
