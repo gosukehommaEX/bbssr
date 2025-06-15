@@ -165,6 +165,14 @@ ggplot(power_comparison, aes(x = p, y = power.BSSR, color = Rule)) +
   theme_minimal() +
   theme(legend.position = "bottom")
 ```
+![BSSR Design Comparison](man/figures/bssr_comparison.png)
+
+The plot above demonstrates how different BSSR design rules perform across various pooled response rates. Key observations:
+  
+  - **Weighted Design**: Shows the most robust performance with consistent power across different pooled response rates
+- **Unrestricted Design**: Provides good flexibility while maintaining target power
+- **Restricted Design**: More conservative approach that ensures final sample size ≥ initial sample size
+- **Allocation Ratios**: Different allocation ratios (1:1 vs 2:1) show distinct power patterns
 
 ## Key Functions
 
