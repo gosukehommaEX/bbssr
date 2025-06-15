@@ -76,9 +76,14 @@ The `bbssr` package implements five exact statistical tests, each with different
 
 The one-sided Pearson chi-squared test uses the test statistic:
 
-$Z_{ij} = \frac{\hat{p}_1 - \hat{p}_2}{\sqrt{\hat{p}(1-\hat{p})\left(\frac{1}{n_1} + \frac{1}{n_2}\right)}}$
+$$Z_{ij} = \frac{\hat{p}_1 - \hat{p}_2}{\sqrt{\hat{p}(1-\hat{p})\left(\frac{1}{n_1} + \frac{1}{n_2}\right)}}$$
 
 where $\hat{p} = \frac{X_1 + X_2}{n_1 + n_2}$ is the pooled proportion.
+
+**P-value formula:**
+$$p\text{-value} = P(Z \geq z_{\text{obs}}) = 1 - \Phi(z_{\text{obs}})$$
+
+where $\Phi(\cdot)$ is the standard normal cumulative distribution function.
 
 ```{r chisq_example}
 # Example: Chi-squared test
@@ -98,9 +103,15 @@ print(paste("Chi-squared test power:", round(power_chisq, 3)))
 
 ### 2. Fisher Exact Test (`'Fisher'`)
 
-The Fisher exact test conditions on the total number of successes and uses the hypergeometric distribution:
+The Fisher exact test conditions on the total number of successes and uses the hypergeometric distribution.
 
-$P(X_1 = k | X_1 + X_2 = s) = \frac{\binom{n_1}{k}\binom{n_2}{s-k}}{\binom{n_1+n_2}{s}}$
+**P-value formula:**
+$$p\text{-value} = P(X_1 \geq k | X_1 + X_2 = s) = \sum_{i=k}^{\min(n_1,s)} \frac{\binom{n_1}{i}\binom{n_2}{s-i}}{\binom{n_1+n_2}{s}}$$
+
+where $k$ is the observed number of successes in group 1, and $s = X_1 + X_2$ is the total number of successes.
+
+The conditional probability mass function is:
+$$P(X_1 = i | X_1 + X_2 = s) = \frac{\binom{n_1}{i}\binom{n_2}{s-i}}{\binom{n_1+n_2}{s}}$$
 
 ```{r fisher_example}
 # Example: Fisher exact test
@@ -121,9 +132,13 @@ print(paste("Fisher exact test power:", round(power_fisher, 3)))
 
 ### 3. Fisher Mid-p Test (`'Fisher-midP'`)
 
-The Fisher mid-p test reduces the conservatism of the Fisher exact test by including half the probability of the observed outcome:
+The Fisher mid-p test reduces the conservatism of the Fisher exact test by including half the probability of the observed outcome.
 
-$p\text{-value} = P(X_1 > k | X_1 + X_2 = s) + 0.5 \cdot P(X_1 = k | X_1 + X_2 = s)$
+**P-value formula:**
+$$p\text{-value} = P(X_1 > k | X_1 + X_2 = s) + 0.5 \cdot P(X_1 = k | X_1 + X_2 = s)$$
+
+This can be expressed as:
+$$p\text{-value} = \sum_{i=k+1}^{\min(n_1,s)} \frac{\binom{n_1}{i}\binom{n_2}{s-i}}{\binom{n_1+n_2}{s}} + 0.5 \cdot \frac{\binom{n_1}{k}\binom{n_2}{s-k}}{\binom{n_1+n_2}{s}}$$
 
 ```{r fisher_midp_example}
 # Example: Fisher mid-p test
@@ -143,9 +158,16 @@ print(paste("Fisher mid-p test power:", round(power_midp, 3)))
 
 ### 4. Z-pooled Exact Unconditional Test (`'Z-pool'`)
 
-This test uses the Z-statistic but calculates exact p-values by considering all possible values of the nuisance parameter:
+This test uses the Z-statistic but calculates exact p-values by considering all possible values of the nuisance parameter $\theta$ (the common success probability under the null hypothesis).
 
-$p\text{-value} = \max_{\theta} P_{\theta}(Z \geq z_{\text{obs}})$
+**P-value formula:**
+$$p\text{-value} = \max_{\theta \in [0,1]} P_{\theta}(Z \geq z_{\text{obs}})$$
+
+where under the null hypothesis $H_0: p_1 = p_2 = \theta$:
+$$P_{\theta}(Z \geq z_{\text{obs}}) = \sum_{(x_1,x_2): z(x_1,x_2) \geq z_{\text{obs}}} \binom{n_1}{x_1}\binom{n_2}{x_2}\theta^{x_1+x_2}(1-\theta)^{n_1+n_2-x_1-x_2}$$
+
+The test statistic is:
+$$z(x_1,x_2) = \frac{\frac{x_1}{n_1} - \frac{x_2}{n_2}}{\sqrt{\frac{x_1+x_2}{n_1 n_2} \cdot \left(1 - \frac{x_1+x_2}{n_1+n_2}\right)}}$$
 
 ```{r zpool_example}
 # Example: Z-pooled test
@@ -161,13 +183,20 @@ print(paste("Z-pooled test power:", round(power_zpool, 3)))
 **Characteristics:**
 - Unconditional test
 - Good balance between power and conservatism
-- Computationally more intensive
+- Computationally more intensive than conditional tests
 
 ### 5. Boschloo Exact Unconditional Test (`'Boschloo'`)
 
-The Boschloo test is the most powerful exact unconditional test. It maximizes the p-value over all possible values of the nuisance parameter:
+The Boschloo test is the most powerful exact unconditional test. It maximizes the p-value over all possible values of the nuisance parameter, but uses the Fisher exact p-value as the test statistic.
 
-$p\text{-value} = \max_{\theta} P_{\theta}(\text{rejection region})$
+**P-value formula:**
+$$p\text{-value} = \max_{\theta \in [0,1]} P_{\theta}(p_{\text{Fisher}}(X_1, X_2) \leq p_{\text{Fisher,obs}})$$
+
+where $p_{\text{Fisher}}(x_1, x_2)$ is the Fisher exact p-value for the observation $(x_1, x_2)$:
+$$p_{\text{Fisher}}(x_1, x_2) = P(X_1 \geq x_1 | X_1 + X_2 = x_1 + x_2)$$
+
+Under the null hypothesis $H_0: p_1 = p_2 = \theta$:
+$$P_{\theta}(p_{\text{Fisher}}(X_1, X_2) \leq p_{\text{Fisher,obs}}) = \sum_{\substack{(x_1,x_2): \\ p_{\text{Fisher}}(x_1,x_2) \leq p_{\text{Fisher,obs}}}} \binom{n_1}{x_1}\binom{n_2}{x_2}\theta^{x_1+x_2}(1-\theta)^{n_1+n_2-x_1-x_2}$$
 
 ```{r boschloo_example}
 # Example: Boschloo test
@@ -185,6 +214,15 @@ print(paste("Boschloo test power:", round(power_boschloo, 3)))
 - Maintains exact Type I error control
 - Computationally intensive
 - Optimal choice when computational resources allow
+
+### Mathematical Relationships
+
+The key insight is that:
+
+1. **Conditional tests** (Fisher, Fisher mid-p) condition on the total number of successes
+2. **Unconditional tests** (Z-pool, Boschloo) maximize over the nuisance parameter $\theta$
+3. **Boschloo test** uses Fisher p-values as the ordering statistic, then maximizes over $\theta$
+4. **Z-pooled test** uses the Z-statistic as the ordering statistic, then maximizes over $\theta$
 
 ### Test Comparison
 
@@ -293,8 +331,8 @@ print(bssr_summary)
 
 ### Traditional vs BSSR Power
 
-```{r power_comparison_plot, fig.width=10, fig.height=6}
-# Create comprehensive power comparison
+```{r power_comparison_plot, fig.width=8, fig.height=10, out.width="100%"}
+# Create comprehensive power comparison with vertical layout
 power_data <- bssr_results %>%
   select(approach, p, power.BSSR, power.TRAD) %>%
   pivot_longer(
@@ -306,27 +344,49 @@ power_data <- bssr_results %>%
     design_type = case_when(
       design_type == "power.BSSR" ~ "BSSR",
       design_type == "power.TRAD" ~ "Traditional"
-    )
+    ),
+    approach = factor(approach, levels = c("Restricted", "Unrestricted", "Weighted"))
   )
 
 ggplot(power_data, aes(x = p, y = power, color = design_type)) +
   geom_line(linewidth = 1.2) +
-  facet_wrap(~approach, ncol = 3) +
+  facet_wrap(~approach, ncol = 1, scales = "free_y") +  # Vertical layout
   geom_hline(yintercept = 0.8, linetype = "dashed", color = "gray") +
+  scale_color_manual(
+    values = c("BSSR" = "#1F78B4", "Traditional" = "#E31A1C"),
+    name = "Design Type"
+  ) +
+  scale_x_continuous(
+    breaks = seq(0.2, 0.8, by = 0.2),
+    labels = c("0.2", "0.4", "0.6", "0.8")
+  ) +
+  scale_y_continuous(
+    breaks = seq(0.7, 1.0, by = 0.1),
+    labels = c("0.7", "0.8", "0.9", "1.0")
+  ) +
   labs(
     x = "Pooled Response Rate (θ)",
     y = "Power",
-    color = "Design Type",
     title = "Power Comparison: Traditional vs BSSR Designs",
-    subtitle = "Horizontal line shows target power = 0.8"
+    subtitle = "Horizontal dashed line shows target power = 0.8"
   ) +
   theme_minimal() +
   theme(
+    plot.title = element_text(size = 14, hjust = 0.5, margin = margin(b = 5)),
+    plot.subtitle = element_text(size = 11, hjust = 0.5, margin = margin(b = 15)),
+    strip.text = element_text(size = 12, face = "bold", margin = margin(t = 8, b = 8)),
+    strip.background = element_rect(fill = "gray95", color = "gray80"),
     legend.position = "bottom",
-    plot.title = element_text(hjust = 0.5),
-    plot.subtitle = element_text(hjust = 0.5)
-  ) +
-  scale_y_continuous(limits = c(0.7, 1.0))
+    legend.title = element_text(size = 11),
+    legend.text = element_text(size = 10),
+    legend.margin = margin(t = 10),
+    axis.title.x = element_text(size = 11, margin = margin(t = 10)),
+    axis.title.y = element_text(size = 11, margin = margin(r = 10)),
+    axis.text = element_text(size = 9),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "gray92", linewidth = 0.5),
+    plot.margin = margin(t = 10, r = 10, b = 10, l = 10)
+  )
 ```
 
 ## Practical Implementation Guidelines

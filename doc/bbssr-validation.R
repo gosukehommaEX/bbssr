@@ -9,9 +9,35 @@ knitr::opts_chunk$set(
   message = FALSE
 )
 
+# Install and load required packages
+required_packages <- c("knitr", "bbssr", "dplyr", "ggplot2", "tidyr", "microbenchmark")
+for (pkg in required_packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg)
+  }
+  library(pkg, character.only = TRUE)
+}
+
+# Load base packages explicitly
+library(stats)
+library(utils)
+library(base)
+
 # Check if validation packages are available
 has_exact <- requireNamespace("Exact", quietly = TRUE)
 has_exact2x2 <- requireNamespace("exact2x2", quietly = TRUE)
+
+if (!has_exact) {
+  message("Installing Exact package...")
+  install.packages("Exact")
+  has_exact <- requireNamespace("Exact", quietly = TRUE)
+}
+
+if (!has_exact2x2) {
+  message("Installing exact2x2 package...")
+  install.packages("exact2x2")
+  has_exact2x2 <- requireNamespace("exact2x2", quietly = TRUE)
+}
 
 if (!has_exact || !has_exact2x2) {
   knitr::opts_chunk$set(eval = FALSE)
@@ -19,15 +45,12 @@ if (!has_exact || !has_exact2x2) {
 }
 
 ## ----load_packages, eval=has_exact && has_exact2x2----------------------------
-library(bbssr)
+# Load external validation packages
 library(Exact)
 library(exact2x2)
-library(microbenchmark)
-library(knitr)
-library(ggplot2)
-library(dplyr)
 
 ## ----load_bbssr_only, eval=!has_exact || !has_exact2x2------------------------
+# # If external packages are not available, just load bbssr
 # library(bbssr)
 
 ## ----validation_parameters----------------------------------------------------
@@ -61,7 +84,7 @@ print(round(bbssr_chisq, 7))
 
 # Exact package results for comparison
 exact_chisq <- sapply(seq(p1), function(i) {
-  power.exact.test(p1[i], p2[i], N1, N2, method = 'pearson chisq', 'greater', alpha)$power
+  Exact::power.exact.test(p1[i], p2[i], N1, N2, method = 'pearson chisq', 'greater', alpha)$power
 })
 print("Exact package results:")
 print(round(exact_chisq, 7))
@@ -75,7 +98,7 @@ chisq_comparison <- data.frame(
   Difference = round(abs(bbssr_chisq - exact_chisq), 10)
 )
 
-kable(chisq_comparison, caption = "Pearson Chi-squared Test: bbssr vs Exact Package")
+knitr::kable(chisq_comparison, caption = "Pearson Chi-squared Test: bbssr vs Exact Package")
 
 ## ----fisher_validation, eval=has_exact && has_exact2x2------------------------
 # bbssr results
@@ -83,7 +106,7 @@ bbssr_fisher <- BinaryPower(p1, p2, N1, N2, alpha, Test = 'Fisher')
 
 # Exact package results for comparison
 exact_fisher <- sapply(seq(p1), function(i) {
-  power.exact.test(p1[i], p2[i], N1, N2, method = 'fisher', 'greater', alpha)$power
+  Exact::power.exact.test(p1[i], p2[i], N1, N2, method = 'fisher', 'greater', alpha)$power
 })
 
 # Create comparison table
@@ -95,7 +118,7 @@ fisher_comparison <- data.frame(
   Difference = round(abs(bbssr_fisher - exact_fisher), 10)
 )
 
-kable(fisher_comparison, caption = "Fisher Exact Test: bbssr vs Exact Package")
+knitr::kable(fisher_comparison, caption = "Fisher Exact Test: bbssr vs Exact Package")
 
 ## ----fisher_midp_validation, eval=has_exact && has_exact2x2-------------------
 # bbssr results
@@ -103,7 +126,7 @@ bbssr_midp <- BinaryPower(p1, p2, N1, N2, alpha, Test = 'Fisher-midP')
 
 # exact2x2 package results for comparison
 exact2x2_midp <- sapply(seq(p1), function(i) {
-  Power2x2(N1, N2, p1[i], p2[i], alpha, pvalFunc = 
+  exact2x2::Power2x2(N1, N2, p1[i], p2[i], alpha, pvalFunc = 
              function(x1, n1, x2, n2) {
                fisher.exact(matrix(c(x1, n1 - x1, x2, n2 - x2), 2), 
                           alt = 'greater', midp = TRUE)$p.value
@@ -120,7 +143,7 @@ midp_comparison <- data.frame(
   Difference = round(abs(bbssr_midp - exact2x2_midp), 10)
 )
 
-kable(midp_comparison, caption = "Fisher Mid-p Test: bbssr vs exact2x2 Package")
+knitr::kable(midp_comparison, caption = "Fisher Mid-p Test: bbssr vs exact2x2 Package")
 
 ## ----zpool_validation, eval=has_exact && has_exact2x2-------------------------
 # bbssr results
@@ -128,7 +151,7 @@ bbssr_zpool <- BinaryPower(p1, p2, N1, N2, alpha, Test = 'Z-pool')
 
 # Exact package results for comparison
 exact_zpool <- sapply(seq(p1), function(i) {
-  power.exact.test(p1[i], p2[i], N1, N2, method = 'z-pooled', 'greater', alpha)$power
+  Exact::power.exact.test(p1[i], p2[i], N1, N2, method = 'z-pooled', 'greater', alpha)$power
 })
 
 # Create comparison table
@@ -140,7 +163,7 @@ zpool_comparison <- data.frame(
   Difference = round(abs(bbssr_zpool - exact_zpool), 10)
 )
 
-kable(zpool_comparison, caption = "Z-pooled Test: bbssr vs Exact Package")
+knitr::kable(zpool_comparison, caption = "Z-pooled Test: bbssr vs Exact Package")
 
 ## ----boschloo_validation, eval=has_exact && has_exact2x2----------------------
 # bbssr results
@@ -148,7 +171,7 @@ bbssr_boschloo <- BinaryPower(p1, p2, N1, N2, alpha, Test = 'Boschloo')
 
 # Exact package results for comparison
 exact_boschloo <- sapply(seq(p1), function(i) {
-  power.exact.test(p1[i], p2[i], N1, N2, method = 'boschloo', 'greater', alpha)$power
+  Exact::power.exact.test(p1[i], p2[i], N1, N2, method = 'boschloo', 'greater', alpha)$power
 })
 
 # Create comparison table
@@ -160,175 +183,225 @@ boschloo_comparison <- data.frame(
   Difference = round(abs(bbssr_boschloo - exact_boschloo), 10)
 )
 
-kable(boschloo_comparison, caption = "Boschloo Test: bbssr vs Exact Package")
-
-## ----sample_size_scenarios----------------------------------------------------
-# Define test scenarios for sample size validation
-scenarios <- list(
-  list(p1 = 0.4, p2 = 0.2, r = 2, alpha = 0.025, tar.power = 0.8, Test = 'Chisq'),
-  list(p1 = 0.5, p2 = 0.2, r = 3, alpha = 0.025, tar.power = 0.9, Test = 'Fisher'),
-  list(p1 = 0.6, p2 = 0.3, r = 2, alpha = 0.025, tar.power = 0.9, Test = 'Fisher-midP'),
-  list(p1 = 0.3, p2 = 0.2, r = 1, alpha = 0.025, tar.power = 0.8, Test = 'Z-pool'),
-  list(p1 = 0.7, p2 = 0.2, r = 4, alpha = 0.025, tar.power = 0.8, Test = 'Boschloo')
-)
-
-## ----sample_size_validation, eval=has_exact && has_exact2x2-------------------
-# Function to validate sample size calculation
-validate_sample_size <- function(scenario) {
-  # Calculate sample size using bbssr
-  bbssr_result <- BinarySampleSize(
-    p1 = scenario$p1, p2 = scenario$p2, r = scenario$r, 
-    alpha = scenario$alpha, tar.power = scenario$tar.power, 
-    Test = scenario$Test
-  )
-  
-  # Verify power using external packages
-  if (scenario$Test == 'Chisq') {
-    external_power <- power.exact.test(
-      scenario$p1, scenario$p2, bbssr_result$N1, bbssr_result$N2, 
-      method = 'pearson chisq', 'greater', scenario$alpha
-    )$power
-  } else if (scenario$Test == 'Fisher') {
-    external_power <- power.exact.test(
-      scenario$p1, scenario$p2, bbssr_result$N1, bbssr_result$N2, 
-      method = 'fisher', 'greater', scenario$alpha
-    )$power
-  } else if (scenario$Test == 'Fisher-midP') {
-    external_power <- Power2x2(
-      bbssr_result$N1, bbssr_result$N2, scenario$p1, scenario$p2, 
-      alpha = scenario$alpha, 
-      pvalFunc = function(x1, n1, x2, n2) {
-        fisher.exact(matrix(c(x1, n1 - x1, x2, n2 - x2), 2), 
-                    alt = 'greater', midp = TRUE)$p.value
-      }
-    )
-  } else if (scenario$Test == 'Z-pool') {
-    external_power <- power.exact.test(
-      scenario$p1, scenario$p2, bbssr_result$N1, bbssr_result$N2, 
-      method = 'z-pooled', 'greater', scenario$alpha
-    )$power
-  } else if (scenario$Test == 'Boschloo') {
-    external_power <- power.exact.test(
-      scenario$p1, scenario$p2, bbssr_result$N1, bbssr_result$N2, 
-      method = 'boschloo', 'greater', scenario$alpha
-    )$power
-  }
-  
-  return(data.frame(
-    Test = scenario$Test,
-    p1 = scenario$p1,
-    p2 = scenario$p2,
-    r = scenario$r,
-    Target_Power = scenario$tar.power,
-    N1 = bbssr_result$N1,
-    N2 = bbssr_result$N2,
-    N_Total = bbssr_result$N,
-    bbssr_Power = round(bbssr_result$Power, 6),
-    External_Power = round(external_power, 6),
-    Power_Difference = round(abs(bbssr_result$Power - external_power), 8)
-  ))
-}
-
-# Run validation for all scenarios
-validation_results <- do.call(rbind, lapply(scenarios, validate_sample_size))
-kable(validation_results, caption = "Sample Size Validation: bbssr vs External Packages")
+knitr::kable(boschloo_comparison, caption = "Boschloo Test: bbssr vs Exact Package")
 
 ## ----performance_setup--------------------------------------------------------
-# Parameters for performance comparison (smaller for exact2x2)
-perf_p1 <- 0.6
-perf_p2 <- 0.3
-perf_N1 <- 8   # Smaller sample size for exact2x2 comparison
-perf_N2 <- 12
+# Enhanced parameters for performance comparison
+perf_scenarios <- expand.grid(
+  p1 = c(0.5, 0.6, 0.7, 0.8),
+  p2 = c(0.2, 0.3, 0.4),
+  N1 = c(15, 20, 25),
+  N2 = c(15, 20, 25)
+) %>%
+  filter(p1 > p2) %>%  # Only meaningful comparisons
+  slice_head(n = 8)    # Select representative scenarios
+
 perf_alpha <- 0.025
 
+# Display scenarios for transparency
+knitr::kable(perf_scenarios, caption = "Performance Benchmark Scenarios")
+
 ## ----power_performance, eval=has_exact && has_exact2x2------------------------
-# Benchmark BinaryPower function
-power_benchmark <- microbenchmark(
-  bbssr_chisq = BinaryPower(perf_p1, perf_p2, perf_N1, perf_N2, perf_alpha, Test = 'Chisq'),
-  exact_chisq = power.exact.test(perf_p1, perf_p2, perf_N1, perf_N2, 
-                                method = 'pearson chisq', 'greater', perf_alpha),
-  
-  bbssr_fisher = BinaryPower(perf_p1, perf_p2, perf_N1, perf_N2, perf_alpha, Test = 'Fisher'),
-  exact_fisher = power.exact.test(perf_p1, perf_p2, perf_N1, perf_N2, 
-                                 method = 'fisher', 'greater', perf_alpha),
-  
-  bbssr_midp = BinaryPower(perf_p1, perf_p2, perf_N1, perf_N2, perf_alpha, Test = 'Fisher-midP'),
-  exact2x2_midp = Power2x2(perf_N1, perf_N2, perf_p1, perf_p2, alpha = perf_alpha, 
-                          pvalFunc = function(x1, n1, x2, n2) {
-                            fisher.exact(matrix(c(x1, n1 - x1, x2, n2 - x2), 2), 
-                                       alt = 'greater', midp = TRUE)$p.value
-                          }),
-  
-  bbssr_zpool = BinaryPower(perf_p1, perf_p2, perf_N1, perf_N2, perf_alpha, Test = 'Z-pool'),
-  exact_zpool = power.exact.test(perf_p1, perf_p2, perf_N1, perf_N2, 
-                                method = 'z-pooled', 'greater', perf_alpha),
-  
-  bbssr_boschloo = BinaryPower(perf_p1, perf_p2, perf_N1, perf_N2, perf_alpha, Test = 'Boschloo'),
-  exact_boschloo = power.exact.test(perf_p1, perf_p2, perf_N1, perf_N2, 
-                                   method = 'boschloo', 'greater', perf_alpha),
-  
-  times = 50
-)
+# Function to benchmark a single scenario
+benchmark_scenario <- function(p1, p2, N1, N2) {
+  microbenchmark::microbenchmark(
+    bbssr_chisq = BinaryPower(p1, p2, N1, N2, perf_alpha, Test = 'Chisq'),
+    exact_chisq = Exact::power.exact.test(p1, p2, N1, N2, 
+                                         method = 'pearson chisq', 'greater', perf_alpha),
+    
+    bbssr_fisher = BinaryPower(p1, p2, N1, N2, perf_alpha, Test = 'Fisher'),
+    exact_fisher = Exact::power.exact.test(p1, p2, N1, N2, 
+                                          method = 'fisher', 'greater', perf_alpha),
+    
+    bbssr_zpool = BinaryPower(p1, p2, N1, N2, perf_alpha, Test = 'Z-pool'),
+    exact_zpool = Exact::power.exact.test(p1, p2, N1, N2, 
+                                         method = 'z-pooled', 'greater', perf_alpha),
+    
+    bbssr_boschloo = BinaryPower(p1, p2, N1, N2, perf_alpha, Test = 'Boschloo'),
+    exact_boschloo = Exact::power.exact.test(p1, p2, N1, N2, 
+                                            method = 'boschloo', 'greater', perf_alpha),
+    
+    times = 20
+  )
+}
 
-# Display benchmark results
-print(power_benchmark)
+# Run benchmarks for multiple scenarios
+benchmark_results <- list()
+for(i in 1:nrow(perf_scenarios)) {
+  scenario <- perf_scenarios[i, ]
+  cat(sprintf("Benchmarking scenario %d: p1=%.1f, p2=%.1f, N1=%d, N2=%d\n", 
+              i, scenario$p1, scenario$p2, scenario$N1, scenario$N2))
+  
+  benchmark_results[[i]] <- benchmark_scenario(
+    scenario$p1, scenario$p2, scenario$N1, scenario$N2
+  ) %>%
+    summary() %>%
+    mutate(
+      scenario_id = i,
+      p1 = scenario$p1,
+      p2 = scenario$p2,
+      N1 = scenario$N1,
+      N2 = scenario$N2,
+      total_n = scenario$N1 + scenario$N2
+    )
+}
 
-## ----performance_plot, eval=has_exact && has_exact2x2, fig.width=10, fig.height=6----
-# Create performance comparison plot
-benchmark_summary <- summary(power_benchmark)
-benchmark_df <- data.frame(
-  Test = c("Chi-squared", "Chi-squared", "Fisher", "Fisher", 
-           "Fisher-midP", "Fisher-midP", "Z-pooled", "Z-pooled", 
-           "Boschloo", "Boschloo"),
-  Package = rep(c("bbssr", "External"), 5),
-  Median_Time = benchmark_summary$median / 1000  # Convert to microseconds
-)
+# Combine all benchmark results
+all_benchmarks <- do.call(rbind, benchmark_results)
 
-ggplot(benchmark_df, aes(x = Test, y = Median_Time, fill = Package)) +
-  geom_col(position = "dodge") +
-  scale_y_log10() +
+# Calculate speed improvements
+speed_comparison <- all_benchmarks %>%
+  mutate(
+    test_name = case_when(
+      grepl("chisq", expr) ~ "Chi-squared",
+      grepl("fisher", expr) & !grepl("zpool|boschloo", expr) ~ "Fisher",
+      grepl("zpool", expr) ~ "Z-pooled",
+      grepl("boschloo", expr) ~ "Boschloo"
+    ),
+    package = if_else(grepl("bbssr", expr), "bbssr", "Exact")
+  ) %>%
+  group_by(scenario_id, test_name, package, p1, p2, N1, N2, total_n) %>%
+  summarise(median_time = median(median), .groups = 'drop') %>%
+  tidyr::pivot_wider(names_from = package, values_from = median_time) %>%
+  mutate(
+    speed_improvement = round(Exact / bbssr, 1),
+    bbssr_ms = round(bbssr / 1000, 2),
+    exact_ms = round(Exact / 1000, 2)
+  )
+
+# Display summary
+speed_summary <- speed_comparison %>%
+  group_by(test_name) %>%
+  summarise(
+    avg_improvement = round(mean(speed_improvement), 1),
+    max_improvement = round(max(speed_improvement), 1),
+    min_improvement = round(min(speed_improvement), 1),
+    .groups = 'drop'
+  )
+
+knitr::kable(speed_summary, 
+             col.names = c("Test", "Avg Speed-up", "Max Speed-up", "Min Speed-up"),
+             caption = "Speed Improvement Summary: bbssr vs Exact Package (times faster)")
+
+## ----performance_plot, eval=has_exact && has_exact2x2, fig.width=8, fig.height=10, out.width="100%"----
+# Create speed improvement comparison (how many times faster bbssr is)
+speed_plot_data <- speed_comparison %>%
+  mutate(
+    test_name = factor(test_name, levels = c("Chi-squared", "Fisher", "Z-pooled", "Boschloo")),
+    scenario_label = paste0("Scenario ", scenario_id, "\n(N=", total_n, ")")
+  )
+
+# Speed improvement plot
+speed_plot <- ggplot(speed_plot_data, aes(x = scenario_label, y = speed_improvement)) +
+  geom_col(fill = "#4CAF50", alpha = 0.8, width = 0.6) +
+  geom_text(aes(label = paste0(speed_improvement, "x")), 
+            vjust = -0.3, size = 3, fontface = "bold") +
+  facet_wrap(~test_name, ncol = 1, scales = "free_y") +
+  geom_hline(yintercept = 1, linetype = "dashed", color = "red", linewidth = 1) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +  # Add 15% padding at top
   labs(
-    title = "Performance Comparison: bbssr vs External Packages",
-    subtitle = "Median execution time (microseconds, log scale)",
-    x = "Statistical Test",
-    y = "Median Time (microseconds)",
-    fill = "Package"
+    title = "Speed Improvement: bbssr vs Exact Package",
+    subtitle = "How many times faster bbssr is compared to Exact package",
+    x = "Benchmark Scenario",
+    y = "Speed Improvement Factor (times faster)",
+    caption = "Red dashed line shows no improvement (factor = 1). Higher bars = better performance."
   ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    plot.title = element_text(hjust = 0.5),
-    plot.subtitle = element_text(hjust = 0.5)
+    plot.title = element_text(size = 14, hjust = 0.5, margin = margin(b = 5)),
+    plot.subtitle = element_text(size = 11, hjust = 0.5, margin = margin(b = 15)),
+    strip.text = element_text(size = 12, face = "bold", margin = margin(t = 8, b = 8)),
+    strip.background = element_rect(fill = "gray95", color = "gray80"),
+    axis.title.x = element_text(size = 11, margin = margin(t = 10)),
+    axis.title.y = element_text(size = 11, margin = margin(r = 10)),
+    axis.text.x = element_text(size = 8, angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 9),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.x = element_blank(),
+    plot.margin = margin(t = 10, r = 10, b = 15, l = 10)
   )
 
-## ----speed_improvement, eval=has_exact && has_exact2x2------------------------
-# Calculate speed improvement ratios
-speed_ratios <- data.frame(
-  Test = c("Chi-squared", "Fisher", "Fisher-midP", "Z-pooled", "Boschloo"),
-  bbssr_time = benchmark_summary$median[c(1, 3, 5, 7, 9)],
-  external_time = benchmark_summary$median[c(2, 4, 6, 8, 10)],
-  stringsAsFactors = FALSE
-) %>%
-  mutate(
-    Speed_Improvement = round(external_time / bbssr_time, 2),
-    bbssr_ms = round(bbssr_time / 1000, 3),
-    external_ms = round(external_time / 1000, 3)
+print(speed_plot)
+
+# Detailed execution time comparison
+time_comparison_data <- speed_comparison %>%
+  select(scenario_id, test_name, bbssr_ms, exact_ms, total_n) %>%
+  tidyr::pivot_longer(
+    cols = c(bbssr_ms, exact_ms),
+    names_to = "package",
+    values_to = "time_ms"
   ) %>%
-  select(Test, bbssr_ms, external_ms, Speed_Improvement)
+  mutate(
+    package = case_when(
+      package == "bbssr_ms" ~ "bbssr",
+      package == "exact_ms" ~ "Exact"
+    ),
+    test_name = factor(test_name, levels = c("Chi-squared", "Fisher", "Z-pooled", "Boschloo")),
+    scenario_label = paste0("Scenario ", scenario_id, "\n(N=", total_n, ")")
+  )
 
-kable(speed_ratios, 
-      col.names = c("Test", "bbssr (ms)", "External (ms)", "Speed Improvement (x)"),
-      caption = "Speed Improvement: bbssr vs External Packages")
+# Execution time plot
+time_plot <- ggplot(time_comparison_data, aes(x = scenario_label, y = time_ms, fill = package)) +
+  geom_col(position = "dodge", width = 0.7) +
+  facet_wrap(~test_name, ncol = 1, scales = "free_y") +
+  scale_fill_manual(
+    values = c("bbssr" = "#2E8B57", "Exact" = "#CD5C5C"),
+    name = "Package"
+  ) +
+  labs(
+    title = "Execution Time Comparison: bbssr vs Exact Package",
+    subtitle = "Actual execution times in milliseconds",
+    x = "Benchmark Scenario",
+    y = "Execution Time (milliseconds)",
+    caption = "Lower bars indicate better performance"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, hjust = 0.5, margin = margin(b = 5)),
+    plot.subtitle = element_text(size = 11, hjust = 0.5, margin = margin(b = 15)),
+    strip.text = element_text(size = 12, face = "bold", margin = margin(t = 8, b = 8)),
+    strip.background = element_rect(fill = "gray95", color = "gray80"),
+    legend.position = "bottom",
+    legend.title = element_text(size = 11),
+    legend.text = element_text(size = 10),
+    axis.title.x = element_text(size = 11, margin = margin(t = 10)),
+    axis.title.y = element_text(size = 11, margin = margin(r = 10)),
+    axis.text.x = element_text(size = 8, angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 9),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.x = element_blank(),
+    plot.margin = margin(t = 10, r = 10, b = 15, l = 10)
+  )
 
-## ----validation_summary, eval=has_exact && has_exact2x2-----------------------
-avg_improvement <- mean(speed_ratios$Speed_Improvement)
-max_improvement <- max(speed_ratios$Speed_Improvement)
-min_improvement <- min(speed_ratios$Speed_Improvement)
+print(time_plot)
+
+## ----speed_improvement_summary, eval=has_exact && has_exact2x2----------------
+# Overall performance summary
+overall_summary <- speed_comparison %>%
+  summarise(
+    total_scenarios = n(),
+    overall_avg_improvement = round(mean(speed_improvement), 1),
+    overall_max_improvement = round(max(speed_improvement), 1),
+    overall_min_improvement = round(min(speed_improvement), 1),
+    scenarios_over_2x = sum(speed_improvement >= 2),
+    scenarios_over_5x = sum(speed_improvement >= 5),
+    scenarios_over_10x = sum(speed_improvement >= 10)
+  )
 
 cat("Performance Summary:\n")
-cat(sprintf("- Average speed improvement: %.1fx faster\n", avg_improvement))
-cat(sprintf("- Maximum speed improvement: %.1fx faster\n", max_improvement))
-cat(sprintf("- Minimum speed improvement: %.1fx faster\n", min_improvement))
+cat(sprintf("- Total benchmark scenarios: %d\n", overall_summary$total_scenarios))
+cat(sprintf("- Average speed improvement: %.1fx faster\n", overall_summary$overall_avg_improvement))
+cat(sprintf("- Maximum speed improvement: %.1fx faster\n", overall_summary$overall_max_improvement))
+cat(sprintf("- Minimum speed improvement: %.1fx faster\n", overall_summary$overall_min_improvement))
+cat(sprintf("- Scenarios where bbssr is >2x faster: %d (%.1f%%)\n", 
+            overall_summary$scenarios_over_2x, 
+            100 * overall_summary$scenarios_over_2x / overall_summary$total_scenarios))
+cat(sprintf("- Scenarios where bbssr is >5x faster: %d (%.1f%%)\n", 
+            overall_summary$scenarios_over_5x, 
+            100 * overall_summary$scenarios_over_5x / overall_summary$total_scenarios))
+cat(sprintf("- Scenarios where bbssr is >10x faster: %d (%.1f%%)\n", 
+            overall_summary$scenarios_over_10x, 
+            100 * overall_summary$scenarios_over_10x / overall_summary$total_scenarios))
 
 ## ----session_info-------------------------------------------------------------
 sessionInfo()

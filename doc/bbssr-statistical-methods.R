@@ -132,8 +132,8 @@ bssr_summary <- bssr_results %>%
 
 print(bssr_summary)
 
-## ----power_comparison_plot, fig.width=10, fig.height=6------------------------
-# Create comprehensive power comparison
+## ----power_comparison_plot, fig.width=8, fig.height=10, out.width="100%"------
+# Create comprehensive power comparison with vertical layout
 power_data <- bssr_results %>%
   select(approach, p, power.BSSR, power.TRAD) %>%
   pivot_longer(
@@ -145,27 +145,49 @@ power_data <- bssr_results %>%
     design_type = case_when(
       design_type == "power.BSSR" ~ "BSSR",
       design_type == "power.TRAD" ~ "Traditional"
-    )
+    ),
+    approach = factor(approach, levels = c("Restricted", "Unrestricted", "Weighted"))
   )
 
 ggplot(power_data, aes(x = p, y = power, color = design_type)) +
   geom_line(linewidth = 1.2) +
-  facet_wrap(~approach, ncol = 3) +
+  facet_wrap(~approach, ncol = 1, scales = "free_y") +  # Vertical layout
   geom_hline(yintercept = 0.8, linetype = "dashed", color = "gray") +
+  scale_color_manual(
+    values = c("BSSR" = "#1F78B4", "Traditional" = "#E31A1C"),
+    name = "Design Type"
+  ) +
+  scale_x_continuous(
+    breaks = seq(0.2, 0.8, by = 0.2),
+    labels = c("0.2", "0.4", "0.6", "0.8")
+  ) +
+  scale_y_continuous(
+    breaks = seq(0.7, 1.0, by = 0.1),
+    labels = c("0.7", "0.8", "0.9", "1.0")
+  ) +
   labs(
     x = "Pooled Response Rate (θ)",
     y = "Power",
-    color = "Design Type",
     title = "Power Comparison: Traditional vs BSSR Designs",
-    subtitle = "Horizontal line shows target power = 0.8"
+    subtitle = "Horizontal dashed line shows target power = 0.8"
   ) +
   theme_minimal() +
   theme(
+    plot.title = element_text(size = 14, hjust = 0.5, margin = margin(b = 5)),
+    plot.subtitle = element_text(size = 11, hjust = 0.5, margin = margin(b = 15)),
+    strip.text = element_text(size = 12, face = "bold", margin = margin(t = 8, b = 8)),
+    strip.background = element_rect(fill = "gray95", color = "gray80"),
     legend.position = "bottom",
-    plot.title = element_text(hjust = 0.5),
-    plot.subtitle = element_text(hjust = 0.5)
-  ) +
-  scale_y_continuous(limits = c(0.7, 1.0))
+    legend.title = element_text(size = 11),
+    legend.text = element_text(size = 10),
+    legend.margin = margin(t = 10),
+    axis.title.x = element_text(size = 11, margin = margin(t = 10)),
+    axis.title.y = element_text(size = 11, margin = margin(r = 10)),
+    axis.text = element_text(size = 9),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "gray92", linewidth = 0.5),
+    plot.margin = margin(t = 10, r = 10, b = 10, l = 10)
+  )
 
 ## ----sample_size_planning-----------------------------------------------------
 # Sample size planning example

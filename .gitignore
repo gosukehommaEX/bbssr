@@ -2,5 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
-# /doc/
 /Meta/
+# Ignore temporary vignette HTML files in vignettes/ folder
+vignettes/*.html
+vignettes/*.pdf
+vignettes/*_files/
+vignettes/figure/

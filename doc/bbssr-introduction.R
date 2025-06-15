@@ -38,11 +38,6 @@ sample_size_result <- BinarySampleSize(
 
 print(sample_size_result)
 
-## ----confidence_interval------------------------------------------------------
-# Calculate 95% confidence interval for 7 successes out of 20 trials
-ci_result <- ClopperPearsonCI(x = 7, n = 20, alpha = 0.05)
-print(paste("95% CI: [", round(ci_result[1], 3), ", ", round(ci_result[2], 3), "]", sep = ""))
-
 ## ----bssr_basic---------------------------------------------------------------
 # Basic BSSR calculation
 bssr_result <- BinaryPowerBSSR(
@@ -65,7 +60,7 @@ bssr_result <- BinaryPowerBSSR(
 # Display first few rows
 head(bssr_result)
 
-## ----bssr_comparison, fig.width=10, fig.height=8------------------------------
+## ----bssr_comparison, fig.width=11, fig.height=5.5, out.width="100%"----------
 # Calculate power of the BSSR with binary endpoint
 power.BSSR <- tibble(
   Rule = factor(
@@ -88,34 +83,51 @@ power.BSSR <- tibble(
   ) %>% 
   mutate(
     Rule = factor(Rule, levels = c('Restricted', 'Unrestricted', 'Weighted')),
-    r = paste0('r==', r)
+    r_label = paste0('Allocation ratio = ', r, ':1')
   ) %>% 
   rename(Theta = p, Power = power.BSSR)
 
-# Display the figure
+# Create the improved figure
 power.BSSR %>% 
   ggplot(aes(x = Theta, y = Power)) +
-  geom_line(aes(color = Rule), linewidth = 1.2) +
+  geom_line(aes(color = Rule), linewidth = 1.0) +
   theme_bw() +
-  facet_grid(. ~ r, labeller = label_parsed) + 
-  geom_hline(yintercept = 0.8, color = 'gray', linetype = 'longdash', linewidth = 1.2) +
+  facet_grid(. ~ r_label) + 
+  geom_hline(yintercept = 0.8, color = 'gray', linetype = 'longdash', linewidth = 1.0) +
   scale_x_continuous(
     limits = c(0.1, 0.9),
-    breaks = seq(0.1, 0.9, l = 5)
+    breaks = seq(0.2, 0.8, by = 0.2),  # Fewer x-axis breaks
+    labels = c("0.2", "0.4", "0.6", "0.8")
   ) +
   scale_y_continuous(
     limits = c(0.7, 1.0),
-    breaks = seq(0.7, 1.0, l = 7)
+    breaks = seq(0.7, 1.0, by = 0.1),
+    labels = c("0.7", "0.8", "0.9", "1.0")
   ) +
-  labs(x = expression(theta)) +
+  scale_color_manual(
+    values = c("Restricted" = "#E31A1C", "Unrestricted" = "#1F78B4", "Weighted" = "#33A02C")
+  ) +
+  labs(
+    x = expression(theta),
+    y = "Power",
+    title = "Power Comparison: BSSR Design Rules",
+    subtitle = "Dashed line indicates target power = 0.8"
+  ) +
   theme(
-    text = element_text(size = 12),
-    panel.spacing = unit(0.5, 'lines'),
-    legend.key.width = unit(1.5, 'cm'),
-    legend.text = element_text(size = 12),
+    text = element_text(size = 11),
+    plot.title = element_text(size = 13, hjust = 0.5, margin = margin(b = 5)),
+    plot.subtitle = element_text(size = 10, hjust = 0.5, margin = margin(b = 10)),
+    panel.spacing = unit(0.8, 'lines'),
+    legend.position = 'bottom',
+    legend.key.width = unit(1.2, 'cm'),
+    legend.text = element_text(size = 10),
     legend.title = element_blank(),
-    legend.title.position = 'top',
-    legend.position = 'bottom'
+    legend.margin = margin(t = 8, r = 0, b = 0, l = 0),
+    axis.title.x = element_text(size = 11, margin = margin(t = 8)),
+    axis.title.y = element_text(size = 11, margin = margin(r = 8)),
+    axis.text = element_text(size = 9),
+    strip.text = element_text(size = 10),
+    plot.margin = margin(t = 10, r = 10, b = 5, l = 5)
   )
 
 ## ----test_comparison----------------------------------------------------------
