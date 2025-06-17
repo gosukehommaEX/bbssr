@@ -41,11 +41,17 @@ The power calculation is based on the exact distribution of the test statistic
 under the specified alternative hypothesis.
 }
 \examples{
-\dontrun{
-# Single power calculation
-power1 <- BinaryPower(p1 = 0.5, p2 = 0.2, N1 = 10, N2 = 40,
+# Simple power calculation with fast Chi-squared test
+power1 <- BinaryPower(p1 = 0.5, p2 = 0.2, N1 = 5, N2 = 5,
                      alpha = 0.025, Test = 'Chisq')
 print(power1)
+
+\donttest{
+# More computationally intensive examples
+# Single power calculation with larger sample size
+power2 <- BinaryPower(p1 = 0.5, p2 = 0.2, N1 = 10, N2 = 40,
+                     alpha = 0.025, Test = 'Boschloo')
+print(power2)
 
 # Multiple power calculations
 p1_vec <- c(0.5, 0.6, 0.7, 0.8)

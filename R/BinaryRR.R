@@ -22,8 +22,16 @@
 #' }
 #'
 #' @examples
-#' \dontrun{
-#' # Calculate rejection region for Boschloo test
+#' # Simple example with small sample sizes (runs quickly)
+#' N1 <- 5
+#' N2 <- 5
+#' alpha <- 0.025
+#' Test <- 'Chisq'
+#' RR <- BinaryRR(N1, N2, alpha, Test)
+#' print(dim(RR))  # Should be (6, 6)
+#'
+#' \donttest{
+#' # More computationally intensive example
 #' N1 <- 20
 #' N2 <- 10
 #' alpha <- 0.025

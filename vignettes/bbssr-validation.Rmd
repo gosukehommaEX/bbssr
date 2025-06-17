@@ -23,13 +23,18 @@ knitr::opts_chunk$set(
   message = FALSE
 )
 
-# Install and load required packages
-required_packages <- c("knitr", "bbssr", "dplyr", "ggplot2", "tidyr", "microbenchmark")
+# Load required packages
+# Note: These packages must be installed separately before building this vignette
+library(bbssr)
+
+# Check if optional packages are available
+required_packages <- c("dplyr", "ggplot2", "tidyr", "microbenchmark")
 for (pkg in required_packages) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
-    install.packages(pkg)
+    message(paste("Package", pkg, "not available. Install with: install.packages('", pkg, "')", sep = ""))
+  } else {
+    library(pkg, character.only = TRUE)
   }
-  library(pkg, character.only = TRUE)
 }
 
 # Load base packages explicitly
@@ -42,15 +47,15 @@ has_exact <- requireNamespace("Exact", quietly = TRUE)
 has_exact2x2 <- requireNamespace("exact2x2", quietly = TRUE)
 
 if (!has_exact) {
-  message("Installing Exact package...")
-  install.packages("Exact")
-  has_exact <- requireNamespace("Exact", quietly = TRUE)
+  message("Note: Exact package not available. Install with: install.packages('Exact')")
+} else {
+  library(Exact)
 }
 
 if (!has_exact2x2) {
-  message("Installing exact2x2 package...")
-  install.packages("exact2x2")
-  has_exact2x2 <- requireNamespace("exact2x2", quietly = TRUE)
+  message("Note: exact2x2 package not available. Install with: install.packages('exact2x2')")
+} else {
+  library(exact2x2)
 }
 
 if (!has_exact || !has_exact2x2) {

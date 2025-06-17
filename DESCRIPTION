@@ -12,6 +12,8 @@ Description: Provides comprehensive tools for blinded sample size re-estimation 
     statistical tests: Pearson chi-squared, Fisher exact, Fisher mid-p, Z-pooled 
     exact unconditional, and Boschloo exact unconditional tests. Supports restricted, 
     unrestricted, and weighted BSSR approaches with exact Type I error control.
+    Statistical methods based on Mehrotra et al. (2003) <doi:10.1111/1541-0420.00051> 
+    and Kieser (2020) <doi:10.1007/978-3-030-49528-2_21>.
 License: MIT + file LICENSE
 URL: https://github.com/gosukehommaEX/bbssr
 BugReports: https://github.com/gosukehommaEX/bbssr/issues

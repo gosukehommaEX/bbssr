@@ -39,8 +39,21 @@
 #' }
 #'
 #' @examples
-#' \dontrun{
-#' result <- BinaryPowerBSSR(
+#' # Simple BSSR calculation with fast Chi-squared test
+#' result1 <- BinaryPowerBSSR(
+#'   asmd.p1 = 0.6, asmd.p2 = 0.3,
+#'   p = 0.45,
+#'   Delta.A = 0.3, Delta.T = 0.3,
+#'   N1 = 5, N2 = 5, omega = 0.5, r = 1,
+#'   alpha = 0.025, tar.power = 0.8,
+#'   Test = 'Chisq',
+#'   restricted = FALSE, weighted = FALSE
+#' )
+#' print(result1)
+#'
+#' \donttest{
+#' # More computationally intensive BSSR examples
+#' result2 <- BinaryPowerBSSR(
 #'   asmd.p1 = 0.45,
 #'   asmd.p2 = 0.09,
 #'   p = seq(0.14, 0.23, by = 0.01),
@@ -56,7 +69,7 @@
 #'   restricted = FALSE,
 #'   weighted = TRUE
 #' )
-#' print(result)
+#' print(result2)
 #' }
 #'
 #' @author Gosuke Homma (\email{my.name.is.gosuke@@gmail.com})

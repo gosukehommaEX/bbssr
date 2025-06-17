@@ -42,16 +42,22 @@
 #' }
 #'
 #' @examples
-#' \dontrun{
-#' # Sample size for Pearson chi-squared test
-#' result1 <- BinarySampleSize(p1 = 0.4, p2 = 0.2, r = 2, alpha = 0.025,
+#' # Simple sample size calculation with fast Chi-squared test
+#' result1 <- BinarySampleSize(p1 = 0.4, p2 = 0.2, r = 1, alpha = 0.025,
 #'                            tar.power = 0.8, Test = 'Chisq')
 #' print(result1)
 #'
+#' \donttest{
+#' # More computationally intensive examples
 #' # Sample size for Fisher exact test
-#' result2 <- BinarySampleSize(p1 = 0.5, p2 = 0.2, r = 3, alpha = 0.025,
+#' result2 <- BinarySampleSize(p1 = 0.5, p2 = 0.2, r = 2, alpha = 0.025,
 #'                            tar.power = 0.9, Test = 'Fisher')
 #' print(result2)
+#'
+#' # Sample size for Boschloo test
+#' result3 <- BinarySampleSize(p1 = 0.6, p2 = 0.3, r = 1, alpha = 0.025,
+#'                            tar.power = 0.8, Test = 'Boschloo')
+#' print(result3)
 #' }
 #'
 #' @author Gosuke Homma (\email{my.name.is.gosuke@@gmail.com})
