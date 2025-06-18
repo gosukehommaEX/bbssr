@@ -3,6 +3,8 @@
 <!-- badges: start -->
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/bbssr)](http://cran.r-project.org/package=bbssr)
 [![R-CMD-check](https://github.com/gosukehommaEX/bbssr/workflows/R-CMD-check/badge.svg)](https://github.com/gosukehommaEX/bbssr/actions)
+[![downloads](http://cranlogs.r-pkg.org/badges/grand-total/bbssr)](https://cranlogs.r-pkg.org/badges/grand-total/bbssr)
+[![downloads](http://cranlogs.r-pkg.org/badges/bbssr)](https://cranlogs.r-pkg.org/badges/bbssr)
 <!-- badges: end -->
 
 ## Overview
@@ -17,7 +19,6 @@
 - **Comprehensive Power Analysis**: Calculate exact power for both traditional and BSSR designs
 - **High-Performance Computing**: Optimized algorithms deliver significant speed improvements over existing packages
 - **Validated Accuracy**: Extensive validation confirms identical results to established packages (`Exact`, `exact2x2`) across multiple scenarios
-- **CRAN-Ready**: Fully documented with examples, vignettes, and comprehensive test coverage
 
 ### Statistical Methods Supported
 
