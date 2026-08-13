@@ -12,7 +12,7 @@
 
 <meta name="author" content="Gosuke Homma" />
 
-<meta name="date" content="2026-08-13" />
+<meta name="date" content="2026-08-14" />
 
 <title>Validation of bbssr</title>
 
@@ -341,7 +341,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Validation of bbssr</h1>
 <h4 class="author">Gosuke Homma</h4>
-<h4 class="date">2026-08-13</h4>
+<h4 class="date">2026-08-14</h4>
 
 
 <div id="TOC">
@@ -610,17 +610,17 @@ the nuisance parameter runs in compiled code.</p>
 <span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>)</span>
 <span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co">#&gt; Unit: milliseconds</span></span>
 <span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt;                   expr     min      lq     mean   median      uq     max neval</span></span>
-<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt;                  Chisq  0.4933  0.8639  0.99137  1.08095  1.2024  1.2250    10</span></span>
-<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt;                 Fisher  2.8995  4.0398  4.84428  5.03430  5.6803  6.1883    10</span></span>
-<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt;                 Z-pool 16.8107 18.8145 20.87915 21.40490 22.5092 26.3371    10</span></span>
-<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt;               Boschloo 21.4194 23.6121 26.16727 26.73865 29.4167 30.0727    10</span></span>
-<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt;  Boschloo, Berger-Boos 58.2948 61.3208 64.22786 64.23700 65.2525 73.5214    10</span></span>
-<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt;    cld</span></span>
-<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt;  a    </span></span>
-<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt;   b   </span></span>
-<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt;    c  </span></span>
-<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt;     d </span></span>
-<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt;      e</span></span></code></pre></div>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt;                  Chisq  0.5319  0.6373  0.85626  0.77635  0.9174  1.4735    10</span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt;                 Fisher  3.6127  4.4856  4.98041  5.04455  5.5741  6.3151    10</span></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt;                 Z-pool 15.6419 17.1426 19.84100 18.63575 21.1462 29.4875    10</span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt;               Boschloo 18.6032 21.6404 24.24634 23.40170 25.6472 34.3196    10</span></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt;  Boschloo, Berger-Boos 43.7800 49.3043 53.85553 54.00655 57.1874 63.4816    10</span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt;  cld</span></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt;  a  </span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt;  a  </span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt;   b </span></span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt;   b </span></span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt;    c</span></span></code></pre></div>
 <p>The Berger-Boos variant costs roughly twice as much as the plain
 Boschloo test, because the confidence bounds of every possible responder
 total are added to the grid over the nuisance parameter.</p>
@@ -642,8 +642,8 @@ charges <code>Exact</code> only for the p-values of a single row.</p>
 <span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a>)</span>
 <span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt; Unit: milliseconds</span></span>
 <span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt;              expr      min       lq      mean   median       uq      max neval</span></span>
-<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="co">#&gt;  bbssr.whole.grid   4.4653   4.5013   5.22374   4.7344   5.9528   6.4649     5</span></span>
-<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="co">#&gt;     Exact.one.row 285.6183 309.6637 324.54988 327.5755 327.6536 372.2383     5</span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="co">#&gt;  bbssr.whole.grid   4.3283   4.5759   5.66312   5.2705   6.1311   8.0098     5</span></span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="co">#&gt;     Exact.one.row 286.5909 311.6704 340.73710 342.2364 372.8085 390.3793     5</span></span>
 <span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a><span class="co">#&gt;  cld</span></span>
 <span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a><span class="co">#&gt;   a </span></span>
 <span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a><span class="co">#&gt;    b</span></span></code></pre></div>

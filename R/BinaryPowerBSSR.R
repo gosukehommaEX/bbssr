@@ -47,7 +47,14 @@
 #' recover group-specific proportions, from which the sample size is re-estimated. The power
 #' is then averaged over the distribution of the interim outcome.
 #'
-#' Setting \code{Delta.T} to 0 gives the exact type I error rate of the design.
+#' Setting \code{Delta.T} to 0 makes the two groups identical, so \code{power.BSSR} and
+#' \code{power.TRAD} become rejection probabilities under the null hypothesis. They are
+#' evaluated only at the values supplied through \code{p}, since the function does not
+#' search over the unit interval on its own. The largest type I error rate of the design is
+#' therefore obtained by passing a grid such as \code{p = seq(0.02, 0.98, by = 0.02)} and
+#' taking the maximum of the \code{power.BSSR} column. The rejection region and the
+#' re-estimated sample size are shared across the elements of \code{p}, so a fine grid
+#' costs much less than the same number of separate calls.
 #'
 #' The weighted approach available in earlier versions of the package has been removed.
 #'

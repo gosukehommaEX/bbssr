@@ -156,13 +156,22 @@ The interim total of responders is the only quantity that leaves the database, s
 
 Fix the timing of the interim analysis, the value of $\Delta_{A}$, the test and the choice between the restricted and unrestricted rules in the protocol before the trial starts. Report the operating characteristics from `BinaryPowerBSSR()` alongside them, since the type I error rate of the procedure is a property of the whole rule rather than of the final test alone.
 
+Setting `Delta.T` to zero makes the two groups identical, so `power.BSSR` and `power.TRAD` become rejection probabilities under the null hypothesis. The function evaluates them only at the values passed through `p` and does not search over the unit interval, so the largest type I error rate has to be read off a grid.
+
 ```{r type1-check}
-BinaryPowerBSSR(
-  asmd.p1 = 0.45, asmd.p2 = 0.20, p = c(0.25, 0.325, 0.40),
+null <- BinaryPowerBSSR(
+  asmd.p1 = 0.45, asmd.p2 = 0.20, p = seq(0.02, 0.98, by = 0.02),
   Delta.A = Delta.A, Delta.T = 0,
   N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
   alpha = 0.025, tar.power = 0.8, Test = 'Chisq', restricted = TRUE
 )
+data.frame(
+  largest.type1.BSSR = round(max(null$power.BSSR), 5),
+  attained.at.p = null$p[which.max(null$power.BSSR)],
+  largest.type1.fixed = round(max(null$power.TRAD), 5)
+)
 ```
 
-Setting `Delta.T` to zero makes the two groups identical, so the `power.BSSR` column is the type I error rate of the re-estimation procedure and the `power.TRAD` column is that of the fixed-sample test.
+The rejection region and the re-estimated sample size are shared across the elements of `p`, so a grid of this size costs little more than a handful of scenarios.
+
+Both figures sit above the nominal 0.025, for two separate reasons. The chi-squared test is not exact, which is why the fixed-sample design alone already overshoots, and the re-estimation then pushes the maximum higher still. Substituting an exact test such as `Boschloo` removes the first source but not the second, because the type I error rate of an adaptive rule is not inherited from the test it applies at the end. Running this check is therefore worthwhile whichever test is chosen.
