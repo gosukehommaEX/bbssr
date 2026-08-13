@@ -12,9 +12,9 @@
 
 <meta name="author" content="Gosuke Homma" />
 
-<meta name="date" content="2025-06-15" />
+<meta name="date" content="2026-08-13" />
 
-<title>Validation of bbssr Package Functions</title>
+<title>Validation of bbssr</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -50,8 +50,9 @@ overflow: visible;
 }
 </style>
 <style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -62,7 +63,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -338,874 +339,348 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">Validation of bbssr Package Functions</h1>
+<h1 class="title toc-ignore">Validation of bbssr</h1>
 <h4 class="author">Gosuke Homma</h4>
-<h4 class="date">2025-06-15</h4>
+<h4 class="date">2026-08-13</h4>
 
 
 <div id="TOC">
 <ul>
-<li><a href="#introduction" id="toc-introduction">Introduction</a></li>
-<li><a href="#validation-of-binarypower-function" id="toc-validation-of-binarypower-function">Validation of BinaryPower
-Function</a>
-<ul>
-<li><a href="#test-parameters" id="toc-test-parameters">Test
-Parameters</a></li>
-</ul></li>
-<li><a href="#quick-verification-example" id="toc-quick-verification-example">Quick Verification Example</a>
-<ul>
-<li><a href="#pearson-chi-squared-test" id="toc-pearson-chi-squared-test">1. Pearson Chi-squared Test</a></li>
-<li><a href="#fisher-exact-test" id="toc-fisher-exact-test">2. Fisher
-Exact Test</a></li>
-<li><a href="#fisher-mid-p-test" id="toc-fisher-mid-p-test">3. Fisher
-Mid-p Test</a></li>
-<li><a href="#z-pooled-exact-unconditional-test" id="toc-z-pooled-exact-unconditional-test">4. Z-pooled Exact
-Unconditional Test</a></li>
-<li><a href="#boschloo-exact-unconditional-test" id="toc-boschloo-exact-unconditional-test">5. Boschloo Exact
-Unconditional Test</a></li>
-</ul></li>
-<li><a href="#performance-comparison" id="toc-performance-comparison">Performance Comparison</a>
-<ul>
-<li><a href="#enhanced-computational-speed-benchmarks" id="toc-enhanced-computational-speed-benchmarks">Enhanced Computational
-Speed Benchmarks</a></li>
-<li><a href="#binarypower-performance-comparison" id="toc-binarypower-performance-comparison">BinaryPower Performance
-Comparison</a></li>
-<li><a href="#performance-visualization" id="toc-performance-visualization">Performance Visualization</a></li>
-<li><a href="#speed-improvement-summary" id="toc-speed-improvement-summary">Speed Improvement Summary</a></li>
-</ul></li>
-<li><a href="#summary-of-validation-results" id="toc-summary-of-validation-results">Summary of Validation Results</a>
-<ul>
-<li><a href="#accuracy-validation" id="toc-accuracy-validation">Accuracy
-Validation</a></li>
-<li><a href="#performance-improvements" id="toc-performance-improvements">Performance Improvements</a></li>
-<li><a href="#key-advantages-of-bbssr" id="toc-key-advantages-of-bbssr">Key Advantages of bbssr</a></li>
-</ul></li>
-<li><a href="#conclusion" id="toc-conclusion">Conclusion</a></li>
-<li><a href="#session-information" id="toc-session-information">Session
-Information</a></li>
+<li><a href="#conditional-tests-against-stats" id="toc-conditional-tests-against-stats">Conditional tests against
+stats</a></li>
+<li><a href="#unconditional-tests-against-a-direct-evaluation" id="toc-unconditional-tests-against-a-direct-evaluation">Unconditional
+tests against a direct evaluation</a></li>
+<li><a href="#why-the-tie-handling-matters" id="toc-why-the-tie-handling-matters">Why the tie handling
+matters</a></li>
+<li><a href="#comparison-with-the-exact-package" id="toc-comparison-with-the-exact-package">Comparison with the Exact
+package</a></li>
+<li><a href="#comparison-with-exact2x2" id="toc-comparison-with-exact2x2">Comparison with exact2x2</a></li>
+<li><a href="#type-i-error-rate-of-every-test" id="toc-type-i-error-rate-of-every-test">Type I error rate of every
+test</a></li>
+<li><a href="#speed" id="toc-speed">Speed</a></li>
+<li><a href="#sample-size-search" id="toc-sample-size-search">Sample
+size search</a></li>
+<li><a href="#summary" id="toc-summary">Summary</a></li>
 </ul>
 </div>
 
-<div id="introduction" class="section level2">
-<h2>Introduction</h2>
-<p>This vignette validates the <code>BinaryPower()</code> and
-<code>BinarySampleSize()</code> functions in the <code>bbssr</code>
-package by comparing results with established R packages:
-<code>Exact</code> and <code>exact2x2</code>. We also compare
-computational performance to demonstrate the efficiency improvements in
-<code>bbssr</code>.</p>
-<p>The validation covers all five statistical tests implemented in
-<code>bbssr</code>: 1. Pearson chi-squared test (<code>&#39;Chisq&#39;</code>)
-2. Fisher exact test (<code>&#39;Fisher&#39;</code>) 3. Fisher mid-p test
-(<code>&#39;Fisher-midP&#39;</code>) 4. Z-pooled exact unconditional test
-(<code>&#39;Z-pool&#39;</code>) 5. Boschloo exact unconditional test
-(<code>&#39;Boschloo&#39;</code>)</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Load external validation packages</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(Exact)</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(exact2x2)</span></code></pre></div>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># If external packages are not available, just load bbssr</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">library</span>(bbssr)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(bbssr)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>has_exact <span class="ot">&lt;-</span> <span class="fu">requireNamespace</span>(<span class="st">&#39;Exact&#39;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>has_exact2x2 <span class="ot">&lt;-</span> <span class="fu">requireNamespace</span>(<span class="st">&#39;exact2x2&#39;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>has_bench <span class="ot">&lt;-</span> <span class="fu">requireNamespace</span>(<span class="st">&#39;microbenchmark&#39;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">c</span>(<span class="at">Exact =</span> has_exact, <span class="at">exact2x2 =</span> has_exact2x2, <span class="at">microbenchmark =</span> has_bench)</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&gt;          Exact       exact2x2 microbenchmark </span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&gt;           TRUE           TRUE           TRUE</span></span></code></pre></div>
+<p>Chunks that need one of the optional packages are skipped when it is
+unavailable.</p>
+<div id="conditional-tests-against-stats" class="section level2">
+<h2>Conditional tests against stats</h2>
+<p>The Fisher p-values are compared with <code>stats::fisher.test</code>
+at every outcome of a small grid, for the one-sided alternative and for
+both two-sided conventions.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>N1 <span class="ot">&lt;-</span> <span class="dv">7</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>N2 <span class="ot">&lt;-</span> <span class="dv">6</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>compare_fisher <span class="ot">&lt;-</span> <span class="cf">function</span>(alternative, tsmethod) {</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  got <span class="ot">&lt;-</span> <span class="fu">attr</span>(<span class="fu">BinaryRR</span>(N1, N2, <span class="fl">0.05</span>, <span class="st">&#39;Fisher&#39;</span>, <span class="at">alternative =</span> alternative,</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>                       <span class="at">tsmethod =</span> tsmethod), <span class="st">&#39;p.value&#39;</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  want <span class="ot">&lt;-</span> <span class="fu">outer</span>(<span class="dv">0</span><span class="sc">:</span>N1, <span class="dv">0</span><span class="sc">:</span>N2, <span class="fu">Vectorize</span>(<span class="cf">function</span>(i, j) {</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>    tab <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(i, j, N1 <span class="sc">-</span> i, N2 <span class="sc">-</span> j), <span class="at">nrow =</span> <span class="dv">2</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>    <span class="cf">if</span> (alternative <span class="sc">==</span> <span class="st">&#39;greater&#39;</span>) {</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>      stats<span class="sc">::</span><span class="fu">fisher.test</span>(tab, <span class="at">alternative =</span> <span class="st">&#39;greater&#39;</span>)<span class="sc">$</span>p.value</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>      stats<span class="sc">::</span><span class="fu">fisher.test</span>(tab)<span class="sc">$</span>p.value</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>    }</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>  }))</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>  <span class="fu">max</span>(<span class="fu">abs</span>(got <span class="sc">-</span> want))</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>}</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>  <span class="at">comparison =</span> <span class="fu">c</span>(<span class="st">&#39;one-sided&#39;</span>, <span class="st">&#39;two-sided, minlike&#39;</span>),</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>  <span class="at">max.absolute.difference =</span> <span class="fu">c</span>(</span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>    <span class="fu">compare_fisher</span>(<span class="st">&#39;greater&#39;</span>, <span class="st">&#39;minlike&#39;</span>),</span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>    <span class="fu">compare_fisher</span>(<span class="st">&#39;two.sided&#39;</span>, <span class="st">&#39;minlike&#39;</span>)</span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>  )</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>)</span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a><span class="co">#&gt;           comparison max.absolute.difference</span></span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a><span class="co">#&gt; 1          one-sided            4.440892e-16</span></span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="co">#&gt; 2 two-sided, minlike            3.330669e-16</span></span></code></pre></div>
+<p>The <code>central</code> convention has no counterpart in
+<code>stats</code>, so it is checked against its definition.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>got <span class="ot">&lt;-</span> <span class="fu">attr</span>(<span class="fu">BinaryRR</span>(N1, N2, <span class="fl">0.05</span>, <span class="st">&#39;Fisher&#39;</span>, <span class="at">alternative =</span> <span class="st">&#39;two.sided&#39;</span>,</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>                     <span class="at">tsmethod =</span> <span class="st">&#39;central&#39;</span>), <span class="st">&#39;p.value&#39;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>want <span class="ot">&lt;-</span> <span class="fu">outer</span>(<span class="dv">0</span><span class="sc">:</span>N1, <span class="dv">0</span><span class="sc">:</span>N2, <span class="cf">function</span>(i, j) {</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  s <span class="ot">&lt;-</span> i <span class="sc">+</span> j</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="fu">pmin</span>(<span class="dv">1</span>, <span class="dv">2</span> <span class="sc">*</span> <span class="fu">pmin</span>(stats<span class="sc">::</span><span class="fu">phyper</span>(i, N1, N2, s),</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>                   stats<span class="sc">::</span><span class="fu">phyper</span>(i <span class="sc">-</span> <span class="dv">1</span>, N1, N2, s, <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)))</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>})</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="fu">max</span>(<span class="fu">abs</span>(got <span class="sc">-</span> want))</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; [1] 8.881784e-16</span></span></code></pre></div>
 </div>
-<div id="validation-of-binarypower-function" class="section level2">
-<h2>Validation of BinaryPower Function</h2>
-<div id="test-parameters" class="section level3">
-<h3>Test Parameters</h3>
-<p>We use the following parameters for validation:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Test parameters for validation</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.6</span>, <span class="fl">0.7</span>, <span class="fl">0.8</span>)  <span class="co"># Response rates in treatment group</span></span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.2</span>, <span class="fl">0.2</span>, <span class="fl">0.2</span>)  <span class="co"># Response rates in control group</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>N1 <span class="ot">&lt;-</span> <span class="dv">10</span>                     <span class="co"># Sample size in treatment group</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>N2 <span class="ot">&lt;-</span> <span class="dv">40</span>                     <span class="co"># Sample size in control group</span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> <span class="fl">0.025</span>              <span class="co"># One-sided significance level</span></span></code></pre></div>
+<div id="unconditional-tests-against-a-direct-evaluation" class="section level2">
+<h2>Unconditional tests against a direct evaluation</h2>
+<p>The unconditional p-value is the null tail probability maximized over
+the nuisance parameter. The reference below forms the tail set of each
+outcome explicitly and searches the same grid, which is slow but follows
+the definition with no shared code.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>unconditional_ref <span class="ot">&lt;-</span> <span class="cf">function</span>(stat, N1, N2, n.grid, decreasing) {</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  theta <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> n.grid)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  joint <span class="ot">&lt;-</span> <span class="fu">lapply</span>(theta, <span class="cf">function</span>(t) <span class="fu">outer</span>(<span class="fu">dbinom</span>(<span class="dv">0</span><span class="sc">:</span>N1, N1, t), <span class="fu">dbinom</span>(<span class="dv">0</span><span class="sc">:</span>N2, N2, t)))</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> N1 <span class="sc">+</span> <span class="dv">1</span>, <span class="at">ncol =</span> N2 <span class="sc">+</span> <span class="dv">1</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">0</span><span class="sc">:</span>N1) {</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>    <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">0</span><span class="sc">:</span>N2) {</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>      s0 <span class="ot">&lt;-</span> stat[i <span class="sc">+</span> <span class="dv">1</span>, j <span class="sc">+</span> <span class="dv">1</span>]</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>      tol <span class="ot">&lt;-</span> <span class="fl">1e-10</span> <span class="sc">*</span> <span class="fu">pmax</span>(<span class="fu">abs</span>(stat), <span class="fu">abs</span>(s0))</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>      mask <span class="ot">&lt;-</span> <span class="cf">if</span> (decreasing) stat <span class="sc">&gt;=</span> s0 <span class="sc">-</span> tol <span class="cf">else</span> stat <span class="sc">&lt;=</span> s0 <span class="sc">+</span> tol</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>      p[i <span class="sc">+</span> <span class="dv">1</span>, j <span class="sc">+</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="fu">max</span>(<span class="fu">vapply</span>(joint, <span class="cf">function</span>(m) <span class="fu">sum</span>(m <span class="sc">*</span> mask), <span class="fu">numeric</span>(<span class="dv">1</span>)))</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>    }</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>  }</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>  <span class="fu">pmin</span>(p, <span class="dv">1</span>)</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>}</span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>N1 <span class="ot">&lt;-</span> <span class="dv">8</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>N2 <span class="ot">&lt;-</span> <span class="dv">7</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>n.grid <span class="ot">&lt;-</span> <span class="dv">40</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a>boschloo <span class="ot">&lt;-</span> <span class="fu">attr</span>(<span class="fu">BinaryRR</span>(N1, N2, <span class="fl">0.025</span>, <span class="st">&#39;Boschloo&#39;</span>, <span class="at">n.grid =</span> n.grid), <span class="st">&#39;p.value&#39;</span>)</span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a>fisher <span class="ot">&lt;-</span> <span class="fu">attr</span>(<span class="fu">BinaryRR</span>(N1, N2, <span class="fl">0.025</span>, <span class="st">&#39;Fisher&#39;</span>), <span class="st">&#39;p.value&#39;</span>)</span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a>zpool <span class="ot">&lt;-</span> <span class="fu">attr</span>(<span class="fu">BinaryRR</span>(N1, N2, <span class="fl">0.025</span>, <span class="st">&#39;Z-pool&#39;</span>, <span class="at">n.grid =</span> n.grid), <span class="st">&#39;p.value&#39;</span>)</span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a>zstats <span class="ot">&lt;-</span> <span class="fu">outer</span>(<span class="dv">0</span><span class="sc">:</span>N1, <span class="dv">0</span><span class="sc">:</span>N2, <span class="cf">function</span>(i, j) {</span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a>  hat.p <span class="ot">&lt;-</span> (i <span class="sc">+</span> j) <span class="sc">/</span> (N1 <span class="sc">+</span> N2)</span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a>  z <span class="ot">&lt;-</span> (i <span class="sc">/</span> N1 <span class="sc">-</span> j <span class="sc">/</span> N2) <span class="sc">/</span> <span class="fu">sqrt</span>(hat.p <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> hat.p) <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">/</span> N1 <span class="sc">+</span> <span class="dv">1</span> <span class="sc">/</span> N2))</span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a>  <span class="fu">ifelse</span>(<span class="fu">is.finite</span>(z), z, <span class="dv">0</span>)</span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a>})</span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a>  <span class="at">Test =</span> <span class="fu">c</span>(<span class="st">&#39;Boschloo&#39;</span>, <span class="st">&#39;Z-pool&#39;</span>),</span>
+<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a>  <span class="at">max.absolute.difference =</span> <span class="fu">c</span>(</span>
+<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a>    <span class="fu">max</span>(<span class="fu">abs</span>(boschloo <span class="sc">-</span> <span class="fu">unconditional_ref</span>(fisher, N1, N2, n.grid, <span class="cn">FALSE</span>))),</span>
+<span id="cb4-31"><a href="#cb4-31" tabindex="-1"></a>    <span class="fu">max</span>(<span class="fu">abs</span>(zpool <span class="sc">-</span> <span class="fu">unconditional_ref</span>(zstats, N1, N2, n.grid, <span class="cn">TRUE</span>)))</span>
+<span id="cb4-32"><a href="#cb4-32" tabindex="-1"></a>  )</span>
+<span id="cb4-33"><a href="#cb4-33" tabindex="-1"></a>)</span>
+<span id="cb4-34"><a href="#cb4-34" tabindex="-1"></a><span class="co">#&gt;       Test max.absolute.difference</span></span>
+<span id="cb4-35"><a href="#cb4-35" tabindex="-1"></a><span class="co">#&gt; 1 Boschloo            2.220446e-16</span></span>
+<span id="cb4-36"><a href="#cb4-36" tabindex="-1"></a><span class="co">#&gt; 2   Z-pool            1.110223e-16</span></span></code></pre></div>
 </div>
+<div id="why-the-tie-handling-matters" class="section level2">
+<h2>Why the tie handling matters</h2>
+<p>Version 1 of the package accumulated the null probabilities along an
+arbitrary ordering of the outcomes, which splits groups of tied values.
+The function below reproduces that behaviour so the two can be
+compared.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>legacy_boschloo <span class="ot">&lt;-</span> <span class="cf">function</span>(N1, N2, <span class="at">n.grid =</span> <span class="dv">100</span>) {</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  stat <span class="ot">&lt;-</span> <span class="fu">attr</span>(<span class="fu">BinaryRR</span>(N1, N2, <span class="fl">0.5</span>, <span class="st">&#39;Fisher&#39;</span>), <span class="st">&#39;p.value&#39;</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  ord <span class="ot">&lt;-</span> <span class="fu">order</span>(<span class="fu">c</span>(stat))</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  x1 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">row</span>(stat))[ord] <span class="sc">-</span> <span class="dv">1</span><span class="dt">L</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  x2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">col</span>(stat))[ord] <span class="sc">-</span> <span class="dv">1</span><span class="dt">L</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  theta <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> n.grid)</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(ord))</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="cf">for</span> (t <span class="cf">in</span> theta) {</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>    out <span class="ot">&lt;-</span> <span class="fu">pmax</span>(out, <span class="fu">cumsum</span>(<span class="fu">dbinom</span>(x1, N1, t) <span class="sc">*</span> <span class="fu">dbinom</span>(x2, N2, t)))</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  }</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  p <span class="ot">&lt;-</span> stat</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>  p[ord] <span class="ot">&lt;-</span> <span class="fu">pmin</span>(<span class="dv">1</span>, out)</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>  p</span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>}</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>N1 <span class="ot">&lt;-</span> <span class="dv">7</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a>N2 <span class="ot">&lt;-</span> <span class="dv">7</span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>current <span class="ot">&lt;-</span> <span class="fu">attr</span>(<span class="fu">BinaryRR</span>(N1, N2, <span class="fl">0.025</span>, <span class="st">&#39;Boschloo&#39;</span>), <span class="st">&#39;p.value&#39;</span>)</span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>legacy <span class="ot">&lt;-</span> <span class="fu">legacy_boschloo</span>(N1, N2)</span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="fu">c</span>(<span class="at">cells.with.different.p =</span> <span class="fu">sum</span>(<span class="fu">abs</span>(current <span class="sc">-</span> legacy) <span class="sc">&gt;</span> <span class="fl">1e-12</span>),</span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>  <span class="at">cells.with.different.decision =</span> <span class="fu">sum</span>((current <span class="sc">&lt;</span> <span class="fl">0.025</span>) <span class="sc">!=</span> (legacy <span class="sc">&lt;</span> <span class="fl">0.025</span>)))</span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt;        cells.with.different.p cells.with.different.decision </span></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt;                            29                             1</span></span></code></pre></div>
+<p>The outcomes <span class="math inline">\((x_{1}, x_{2}) = (5,
+1)\)</span> and <span class="math inline">\((6, 2)\)</span> share a
+Fisher p-value of <span class="math inline">\(2/39\)</span>, so no test
+whose ordering statistic is the Fisher p-value can distinguish them.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>fisher77 <span class="ot">&lt;-</span> <span class="fu">attr</span>(<span class="fu">BinaryRR</span>(<span class="dv">7</span>, <span class="dv">7</span>, <span class="fl">0.5</span>, <span class="st">&#39;Fisher&#39;</span>), <span class="st">&#39;p.value&#39;</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="fu">c</span>(<span class="st">&#39;x1 = 5, x2 = 1&#39;</span>, <span class="st">&#39;x1 = 6, x2 = 2&#39;</span>),</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">fisher.p =</span> <span class="fu">c</span>(fisher77[<span class="dv">6</span>, <span class="dv">2</span>], fisher77[<span class="dv">7</span>, <span class="dv">3</span>]),</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="at">legacy.p =</span> <span class="fu">c</span>(legacy[<span class="dv">6</span>, <span class="dv">2</span>], legacy[<span class="dv">7</span>, <span class="dv">3</span>]),</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  <span class="at">current.p =</span> <span class="fu">c</span>(current[<span class="dv">6</span>, <span class="dv">2</span>], current[<span class="dv">7</span>, <span class="dv">3</span>])</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>)</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt;          outcome   fisher.p   legacy.p  current.p</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt; 1 x1 = 5, x2 = 1 0.05128205 0.02867981 0.02867981</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt; 2 x1 = 6, x2 = 2 0.05128205 0.02161924 0.02867981</span></span></code></pre></div>
+<p>The legacy calculation gives the two outcomes different p-values and
+rejects at one of them but not the other. The rejection region it
+produces still holds the type I error rate below the nominal level,
+because the accumulation stops as soon as the running total exceeds
+alpha, but the decision depends on how the sorting routine breaks the
+tie rather than on the data.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>max_type1 <span class="ot">&lt;-</span> <span class="cf">function</span>(reject, N1, N2, <span class="at">n.grid =</span> <span class="dv">401</span>) {</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  theta <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> n.grid)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="fu">max</span>(<span class="fu">vapply</span>(theta, <span class="cf">function</span>(t) {</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">outer</span>(<span class="fu">dbinom</span>(<span class="dv">0</span><span class="sc">:</span>N1, N1, t), <span class="fu">dbinom</span>(<span class="dv">0</span><span class="sc">:</span>N2, N2, t)) <span class="sc">*</span> reject)</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  }, <span class="fu">numeric</span>(<span class="dv">1</span>)))</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>}</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="fu">c</span>(<span class="at">legacy =</span> <span class="fu">max_type1</span>(legacy <span class="sc">&lt;</span> <span class="fl">0.025</span>, <span class="dv">7</span>, <span class="dv">7</span>),</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">current =</span> <span class="fu">max_type1</span>(current <span class="sc">&lt;</span> <span class="fl">0.025</span>, <span class="dv">7</span>, <span class="dv">7</span>))</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt;     legacy    current </span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; 0.02162352 0.01182923</span></span></code></pre></div>
 </div>
-<div id="quick-verification-example" class="section level2">
-<h2>Quick Verification Example</h2>
-<p>For users who want to see immediate results without running external
-packages:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Quick verification using bbssr only</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;=== Quick Verification Results ===</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; === Quick Verification Results ===</span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Test Parameters:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; Test Parameters:</span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;p1 =&quot;</span>, <span class="fu">paste</span>(p1, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; p1 = 0.5, 0.6, 0.7, 0.8</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;p2 =&quot;</span>, <span class="fu">paste</span>(p2, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>) </span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; p2 = 0.2, 0.2, 0.2, 0.2</span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;N1 =&quot;</span>, N1, <span class="st">&quot;, N2 =&quot;</span>, N2, <span class="st">&quot;, alpha =&quot;</span>, alpha, <span class="st">&quot;</span><span class="sc">\n\n</span><span class="st">&quot;</span>)</span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; N1 = 10 , N2 = 40 , alpha = 0.025</span></span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a></span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co"># Show all test results</span></span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>tests <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&#39;Chisq&#39;</span>, <span class="st">&#39;Fisher&#39;</span>, <span class="st">&#39;Fisher-midP&#39;</span>, <span class="st">&#39;Z-pool&#39;</span>, <span class="st">&#39;Boschloo&#39;</span>)</span>
-<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="cf">for</span>(test <span class="cf">in</span> tests) {</span>
-<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>  powers <span class="ot">&lt;-</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, alpha, <span class="at">Test =</span> test)</span>
-<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;%-12s: %s</span><span class="sc">\n</span><span class="st">&quot;</span>, test, <span class="fu">paste</span>(<span class="fu">round</span>(powers, <span class="dv">6</span>), <span class="at">collapse =</span> <span class="st">&quot;  &quot;</span>)))</span>
-<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>}</span>
-<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#&gt; Chisq       : 0.484712  0.697121  0.866421  0.963872</span></span>
-<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#&gt; Fisher      : 0.328839  0.547489  0.761936  0.917285</span></span>
-<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="co">#&gt; Fisher-midP : 0.40576  0.62751  0.823033  0.947556</span></span>
-<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="co">#&gt; Z-pool      : 0.40649  0.627702  0.822931  0.947353</span></span>
-<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="co">#&gt; Boschloo    : 0.427797  0.654462  0.844536  0.95702</span></span></code></pre></div>
-<div id="pearson-chi-squared-test" class="section level3">
-<h3>1. Pearson Chi-squared Test</h3>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># bbssr results</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>bbssr_chisq <span class="ot">&lt;-</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, alpha, <span class="at">Test =</span> <span class="st">&#39;Chisq&#39;</span>)</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;bbssr results:&quot;</span>)</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; [1] &quot;bbssr results:&quot;</span></span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">round</span>(bbssr_chisq, <span class="dv">7</span>))</span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; [1] 0.4847117 0.6971209 0.8664207 0.9638721</span></span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a></span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co"># Exact package results for comparison</span></span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>exact_chisq <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">seq</span>(p1), <span class="cf">function</span>(i) {</span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1[i], p2[i], N1, N2, <span class="at">method =</span> <span class="st">&#39;pearson chisq&#39;</span>, <span class="st">&#39;greater&#39;</span>, alpha)<span class="sc">$</span>power</span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>})</span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="fu">print</span>(<span class="st">&quot;Exact package results:&quot;</span>)</span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Exact package results:&quot;</span></span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">round</span>(exact_chisq, <span class="dv">7</span>))</span>
-<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt; [1] 0.4847117 0.6971209 0.8664207 0.9638721</span></span>
-<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a></span>
-<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co"># Create comparison table</span></span>
-<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>chisq_comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>  <span class="at">p1 =</span> p1,</span>
-<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>  <span class="at">p2 =</span> p2,</span>
-<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>  <span class="at">bbssr =</span> <span class="fu">round</span>(bbssr_chisq, <span class="dv">7</span>),</span>
-<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a>  <span class="at">Exact =</span> <span class="fu">round</span>(exact_chisq, <span class="dv">7</span>),</span>
-<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a>  <span class="at">Difference =</span> <span class="fu">round</span>(<span class="fu">abs</span>(bbssr_chisq <span class="sc">-</span> exact_chisq), <span class="dv">10</span>)</span>
-<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a>)</span>
-<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a></span>
-<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(chisq_comparison, <span class="at">caption =</span> <span class="st">&quot;Pearson Chi-squared Test: bbssr vs Exact Package&quot;</span>)</span></code></pre></div>
-<table>
-<caption>Pearson Chi-squared Test: bbssr vs Exact Package</caption>
-<thead>
-<tr class="header">
-<th align="right">p1</th>
-<th align="right">p2</th>
-<th align="right">bbssr</th>
-<th align="right">Exact</th>
-<th align="right">Difference</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">0.5</td>
-<td align="right">0.2</td>
-<td align="right">0.4847117</td>
-<td align="right">0.4847117</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="right">0.6</td>
-<td align="right">0.2</td>
-<td align="right">0.6971209</td>
-<td align="right">0.6971209</td>
-<td align="right">0</td>
-</tr>
-<tr class="odd">
-<td align="right">0.7</td>
-<td align="right">0.2</td>
-<td align="right">0.8664207</td>
-<td align="right">0.8664207</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="right">0.8</td>
-<td align="right">0.2</td>
-<td align="right">0.9638721</td>
-<td align="right">0.9638721</td>
-<td align="right">0</td>
-</tr>
-</tbody>
-</table>
+<div id="comparison-with-the-exact-package" class="section level2">
+<h2>Comparison with the Exact package</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>N1 <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>N2 <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>cells <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">x1 =</span> <span class="fu">c</span>(<span class="dv">7</span>, <span class="dv">8</span>, <span class="dv">9</span>), <span class="at">x2 =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>))</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>compare_exact <span class="ot">&lt;-</span> <span class="cf">function</span>(method, Test) {</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  ours <span class="ot">&lt;-</span> <span class="fu">attr</span>(<span class="fu">BinaryRR</span>(N1, N2, <span class="fl">0.025</span>, Test, <span class="at">n.grid =</span> <span class="dv">500</span>), <span class="st">&#39;p.value&#39;</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  theirs <span class="ot">&lt;-</span> <span class="fu">vapply</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(cells)), <span class="cf">function</span>(k) {</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>    tab <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(cells<span class="sc">$</span>x1[k], cells<span class="sc">$</span>x2[k],</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>                    N1 <span class="sc">-</span> cells<span class="sc">$</span>x1[k], N2 <span class="sc">-</span> cells<span class="sc">$</span>x2[k]), <span class="at">nrow =</span> <span class="dv">2</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>    Exact<span class="sc">::</span><span class="fu">exact.test</span>(tab, <span class="at">alternative =</span> <span class="st">&#39;greater&#39;</span>, <span class="at">method =</span> method,</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>                      <span class="at">npNumbers =</span> <span class="dv">500</span>, <span class="at">to.plot =</span> <span class="cn">FALSE</span>)<span class="sc">$</span>p.value</span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>  }, <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>  <span class="fu">max</span>(<span class="fu">abs</span>(ours[<span class="fu">cbind</span>(cells<span class="sc">$</span>x1 <span class="sc">+</span> <span class="dv">1</span>, cells<span class="sc">$</span>x2 <span class="sc">+</span> <span class="dv">1</span>)] <span class="sc">-</span> theirs))</span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>}</span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>  <span class="at">Test =</span> <span class="fu">c</span>(<span class="st">&#39;Boschloo&#39;</span>, <span class="st">&#39;Z-pool&#39;</span>),</span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a>  <span class="at">max.absolute.difference =</span> <span class="fu">c</span>(</span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>    <span class="fu">compare_exact</span>(<span class="st">&#39;boschloo&#39;</span>, <span class="st">&#39;Boschloo&#39;</span>),</span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a>    <span class="fu">compare_exact</span>(<span class="st">&#39;z-pooled&#39;</span>, <span class="st">&#39;Z-pool&#39;</span>)</span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a>  )</span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a>)</span>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a><span class="co">#&gt;       Test max.absolute.difference</span></span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt; 1 Boschloo            2.109562e-07</span></span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt; 2   Z-pool            2.109562e-07</span></span></code></pre></div>
+<p>Residual differences come from the grid over the nuisance parameter,
+which the two packages place differently.</p>
 </div>
-<div id="fisher-exact-test" class="section level3">
-<h3>2. Fisher Exact Test</h3>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># bbssr results</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>bbssr_fisher <span class="ot">&lt;-</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, alpha, <span class="at">Test =</span> <span class="st">&#39;Fisher&#39;</span>)</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co"># Exact package results for comparison</span></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>exact_fisher <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">seq</span>(p1), <span class="cf">function</span>(i) {</span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1[i], p2[i], N1, N2, <span class="at">method =</span> <span class="st">&#39;fisher&#39;</span>, <span class="st">&#39;greater&#39;</span>, alpha)<span class="sc">$</span>power</span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>})</span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a></span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co"># Create comparison table</span></span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>fisher_comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>  <span class="at">p1 =</span> p1,</span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>  <span class="at">p2 =</span> p2,</span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>  <span class="at">bbssr =</span> <span class="fu">round</span>(bbssr_fisher, <span class="dv">7</span>),</span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>  <span class="at">Exact =</span> <span class="fu">round</span>(exact_fisher, <span class="dv">7</span>),</span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>  <span class="at">Difference =</span> <span class="fu">round</span>(<span class="fu">abs</span>(bbssr_fisher <span class="sc">-</span> exact_fisher), <span class="dv">10</span>)</span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>)</span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a></span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(fisher_comparison, <span class="at">caption =</span> <span class="st">&quot;Fisher Exact Test: bbssr vs Exact Package&quot;</span>)</span></code></pre></div>
-<table>
-<caption>Fisher Exact Test: bbssr vs Exact Package</caption>
-<thead>
-<tr class="header">
-<th align="right">p1</th>
-<th align="right">p2</th>
-<th align="right">bbssr</th>
-<th align="right">Exact</th>
-<th align="right">Difference</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">0.5</td>
-<td align="right">0.2</td>
-<td align="right">0.3288391</td>
-<td align="right">0.3288391</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="right">0.6</td>
-<td align="right">0.2</td>
-<td align="right">0.5474891</td>
-<td align="right">0.5474891</td>
-<td align="right">0</td>
-</tr>
-<tr class="odd">
-<td align="right">0.7</td>
-<td align="right">0.2</td>
-<td align="right">0.7619361</td>
-<td align="right">0.7619361</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="right">0.8</td>
-<td align="right">0.2</td>
-<td align="right">0.9172846</td>
-<td align="right">0.9172846</td>
-<td align="right">0</td>
-</tr>
-</tbody>
-</table>
+<div id="comparison-with-exact2x2" class="section level2">
+<h2>Comparison with exact2x2</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>N1 <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>N2 <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>ours <span class="ot">&lt;-</span> <span class="fu">attr</span>(<span class="fu">BinaryRR</span>(N1, N2, <span class="fl">0.05</span>, <span class="st">&#39;Boschloo&#39;</span>, <span class="at">alternative =</span> <span class="st">&#39;two.sided&#39;</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>                      <span class="at">tsmethod =</span> <span class="st">&#39;central&#39;</span>, <span class="at">n.grid =</span> <span class="dv">1000</span>), <span class="st">&#39;p.value&#39;</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>cells <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="fu">c</span>(<span class="dv">8</span>, <span class="dv">2</span>), <span class="fu">c</span>(<span class="dv">7</span>, <span class="dv">3</span>), <span class="fu">c</span>(<span class="dv">9</span>, <span class="dv">1</span>))</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="fu">vapply</span>(cells, <span class="cf">function</span>(c) <span class="fu">sprintf</span>(<span class="st">&#39;x1 = %d, x2 = %d&#39;</span>, c[<span class="dv">1</span>], c[<span class="dv">2</span>]), <span class="st">&#39;&#39;</span>),</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>  <span class="at">bbssr =</span> <span class="fu">vapply</span>(cells, <span class="cf">function</span>(c) ours[c[<span class="dv">1</span>] <span class="sc">+</span> <span class="dv">1</span>, c[<span class="dv">2</span>] <span class="sc">+</span> <span class="dv">1</span>], <span class="fu">numeric</span>(<span class="dv">1</span>)),</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>  <span class="at">exact2x2 =</span> <span class="fu">vapply</span>(cells, <span class="cf">function</span>(c) {</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>    exact2x2<span class="sc">::</span><span class="fu">boschloo</span>(c[<span class="dv">1</span>], N1, c[<span class="dv">2</span>], N2, <span class="at">alternative =</span> <span class="st">&#39;two.sided&#39;</span>,</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>                       <span class="at">tsmethod =</span> <span class="st">&#39;central&#39;</span>)<span class="sc">$</span>p.value</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>  }, <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>)</span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt;          outcome       bbssr     exact2x2</span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt; 1 x1 = 8, x2 = 2 0.011817889 0.0118135656</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; 2 x1 = 7, x2 = 3 0.115318107 0.1152988452</span></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#&gt; 3 x1 = 9, x2 = 1 0.000402448 0.0004021879</span></span></code></pre></div>
 </div>
-<div id="fisher-mid-p-test" class="section level3">
-<h3>3. Fisher Mid-p Test</h3>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># bbssr results</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>bbssr_midp <span class="ot">&lt;-</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, alpha, <span class="at">Test =</span> <span class="st">&#39;Fisher-midP&#39;</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co"># exact2x2 package results for comparison</span></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>exact2x2_midp <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">seq</span>(p1), <span class="cf">function</span>(i) {</span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  exact2x2<span class="sc">::</span><span class="fu">Power2x2</span>(N1, N2, p1[i], p2[i], alpha, <span class="at">pvalFunc =</span> </span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>             <span class="cf">function</span>(x1, n1, x2, n2) {</span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>               <span class="fu">fisher.exact</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(x1, n1 <span class="sc">-</span> x1, x2, n2 <span class="sc">-</span> x2), <span class="dv">2</span>), </span>
-<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>                          <span class="at">alt =</span> <span class="st">&#39;greater&#39;</span>, <span class="at">midp =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>p.value</span>
-<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>             }</span>
-<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  )</span>
-<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>})</span>
-<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a></span>
-<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="co"># Create comparison table</span></span>
-<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>midp_comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>  <span class="at">p1 =</span> p1,</span>
-<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>  <span class="at">p2 =</span> p2,</span>
-<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>  <span class="at">bbssr =</span> <span class="fu">round</span>(bbssr_midp, <span class="dv">7</span>),</span>
-<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>  <span class="at">exact2x2 =</span> <span class="fu">round</span>(exact2x2_midp, <span class="dv">7</span>),</span>
-<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>  <span class="at">Difference =</span> <span class="fu">round</span>(<span class="fu">abs</span>(bbssr_midp <span class="sc">-</span> exact2x2_midp), <span class="dv">10</span>)</span>
-<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>)</span>
-<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a></span>
-<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(midp_comparison, <span class="at">caption =</span> <span class="st">&quot;Fisher Mid-p Test: bbssr vs exact2x2 Package&quot;</span>)</span></code></pre></div>
-<table>
-<caption>Fisher Mid-p Test: bbssr vs exact2x2 Package</caption>
-<thead>
-<tr class="header">
-<th align="right">p1</th>
-<th align="right">p2</th>
-<th align="right">bbssr</th>
-<th align="right">exact2x2</th>
-<th align="right">Difference</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">0.5</td>
-<td align="right">0.2</td>
-<td align="right">0.4057605</td>
-<td align="right">0.4057605</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="right">0.6</td>
-<td align="right">0.2</td>
-<td align="right">0.6275103</td>
-<td align="right">0.6275103</td>
-<td align="right">0</td>
-</tr>
-<tr class="odd">
-<td align="right">0.7</td>
-<td align="right">0.2</td>
-<td align="right">0.8230326</td>
-<td align="right">0.8230326</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="right">0.8</td>
-<td align="right">0.2</td>
-<td align="right">0.9475556</td>
-<td align="right">0.9475556</td>
-<td align="right">0</td>
-</tr>
-</tbody>
-</table>
+<div id="type-i-error-rate-of-every-test" class="section level2">
+<h2>Type I error rate of every test</h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>tests <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&#39;Chisq&#39;</span>, <span class="st">&#39;Fisher&#39;</span>, <span class="st">&#39;Fisher-midP&#39;</span>, <span class="st">&#39;Z-pool&#39;</span>, <span class="st">&#39;Boschloo&#39;</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>type1 <span class="ot">&lt;-</span> <span class="cf">function</span>(Test, alternative, <span class="at">N =</span> <span class="dv">30</span>, <span class="at">alpha =</span> <span class="fl">0.025</span>) {</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  RR <span class="ot">&lt;-</span> <span class="fu">BinaryRR</span>(N, N, alpha, Test, <span class="at">alternative =</span> alternative, <span class="at">n.grid =</span> <span class="dv">200</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="fu">max_type1</span>(<span class="fu">matrix</span>(<span class="fu">as.vector</span>(RR), N <span class="sc">+</span> <span class="dv">1</span>, N <span class="sc">+</span> <span class="dv">1</span>), N, N, <span class="at">n.grid =</span> <span class="dv">801</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>}</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>one <span class="ot">&lt;-</span> <span class="fu">vapply</span>(tests, type1, <span class="fu">numeric</span>(<span class="dv">1</span>), <span class="st">&#39;greater&#39;</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>two <span class="ot">&lt;-</span> <span class="fu">vapply</span>(tests, type1, <span class="fu">numeric</span>(<span class="dv">1</span>), <span class="st">&#39;two.sided&#39;</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>  <span class="at">Test =</span> tests,</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>  <span class="at">one.sided =</span> <span class="fu">round</span>(one, <span class="dv">5</span>),</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>  <span class="at">two.sided =</span> <span class="fu">round</span>(two, <span class="dv">5</span>),</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>  <span class="at">exceeds.alpha =</span> one <span class="sc">&gt;</span> <span class="fl">0.025</span> <span class="sc">|</span> two <span class="sc">&gt;</span> <span class="fl">0.025</span>,</span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">NULL</span></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>)</span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co">#&gt;          Test one.sided two.sided exceeds.alpha</span></span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a><span class="co">#&gt; 1       Chisq   0.02770   0.02741          TRUE</span></span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a><span class="co">#&gt; 2      Fisher   0.01370   0.01350         FALSE</span></span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a><span class="co">#&gt; 3 Fisher-midP   0.02595   0.02735          TRUE</span></span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a><span class="co">#&gt; 4      Z-pool   0.02346   0.02293         FALSE</span></span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a><span class="co">#&gt; 5    Boschloo   0.02344   0.02267         FALSE</span></span></code></pre></div>
+<p>The nominal level is 0.025. The three exact tests stay below it for
+both alternatives, at every sample size and every value of the nuisance
+parameter. The chi-squared and mid-p tests carry no such guarantee, and
+the <code>exceeds.alpha</code> column records where they overshoot at
+this configuration.</p>
 </div>
-<div id="z-pooled-exact-unconditional-test" class="section level3">
-<h3>4. Z-pooled Exact Unconditional Test</h3>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># bbssr results</span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>bbssr_zpool <span class="ot">&lt;-</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, alpha, <span class="at">Test =</span> <span class="st">&#39;Z-pool&#39;</span>)</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co"># Exact package results for comparison</span></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>exact_zpool <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">seq</span>(p1), <span class="cf">function</span>(i) {</span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1[i], p2[i], N1, N2, <span class="at">method =</span> <span class="st">&#39;z-pooled&#39;</span>, <span class="st">&#39;greater&#39;</span>, alpha)<span class="sc">$</span>power</span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>})</span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a></span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co"># Create comparison table</span></span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>zpool_comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>  <span class="at">p1 =</span> p1,</span>
-<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>  <span class="at">p2 =</span> p2,</span>
-<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>  <span class="at">bbssr =</span> <span class="fu">round</span>(bbssr_zpool, <span class="dv">7</span>),</span>
-<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>  <span class="at">Exact =</span> <span class="fu">round</span>(exact_zpool, <span class="dv">7</span>),</span>
-<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>  <span class="at">Difference =</span> <span class="fu">round</span>(<span class="fu">abs</span>(bbssr_zpool <span class="sc">-</span> exact_zpool), <span class="dv">10</span>)</span>
-<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a>)</span>
-<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a></span>
-<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(zpool_comparison, <span class="at">caption =</span> <span class="st">&quot;Z-pooled Test: bbssr vs Exact Package&quot;</span>)</span></code></pre></div>
-<table>
-<caption>Z-pooled Test: bbssr vs Exact Package</caption>
-<thead>
-<tr class="header">
-<th align="right">p1</th>
-<th align="right">p2</th>
-<th align="right">bbssr</th>
-<th align="right">Exact</th>
-<th align="right">Difference</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">0.5</td>
-<td align="right">0.2</td>
-<td align="right">0.4064897</td>
-<td align="right">0.4064897</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="right">0.6</td>
-<td align="right">0.2</td>
-<td align="right">0.6277024</td>
-<td align="right">0.6277024</td>
-<td align="right">0</td>
-</tr>
-<tr class="odd">
-<td align="right">0.7</td>
-<td align="right">0.2</td>
-<td align="right">0.8229305</td>
-<td align="right">0.8229305</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="right">0.8</td>
-<td align="right">0.2</td>
-<td align="right">0.9473531</td>
-<td align="right">0.9473531</td>
-<td align="right">0</td>
-</tr>
-</tbody>
-</table>
+<div id="speed" class="section level2">
+<h2>Speed</h2>
+<p>The whole rejection region is computed in one pass, so obtaining a
+power curve costs little more than a single p-value. The inner loop over
+the nuisance parameter runs in compiled code.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>microbenchmark<span class="sc">::</span><span class="fu">microbenchmark</span>(</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="at">Chisq =</span> <span class="fu">BinaryRR</span>(<span class="dv">50</span>, <span class="dv">50</span>, <span class="fl">0.025</span>, <span class="st">&#39;Chisq&#39;</span>),</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="at">Fisher =</span> <span class="fu">BinaryRR</span>(<span class="dv">50</span>, <span class="dv">50</span>, <span class="fl">0.025</span>, <span class="st">&#39;Fisher&#39;</span>),</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="st">`</span><span class="at">Z-pool</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">BinaryRR</span>(<span class="dv">50</span>, <span class="dv">50</span>, <span class="fl">0.025</span>, <span class="st">&#39;Z-pool&#39;</span>),</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">Boschloo =</span> <span class="fu">BinaryRR</span>(<span class="dv">50</span>, <span class="dv">50</span>, <span class="fl">0.025</span>, <span class="st">&#39;Boschloo&#39;</span>),</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  <span class="st">`</span><span class="at">Boschloo, Berger-Boos</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">BinaryRR</span>(<span class="dv">50</span>, <span class="dv">50</span>, <span class="fl">0.025</span>, <span class="st">&#39;Boschloo&#39;</span>, <span class="at">bb.gamma =</span> <span class="fl">1e-4</span>),</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>  <span class="at">times =</span> <span class="dv">10</span><span class="dt">L</span>,</span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>  <span class="at">unit =</span> <span class="st">&#39;ms&#39;</span></span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>)</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co">#&gt; Unit: milliseconds</span></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt;                   expr     min      lq     mean   median      uq     max neval</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt;                  Chisq  0.4933  0.8639  0.99137  1.08095  1.2024  1.2250    10</span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt;                 Fisher  2.8995  4.0398  4.84428  5.03430  5.6803  6.1883    10</span></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt;                 Z-pool 16.8107 18.8145 20.87915 21.40490 22.5092 26.3371    10</span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt;               Boschloo 21.4194 23.6121 26.16727 26.73865 29.4167 30.0727    10</span></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt;  Boschloo, Berger-Boos 58.2948 61.3208 64.22786 64.23700 65.2525 73.5214    10</span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt;    cld</span></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt;  a    </span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt;   b   </span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt;    c  </span></span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt;     d </span></span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt;      e</span></span></code></pre></div>
+<p>The Berger-Boos variant costs roughly twice as much as the plain
+Boschloo test, because the confidence bounds of every possible responder
+total are added to the grid over the nuisance parameter.</p>
+<p>A cell-by-cell comparison against a package that computes one p-value
+at a time is not like for like, since <code>BinaryRR()</code> returns
+all 2601 p-values of the grid above. The comparison below therefore
+charges <code>Exact</code> only for the p-values of a single row.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>N1 <span class="ot">&lt;-</span> <span class="dv">20</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>N2 <span class="ot">&lt;-</span> <span class="dv">20</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>microbenchmark<span class="sc">::</span><span class="fu">microbenchmark</span>(</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="at">bbssr.whole.grid =</span> <span class="fu">BinaryRR</span>(N1, N2, <span class="fl">0.025</span>, <span class="st">&#39;Boschloo&#39;</span>),</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="at">Exact.one.row =</span> <span class="cf">for</span> (x1 <span class="cf">in</span> <span class="dv">0</span><span class="sc">:</span>N1) {</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>    Exact<span class="sc">::</span><span class="fu">exact.test</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(x1, <span class="dv">5</span>, N1 <span class="sc">-</span> x1, N2 <span class="sc">-</span> <span class="dv">5</span>), <span class="at">nrow =</span> <span class="dv">2</span>),</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>                      <span class="at">alternative =</span> <span class="st">&#39;greater&#39;</span>, <span class="at">method =</span> <span class="st">&#39;boschloo&#39;</span>,</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>                      <span class="at">npNumbers =</span> <span class="dv">100</span>, <span class="at">to.plot =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>  },</span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a>  <span class="at">times =</span> <span class="dv">5</span><span class="dt">L</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>  <span class="at">unit =</span> <span class="st">&#39;ms&#39;</span></span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a>)</span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt; Unit: milliseconds</span></span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt;              expr      min       lq      mean   median       uq      max neval</span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="co">#&gt;  bbssr.whole.grid   4.4653   4.5013   5.22374   4.7344   5.9528   6.4649     5</span></span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="co">#&gt;     Exact.one.row 285.6183 309.6637 324.54988 327.5755 327.6536 372.2383     5</span></span>
+<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a><span class="co">#&gt;  cld</span></span>
+<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a><span class="co">#&gt;   a </span></span>
+<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a><span class="co">#&gt;    b</span></span></code></pre></div>
 </div>
-<div id="boschloo-exact-unconditional-test" class="section level3">
-<h3>5. Boschloo Exact Unconditional Test</h3>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># bbssr results</span></span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>bbssr_boschloo <span class="ot">&lt;-</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, alpha, <span class="at">Test =</span> <span class="st">&#39;Boschloo&#39;</span>)</span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co"># Exact package results for comparison</span></span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>exact_boschloo <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">seq</span>(p1), <span class="cf">function</span>(i) {</span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1[i], p2[i], N1, N2, <span class="at">method =</span> <span class="st">&#39;boschloo&#39;</span>, <span class="st">&#39;greater&#39;</span>, alpha)<span class="sc">$</span>power</span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>})</span>
-<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a></span>
-<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co"># Create comparison table</span></span>
-<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>boschloo_comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>  <span class="at">p1 =</span> p1,</span>
-<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>  <span class="at">p2 =</span> p2,</span>
-<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>  <span class="at">bbssr =</span> <span class="fu">round</span>(bbssr_boschloo, <span class="dv">7</span>),</span>
-<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a>  <span class="at">Exact =</span> <span class="fu">round</span>(exact_boschloo, <span class="dv">7</span>),</span>
-<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>  <span class="at">Difference =</span> <span class="fu">round</span>(<span class="fu">abs</span>(bbssr_boschloo <span class="sc">-</span> exact_boschloo), <span class="dv">10</span>)</span>
-<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>)</span>
-<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a></span>
-<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(boschloo_comparison, <span class="at">caption =</span> <span class="st">&quot;Boschloo Test: bbssr vs Exact Package&quot;</span>)</span></code></pre></div>
-<table>
-<caption>Boschloo Test: bbssr vs Exact Package</caption>
-<thead>
-<tr class="header">
-<th align="right">p1</th>
-<th align="right">p2</th>
-<th align="right">bbssr</th>
-<th align="right">Exact</th>
-<th align="right">Difference</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">0.5</td>
-<td align="right">0.2</td>
-<td align="right">0.4277969</td>
-<td align="right">0.4277969</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="right">0.6</td>
-<td align="right">0.2</td>
-<td align="right">0.6544621</td>
-<td align="right">0.6544621</td>
-<td align="right">0</td>
-</tr>
-<tr class="odd">
-<td align="right">0.7</td>
-<td align="right">0.2</td>
-<td align="right">0.8445363</td>
-<td align="right">0.8445363</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="right">0.8</td>
-<td align="right">0.2</td>
-<td align="right">0.9570202</td>
-<td align="right">0.9570202</td>
-<td align="right">0</td>
-</tr>
-</tbody>
-</table>
+<div id="sample-size-search" class="section level2">
+<h2>Sample size search</h2>
+<p>The sample size returned by <code>BinarySampleSize()</code> is
+checked against a direct scan of the power function.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>check <span class="ot">&lt;-</span> <span class="cf">function</span>(Test) {</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  ss <span class="ot">&lt;-</span> <span class="fu">BinarySampleSize</span>(<span class="fl">0.6</span>, <span class="fl">0.2</span>, <span class="dv">1</span>, <span class="fl">0.025</span>, <span class="fl">0.8</span>, Test)</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>    <span class="at">Test =</span> Test,</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>    <span class="at">N2 =</span> ss<span class="sc">$</span>N2,</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>    <span class="at">power.at.N2 =</span> <span class="fu">round</span>(ss<span class="sc">$</span>Power, <span class="dv">4</span>),</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>    <span class="at">power.at.N2.minus.1 =</span> <span class="fu">round</span>(</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>      <span class="fu">BinaryPower</span>(<span class="fl">0.6</span>, <span class="fl">0.2</span>, ss<span class="sc">$</span>N2 <span class="sc">-</span> <span class="dv">1</span>, ss<span class="sc">$</span>N2 <span class="sc">-</span> <span class="dv">1</span>, <span class="fl">0.025</span>, Test)<span class="sc">$</span>Power, <span class="dv">4</span>)</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>  )</span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>}</span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">c</span>(<span class="st">&#39;Chisq&#39;</span>, <span class="st">&#39;Fisher&#39;</span>, <span class="st">&#39;Fisher-midP&#39;</span>, <span class="st">&#39;Z-pool&#39;</span>, <span class="st">&#39;Boschloo&#39;</span>), check))</span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="co">#&gt;          Test N2 power.at.N2 power.at.N2.minus.1</span></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="co">#&gt; 1       Chisq 23      0.8191              0.7911</span></span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="co">#&gt; 2      Fisher 27      0.8024              0.7993</span></span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt; 3 Fisher-midP 23      0.8155              0.7851</span></span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt; 4      Z-pool 23      0.8088              0.7851</span></span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co">#&gt; 5    Boschloo 23      0.8088              0.7911</span></span></code></pre></div>
+<p>The power reaches the target at the returned sample size and falls
+short one patient per group below it.</p>
 </div>
-</div>
-<div id="performance-comparison" class="section level2">
-<h2>Performance Comparison</h2>
-<div id="enhanced-computational-speed-benchmarks" class="section level3">
-<h3>Enhanced Computational Speed Benchmarks</h3>
-<p>We compare the computational speed using more demanding scenarios to
-highlight bbssr’s performance advantages.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Enhanced parameters for performance comparison</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>perf_scenarios <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(</span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="at">p1 =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.6</span>, <span class="fl">0.7</span>, <span class="fl">0.8</span>),</span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="at">p2 =</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.3</span>, <span class="fl">0.4</span>),</span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  <span class="at">N1 =</span> <span class="fu">c</span>(<span class="dv">15</span>, <span class="dv">20</span>, <span class="dv">25</span>),</span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  <span class="at">N2 =</span> <span class="fu">c</span>(<span class="dv">15</span>, <span class="dv">20</span>, <span class="dv">25</span>)</span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>  <span class="fu">filter</span>(p1 <span class="sc">&gt;</span> p2) <span class="sc">%&gt;%</span>  <span class="co"># Only meaningful comparisons</span></span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">8</span>)    <span class="co"># Select representative scenarios</span></span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a></span>
-<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>perf_alpha <span class="ot">&lt;-</span> <span class="fl">0.025</span></span>
-<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a></span>
-<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co"># Display scenarios for transparency</span></span>
-<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(perf_scenarios, <span class="at">caption =</span> <span class="st">&quot;Performance Benchmark Scenarios&quot;</span>)</span></code></pre></div>
-<table>
-<caption>Performance Benchmark Scenarios</caption>
-<thead>
-<tr class="header">
-<th align="right">p1</th>
-<th align="right">p2</th>
-<th align="right">N1</th>
-<th align="right">N2</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">0.5</td>
-<td align="right">0.2</td>
-<td align="right">15</td>
-<td align="right">15</td>
-</tr>
-<tr class="even">
-<td align="right">0.6</td>
-<td align="right">0.2</td>
-<td align="right">15</td>
-<td align="right">15</td>
-</tr>
-<tr class="odd">
-<td align="right">0.7</td>
-<td align="right">0.2</td>
-<td align="right">15</td>
-<td align="right">15</td>
-</tr>
-<tr class="even">
-<td align="right">0.8</td>
-<td align="right">0.2</td>
-<td align="right">15</td>
-<td align="right">15</td>
-</tr>
-<tr class="odd">
-<td align="right">0.5</td>
-<td align="right">0.3</td>
-<td align="right">15</td>
-<td align="right">15</td>
-</tr>
-<tr class="even">
-<td align="right">0.6</td>
-<td align="right">0.3</td>
-<td align="right">15</td>
-<td align="right">15</td>
-</tr>
-<tr class="odd">
-<td align="right">0.7</td>
-<td align="right">0.3</td>
-<td align="right">15</td>
-<td align="right">15</td>
-</tr>
-<tr class="even">
-<td align="right">0.8</td>
-<td align="right">0.3</td>
-<td align="right">15</td>
-<td align="right">15</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="binarypower-performance-comparison" class="section level3">
-<h3>BinaryPower Performance Comparison</h3>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Function to benchmark a single scenario</span></span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>benchmark_scenario <span class="ot">&lt;-</span> <span class="cf">function</span>(p1, p2, N1, N2) {</span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  microbenchmark<span class="sc">::</span><span class="fu">microbenchmark</span>(</span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>    <span class="at">bbssr_chisq =</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, perf_alpha, <span class="at">Test =</span> <span class="st">&#39;Chisq&#39;</span>),</span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>    <span class="at">exact_chisq =</span> Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1, p2, N1, N2, </span>
-<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>                                         <span class="at">method =</span> <span class="st">&#39;pearson chisq&#39;</span>, <span class="st">&#39;greater&#39;</span>, perf_alpha),</span>
-<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>    </span>
-<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>    <span class="at">bbssr_fisher =</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, perf_alpha, <span class="at">Test =</span> <span class="st">&#39;Fisher&#39;</span>),</span>
-<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>    <span class="at">exact_fisher =</span> Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1, p2, N1, N2, </span>
-<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>                                          <span class="at">method =</span> <span class="st">&#39;fisher&#39;</span>, <span class="st">&#39;greater&#39;</span>, perf_alpha),</span>
-<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>    </span>
-<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>    <span class="at">bbssr_zpool =</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, perf_alpha, <span class="at">Test =</span> <span class="st">&#39;Z-pool&#39;</span>),</span>
-<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>    <span class="at">exact_zpool =</span> Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1, p2, N1, N2, </span>
-<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a>                                         <span class="at">method =</span> <span class="st">&#39;z-pooled&#39;</span>, <span class="st">&#39;greater&#39;</span>, perf_alpha),</span>
-<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>    </span>
-<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a>    <span class="at">bbssr_boschloo =</span> <span class="fu">BinaryPower</span>(p1, p2, N1, N2, perf_alpha, <span class="at">Test =</span> <span class="st">&#39;Boschloo&#39;</span>),</span>
-<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a>    <span class="at">exact_boschloo =</span> Exact<span class="sc">::</span><span class="fu">power.exact.test</span>(p1, p2, N1, N2, </span>
-<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a>                                            <span class="at">method =</span> <span class="st">&#39;boschloo&#39;</span>, <span class="st">&#39;greater&#39;</span>, perf_alpha),</span>
-<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a>    </span>
-<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a>    <span class="at">times =</span> <span class="dv">20</span></span>
-<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a>  )</span>
-<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a>}</span>
-<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a></span>
-<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="co"># Run benchmarks for multiple scenarios</span></span>
-<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a>benchmark_results <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(perf_scenarios)) {</span>
-<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a>  scenario <span class="ot">&lt;-</span> perf_scenarios[i, ]</span>
-<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Benchmarking scenario %d: p1=%.1f, p2=%.1f, N1=%d, N2=%d</span><span class="sc">\n</span><span class="st">&quot;</span>, </span>
-<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a>              i, scenario<span class="sc">$</span>p1, scenario<span class="sc">$</span>p2, scenario<span class="sc">$</span>N1, scenario<span class="sc">$</span>N2))</span>
-<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a>  </span>
-<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a>  benchmark_results[[i]] <span class="ot">&lt;-</span> <span class="fu">benchmark_scenario</span>(</span>
-<span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a>    scenario<span class="sc">$</span>p1, scenario<span class="sc">$</span>p2, scenario<span class="sc">$</span>N1, scenario<span class="sc">$</span>N2</span>
-<span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a>    <span class="fu">summary</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb11-35"><a href="#cb11-35" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb11-36"><a href="#cb11-36" tabindex="-1"></a>      <span class="at">scenario_id =</span> i,</span>
-<span id="cb11-37"><a href="#cb11-37" tabindex="-1"></a>      <span class="at">p1 =</span> scenario<span class="sc">$</span>p1,</span>
-<span id="cb11-38"><a href="#cb11-38" tabindex="-1"></a>      <span class="at">p2 =</span> scenario<span class="sc">$</span>p2,</span>
-<span id="cb11-39"><a href="#cb11-39" tabindex="-1"></a>      <span class="at">N1 =</span> scenario<span class="sc">$</span>N1,</span>
-<span id="cb11-40"><a href="#cb11-40" tabindex="-1"></a>      <span class="at">N2 =</span> scenario<span class="sc">$</span>N2,</span>
-<span id="cb11-41"><a href="#cb11-41" tabindex="-1"></a>      <span class="at">total_n =</span> scenario<span class="sc">$</span>N1 <span class="sc">+</span> scenario<span class="sc">$</span>N2</span>
-<span id="cb11-42"><a href="#cb11-42" tabindex="-1"></a>    )</span>
-<span id="cb11-43"><a href="#cb11-43" tabindex="-1"></a>}</span>
-<span id="cb11-44"><a href="#cb11-44" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 1: p1=0.5, p2=0.2, N1=15, N2=15</span></span>
-<span id="cb11-45"><a href="#cb11-45" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 2: p1=0.6, p2=0.2, N1=15, N2=15</span></span>
-<span id="cb11-46"><a href="#cb11-46" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 3: p1=0.7, p2=0.2, N1=15, N2=15</span></span>
-<span id="cb11-47"><a href="#cb11-47" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 4: p1=0.8, p2=0.2, N1=15, N2=15</span></span>
-<span id="cb11-48"><a href="#cb11-48" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 5: p1=0.5, p2=0.3, N1=15, N2=15</span></span>
-<span id="cb11-49"><a href="#cb11-49" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 6: p1=0.6, p2=0.3, N1=15, N2=15</span></span>
-<span id="cb11-50"><a href="#cb11-50" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 7: p1=0.7, p2=0.3, N1=15, N2=15</span></span>
-<span id="cb11-51"><a href="#cb11-51" tabindex="-1"></a><span class="co">#&gt; Benchmarking scenario 8: p1=0.8, p2=0.3, N1=15, N2=15</span></span>
-<span id="cb11-52"><a href="#cb11-52" tabindex="-1"></a></span>
-<span id="cb11-53"><a href="#cb11-53" tabindex="-1"></a><span class="co"># Combine all benchmark results</span></span>
-<span id="cb11-54"><a href="#cb11-54" tabindex="-1"></a>all_benchmarks <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, benchmark_results)</span>
-<span id="cb11-55"><a href="#cb11-55" tabindex="-1"></a></span>
-<span id="cb11-56"><a href="#cb11-56" tabindex="-1"></a><span class="co"># Calculate speed improvements</span></span>
-<span id="cb11-57"><a href="#cb11-57" tabindex="-1"></a>speed_comparison <span class="ot">&lt;-</span> all_benchmarks <span class="sc">%&gt;%</span></span>
-<span id="cb11-58"><a href="#cb11-58" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb11-59"><a href="#cb11-59" tabindex="-1"></a>    <span class="at">test_name =</span> <span class="fu">case_when</span>(</span>
-<span id="cb11-60"><a href="#cb11-60" tabindex="-1"></a>      <span class="fu">grepl</span>(<span class="st">&quot;chisq&quot;</span>, expr) <span class="sc">~</span> <span class="st">&quot;Chi-squared&quot;</span>,</span>
-<span id="cb11-61"><a href="#cb11-61" tabindex="-1"></a>      <span class="fu">grepl</span>(<span class="st">&quot;fisher&quot;</span>, expr) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">grepl</span>(<span class="st">&quot;zpool|boschloo&quot;</span>, expr) <span class="sc">~</span> <span class="st">&quot;Fisher&quot;</span>,</span>
-<span id="cb11-62"><a href="#cb11-62" tabindex="-1"></a>      <span class="fu">grepl</span>(<span class="st">&quot;zpool&quot;</span>, expr) <span class="sc">~</span> <span class="st">&quot;Z-pooled&quot;</span>,</span>
-<span id="cb11-63"><a href="#cb11-63" tabindex="-1"></a>      <span class="fu">grepl</span>(<span class="st">&quot;boschloo&quot;</span>, expr) <span class="sc">~</span> <span class="st">&quot;Boschloo&quot;</span></span>
-<span id="cb11-64"><a href="#cb11-64" tabindex="-1"></a>    ),</span>
-<span id="cb11-65"><a href="#cb11-65" tabindex="-1"></a>    <span class="at">package =</span> <span class="fu">if_else</span>(<span class="fu">grepl</span>(<span class="st">&quot;bbssr&quot;</span>, expr), <span class="st">&quot;bbssr&quot;</span>, <span class="st">&quot;Exact&quot;</span>)</span>
-<span id="cb11-66"><a href="#cb11-66" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb11-67"><a href="#cb11-67" tabindex="-1"></a>  <span class="fu">group_by</span>(scenario_id, test_name, package, p1, p2, N1, N2, total_n) <span class="sc">%&gt;%</span></span>
-<span id="cb11-68"><a href="#cb11-68" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">median_time =</span> <span class="fu">median</span>(median), <span class="at">.groups =</span> <span class="st">&#39;drop&#39;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-69"><a href="#cb11-69" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(<span class="at">names_from =</span> package, <span class="at">values_from =</span> median_time) <span class="sc">%&gt;%</span></span>
-<span id="cb11-70"><a href="#cb11-70" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb11-71"><a href="#cb11-71" tabindex="-1"></a>    <span class="at">speed_improvement =</span> <span class="fu">round</span>(Exact <span class="sc">/</span> bbssr, <span class="dv">1</span>),</span>
-<span id="cb11-72"><a href="#cb11-72" tabindex="-1"></a>    <span class="at">bbssr_ms =</span> <span class="fu">round</span>(bbssr <span class="sc">/</span> <span class="dv">1000</span>, <span class="dv">2</span>),</span>
-<span id="cb11-73"><a href="#cb11-73" tabindex="-1"></a>    <span class="at">exact_ms =</span> <span class="fu">round</span>(Exact <span class="sc">/</span> <span class="dv">1000</span>, <span class="dv">2</span>)</span>
-<span id="cb11-74"><a href="#cb11-74" tabindex="-1"></a>  )</span>
-<span id="cb11-75"><a href="#cb11-75" tabindex="-1"></a></span>
-<span id="cb11-76"><a href="#cb11-76" tabindex="-1"></a><span class="co"># Display summary</span></span>
-<span id="cb11-77"><a href="#cb11-77" tabindex="-1"></a>speed_summary <span class="ot">&lt;-</span> speed_comparison <span class="sc">%&gt;%</span></span>
-<span id="cb11-78"><a href="#cb11-78" tabindex="-1"></a>  <span class="fu">group_by</span>(test_name) <span class="sc">%&gt;%</span></span>
-<span id="cb11-79"><a href="#cb11-79" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb11-80"><a href="#cb11-80" tabindex="-1"></a>    <span class="at">avg_improvement =</span> <span class="fu">round</span>(<span class="fu">mean</span>(speed_improvement), <span class="dv">1</span>),</span>
-<span id="cb11-81"><a href="#cb11-81" tabindex="-1"></a>    <span class="at">max_improvement =</span> <span class="fu">round</span>(<span class="fu">max</span>(speed_improvement), <span class="dv">1</span>),</span>
-<span id="cb11-82"><a href="#cb11-82" tabindex="-1"></a>    <span class="at">min_improvement =</span> <span class="fu">round</span>(<span class="fu">min</span>(speed_improvement), <span class="dv">1</span>),</span>
-<span id="cb11-83"><a href="#cb11-83" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">&#39;drop&#39;</span></span>
-<span id="cb11-84"><a href="#cb11-84" tabindex="-1"></a>  )</span>
-<span id="cb11-85"><a href="#cb11-85" tabindex="-1"></a></span>
-<span id="cb11-86"><a href="#cb11-86" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(speed_summary, </span>
-<span id="cb11-87"><a href="#cb11-87" tabindex="-1"></a>             <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">&quot;Test&quot;</span>, <span class="st">&quot;Avg Speed-up&quot;</span>, <span class="st">&quot;Max Speed-up&quot;</span>, <span class="st">&quot;Min Speed-up&quot;</span>),</span>
-<span id="cb11-88"><a href="#cb11-88" tabindex="-1"></a>             <span class="at">caption =</span> <span class="st">&quot;Speed Improvement Summary: bbssr vs Exact Package (times faster)&quot;</span>)</span></code></pre></div>
-<table>
-<caption>Speed Improvement Summary: bbssr vs Exact Package (times
-faster)</caption>
-<thead>
-<tr class="header">
-<th align="left">Test</th>
-<th align="right">Avg Speed-up</th>
-<th align="right">Max Speed-up</th>
-<th align="right">Min Speed-up</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">Boschloo</td>
-<td align="right">1.3</td>
-<td align="right">1.5</td>
-<td align="right">1.2</td>
-</tr>
-<tr class="even">
-<td align="left">Chi-squared</td>
-<td align="right">14.3</td>
-<td align="right">16.4</td>
-<td align="right">12.8</td>
-</tr>
-<tr class="odd">
-<td align="left">Fisher</td>
-<td align="right">3.1</td>
-<td align="right">3.5</td>
-<td align="right">2.9</td>
-</tr>
-<tr class="even">
-<td align="left">Z-pooled</td>
-<td align="right">0.9</td>
-<td align="right">1.0</td>
-<td align="right">0.8</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="performance-visualization" class="section level3">
-<h3>Performance Visualization</h3>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># Create speed improvement comparison (how many times faster bbssr is)</span></span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>speed_plot_data <span class="ot">&lt;-</span> speed_comparison <span class="sc">%&gt;%</span></span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>    <span class="at">test_name =</span> <span class="fu">factor</span>(test_name, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;Chi-squared&quot;</span>, <span class="st">&quot;Fisher&quot;</span>, <span class="st">&quot;Z-pooled&quot;</span>, <span class="st">&quot;Boschloo&quot;</span>)),</span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>    <span class="at">scenario_label =</span> <span class="fu">paste0</span>(<span class="st">&quot;Scenario &quot;</span>, scenario_id, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">(N=&quot;</span>, total_n, <span class="st">&quot;)&quot;</span>)</span>
-<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  )</span>
-<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a></span>
-<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co"># Speed improvement plot</span></span>
-<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>speed_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(speed_plot_data, <span class="fu">aes</span>(<span class="at">x =</span> scenario_label, <span class="at">y =</span> speed_improvement)) <span class="sc">+</span></span>
-<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">&quot;#4CAF50&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>, <span class="at">width =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(speed_improvement, <span class="st">&quot;x&quot;</span>)), </span>
-<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a>            <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.3</span>, <span class="at">size =</span> <span class="dv">3</span>, <span class="at">fontface =</span> <span class="st">&quot;bold&quot;</span>) <span class="sc">+</span></span>
-<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>test_name, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">&quot;free_y&quot;</span>) <span class="sc">+</span></span>
-<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.15</span>))) <span class="sc">+</span>  <span class="co"># Add 15% padding at top</span></span>
-<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Speed Improvement: bbssr vs Exact Package&quot;</span>,</span>
-<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;How many times faster bbssr is compared to Exact package&quot;</span>,</span>
-<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Benchmark Scenario&quot;</span>,</span>
-<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Speed Improvement Factor (times faster)&quot;</span>,</span>
-<span id="cb12-21"><a href="#cb12-21" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">&quot;Red dashed line shows no improvement (factor = 1). Higher bars = better performance.&quot;</span></span>
-<span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb12-24"><a href="#cb12-24" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb12-25"><a href="#cb12-25" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">5</span>)),</span>
-<span id="cb12-26"><a href="#cb12-26" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">15</span>)),</span>
-<span id="cb12-27"><a href="#cb12-27" tabindex="-1"></a>    <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">8</span>, <span class="at">b =</span> <span class="dv">8</span>)),</span>
-<span id="cb12-28"><a href="#cb12-28" tabindex="-1"></a>    <span class="at">strip.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">&quot;gray95&quot;</span>, <span class="at">color =</span> <span class="st">&quot;gray80&quot;</span>),</span>
-<span id="cb12-29"><a href="#cb12-29" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>)),</span>
-<span id="cb12-30"><a href="#cb12-30" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">r =</span> <span class="dv">10</span>)),</span>
-<span id="cb12-31"><a href="#cb12-31" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">8</span>, <span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>),</span>
-<span id="cb12-32"><a href="#cb12-32" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>),</span>
-<span id="cb12-33"><a href="#cb12-33" tabindex="-1"></a>    <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb12-34"><a href="#cb12-34" tabindex="-1"></a>    <span class="at">panel.grid.major.x =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb12-35"><a href="#cb12-35" tabindex="-1"></a>    <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>, <span class="at">r =</span> <span class="dv">10</span>, <span class="at">b =</span> <span class="dv">15</span>, <span class="at">l =</span> <span class="dv">10</span>)</span>
-<span id="cb12-36"><a href="#cb12-36" tabindex="-1"></a>  )</span>
-<span id="cb12-37"><a href="#cb12-37" tabindex="-1"></a></span>
-<span id="cb12-38"><a href="#cb12-38" tabindex="-1"></a><span class="fu">print</span>(speed_plot)</span></code></pre></div>
-<p><img role="img" src="data:image/png;base64,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" width="100%" style="display: block; margin: auto;" /></p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a></span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co"># Detailed execution time comparison</span></span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>time_comparison_data <span class="ot">&lt;-</span> speed_comparison <span class="sc">%&gt;%</span></span>
-<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="fu">select</span>(scenario_id, test_name, bbssr_ms, exact_ms, total_n) <span class="sc">%&gt;%</span></span>
-<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_longer</span>(</span>
-<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>    <span class="at">cols =</span> <span class="fu">c</span>(bbssr_ms, exact_ms),</span>
-<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="st">&quot;package&quot;</span>,</span>
-<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">&quot;time_ms&quot;</span></span>
-<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>    <span class="at">package =</span> <span class="fu">case_when</span>(</span>
-<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>      package <span class="sc">==</span> <span class="st">&quot;bbssr_ms&quot;</span> <span class="sc">~</span> <span class="st">&quot;bbssr&quot;</span>,</span>
-<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>      package <span class="sc">==</span> <span class="st">&quot;exact_ms&quot;</span> <span class="sc">~</span> <span class="st">&quot;Exact&quot;</span></span>
-<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a>    ),</span>
-<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a>    <span class="at">test_name =</span> <span class="fu">factor</span>(test_name, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;Chi-squared&quot;</span>, <span class="st">&quot;Fisher&quot;</span>, <span class="st">&quot;Z-pooled&quot;</span>, <span class="st">&quot;Boschloo&quot;</span>)),</span>
-<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a>    <span class="at">scenario_label =</span> <span class="fu">paste0</span>(<span class="st">&quot;Scenario &quot;</span>, scenario_id, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">(N=&quot;</span>, total_n, <span class="st">&quot;)&quot;</span>)</span>
-<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a>  )</span>
-<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a></span>
-<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a><span class="co"># Execution time plot</span></span>
-<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a>time_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(time_comparison_data, <span class="fu">aes</span>(<span class="at">x =</span> scenario_label, <span class="at">y =</span> time_ms, <span class="at">fill =</span> package)) <span class="sc">+</span></span>
-<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">&quot;dodge&quot;</span>, <span class="at">width =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>test_name, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">&quot;free_y&quot;</span>) <span class="sc">+</span></span>
-<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
-<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;bbssr&quot;</span> <span class="ot">=</span> <span class="st">&quot;#2E8B57&quot;</span>, <span class="st">&quot;Exact&quot;</span> <span class="ot">=</span> <span class="st">&quot;#CD5C5C&quot;</span>),</span>
-<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">&quot;Package&quot;</span></span>
-<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb13-28"><a href="#cb13-28" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Execution Time Comparison: bbssr vs Exact Package&quot;</span>,</span>
-<span id="cb13-29"><a href="#cb13-29" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;Actual execution times in milliseconds&quot;</span>,</span>
-<span id="cb13-30"><a href="#cb13-30" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Benchmark Scenario&quot;</span>,</span>
-<span id="cb13-31"><a href="#cb13-31" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Execution Time (milliseconds)&quot;</span>,</span>
-<span id="cb13-32"><a href="#cb13-32" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">&quot;Lower bars indicate better performance&quot;</span></span>
-<span id="cb13-33"><a href="#cb13-33" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb13-34"><a href="#cb13-34" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb13-35"><a href="#cb13-35" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb13-36"><a href="#cb13-36" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">5</span>)),</span>
-<span id="cb13-37"><a href="#cb13-37" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">15</span>)),</span>
-<span id="cb13-38"><a href="#cb13-38" tabindex="-1"></a>    <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">8</span>, <span class="at">b =</span> <span class="dv">8</span>)),</span>
-<span id="cb13-39"><a href="#cb13-39" tabindex="-1"></a>    <span class="at">strip.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">&quot;gray95&quot;</span>, <span class="at">color =</span> <span class="st">&quot;gray80&quot;</span>),</span>
-<span id="cb13-40"><a href="#cb13-40" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</span>
-<span id="cb13-41"><a href="#cb13-41" tabindex="-1"></a>    <span class="at">legend.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>),</span>
-<span id="cb13-42"><a href="#cb13-42" tabindex="-1"></a>    <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>),</span>
-<span id="cb13-43"><a href="#cb13-43" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>)),</span>
-<span id="cb13-44"><a href="#cb13-44" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">r =</span> <span class="dv">10</span>)),</span>
-<span id="cb13-45"><a href="#cb13-45" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">8</span>, <span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>),</span>
-<span id="cb13-46"><a href="#cb13-46" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>),</span>
-<span id="cb13-47"><a href="#cb13-47" tabindex="-1"></a>    <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb13-48"><a href="#cb13-48" tabindex="-1"></a>    <span class="at">panel.grid.major.x =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb13-49"><a href="#cb13-49" tabindex="-1"></a>    <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>, <span class="at">r =</span> <span class="dv">10</span>, <span class="at">b =</span> <span class="dv">15</span>, <span class="at">l =</span> <span class="dv">10</span>)</span>
-<span id="cb13-50"><a href="#cb13-50" tabindex="-1"></a>  )</span>
-<span id="cb13-51"><a href="#cb13-51" tabindex="-1"></a></span>
-<span id="cb13-52"><a href="#cb13-52" tabindex="-1"></a><span class="fu">print</span>(time_plot)</span></code></pre></div>
-<p><img role="img" src="data:image/png;base64,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" width="100%" style="display: block; margin: auto;" /></p>
-</div>
-<div id="speed-improvement-summary" class="section level3">
-<h3>Speed Improvement Summary</h3>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Overall performance summary</span></span>
-<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>overall_summary <span class="ot">&lt;-</span> speed_comparison <span class="sc">%&gt;%</span></span>
-<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>    <span class="at">total_scenarios =</span> <span class="fu">n</span>(),</span>
-<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>    <span class="at">overall_avg_improvement =</span> <span class="fu">round</span>(<span class="fu">mean</span>(speed_improvement), <span class="dv">1</span>),</span>
-<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>    <span class="at">overall_max_improvement =</span> <span class="fu">round</span>(<span class="fu">max</span>(speed_improvement), <span class="dv">1</span>),</span>
-<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>    <span class="at">overall_min_improvement =</span> <span class="fu">round</span>(<span class="fu">min</span>(speed_improvement), <span class="dv">1</span>),</span>
-<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>    <span class="at">scenarios_over_2x =</span> <span class="fu">sum</span>(speed_improvement <span class="sc">&gt;=</span> <span class="dv">2</span>),</span>
-<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>    <span class="at">scenarios_over_5x =</span> <span class="fu">sum</span>(speed_improvement <span class="sc">&gt;=</span> <span class="dv">5</span>),</span>
-<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>    <span class="at">scenarios_over_10x =</span> <span class="fu">sum</span>(speed_improvement <span class="sc">&gt;=</span> <span class="dv">10</span>)</span>
-<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>  )</span>
-<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a></span>
-<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Performance Summary:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt; Performance Summary:</span></span>
-<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;- Total benchmark scenarios: %d</span><span class="sc">\n</span><span class="st">&quot;</span>, overall_summary<span class="sc">$</span>total_scenarios))</span>
-<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="co">#&gt; - Total benchmark scenarios: 32</span></span>
-<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;- Average speed improvement: %.1fx faster</span><span class="sc">\n</span><span class="st">&quot;</span>, overall_summary<span class="sc">$</span>overall_avg_improvement))</span>
-<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a><span class="co">#&gt; - Average speed improvement: 4.9x faster</span></span>
-<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;- Maximum speed improvement: %.1fx faster</span><span class="sc">\n</span><span class="st">&quot;</span>, overall_summary<span class="sc">$</span>overall_max_improvement))</span>
-<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="co">#&gt; - Maximum speed improvement: 16.4x faster</span></span>
-<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;- Minimum speed improvement: %.1fx faster</span><span class="sc">\n</span><span class="st">&quot;</span>, overall_summary<span class="sc">$</span>overall_min_improvement))</span>
-<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a><span class="co">#&gt; - Minimum speed improvement: 0.8x faster</span></span>
-<span id="cb14-23"><a href="#cb14-23" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;- Scenarios where bbssr is &gt;2x faster: %d (%.1f%%)</span><span class="sc">\n</span><span class="st">&quot;</span>, </span>
-<span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a>            overall_summary<span class="sc">$</span>scenarios_over_2x, </span>
-<span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a>            <span class="dv">100</span> <span class="sc">*</span> overall_summary<span class="sc">$</span>scenarios_over_2x <span class="sc">/</span> overall_summary<span class="sc">$</span>total_scenarios))</span>
-<span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a><span class="co">#&gt; - Scenarios where bbssr is &gt;2x faster: 16 (50.0%)</span></span>
-<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;- Scenarios where bbssr is &gt;5x faster: %d (%.1f%%)</span><span class="sc">\n</span><span class="st">&quot;</span>, </span>
-<span id="cb14-28"><a href="#cb14-28" tabindex="-1"></a>            overall_summary<span class="sc">$</span>scenarios_over_5x, </span>
-<span id="cb14-29"><a href="#cb14-29" tabindex="-1"></a>            <span class="dv">100</span> <span class="sc">*</span> overall_summary<span class="sc">$</span>scenarios_over_5x <span class="sc">/</span> overall_summary<span class="sc">$</span>total_scenarios))</span>
-<span id="cb14-30"><a href="#cb14-30" tabindex="-1"></a><span class="co">#&gt; - Scenarios where bbssr is &gt;5x faster: 8 (25.0%)</span></span>
-<span id="cb14-31"><a href="#cb14-31" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;- Scenarios where bbssr is &gt;10x faster: %d (%.1f%%)</span><span class="sc">\n</span><span class="st">&quot;</span>, </span>
-<span id="cb14-32"><a href="#cb14-32" tabindex="-1"></a>            overall_summary<span class="sc">$</span>scenarios_over_10x, </span>
-<span id="cb14-33"><a href="#cb14-33" tabindex="-1"></a>            <span class="dv">100</span> <span class="sc">*</span> overall_summary<span class="sc">$</span>scenarios_over_10x <span class="sc">/</span> overall_summary<span class="sc">$</span>total_scenarios))</span>
-<span id="cb14-34"><a href="#cb14-34" tabindex="-1"></a><span class="co">#&gt; - Scenarios where bbssr is &gt;10x faster: 8 (25.0%)</span></span></code></pre></div>
-</div>
-</div>
-<div id="summary-of-validation-results" class="section level2">
-<h2>Summary of Validation Results</h2>
-<div id="accuracy-validation" class="section level3">
-<h3>Accuracy Validation</h3>
-<p>The validation results demonstrate that <code>bbssr</code> functions
-produce <strong>identical results</strong> to established packages:</p>
-<ul>
-<li><strong>BinaryPower()</strong>: All five statistical tests show
-perfect agreement with <code>Exact</code> and <code>exact2x2</code>
-packages</li>
-<li><strong>Numerical Precision</strong>: Differences are within machine
-precision (&lt; 1e-10)</li>
-</ul>
-</div>
-<div id="performance-improvements" class="section level3">
-<h3>Performance Improvements</h3>
-<p>The <code>bbssr</code> package demonstrates significant computational
-efficiency across all statistical tests.</p>
-</div>
-<div id="key-advantages-of-bbssr" class="section level3">
-<h3>Key Advantages of bbssr</h3>
-<ol style="list-style-type: decimal">
-<li><strong>Computational Efficiency</strong>: Significantly faster
-execution times across all statistical tests</li>
-<li><strong>Numerical Accuracy</strong>: Identical results to
-established packages with robust implementation</li>
-<li><strong>Comprehensive Functionality</strong>: Unified interface for
-multiple exact tests and BSSR methodology</li>
-<li><strong>Optimized Implementation</strong>: Efficient algorithms
-designed for clinical trial applications</li>
-</ol>
-</div>
-</div>
-<div id="conclusion" class="section level2">
-<h2>Conclusion</h2>
-<p>The validation results confirm that <code>bbssr</code> provides:</p>
-<ul>
-<li><strong>Accurate calculations</strong> identical to established
-packages</li>
-<li><strong>Superior performance</strong> with substantial speed
-improvements</li>
-<li><strong>Reliable implementation</strong> suitable for production use
-in clinical trials</li>
-</ul>
-<p>The package successfully combines statistical rigor with
-computational efficiency, making it an excellent choice for implementing
-blinded sample size re-estimation in clinical trials with binary
-endpoints.</p>
-</div>
-<div id="session-information" class="section level2">
-<h2>Session Information</h2>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
-<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="co">#&gt; R version 4.5.0 (2025-04-11 ucrt)</span></span>
-<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="co">#&gt; Platform: x86_64-w64-mingw32/x64</span></span>
-<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co">#&gt; Running under: Windows 11 x64 (build 26100)</span></span>
-<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="co">#&gt; Matrix products: default</span></span>
-<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a><span class="co">#&gt;   LAPACK version 3.12.1</span></span>
-<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="co">#&gt; locale:</span></span>
-<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a><span class="co">#&gt; [1] LC_COLLATE=Japanese_Japan.utf8  LC_CTYPE=Japanese_Japan.utf8   </span></span>
-<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a><span class="co">#&gt; [3] LC_MONETARY=Japanese_Japan.utf8 LC_NUMERIC=C                   </span></span>
-<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a><span class="co">#&gt; [5] LC_TIME=Japanese_Japan.utf8    </span></span>
-<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a><span class="co">#&gt; time zone: Asia/Tokyo</span></span>
-<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a><span class="co">#&gt; tzcode source: internal</span></span>
-<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a><span class="co">#&gt; attached base packages:</span></span>
-<span id="cb15-18"><a href="#cb15-18" tabindex="-1"></a><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
-<span id="cb15-19"><a href="#cb15-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-20"><a href="#cb15-20" tabindex="-1"></a><span class="co">#&gt; other attached packages:</span></span>
-<span id="cb15-21"><a href="#cb15-21" tabindex="-1"></a><span class="co">#&gt;  [1] exact2x2_1.6.9       exactci_1.4-4        testthat_3.2.3      </span></span>
-<span id="cb15-22"><a href="#cb15-22" tabindex="-1"></a><span class="co">#&gt;  [4] ssanv_1.1            Exact_3.3            microbenchmark_1.5.0</span></span>
-<span id="cb15-23"><a href="#cb15-23" tabindex="-1"></a><span class="co">#&gt;  [7] knitr_1.50           tidyr_1.3.1          ggplot2_3.5.2       </span></span>
-<span id="cb15-24"><a href="#cb15-24" tabindex="-1"></a><span class="co">#&gt; [10] dplyr_1.1.4          bbssr_1.0.2         </span></span>
-<span id="cb15-25"><a href="#cb15-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-26"><a href="#cb15-26" tabindex="-1"></a><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span id="cb15-27"><a href="#cb15-27" tabindex="-1"></a><span class="co">#&gt;  [1] gtable_0.3.6       jsonlite_2.0.0     compiler_4.5.0     brio_1.1.5        </span></span>
-<span id="cb15-28"><a href="#cb15-28" tabindex="-1"></a><span class="co">#&gt;  [5] tidyselect_1.2.1   jquerylib_0.1.4    scales_1.4.0       yaml_2.3.10       </span></span>
-<span id="cb15-29"><a href="#cb15-29" tabindex="-1"></a><span class="co">#&gt;  [9] fastmap_1.2.0      R6_2.6.1           labeling_0.4.3     generics_0.1.4    </span></span>
-<span id="cb15-30"><a href="#cb15-30" tabindex="-1"></a><span class="co">#&gt; [13] tibble_3.2.1       bslib_0.9.0        pillar_1.10.2      RColorBrewer_1.1-3</span></span>
-<span id="cb15-31"><a href="#cb15-31" tabindex="-1"></a><span class="co">#&gt; [17] rlang_1.1.6        utf8_1.2.5         cachem_1.1.0       xfun_0.52         </span></span>
-<span id="cb15-32"><a href="#cb15-32" tabindex="-1"></a><span class="co">#&gt; [21] sass_0.4.10        cli_3.6.5          withr_3.0.2        magrittr_2.0.3    </span></span>
-<span id="cb15-33"><a href="#cb15-33" tabindex="-1"></a><span class="co">#&gt; [25] digest_0.6.37      grid_4.5.0         rootSolve_1.8.2.4  rstudioapi_0.17.1 </span></span>
-<span id="cb15-34"><a href="#cb15-34" tabindex="-1"></a><span class="co">#&gt; [29] lifecycle_1.0.4    vctrs_0.6.5        fpCompare_0.2.4    evaluate_1.0.3    </span></span>
-<span id="cb15-35"><a href="#cb15-35" tabindex="-1"></a><span class="co">#&gt; [33] glue_1.8.0         farver_2.1.2       rmarkdown_2.29     purrr_1.0.4       </span></span>
-<span id="cb15-36"><a href="#cb15-36" tabindex="-1"></a><span class="co">#&gt; [37] tools_4.5.0        pkgconfig_2.0.3    htmltools_0.5.8.1</span></span></code></pre></div>
+<div id="summary" class="section level2">
+<h2>Summary</h2>
+<p>The conditional tests reproduce <code>stats::fisher.test</code> to
+machine precision. The unconditional tests reproduce a direct evaluation
+of their definition to machine precision, and agree with
+<code>Exact</code> and <code>exact2x2</code> up to the difference
+between the two grids over the nuisance parameter. The three exact tests
+hold the type I error rate below the nominal level for one-sided and
+two-sided alternatives alike.</p>
 </div>
 
 

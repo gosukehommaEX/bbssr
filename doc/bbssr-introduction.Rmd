@@ -1,13 +1,13 @@
 ---
-title: "Introduction to bbssr: Blinded Sample Size Re-estimation for Binary Endpoints"
+title: "Introduction to bbssr"
 author: "Gosuke Homma"
 date: "`r Sys.Date()`"
-output: 
+output:
   rmarkdown::html_vignette:
     toc: true
     toc_depth: 2
 vignette: >
-  %\VignetteIndexEntry{Introduction to bbssr: Blinded Sample Size Re-estimation for Binary Endpoints}
+  %\VignetteIndexEntry{Introduction to bbssr}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -16,246 +16,170 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.width = 8,
-  fig.height = 6,
+  fig.width = 7,
+  fig.height = 4.5,
   fig.align = "center"
 )
 ```
 
-## Introduction
-
-The `bbssr` package provides comprehensive tools for implementing **blinded sample size re-estimation (BSSR)** in two-arm clinical trials with binary endpoints. This vignette introduces the key concepts and demonstrates how to use the main functions in the package.
-
-## What is Blinded Sample Size Re-estimation?
-
-Traditional clinical trials use fixed sample sizes determined during the planning phase. However, these calculations often rely on assumptions about treatment effects and response rates that may prove incorrect. BSSR addresses this limitation by allowing adaptive sample size adjustments during the trial while maintaining:
-
-- **Statistical validity** through exact Type I error control
-- **Study blinding** by using only pooled response data
-- **Regulatory acceptance** through well-established methodology
-
-## Key Advantages of BSSR
-
-1. **Maintains Blinding**: Only pooled response rates are used, preserving treatment allocation concealment
-2. **Exact Statistical Control**: Uses exact tests rather than asymptotic approximations
-3. **Flexible Designs**: Supports different adaptation rules (restricted/unrestricted/weighted)
-4. **Regulatory Compliance**: Based on established statistical methodology accepted by regulatory agencies
-
-## Getting Started
-
-```{r load_packages, message=FALSE}
+```{r load}
 library(bbssr)
-library(dplyr)
-library(ggplot2)
 ```
 
-## Basic Usage
+## What the package does
 
-### Power Calculation for Traditional Design
+A trial with a binary endpoint needs an assumed response probability in each group before the first patient is enrolled. If the pooled response probability turns out to differ from what was assumed, the trial ends up either underpowered or larger than it needed to be. Blinded sample size re-estimation addresses this by looking at the pooled number of responders partway through the trial and adjusting the remaining enrolment, without ever splitting the data by treatment group.
 
-Let's start with a basic power calculation for a traditional fixed-sample design:
+The package covers the whole chain of calculations that this requires. Everything rests on `BinaryRR()`, which returns the rejection region of an exact test over the grid of possible outcomes. `BinaryPower()` sums the binomial probability mass over that region, `BinarySampleSize()` searches for the smallest sample size attaining a target power, `BinaryPowerBSSR()` averages the power over the distribution of the interim data, and `BinaryBSSR()` applies the re-estimation to a single observed interim data set.
 
-```{r traditional_power}
-# Calculate power for a traditional design
-power_result <- BinaryPower(
-  p1 = 0.5,          # Response rate in treatment group
-  p2 = 0.2,          # Response rate in control group
-  N1 = 40,           # Sample size in treatment group
-  N2 = 40,           # Sample size in control group
-  alpha = 0.025,     # One-sided significance level
-  Test = 'Fisher'    # Fisher exact test
-)
+## The five tests
 
-print(paste("Power:", round(power_result, 3)))
-```
-
-### Sample Size Calculation
-
-Now let's calculate the required sample size for a desired power:
-
-```{r sample_size}
-# Calculate required sample size
-sample_size_result <- BinarySampleSize(
-  p1 = 0.5,           # Expected response rate in treatment group
-  p2 = 0.2,           # Expected response rate in control group
-  r = 1,              # Allocation ratio (1:1)
-  alpha = 0.025,      # One-sided significance level
-  tar.power = 0.8,    # Target power
-  Test = 'Boschloo'   # Boschloo exact test (most powerful)
-)
-
-print(sample_size_result)
-```
-
-
-## Blinded Sample Size Re-estimation (BSSR)
-
-### Basic BSSR Example
-
-Here's how to perform BSSR analysis:
-
-```{r bssr_basic}
-# Basic BSSR calculation
-bssr_result <- BinaryPowerBSSR(
-  asmd.p1 = 0.45,      # Assumed response rate in treatment group
-  asmd.p2 = 0.09,      # Assumed response rate in control group
-  p = seq(0.1, 0.9, by = 0.1), # Range of pooled response rates
-  Delta.A = 0.36,      # Assumed treatment effect (risk difference)
-  Delta.T = 0.36,      # True treatment effect
-  N1 = 24,             # Initial sample size in treatment group
-  N2 = 24,             # Initial sample size in control group
-  omega = 0.5,         # Fraction of data for interim analysis
-  r = 1,               # Allocation ratio
-  alpha = 0.025,       # Significance level
-  tar.power = 0.8,     # Target power
-  Test = 'Z-pool',     # Statistical test
-  restricted = FALSE,  # Unrestricted design
-  weighted = FALSE     # Non-weighted approach
-)
-
-# Display first few rows
-head(bssr_result)
-```
-
-### Comparing BSSR Design Rules
-
-One of the key features of `bbssr` is the ability to compare different BSSR design rules. Here's the comprehensive comparison as requested:
-
-```{r bssr_comparison, fig.width=11, fig.height=5.5, out.width="100%"}
-# Calculate power of the BSSR with binary endpoint
-power.BSSR <- tibble(
-  Rule = factor(
-    c('Restricted', 'Unrestricted', 'Weighted'), 
-    levels = c('Restricted', 'Unrestricted', 'Weighted')
-  ),
-  restricted = c(TRUE, FALSE, FALSE),
-  weighted = c(FALSE, FALSE, TRUE)
-) %>% 
-  group_by_all() %>% 
-  reframe(r = c(1, 2), N1 = c(24, 36), N2 = c(24, 18)) %>% 
-  group_by_all() %>% 
-  reframe(
-    BinaryPowerBSSR(
-      asmd.p1 = 0.45, asmd.p2 = 0.09, p = seq(0, 1, by = 0.01),
-      Delta.A = 0.36, Delta.T = 0.36, N1, N2, omega = 0.5, r, 
-      alpha = 0.025, tar.power = 0.8, Test = 'Z-pool', 
-      restricted, weighted
-    )
-  ) %>% 
-  mutate(
-    Rule = factor(Rule, levels = c('Restricted', 'Unrestricted', 'Weighted')),
-    r_label = paste0('Allocation ratio = ', r, ':1')
-  ) %>% 
-  rename(Theta = p, Power = power.BSSR)
-
-# Create the improved figure
-power.BSSR %>% 
-  ggplot(aes(x = Theta, y = Power)) +
-  geom_line(aes(color = Rule), linewidth = 1.0) +
-  theme_bw() +
-  facet_grid(. ~ r_label) + 
-  geom_hline(yintercept = 0.8, color = 'gray', linetype = 'longdash', linewidth = 1.0) +
-  scale_x_continuous(
-    limits = c(0.1, 0.9),
-    breaks = seq(0.2, 0.8, by = 0.2),  # Fewer x-axis breaks
-    labels = c("0.2", "0.4", "0.6", "0.8")
-  ) +
-  scale_y_continuous(
-    limits = c(0.7, 1.0),
-    breaks = seq(0.7, 1.0, by = 0.1),
-    labels = c("0.7", "0.8", "0.9", "1.0")
-  ) +
-  scale_color_manual(
-    values = c("Restricted" = "#E31A1C", "Unrestricted" = "#1F78B4", "Weighted" = "#33A02C")
-  ) +
-  labs(
-    x = expression(theta),
-    y = "Power",
-    title = "Power Comparison: BSSR Design Rules",
-    subtitle = "Dashed line indicates target power = 0.8"
-  ) +
-  theme(
-    text = element_text(size = 11),
-    plot.title = element_text(size = 13, hjust = 0.5, margin = margin(b = 5)),
-    plot.subtitle = element_text(size = 10, hjust = 0.5, margin = margin(b = 10)),
-    panel.spacing = unit(0.8, 'lines'),
-    legend.position = 'bottom',
-    legend.key.width = unit(1.2, 'cm'),
-    legend.text = element_text(size = 10),
-    legend.title = element_blank(),
-    legend.margin = margin(t = 8, r = 0, b = 0, l = 0),
-    axis.title.x = element_text(size = 11, margin = margin(t = 8)),
-    axis.title.y = element_text(size = 11, margin = margin(r = 8)),
-    axis.text = element_text(size = 9),
-    strip.text = element_text(size = 10),
-    plot.margin = margin(t = 10, r = 10, b = 5, l = 5)
-  )
-```
-
-## Understanding the Results
-
-### Design Rule Comparison
-
-The plot above shows three different BSSR approaches:
-
-- **Restricted Design**: Conservative approach where final sample size ≥ initial sample size
-- **Unrestricted Design**: Flexible approach allowing both increases and decreases
-- **Weighted Design**: Advanced approach using weighted averaging across scenarios
-
-### Key Observations
-
-1. **All designs maintain target power**: The horizontal dashed line shows the target power of 0.8
-2. **Weighted design shows robust performance**: More consistent power across different pooled response rates
-3. **Allocation ratio matters**: Different allocation ratios (r=1 vs r=2) show different patterns
-
-## Statistical Tests Available
-
-The package supports five different exact statistical tests:
-
-| Test | Code | Description | Characteristics |
-|------|------|-------------|----------------|
-| Pearson chi-squared | `'Chisq'` | One-sided exact test | Good for large samples |
-| Fisher exact | `'Fisher'` | Classical conditional test | Conservative, widely accepted |
-| Fisher mid-p | `'Fisher-midP'` | Less conservative Fisher | Better power than Fisher exact |
-| Z-pooled | `'Z-pool'` | Unconditional exact test | Good compromise |
-| Boschloo | `'Boschloo'` | Most powerful unconditional | Highest power, computationally intensive |
-
-### Test Comparison Example
-
-```{r test_comparison}
-# Compare different statistical tests
+```{r tests}
 tests <- c('Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', 'Boschloo')
-test_results <- sapply(tests, function(test) {
-  BinaryPower(p1 = 0.5, p2 = 0.2, N1 = 30, N2 = 30, alpha = 0.025, Test = test)
-})
-
-test_comparison_df <- data.frame(
-  Test = tests,
-  Power = round(test_results, 3)
-)
-
-print(test_comparison_df)
 ```
 
-## Practical Considerations
+`Chisq` is the Pearson chi-squared test without a continuity correction. `Fisher` is the Fisher exact test and `Fisher-midP` its mid-p variant. `Z-pool` and `Boschloo` are exact unconditional tests, which remove the nuisance parameter by maximizing the null tail probability over the common response probability rather than by conditioning on the observed margin.
 
-### When to Use BSSR
+The unconditional tests are the most powerful of the five and the slowest to compute. Only `Fisher`, `Z-pool` and `Boschloo` guarantee that the type I error rate stays below the nominal level for every value of the nuisance parameter. The chi-squared and mid-p tests trade that guarantee for shorter rejection thresholds.
 
-BSSR is particularly valuable when:
-- Initial assumptions about response rates are uncertain
-- Regulatory efficiency is important
-- Maintaining study blinding is critical
-- Exact statistical control is required
+## Rejection regions
 
-### Design Choice Guidelines
+```{r rr}
+RR <- BinaryRR(N1 = 10, N2 = 10, alpha = 0.025, Test = 'Boschloo')
+RR
+```
 
-- **Restricted**: Use when regulatory/logistical constraints limit sample size increases
-- **Unrestricted**: Use when flexibility is paramount and resources allow
-- **Weighted**: Use when robust performance across scenarios is desired
+```{r rr-plot}
+plot(RR)
+```
 
-## Next Steps
+The region is monotone: more responders in group 1, or fewer in group 2, can only move an outcome into the rejection region. Because the Boschloo p-value never exceeds the Fisher p-value, the Boschloo region always contains the Fisher region.
 
-This vignette provided a basic introduction to `bbssr`. For more advanced topics, see:
+```{r rr-compare}
+n_rejected <- vapply(tests, function(tst) {
+  sum(BinaryRR(10, 10, 0.025, tst))
+}, numeric(1))
+n_rejected
+```
 
-- `vignette("bbssr-statistical-methods")` - Detailed statistical methodology
-- Package documentation: `help(package = "bbssr")`
+## Power and sample size
+
+```{r power}
+BinaryPower(p1 = 0.6, p2 = 0.3, N1 = 40, N2 = 40, alpha = 0.025, Test = 'Fisher')
+```
+
+```{r power-curve}
+pw <- BinaryPower(p1 = seq(0.35, 0.75, by = 0.05), p2 = rep(0.3, 9),
+                  N1 = 40, N2 = 40, alpha = 0.025, Test = 'Fisher')
+plot(pw)
+```
+
+```{r samplesize}
+ss <- BinarySampleSize(p1 = 0.6, p2 = 0.3, r = 1, alpha = 0.025,
+                       tar.power = 0.8, Test = 'Fisher')
+ss
+```
+
+The exact power is not monotone in the sample size. Adding one patient changes the set of attainable significance levels, and the largest level below alpha can fall rather than rise. The following table shows the effect around the selected sample size.
+
+```{r sawtooth}
+n2 <- (ss$N2 - 6):(ss$N2 + 5)
+data.frame(
+  N2 = n2,
+  Power = round(vapply(n2, function(n) {
+    BinaryPower(0.6, 0.3, n, n, 0.025, 'Fisher')$Power
+  }, numeric(1)), 4)
+)
+```
+
+This is why the sample size search evaluates the exact power at every candidate rather than inverting a smooth approximation.
+
+## Blinded sample size re-estimation
+
+Consider a trial designed for a response probability of 0.45 in group 1 and 0.09 in group 2, so an assumed treatment effect of 0.36 and a pooled probability of 0.27.
+
+The variance of a binary endpoint is largest at one half, so at a fixed risk difference the required sample size grows as the pooled probability approaches that value. A trial sized at a pooled probability of 0.27 is therefore over-powered if the true value turns out lower, and under-powered if it turns out higher.
+
+```{r bssr-plan}
+BinarySampleSize(p1 = 0.45, p2 = 0.09, r = 1, alpha = 0.025,
+                 tar.power = 0.8, Test = 'Z-pool')
+```
+
+`BinaryPowerBSSR()` traces both effects. The scenarios below run from a pooled probability of 0.19 up to 0.37, with the design fixed at the sample size above.
+
+```{r bssr-power}
+res <- BinaryPowerBSSR(
+  asmd.p1 = 0.45, asmd.p2 = 0.09,
+  p = seq(0.19, 0.37, by = 0.03),
+  Delta.A = 0.36, Delta.T = 0.36,
+  N1 = 24, N2 = 24, omega = 0.5, r = 1,
+  alpha = 0.025, tar.power = 0.8, Test = 'Z-pool'
+)
+res
+```
+
+```{r bssr-plot}
+plot(res)
+```
+
+The `power.TRAD` column falls steadily as the pooled probability rises, from well above the target at the low end to well below it at the high end. The `power.BSSR` column stays nearer the target at both ends, since the re-estimation removes patients in the first case and adds them in the second. The `E.N` column shows the expected total sample size that the re-estimation settles on, against the 48 patients of the fixed design.
+
+## Restricted and unrestricted rules
+
+Under the unrestricted rule the trial may end up smaller than planned when the interim data suggest that fewer patients suffice. Under the restricted rule the planned sample size acts as a floor, so the trial can only grow.
+
+```{r rules}
+args <- list(
+  asmd.p1 = 0.45, asmd.p2 = 0.09, p = seq(0.19, 0.37, by = 0.06),
+  Delta.A = 0.36, Delta.T = 0.36, N1 = 24, N2 = 24, omega = 0.5, r = 1,
+  alpha = 0.025, tar.power = 0.8, Test = 'Chisq'
+)
+unrestricted <- do.call(BinaryPowerBSSR, c(args, list(restricted = FALSE)))
+restricted <- do.call(BinaryPowerBSSR, c(args, list(restricted = TRUE)))
+data.frame(
+  p = unrestricted$p,
+  power.unrestricted = round(unrestricted$power.BSSR, 4),
+  power.restricted = round(restricted$power.BSSR, 4),
+  EN.unrestricted = round(unrestricted$E.N, 1),
+  EN.restricted = round(restricted$E.N, 1)
+)
+```
+
+For any single interim outcome that calls for more patients than planned the two rules give the same answer, since neither caps the increase. They part company when the interim outcome calls for fewer. The columns below are expectations over all interim outcomes, so they converge rather than coincide as the pooled probability rises. The unrestricted rule then takes the saving, ending with a smaller trial and a power closer to the target. The restricted rule keeps the planned sample size, which leaves the trial over-powered but never smaller than what the protocol promised.
+
+## Re-estimating from observed interim data
+
+The functions above describe a design before the trial starts. Once the trial is running, the interim analysis produces one number that can be shared without unblinding, namely the total count of responders. `BinaryBSSR()` turns that number into an enrolment decision.
+
+```{r bssr-interim}
+BinaryBSSR(n1 = 12, n2 = 12, S = 8, Delta.A = 0.36, r = 1,
+           alpha = 0.025, tar.power = 0.8, Test = 'Z-pool')
+```
+
+The interim analysis sits at half of the planned 24 patients per group. Eight responders among 24 patients give a blinded pooled rate of 0.33, above the assumed 0.27, so the re-estimated total exceeds the plan and the second stage has to enrol more patients than originally scheduled. The `bbssr-interim-reestimation` vignette works through this in more detail.
+
+## Two-sided tests
+
+Every test accepts `alternative = 'two.sided'`. For the conditional tests the two-sided p-value follows one of two conventions, selected with `tsmethod`.
+
+```{r two-sided}
+pw <- function(alpha, alternative, tsmethod = 'minlike') {
+  BinaryPower(0.6, 0.3, 40, 40, alpha, 'Fisher',
+              alternative = alternative, tsmethod = tsmethod)$Power
+}
+round(c(
+  one.sided.alpha.0.025 = pw(0.025, 'greater'),
+  two.sided.alpha.0.025.minlike = pw(0.025, 'two.sided', 'minlike'),
+  two.sided.alpha.0.025.central = pw(0.025, 'two.sided', 'central'),
+  two.sided.alpha.0.05.minlike = pw(0.05, 'two.sided', 'minlike'),
+  two.sided.alpha.0.05.central = pw(0.05, 'two.sided', 'central')
+), 4)
+```
+
+At the same nominal level the two-sided test is the less powerful, since half of the level is spent on a direction the alternative does not point in. At twice the level it comes back to the one-sided test, because the lower tail contributes almost nothing to the power when the true effect is positive.
+
+The `bbssr-statistical-methods` vignette explains the two conventions and the Berger-Boos refinement of the unconditional tests.
+
+## Where to go next
+
+The `bbssr-statistical-methods` vignette derives the tests and the re-estimation rules. The `bbssr-interim-reestimation` vignette follows a single trial from planning to the interim decision. The `bbssr-validation` vignette compares the package against `stats`, `Exact` and `exact2x2`, and reports timings.

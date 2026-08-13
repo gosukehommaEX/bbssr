@@ -1,40 +1,43 @@
 Package: bbssr
 Type: Package
 Title: Blinded Sample Size Re-Estimation for Binary Endpoints
-Version: 1.0.2
-Date: 2025-06-14
+Version: 2.0.0
 Authors@R: person("Gosuke", "Homma", email = "my.name.is.gosuke@gmail.com", 
                   role = c("aut", "cre"))
-Description: Provides comprehensive tools for blinded sample size re-estimation (BSSR) 
-    in two-arm clinical trials with binary endpoints. Unlike traditional fixed-sample 
-    designs, BSSR allows adaptive sample size adjustments during trials while 
-    maintaining statistical integrity and study blinding. Implements five exact 
-    statistical tests: Pearson chi-squared, Fisher exact, Fisher mid-p, Z-pooled 
-    exact unconditional, and Boschloo exact unconditional tests. Supports restricted, 
-    unrestricted, and weighted BSSR approaches with exact Type I error control.
-    Statistical methods based on Mehrotra et al. (2003) <doi:10.1111/1541-0420.00051> 
-    and Kieser (2020) <doi:10.1007/978-3-030-49528-2_21>.
+Description: Tools for blinded sample size re-estimation (BSSR) in two-arm clinical 
+    trials with binary endpoints, together with the exact power and sample size 
+    calculations that the re-estimation relies on. Five exact statistical tests are 
+    implemented: Pearson chi-squared, Fisher exact, Fisher mid-p, Z-pooled exact 
+    unconditional, and Boschloo exact unconditional. Each test is available with a 
+    one-sided or a two-sided alternative, and the exact unconditional tests can be 
+    combined with the Berger-Boos procedure. Sample sizes can be re-estimated either at 
+    the planning stage, to study the operating characteristics of a design, or from the 
+    blinded data of a trial that is under way. Statistical methods based on Mehrotra et 
+    al. (2003) <doi:10.1111/1541-0420.00051>, Berger and Boos (1994) 
+    <doi:10.1080/01621459.1994.10476836> and Kieser (2020) 
+    <doi:10.1007/978-3-030-49528-2_21>.
 License: MIT + file LICENSE
 URL: https://github.com/gosukehommaEX/bbssr
 BugReports: https://github.com/gosukehommaEX/bbssr/issues
 Depends: R (>= 3.5.0)
 Imports: 
     fpCompare,
-    stats
+    ggplot2 (>= 3.4.0),
+    Rcpp,
+    stats,
+    utils
+LinkingTo:
+    Rcpp
 Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown,
-    dplyr,
-    ggplot2,
-    tibble,
-    tidyr,
     Exact,
     exact2x2,
     microbenchmark
 VignetteBuilder: knitr
 Encoding: UTF-8
-LazyData: true
-RoxygenNote: 7.3.2
+Language: en-GB
 Roxygen: list(markdown = TRUE)
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0

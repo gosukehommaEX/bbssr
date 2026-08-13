@@ -4,52 +4,88 @@
 \alias{BinaryRR}
 \title{Rejection Region for Two-Arm Trials with Binary Endpoints}
 \usage{
-BinaryRR(N1, N2, alpha, Test)
+BinaryRR(
+  N1,
+  N2,
+  alpha,
+  Test,
+  alternative = c("greater", "two.sided"),
+  tsmethod = c("minlike", "central"),
+  n.grid = 100,
+  bb.gamma = 0
+)
 }
 \arguments{
 \item{N1}{Sample size for group 1}
 
 \item{N2}{Sample size for group 2}
 
-\item{alpha}{One-sided level of significance}
+\item{alpha}{Level of significance for the alternative specified by \code{alternative}}
 
-\item{Test}{Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'}
+\item{Test}{Type of statistical test. Options: \code{'Chisq'}, \code{'Fisher'},
+\code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}}
+
+\item{alternative}{Direction of the alternative hypothesis. Options: \code{'greater'}
+(default) for the one-sided alternative that the response probability of group 1
+exceeds that of group 2, or \code{'two.sided'}}
+
+\item{tsmethod}{Convention used to construct the two-sided version of the conditional
+tests. Options: \code{'minlike'} (default) or \code{'central'}. Ignored when
+\code{alternative} is \code{'greater'}, and ignored by \code{'Chisq'} and
+\code{'Z-pool'}, whose two-sided versions are based on the absolute value of the Z
+statistic}
+
+\item{n.grid}{Number of grid points used to search over the nuisance parameter of the
+unconditional tests. Default is 100. Ignored by the conditional tests}
+
+\item{bb.gamma}{Confidence level parameter of the Berger-Boos procedure for the
+unconditional tests. The default of 0 disables the procedure. A positive value
+restricts the search over the nuisance parameter to an exact
+\code{100 (1 - bb.gamma)} percent confidence interval and adds \code{bb.gamma} to the
+resulting p-value. A common choice is 0.0001}
 }
 \value{
-A logical matrix representing the rejection region (RR). Matrix dimensions
-are (N1+1) x (N2+1), where TRUE indicates rejection of the null hypothesis.
+An object of class \code{bbssr_rr}, which is a logical matrix of dimension
+\code{(N1 + 1)} by \code{(N2 + 1)} whose entry \code{[i + 1, j + 1]} is \code{TRUE}
+when the null hypothesis is rejected at \code{i} responders in group 1 and \code{j}
+responders in group 2. The design settings are stored as attributes
 }
 \description{
-Provides a rejection region (RR) for two-arm trials with binary endpoints using
-various exact statistical tests. The function supports five different one-sided tests.
+Provides a rejection region (RR) for two-arm trials with binary endpoints using various
+exact statistical tests. Five tests are supported, each of which can be applied with a
+one-sided or a two-sided alternative.
 }
 \details{
-The function supports the following five one-sided tests:
+The function supports the following five tests:
 \itemize{
-\item The one-sided Pearson chi-squared test (Chisq)
+\item The Pearson chi-squared test (Chisq)
 \item The Fisher exact test (Fisher)
 \item The Fisher mid-p test (Fisher-midP)
 \item The Z-pooled exact unconditional test (Z-pool)
 \item The Boschloo exact unconditional test (Boschloo)
 }
+
+For the two-sided versions of the conditional tests, \code{'minlike'} sums the null
+probabilities of all tables that are no more likely than the observed table, which is the
+convention of \code{stats::fisher.test}, whereas \code{'central'} doubles the smaller of
+the two one-sided tail probabilities. The two-sided versions of \code{'Chisq'} and
+\code{'Z-pool'} order the outcomes by the absolute value of the Z statistic.
+
+The unconditional tests maximize the null tail probability of an ordering statistic over
+the common response probability, which is a nuisance parameter. Outcomes sharing the same
+value of the ordering statistic receive the same p-value.
 }
 \examples{
-# Simple example with small sample sizes (runs quickly)
-N1 <- 5
-N2 <- 5
-alpha <- 0.025
-Test <- 'Chisq'
-RR <- BinaryRR(N1, N2, alpha, Test)
-print(dim(RR))  # Should be (6, 6)
+# Simple example with small sample sizes
+RR <- BinaryRR(N1 = 5, N2 = 5, alpha = 0.025, Test = 'Chisq')
+print(RR)
 
 \donttest{
-# More computationally intensive example
-N1 <- 20
-N2 <- 10
-alpha <- 0.025
-Test <- 'Boschloo'
-RR <- BinaryRR(N1, N2, alpha, Test)
+# Two-sided Boschloo test with the Berger-Boos procedure
+RR <- BinaryRR(N1 = 20, N2 = 10, alpha = 0.05, Test = 'Boschloo',
+               alternative = 'two.sided', bb.gamma = 0.0001)
 print(RR)
+plot(RR)
 }
 
 }

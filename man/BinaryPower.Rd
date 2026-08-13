@@ -4,61 +4,83 @@
 \alias{BinaryPower}
 \title{Power Calculation for Two-Arm Trials with Binary Endpoints}
 \usage{
-BinaryPower(p1, p2, N1, N2, alpha, Test)
+BinaryPower(
+  p1,
+  p2,
+  N1,
+  N2,
+  alpha,
+  Test,
+  alternative = c("greater", "two.sided"),
+  tsmethod = c("minlike", "central"),
+  n.grid = 100,
+  bb.gamma = 0
+)
 }
 \arguments{
-\item{p1}{True probability of responders for group 1 (can be a vector with different values)}
+\item{p1}{True probability of responders for group 1 (can be a vector)}
 
-\item{p2}{True probability of responders for group 2 (can be a vector with different values)}
+\item{p2}{True probability of responders for group 2 (can be a vector of the same length
+as \code{p1})}
 
 \item{N1}{Sample size for group 1}
 
 \item{N2}{Sample size for group 2}
 
-\item{alpha}{One-sided level of significance}
+\item{alpha}{Level of significance for the alternative specified by \code{alternative}}
 
-\item{Test}{Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'}
+\item{Test}{Type of statistical test. Options: \code{'Chisq'}, \code{'Fisher'},
+\code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}}
+
+\item{alternative}{Direction of the alternative hypothesis. Options: \code{'greater'}
+(default) or \code{'two.sided'}}
+
+\item{tsmethod}{Convention used to construct the two-sided version of the conditional
+tests. Options: \code{'minlike'} (default) or \code{'central'}}
+
+\item{n.grid}{Number of grid points used to search over the nuisance parameter of the
+unconditional tests. Default is 100}
+
+\item{bb.gamma}{Confidence level parameter of the Berger-Boos procedure. The default of
+0 disables the procedure}
 }
 \value{
-A numeric value or vector of power values. If vectors are provided for p1 and p2,
-a vector of powers corresponding to each combination will be returned.
+An object of class \code{bbssr_power}, a data frame with one row per element of
+\code{p1} containing:
+\describe{
+\item{p1}{True probability of responders for group 1}
+\item{p2}{True probability of responders for group 2}
+\item{N1}{Sample size for group 1}
+\item{N2}{Sample size for group 2}
+\item{alpha}{Level of significance}
+\item{Test}{Name of the statistical test}
+\item{alternative}{Direction of the alternative hypothesis}
+\item{Power}{Exact power}
+}
 }
 \description{
 Calculates power for two-arm trials with binary endpoints using exact statistical tests.
-The function supports five different one-sided tests and can handle vectors of probabilities.
+Five tests are supported, each of which can be applied with a one-sided or a two-sided
+alternative, and vectors of response probabilities are accepted.
 }
 \details{
-The function supports the following five one-sided tests:
-\itemize{
-\item The one-sided Pearson chi-squared test (Chisq)
-\item The Fisher exact test (Fisher)
-\item The Fisher mid-p test (Fisher-midP)
-\item The Z-pooled exact unconditional test (Z-pool)
-\item The Boschloo exact unconditional test (Boschloo)
-}
-
-The power calculation is based on the exact distribution of the test statistic
-under the specified alternative hypothesis.
+The power is obtained by summing the joint probability mass function of the two
+independent binomial counts over the rejection region returned by \code{\link{BinaryRR}}.
+The summation covers the whole rejection region rather than a row-wise tail, so it
+remains valid for two-sided tests, whose rejection regions are not contiguous within a
+row of the outcome grid.
 }
 \examples{
-# Simple power calculation with fast Chi-squared test
-power1 <- BinaryPower(p1 = 0.5, p2 = 0.2, N1 = 5, N2 = 5,
-                     alpha = 0.025, Test = 'Chisq')
-print(power1)
+# Power of the one-sided chi-squared test
+BinaryPower(p1 = 0.5, p2 = 0.2, N1 = 5, N2 = 5, alpha = 0.025, Test = 'Chisq')
 
 \donttest{
-# More computationally intensive examples
-# Single power calculation with larger sample size
-power2 <- BinaryPower(p1 = 0.5, p2 = 0.2, N1 = 10, N2 = 40,
-                     alpha = 0.025, Test = 'Boschloo')
-print(power2)
-
-# Multiple power calculations
-p1_vec <- c(0.5, 0.6, 0.7, 0.8)
-p2_vec <- c(0.2, 0.2, 0.2, 0.2)
-powers <- BinaryPower(p1 = p1_vec, p2 = p2_vec, N1 = 10, N2 = 40,
-                     alpha = 0.025, Test = 'Fisher')
-print(powers)
+# Power over a range of response probabilities for the two-sided Boschloo test
+pw <- BinaryPower(p1 = c(0.5, 0.6, 0.7, 0.8), p2 = rep(0.2, 4),
+                  N1 = 20, N2 = 20, alpha = 0.05, Test = 'Boschloo',
+                  alternative = 'two.sided')
+print(pw)
+plot(pw)
 }
 
 }

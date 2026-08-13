@@ -4,31 +4,58 @@
 \alias{BinarySampleSize}
 \title{Sample Size Calculation for Two-Arm Trials with Binary Endpoints}
 \usage{
-BinarySampleSize(p1, p2, r, alpha, tar.power, Test)
+BinarySampleSize(
+  p1,
+  p2,
+  r,
+  alpha,
+  tar.power,
+  Test,
+  alternative = c("greater", "two.sided"),
+  tsmethod = c("minlike", "central"),
+  n.grid = 100,
+  bb.gamma = 0
+)
 }
 \arguments{
 \item{p1}{True probability of responders for group 1}
 
 \item{p2}{True probability of responders for group 2}
 
-\item{r}{Allocation ratio to group 1 (i.e., allocation ratio of group 1:group 2 = r:1, r > 0)}
+\item{r}{Allocation ratio to group 1 (i.e., allocation ratio of group 1:group 2 = r:1,
+r > 0)}
 
-\item{alpha}{One-sided level of significance}
+\item{alpha}{Level of significance for the alternative specified by \code{alternative}}
 
 \item{tar.power}{Target power}
 
-\item{Test}{Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'}
+\item{Test}{Type of statistical test. Options: \code{'Chisq'}, \code{'Fisher'},
+\code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}}
+
+\item{alternative}{Direction of the alternative hypothesis. Options: \code{'greater'}
+(default) or \code{'two.sided'}}
+
+\item{tsmethod}{Convention used to construct the two-sided version of the conditional
+tests. Options: \code{'minlike'} (default) or \code{'central'}}
+
+\item{n.grid}{Number of grid points used to search over the nuisance parameter of the
+unconditional tests. Default is 100}
+
+\item{bb.gamma}{Confidence level parameter of the Berger-Boos procedure. The default of
+0 disables the procedure}
 }
 \value{
-A data frame containing:
+An object of class \code{bbssr_samplesize}, a data frame with one row
+containing:
 \describe{
 \item{p1}{True probability of responders for group 1}
 \item{p2}{True probability of responders for group 2}
 \item{r}{Allocation ratio to group 1}
-\item{alpha}{One-sided level of significance}
+\item{alpha}{Level of significance}
 \item{tar.power}{Target power}
 \item{Test}{Name of the statistical test}
-\item{Power}{Calculated power}
+\item{alternative}{Direction of the alternative hypothesis}
+\item{Power}{Exact power at the selected sample size}
 \item{N1}{Required sample size of group 1}
 \item{N2}{Required sample size of group 2}
 \item{N}{Total required sample size}
@@ -36,42 +63,32 @@ A data frame containing:
 }
 \description{
 Calculates the required sample size for two-arm trials with binary endpoints using
-various exact statistical tests. The function supports five different one-sided tests.
+exact statistical tests. Five tests are supported, each of which can be applied with a
+one-sided or a two-sided alternative.
 }
 \details{
-The function supports the following five one-sided tests:
-\itemize{
-\item The one-sided Pearson chi-squared test (Chisq)
-\item The Fisher exact test (Fisher)
-\item The Fisher mid-p test (Fisher-midP)
-\item The Z-pooled exact unconditional test (Z-pool)
-\item The Boschloo exact unconditional test (Boschloo)
-}
-
 The calculation uses a three-step approach:
 \enumerate{
-\item Calculate initial sample size using normal approximation for chi-squared test
-\item Perform power calculation with the initial sample size
-\item Use grid search algorithm to find the optimal sample size
+\item Calculate an initial sample size from the normal approximation to the
+chi-squared test
+\item Evaluate the exact power at the initial sample size
+\item Move the sample size up or down one unit at a time until the smallest sample
+size attaining the target power is found
 }
+
+The normal approximation of the first step uses \code{alpha} for a one-sided
+alternative and \code{alpha / 2} for a two-sided alternative. Only the starting value of
+the search is affected, so the returned sample size is exact in either case.
 }
 \examples{
-# Simple sample size calculation with fast Chi-squared test
-result1 <- BinarySampleSize(p1 = 0.4, p2 = 0.2, r = 1, alpha = 0.025,
-                           tar.power = 0.8, Test = 'Chisq')
-print(result1)
+# One-sided chi-squared test
+BinarySampleSize(p1 = 0.4, p2 = 0.2, r = 1, alpha = 0.025,
+                 tar.power = 0.8, Test = 'Chisq')
 
 \donttest{
-# More computationally intensive examples
-# Sample size for Fisher exact test
-result2 <- BinarySampleSize(p1 = 0.5, p2 = 0.2, r = 2, alpha = 0.025,
-                           tar.power = 0.9, Test = 'Fisher')
-print(result2)
-
-# Sample size for Boschloo test
-result3 <- BinarySampleSize(p1 = 0.6, p2 = 0.3, r = 1, alpha = 0.025,
-                           tar.power = 0.8, Test = 'Boschloo')
-print(result3)
+# Two-sided Fisher exact test
+BinarySampleSize(p1 = 0.5, p2 = 0.2, r = 2, alpha = 0.05,
+                 tar.power = 0.9, Test = 'Fisher', alternative = 'two.sided')
 }
 
 }

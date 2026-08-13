@@ -12,9 +12,9 @@
 
 <meta name="author" content="Gosuke Homma" />
 
-<meta name="date" content="2025-06-15" />
+<meta name="date" content="2026-08-13" />
 
-<title>Introduction to bbssr: Blinded Sample Size Re-estimation for Binary Endpoints</title>
+<title>Introduction to bbssr</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -50,8 +50,9 @@ overflow: visible;
 }
 </style>
 <style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -62,7 +63,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -338,349 +339,340 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">Introduction to bbssr: Blinded Sample Size
-Re-estimation for Binary Endpoints</h1>
+<h1 class="title toc-ignore">Introduction to bbssr</h1>
 <h4 class="author">Gosuke Homma</h4>
-<h4 class="date">2025-06-15</h4>
+<h4 class="date">2026-08-13</h4>
 
 
 <div id="TOC">
 <ul>
-<li><a href="#introduction" id="toc-introduction">Introduction</a></li>
-<li><a href="#what-is-blinded-sample-size-re-estimation" id="toc-what-is-blinded-sample-size-re-estimation">What is Blinded
-Sample Size Re-estimation?</a></li>
-<li><a href="#key-advantages-of-bssr" id="toc-key-advantages-of-bssr">Key Advantages of BSSR</a></li>
-<li><a href="#getting-started" id="toc-getting-started">Getting
-Started</a></li>
-<li><a href="#basic-usage" id="toc-basic-usage">Basic Usage</a></li>
-<li><a href="#blinded-sample-size-re-estimation-bssr" id="toc-blinded-sample-size-re-estimation-bssr">Blinded Sample Size
-Re-estimation (BSSR)</a></li>
-<li><a href="#understanding-the-results" id="toc-understanding-the-results">Understanding the Results</a></li>
-<li><a href="#statistical-tests-available" id="toc-statistical-tests-available">Statistical Tests
-Available</a></li>
-<li><a href="#practical-considerations" id="toc-practical-considerations">Practical Considerations</a></li>
-<li><a href="#next-steps" id="toc-next-steps">Next Steps</a></li>
+<li><a href="#what-the-package-does" id="toc-what-the-package-does">What
+the package does</a></li>
+<li><a href="#the-five-tests" id="toc-the-five-tests">The five
+tests</a></li>
+<li><a href="#rejection-regions" id="toc-rejection-regions">Rejection
+regions</a></li>
+<li><a href="#power-and-sample-size" id="toc-power-and-sample-size">Power and sample size</a></li>
+<li><a href="#blinded-sample-size-re-estimation" id="toc-blinded-sample-size-re-estimation">Blinded sample size
+re-estimation</a></li>
+<li><a href="#restricted-and-unrestricted-rules" id="toc-restricted-and-unrestricted-rules">Restricted and unrestricted
+rules</a></li>
+<li><a href="#re-estimating-from-observed-interim-data" id="toc-re-estimating-from-observed-interim-data">Re-estimating from
+observed interim data</a></li>
+<li><a href="#two-sided-tests" id="toc-two-sided-tests">Two-sided
+tests</a></li>
+<li><a href="#where-to-go-next" id="toc-where-to-go-next">Where to go
+next</a></li>
 </ul>
 </div>
 
-<div id="introduction" class="section level2">
-<h2>Introduction</h2>
-<p>The <code>bbssr</code> package provides comprehensive tools for
-implementing <strong>blinded sample size re-estimation (BSSR)</strong>
-in two-arm clinical trials with binary endpoints. This vignette
-introduces the key concepts and demonstrates how to use the main
-functions in the package.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(bbssr)</span></code></pre></div>
+<div id="what-the-package-does" class="section level2">
+<h2>What the package does</h2>
+<p>A trial with a binary endpoint needs an assumed response probability
+in each group before the first patient is enrolled. If the pooled
+response probability turns out to differ from what was assumed, the
+trial ends up either underpowered or larger than it needed to be.
+Blinded sample size re-estimation addresses this by looking at the
+pooled number of responders partway through the trial and adjusting the
+remaining enrolment, without ever splitting the data by treatment
+group.</p>
+<p>The package covers the whole chain of calculations that this
+requires. Everything rests on <code>BinaryRR()</code>, which returns the
+rejection region of an exact test over the grid of possible outcomes.
+<code>BinaryPower()</code> sums the binomial probability mass over that
+region, <code>BinarySampleSize()</code> searches for the smallest sample
+size attaining a target power, <code>BinaryPowerBSSR()</code> averages
+the power over the distribution of the interim data, and
+<code>BinaryBSSR()</code> applies the re-estimation to a single observed
+interim data set.</p>
 </div>
-<div id="what-is-blinded-sample-size-re-estimation" class="section level2">
-<h2>What is Blinded Sample Size Re-estimation?</h2>
-<p>Traditional clinical trials use fixed sample sizes determined during
-the planning phase. However, these calculations often rely on
-assumptions about treatment effects and response rates that may prove
-incorrect. BSSR addresses this limitation by allowing adaptive sample
-size adjustments during the trial while maintaining:</p>
-<ul>
-<li><strong>Statistical validity</strong> through exact Type I error
-control</li>
-<li><strong>Study blinding</strong> by using only pooled response
-data</li>
-<li><strong>Regulatory acceptance</strong> through well-established
-methodology</li>
-</ul>
+<div id="the-five-tests" class="section level2">
+<h2>The five tests</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>tests <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&#39;Chisq&#39;</span>, <span class="st">&#39;Fisher&#39;</span>, <span class="st">&#39;Fisher-midP&#39;</span>, <span class="st">&#39;Z-pool&#39;</span>, <span class="st">&#39;Boschloo&#39;</span>)</span></code></pre></div>
+<p><code>Chisq</code> is the Pearson chi-squared test without a
+continuity correction. <code>Fisher</code> is the Fisher exact test and
+<code>Fisher-midP</code> its mid-p variant. <code>Z-pool</code> and
+<code>Boschloo</code> are exact unconditional tests, which remove the
+nuisance parameter by maximizing the null tail probability over the
+common response probability rather than by conditioning on the observed
+margin.</p>
+<p>The unconditional tests are the most powerful of the five and the
+slowest to compute. Only <code>Fisher</code>, <code>Z-pool</code> and
+<code>Boschloo</code> guarantee that the type I error rate stays below
+the nominal level for every value of the nuisance parameter. The
+chi-squared and mid-p tests trade that guarantee for shorter rejection
+thresholds.</p>
 </div>
-<div id="key-advantages-of-bssr" class="section level2">
-<h2>Key Advantages of BSSR</h2>
-<ol style="list-style-type: decimal">
-<li><strong>Maintains Blinding</strong>: Only pooled response rates are
-used, preserving treatment allocation concealment</li>
-<li><strong>Exact Statistical Control</strong>: Uses exact tests rather
-than asymptotic approximations</li>
-<li><strong>Flexible Designs</strong>: Supports different adaptation
-rules (restricted/unrestricted/weighted)</li>
-<li><strong>Regulatory Compliance</strong>: Based on established
-statistical methodology accepted by regulatory agencies</li>
-</ol>
+<div id="rejection-regions" class="section level2">
+<h2>Rejection regions</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>RR <span class="ot">&lt;-</span> <span class="fu">BinaryRR</span>(<span class="at">N1 =</span> <span class="dv">10</span>, <span class="at">N2 =</span> <span class="dv">10</span>, <span class="at">alpha =</span> <span class="fl">0.025</span>, <span class="at">Test =</span> <span class="st">&#39;Boschloo&#39;</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>RR</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; Rejection region for a two-arm trial with a binary endpoint</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt;   Test          : Boschloo</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt;   Alternative   : greater</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt;   Sample sizes  : N1 = 10, N2 = 10</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt;   Alpha         : 0.025</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt;   Grid points   : 100</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt;   Berger-Boos   : not used</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt;   Rejected outcomes: 23 of 121</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt;       x2=0 x2=1 x2=2 x2=3 x2=4 x2=5 x2=6 x2=7 x2=8 x2=9 x2=10</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; x1=0  .    .    .    .    .    .    .    .    .    .    .    </span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; x1=1  .    .    .    .    .    .    .    .    .    .    .    </span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; x1=2  .    .    .    .    .    .    .    .    .    .    .    </span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; x1=3  .    .    .    .    .    .    .    .    .    .    .    </span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; x1=4  X    .    .    .    .    .    .    .    .    .    .    </span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; x1=5  X    .    .    .    .    .    .    .    .    .    .    </span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt; x1=6  X    X    .    .    .    .    .    .    .    .    .    </span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt; x1=7  X    X    X    .    .    .    .    .    .    .    .    </span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; x1=8  X    X    X    X    .    .    .    .    .    .    .    </span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt; x1=9  X    X    X    X    X    .    .    .    .    .    .    </span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt; x1=10 X    X    X    X    X    X    X    .    .    .    .    </span></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co">#&gt;   X marks rejection of the null hypothesis</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">plot</span>(RR)</span></code></pre></div>
+<p><img role="img" aria-label src="data:image/png;base64,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" alt style="display: block; margin: auto;" /></p>
+<p>The region is monotone: more responders in group 1, or fewer in group
+2, can only move an outcome into the rejection region. Because the
+Boschloo p-value never exceeds the Fisher p-value, the Boschloo region
+always contains the Fisher region.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>n_rejected <span class="ot">&lt;-</span> <span class="fu">vapply</span>(tests, <span class="cf">function</span>(tst) {</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="fu">sum</span>(<span class="fu">BinaryRR</span>(<span class="dv">10</span>, <span class="dv">10</span>, <span class="fl">0.025</span>, tst))</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>}, <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>n_rejected</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt;       Chisq      Fisher Fisher-midP      Z-pool    Boschloo </span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt;          23          17          23          23          23</span></span></code></pre></div>
 </div>
-<div id="getting-started" class="section level2">
-<h2>Getting Started</h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(bbssr)</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code></pre></div>
+<div id="power-and-sample-size" class="section level2">
+<h2>Power and sample size</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">BinaryPower</span>(<span class="at">p1 =</span> <span class="fl">0.6</span>, <span class="at">p2 =</span> <span class="fl">0.3</span>, <span class="at">N1 =</span> <span class="dv">40</span>, <span class="at">N2 =</span> <span class="dv">40</span>, <span class="at">alpha =</span> <span class="fl">0.025</span>, <span class="at">Test =</span> <span class="st">&#39;Fisher&#39;</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt; Exact power for a two-arm trial with a binary endpoint</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt;   Test         : Fisher</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt;   Alternative  : greater</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt;   Sample sizes : N1 = 40, N2 = 40</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt;   Alpha        : 0.025</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt;   p1  p2  Power</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;  0.6 0.3 0.7248</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>pw <span class="ot">&lt;-</span> <span class="fu">BinaryPower</span>(<span class="at">p1 =</span> <span class="fu">seq</span>(<span class="fl">0.35</span>, <span class="fl">0.75</span>, <span class="at">by =</span> <span class="fl">0.05</span>), <span class="at">p2 =</span> <span class="fu">rep</span>(<span class="fl">0.3</span>, <span class="dv">9</span>),</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>                  <span class="at">N1 =</span> <span class="dv">40</span>, <span class="at">N2 =</span> <span class="dv">40</span>, <span class="at">alpha =</span> <span class="fl">0.025</span>, <span class="at">Test =</span> <span class="st">&#39;Fisher&#39;</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="fu">plot</span>(pw)</span></code></pre></div>
+<p><img role="img" aria-label src="data:image/png;base64,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" alt style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>ss <span class="ot">&lt;-</span> <span class="fu">BinarySampleSize</span>(<span class="at">p1 =</span> <span class="fl">0.6</span>, <span class="at">p2 =</span> <span class="fl">0.3</span>, <span class="at">r =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.025</span>,</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>                       <span class="at">tar.power =</span> <span class="fl">0.8</span>, <span class="at">Test =</span> <span class="st">&#39;Fisher&#39;</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>ss</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; Sample size for a two-arm trial with a binary endpoint</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt;   Test             : Fisher</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt;   Alternative      : greater</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt;   Response rates   : p1 = 0.6, p2 = 0.3</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt;   Allocation ratio : 1 to 1</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt;   Alpha            : 0.025</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt;   Target power     : 0.8</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt;   Required sample size: N1 = 48, N2 = 48, total N = 96</span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt;   Attained power      : 0.8005</span></span></code></pre></div>
+<p>The exact power is not monotone in the sample size. Adding one
+patient changes the set of attainable significance levels, and the
+largest level below alpha can fall rather than rise. The following table
+shows the effect around the selected sample size.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>n2 <span class="ot">&lt;-</span> (ss<span class="sc">$</span>N2 <span class="sc">-</span> <span class="dv">6</span>)<span class="sc">:</span>(ss<span class="sc">$</span>N2 <span class="sc">+</span> <span class="dv">5</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="at">N2 =</span> n2,</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">Power =</span> <span class="fu">round</span>(<span class="fu">vapply</span>(n2, <span class="cf">function</span>(n) {</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>    <span class="fu">BinaryPower</span>(<span class="fl">0.6</span>, <span class="fl">0.3</span>, n, n, <span class="fl">0.025</span>, <span class="st">&#39;Fisher&#39;</span>)<span class="sc">$</span>Power</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  }, <span class="fu">numeric</span>(<span class="dv">1</span>)), <span class="dv">4</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>)</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt;    N2  Power</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; 1  42 0.7638</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt; 2  43 0.7373</span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt; 3  44 0.7417</span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; 4  45 0.7575</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt; 5  46 0.7697</span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt; 6  47 0.7858</span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt; 7  48 0.8005</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; 8  49 0.8152</span></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#&gt; 9  50 0.8290</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co">#&gt; 10 51 0.8419</span></span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a><span class="co">#&gt; 11 52 0.8540</span></span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a><span class="co">#&gt; 12 53 0.8361</span></span></code></pre></div>
+<p>This is why the sample size search evaluates the exact power at every
+candidate rather than inverting a smooth approximation.</p>
 </div>
-<div id="basic-usage" class="section level2">
-<h2>Basic Usage</h2>
-<div id="power-calculation-for-traditional-design" class="section level3">
-<h3>Power Calculation for Traditional Design</h3>
-<p>Let’s start with a basic power calculation for a traditional
-fixed-sample design:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Calculate power for a traditional design</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>power_result <span class="ot">&lt;-</span> <span class="fu">BinaryPower</span>(</span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">p1 =</span> <span class="fl">0.5</span>,          <span class="co"># Response rate in treatment group</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">p2 =</span> <span class="fl">0.2</span>,          <span class="co"># Response rate in control group</span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">N1 =</span> <span class="dv">40</span>,           <span class="co"># Sample size in treatment group</span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="at">N2 =</span> <span class="dv">40</span>,           <span class="co"># Sample size in control group</span></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fl">0.025</span>,     <span class="co"># One-sided significance level</span></span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  <span class="at">Test =</span> <span class="st">&#39;Fisher&#39;</span>    <span class="co"># Fisher exact test</span></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>)</span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">&quot;Power:&quot;</span>, <span class="fu">round</span>(power_result, <span class="dv">3</span>)))</span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Power: 0.749&quot;</span></span></code></pre></div>
+<div id="blinded-sample-size-re-estimation" class="section level2">
+<h2>Blinded sample size re-estimation</h2>
+<p>Consider a trial designed for a response probability of 0.45 in group
+1 and 0.09 in group 2, so an assumed treatment effect of 0.36 and a
+pooled probability of 0.27.</p>
+<p>The variance of a binary endpoint is largest at one half, so at a
+fixed risk difference the required sample size grows as the pooled
+probability approaches that value. A trial sized at a pooled probability
+of 0.27 is therefore over-powered if the true value turns out lower, and
+under-powered if it turns out higher.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">BinarySampleSize</span>(<span class="at">p1 =</span> <span class="fl">0.45</span>, <span class="at">p2 =</span> <span class="fl">0.09</span>, <span class="at">r =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.025</span>,</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>                 <span class="at">tar.power =</span> <span class="fl">0.8</span>, <span class="at">Test =</span> <span class="st">&#39;Z-pool&#39;</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="co">#&gt; Sample size for a two-arm trial with a binary endpoint</span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co">#&gt;   Test             : Z-pool</span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="co">#&gt;   Alternative      : greater</span></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co">#&gt;   Response rates   : p1 = 0.45, p2 = 0.09</span></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt;   Allocation ratio : 1 to 1</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt;   Alpha            : 0.025</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt;   Target power     : 0.8</span></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#&gt;   Required sample size: N1 = 24, N2 = 24, total N = 48</span></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co">#&gt;   Attained power      : 0.8182</span></span></code></pre></div>
+<p><code>BinaryPowerBSSR()</code> traces both effects. The scenarios
+below run from a pooled probability of 0.19 up to 0.37, with the design
+fixed at the sample size above.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">BinaryPowerBSSR</span>(</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="at">asmd.p1 =</span> <span class="fl">0.45</span>, <span class="at">asmd.p2 =</span> <span class="fl">0.09</span>,</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="at">p =</span> <span class="fu">seq</span>(<span class="fl">0.19</span>, <span class="fl">0.37</span>, <span class="at">by =</span> <span class="fl">0.03</span>),</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="at">Delta.A =</span> <span class="fl">0.36</span>, <span class="at">Delta.T =</span> <span class="fl">0.36</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">N1 =</span> <span class="dv">24</span>, <span class="at">N2 =</span> <span class="dv">24</span>, <span class="at">omega =</span> <span class="fl">0.5</span>, <span class="at">r =</span> <span class="dv">1</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fl">0.025</span>, <span class="at">tar.power =</span> <span class="fl">0.8</span>, <span class="at">Test =</span> <span class="st">&#39;Z-pool&#39;</span></span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>)</span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>res</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="co">#&gt; Blinded sample size re-estimation for a binary endpoint</span></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt;   Test            : Z-pool</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt;   Alternative     : greater</span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt;   Design rule     : unrestricted</span></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt;   Initial size    : N1 = 24, N2 = 24</span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt;   Interim fraction: 0.5</span></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt;   Treatment effect: assumed 0.36, true 0.36</span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt;   Alpha           : 0.025, target power 0.8</span></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt;     p   p1   p2 power.BSSR power.TRAD  E.N</span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt;  0.19 0.37 0.01     0.9107     0.9565 38.2</span></span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt;  0.22 0.40 0.04     0.8221     0.8916 40.6</span></span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt;  0.25 0.43 0.07     0.7848     0.8442 43.5</span></span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="co">#&gt;  0.28 0.46 0.10     0.7727     0.8070 46.6</span></span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="co">#&gt;  0.31 0.49 0.13     0.7718     0.7800 49.4</span></span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a><span class="co">#&gt;  0.34 0.52 0.16     0.7747     0.7590 51.9</span></span>
+<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="co">#&gt;  0.37 0.55 0.19     0.7783     0.7388 53.9</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">plot</span>(res)</span></code></pre></div>
+<p><img role="img" aria-label src="data:image/png;base64,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" alt style="display: block; margin: auto;" /></p>
+<p>The <code>power.TRAD</code> column falls steadily as the pooled
+probability rises, from well above the target at the low end to well
+below it at the high end. The <code>power.BSSR</code> column stays
+nearer the target at both ends, since the re-estimation removes patients
+in the first case and adds them in the second. The <code>E.N</code>
+column shows the expected total sample size that the re-estimation
+settles on, against the 48 patients of the fixed design.</p>
 </div>
-<div id="sample-size-calculation" class="section level3">
-<h3>Sample Size Calculation</h3>
-<p>Now let’s calculate the required sample size for a desired power:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Calculate required sample size</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>sample_size_result <span class="ot">&lt;-</span> <span class="fu">BinarySampleSize</span>(</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">p1 =</span> <span class="fl">0.5</span>,           <span class="co"># Expected response rate in treatment group</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">p2 =</span> <span class="fl">0.2</span>,           <span class="co"># Expected response rate in control group</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">r =</span> <span class="dv">1</span>,              <span class="co"># Allocation ratio (1:1)</span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fl">0.025</span>,      <span class="co"># One-sided significance level</span></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">tar.power =</span> <span class="fl">0.8</span>,    <span class="co"># Target power</span></span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="at">Test =</span> <span class="st">&#39;Boschloo&#39;</span>   <span class="co"># Boschloo exact test (most powerful)</span></span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>)</span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a></span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="fu">print</span>(sample_size_result)</span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt;    p1  p2 r alpha tar.power     Test     Power N1 N2  N</span></span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; 1 0.5 0.2 1 0.025       0.8 Boschloo 0.8096508 40 40 80</span></span></code></pre></div>
+<div id="restricted-and-unrestricted-rules" class="section level2">
+<h2>Restricted and unrestricted rules</h2>
+<p>Under the unrestricted rule the trial may end up smaller than planned
+when the interim data suggest that fewer patients suffice. Under the
+restricted rule the planned sample size acts as a floor, so the trial
+can only grow.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>args <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="at">asmd.p1 =</span> <span class="fl">0.45</span>, <span class="at">asmd.p2 =</span> <span class="fl">0.09</span>, <span class="at">p =</span> <span class="fu">seq</span>(<span class="fl">0.19</span>, <span class="fl">0.37</span>, <span class="at">by =</span> <span class="fl">0.06</span>),</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="at">Delta.A =</span> <span class="fl">0.36</span>, <span class="at">Delta.T =</span> <span class="fl">0.36</span>, <span class="at">N1 =</span> <span class="dv">24</span>, <span class="at">N2 =</span> <span class="dv">24</span>, <span class="at">omega =</span> <span class="fl">0.5</span>, <span class="at">r =</span> <span class="dv">1</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fl">0.025</span>, <span class="at">tar.power =</span> <span class="fl">0.8</span>, <span class="at">Test =</span> <span class="st">&#39;Chisq&#39;</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>)</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>unrestricted <span class="ot">&lt;-</span> <span class="fu">do.call</span>(BinaryPowerBSSR, <span class="fu">c</span>(args, <span class="fu">list</span>(<span class="at">restricted =</span> <span class="cn">FALSE</span>)))</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>restricted <span class="ot">&lt;-</span> <span class="fu">do.call</span>(BinaryPowerBSSR, <span class="fu">c</span>(args, <span class="fu">list</span>(<span class="at">restricted =</span> <span class="cn">TRUE</span>)))</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>  <span class="at">p =</span> unrestricted<span class="sc">$</span>p,</span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>  <span class="at">power.unrestricted =</span> <span class="fu">round</span>(unrestricted<span class="sc">$</span>power.BSSR, <span class="dv">4</span>),</span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>  <span class="at">power.restricted =</span> <span class="fu">round</span>(restricted<span class="sc">$</span>power.BSSR, <span class="dv">4</span>),</span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>  <span class="at">EN.unrestricted =</span> <span class="fu">round</span>(unrestricted<span class="sc">$</span>E.N, <span class="dv">1</span>),</span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>  <span class="at">EN.restricted =</span> <span class="fu">round</span>(restricted<span class="sc">$</span>E.N, <span class="dv">1</span>)</span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a>)</span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt;      p power.unrestricted power.restricted EN.unrestricted EN.restricted</span></span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt; 1 0.19             0.9113           0.9737            36.8          48.2</span></span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co">#&gt; 2 0.25             0.7786           0.8808            41.0          49.0</span></span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="co">#&gt; 3 0.31             0.7636           0.8224            46.7          50.9</span></span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a><span class="co">#&gt; 4 0.37             0.7739           0.7970            51.9          53.6</span></span></code></pre></div>
+<p>For any single interim outcome that calls for more patients than
+planned the two rules give the same answer, since neither caps the
+increase. They part company when the interim outcome calls for fewer.
+The columns below are expectations over all interim outcomes, so they
+converge rather than coincide as the pooled probability rises. The
+unrestricted rule then takes the saving, ending with a smaller trial and
+a power closer to the target. The restricted rule keeps the planned
+sample size, which leaves the trial over-powered but never smaller than
+what the protocol promised.</p>
 </div>
+<div id="re-estimating-from-observed-interim-data" class="section level2">
+<h2>Re-estimating from observed interim data</h2>
+<p>The functions above describe a design before the trial starts. Once
+the trial is running, the interim analysis produces one number that can
+be shared without unblinding, namely the total count of responders.
+<code>BinaryBSSR()</code> turns that number into an enrolment
+decision.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">BinaryBSSR</span>(<span class="at">n1 =</span> <span class="dv">12</span>, <span class="at">n2 =</span> <span class="dv">12</span>, <span class="at">S =</span> <span class="dv">8</span>, <span class="at">Delta.A =</span> <span class="fl">0.36</span>, <span class="at">r =</span> <span class="dv">1</span>,</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>           <span class="at">alpha =</span> <span class="fl">0.025</span>, <span class="at">tar.power =</span> <span class="fl">0.8</span>, <span class="at">Test =</span> <span class="st">&#39;Z-pool&#39;</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="co">#&gt; Blinded sample size re-estimation from interim data</span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="co">#&gt;   Test             : Z-pool</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co">#&gt;   Alternative      : greater</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="co">#&gt;   Design rule      : unrestricted</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#&gt;   Assumed effect   : 0.36</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt;   Alpha            : 0.025, target power 0.8</span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt; Interim data</span></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&gt;   Patients         : n1 = 12, n2 = 12, total n = 24</span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt;   Responders       : S = 8, blinded pooled rate = 0.3333</span></span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt;   Recovered rates  : hat.p1 = 0.5133, hat.p2 = 0.1533</span></span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="co">#&gt; Re-estimation</span></span>
+<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a><span class="co">#&gt;   Required total   : N1 = 27, N2 = 27, total N = 54</span></span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a><span class="co">#&gt;   Still to enrol   : group 1 = 15, group 2 = 15, total = 30</span></span>
+<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a><span class="co">#&gt;   Final size       : N1 = 27, N2 = 27, total N = 54</span></span>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="co">#&gt;   Power at final N : 0.8129</span></span></code></pre></div>
+<p>The interim analysis sits at half of the planned 24 patients per
+group. Eight responders among 24 patients give a blinded pooled rate of
+0.33, above the assumed 0.27, so the re-estimated total exceeds the plan
+and the second stage has to enrol more patients than originally
+scheduled. The <code>bbssr-interim-reestimation</code> vignette works
+through this in more detail.</p>
 </div>
-<div id="blinded-sample-size-re-estimation-bssr" class="section level2">
-<h2>Blinded Sample Size Re-estimation (BSSR)</h2>
-<div id="basic-bssr-example" class="section level3">
-<h3>Basic BSSR Example</h3>
-<p>Here’s how to perform BSSR analysis:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Basic BSSR calculation</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>bssr_result <span class="ot">&lt;-</span> <span class="fu">BinaryPowerBSSR</span>(</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">asmd.p1 =</span> <span class="fl">0.45</span>,      <span class="co"># Assumed response rate in treatment group</span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">asmd.p2 =</span> <span class="fl">0.09</span>,      <span class="co"># Assumed response rate in control group</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">p =</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="at">by =</span> <span class="fl">0.1</span>), <span class="co"># Range of pooled response rates</span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">Delta.A =</span> <span class="fl">0.36</span>,      <span class="co"># Assumed treatment effect (risk difference)</span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">Delta.T =</span> <span class="fl">0.36</span>,      <span class="co"># True treatment effect</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">N1 =</span> <span class="dv">24</span>,             <span class="co"># Initial sample size in treatment group</span></span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="at">N2 =</span> <span class="dv">24</span>,             <span class="co"># Initial sample size in control group</span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>  <span class="at">omega =</span> <span class="fl">0.5</span>,         <span class="co"># Fraction of data for interim analysis</span></span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>  <span class="at">r =</span> <span class="dv">1</span>,               <span class="co"># Allocation ratio</span></span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fl">0.025</span>,       <span class="co"># Significance level</span></span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>  <span class="at">tar.power =</span> <span class="fl">0.8</span>,     <span class="co"># Target power</span></span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>  <span class="at">Test =</span> <span class="st">&#39;Z-pool&#39;</span>,     <span class="co"># Statistical test</span></span>
-<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>  <span class="at">restricted =</span> <span class="cn">FALSE</span>,  <span class="co"># Unrestricted design</span></span>
-<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>  <span class="at">weighted =</span> <span class="cn">FALSE</span>     <span class="co"># Non-weighted approach</span></span>
-<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>)</span>
-<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a></span>
-<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co"># Display first few rows</span></span>
-<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="fu">head</span>(bssr_result)</span>
-<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="co">#&gt;     p1   p2   p power.BSSR power.TRAD</span></span>
-<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="co">#&gt; 1 0.38 0.02 0.2  0.8728849  0.9310364</span></span>
-<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="co">#&gt; 2 0.48 0.12 0.3  0.7714587  0.7880436</span></span>
-<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a><span class="co">#&gt; 3 0.58 0.22 0.4  0.7816618  0.7168506</span></span>
-<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a><span class="co">#&gt; 4 0.68 0.32 0.5  0.7851850  0.6677197</span></span>
-<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co">#&gt; 5 0.78 0.42 0.6  0.7816618  0.7168506</span></span>
-<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a><span class="co">#&gt; 6 0.88 0.52 0.7  0.7714587  0.7880436</span></span></code></pre></div>
+<div id="two-sided-tests" class="section level2">
+<h2>Two-sided tests</h2>
+<p>Every test accepts <code>alternative = &#39;two.sided&#39;</code>. For the
+conditional tests the two-sided p-value follows one of two conventions,
+selected with <code>tsmethod</code>.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>pw <span class="ot">&lt;-</span> <span class="cf">function</span>(alpha, alternative, <span class="at">tsmethod =</span> <span class="st">&#39;minlike&#39;</span>) {</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>  <span class="fu">BinaryPower</span>(<span class="fl">0.6</span>, <span class="fl">0.3</span>, <span class="dv">40</span>, <span class="dv">40</span>, alpha, <span class="st">&#39;Fisher&#39;</span>,</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>              <span class="at">alternative =</span> alternative, <span class="at">tsmethod =</span> tsmethod)<span class="sc">$</span>Power</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>}</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">c</span>(</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>  <span class="at">one.sided.alpha.0.025 =</span> <span class="fu">pw</span>(<span class="fl">0.025</span>, <span class="st">&#39;greater&#39;</span>),</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>  <span class="at">two.sided.alpha.0.025.minlike =</span> <span class="fu">pw</span>(<span class="fl">0.025</span>, <span class="st">&#39;two.sided&#39;</span>, <span class="st">&#39;minlike&#39;</span>),</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a>  <span class="at">two.sided.alpha.0.025.central =</span> <span class="fu">pw</span>(<span class="fl">0.025</span>, <span class="st">&#39;two.sided&#39;</span>, <span class="st">&#39;central&#39;</span>),</span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a>  <span class="at">two.sided.alpha.0.05.minlike =</span> <span class="fu">pw</span>(<span class="fl">0.05</span>, <span class="st">&#39;two.sided&#39;</span>, <span class="st">&#39;minlike&#39;</span>),</span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a>  <span class="at">two.sided.alpha.0.05.central =</span> <span class="fu">pw</span>(<span class="fl">0.05</span>, <span class="st">&#39;two.sided&#39;</span>, <span class="st">&#39;central&#39;</span>)</span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a>), <span class="dv">4</span>)</span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a><span class="co">#&gt;         one.sided.alpha.0.025 two.sided.alpha.0.025.minlike </span></span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a><span class="co">#&gt;                        0.7248                        0.6419 </span></span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a><span class="co">#&gt; two.sided.alpha.0.025.central  two.sided.alpha.0.05.minlike </span></span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a><span class="co">#&gt;                        0.6419                        0.7248 </span></span>
+<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a><span class="co">#&gt;  two.sided.alpha.0.05.central </span></span>
+<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a><span class="co">#&gt;                        0.7248</span></span></code></pre></div>
+<p>At the same nominal level the two-sided test is the less powerful,
+since half of the level is spent on a direction the alternative does not
+point in. At twice the level it comes back to the one-sided test,
+because the lower tail contributes almost nothing to the power when the
+true effect is positive.</p>
+<p>The <code>bbssr-statistical-methods</code> vignette explains the two
+conventions and the Berger-Boos refinement of the unconditional
+tests.</p>
 </div>
-<div id="comparing-bssr-design-rules" class="section level3">
-<h3>Comparing BSSR Design Rules</h3>
-<p>One of the key features of <code>bbssr</code> is the ability to
-compare different BSSR design rules. Here’s the comprehensive comparison
-as requested:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Calculate power of the BSSR with binary endpoint</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>power.BSSR <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">Rule =</span> <span class="fu">factor</span>(</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&#39;Restricted&#39;</span>, <span class="st">&#39;Unrestricted&#39;</span>, <span class="st">&#39;Weighted&#39;</span>), </span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>    <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&#39;Restricted&#39;</span>, <span class="st">&#39;Unrestricted&#39;</span>, <span class="st">&#39;Weighted&#39;</span>)</span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  ),</span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="at">restricted =</span> <span class="fu">c</span>(<span class="cn">TRUE</span>, <span class="cn">FALSE</span>, <span class="cn">FALSE</span>),</span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="at">weighted =</span> <span class="fu">c</span>(<span class="cn">FALSE</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>)</span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>) <span class="sc">%&gt;%</span> </span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  <span class="fu">group_by_all</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  <span class="fu">reframe</span>(<span class="at">r =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">N1 =</span> <span class="fu">c</span>(<span class="dv">24</span>, <span class="dv">36</span>), <span class="at">N2 =</span> <span class="fu">c</span>(<span class="dv">24</span>, <span class="dv">18</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>  <span class="fu">group_by_all</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>  <span class="fu">reframe</span>(</span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>    <span class="fu">BinaryPowerBSSR</span>(</span>
-<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>      <span class="at">asmd.p1 =</span> <span class="fl">0.45</span>, <span class="at">asmd.p2 =</span> <span class="fl">0.09</span>, <span class="at">p =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">by =</span> <span class="fl">0.01</span>),</span>
-<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>      <span class="at">Delta.A =</span> <span class="fl">0.36</span>, <span class="at">Delta.T =</span> <span class="fl">0.36</span>, N1, N2, <span class="at">omega =</span> <span class="fl">0.5</span>, r, </span>
-<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a>      <span class="at">alpha =</span> <span class="fl">0.025</span>, <span class="at">tar.power =</span> <span class="fl">0.8</span>, <span class="at">Test =</span> <span class="st">&#39;Z-pool&#39;</span>, </span>
-<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>      restricted, weighted</span>
-<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>    )</span>
-<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> </span>
-<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a>    <span class="at">Rule =</span> <span class="fu">factor</span>(Rule, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&#39;Restricted&#39;</span>, <span class="st">&#39;Unrestricted&#39;</span>, <span class="st">&#39;Weighted&#39;</span>)),</span>
-<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a>    <span class="at">r_label =</span> <span class="fu">paste0</span>(<span class="st">&#39;Allocation ratio = &#39;</span>, r, <span class="st">&#39;:1&#39;</span>)</span>
-<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> </span>
-<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Theta =</span> p, <span class="at">Power =</span> power.BSSR)</span>
-<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a></span>
-<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="co"># Create the improved figure</span></span>
-<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a>power.BSSR <span class="sc">%&gt;%</span> </span>
-<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Theta, <span class="at">y =</span> Power)) <span class="sc">+</span></span>
-<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">color =</span> Rule), <span class="at">linewidth =</span> <span class="fl">1.0</span>) <span class="sc">+</span></span>
-<span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
-<span id="cb5-32"><a href="#cb5-32" tabindex="-1"></a>  <span class="fu">facet_grid</span>(. <span class="sc">~</span> r_label) <span class="sc">+</span> </span>
-<span id="cb5-33"><a href="#cb5-33" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.8</span>, <span class="at">color =</span> <span class="st">&#39;gray&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;longdash&#39;</span>, <span class="at">linewidth =</span> <span class="fl">1.0</span>) <span class="sc">+</span></span>
-<span id="cb5-34"><a href="#cb5-34" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
-<span id="cb5-35"><a href="#cb5-35" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.9</span>),</span>
-<span id="cb5-36"><a href="#cb5-36" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="fl">0.2</span>, <span class="fl">0.8</span>, <span class="at">by =</span> <span class="fl">0.2</span>),  <span class="co"># Fewer x-axis breaks</span></span>
-<span id="cb5-37"><a href="#cb5-37" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">&quot;0.2&quot;</span>, <span class="st">&quot;0.4&quot;</span>, <span class="st">&quot;0.6&quot;</span>, <span class="st">&quot;0.8&quot;</span>)</span>
-<span id="cb5-38"><a href="#cb5-38" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb5-39"><a href="#cb5-39" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
-<span id="cb5-40"><a href="#cb5-40" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="fl">0.7</span>, <span class="fl">1.0</span>),</span>
-<span id="cb5-41"><a href="#cb5-41" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="fl">0.7</span>, <span class="fl">1.0</span>, <span class="at">by =</span> <span class="fl">0.1</span>),</span>
-<span id="cb5-42"><a href="#cb5-42" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">&quot;0.7&quot;</span>, <span class="st">&quot;0.8&quot;</span>, <span class="st">&quot;0.9&quot;</span>, <span class="st">&quot;1.0&quot;</span>)</span>
-<span id="cb5-43"><a href="#cb5-43" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb5-44"><a href="#cb5-44" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(</span>
-<span id="cb5-45"><a href="#cb5-45" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;Restricted&quot;</span> <span class="ot">=</span> <span class="st">&quot;#E31A1C&quot;</span>, <span class="st">&quot;Unrestricted&quot;</span> <span class="ot">=</span> <span class="st">&quot;#1F78B4&quot;</span>, <span class="st">&quot;Weighted&quot;</span> <span class="ot">=</span> <span class="st">&quot;#33A02C&quot;</span>)</span>
-<span id="cb5-46"><a href="#cb5-46" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb5-47"><a href="#cb5-47" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb5-48"><a href="#cb5-48" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">expression</span>(theta),</span>
-<span id="cb5-49"><a href="#cb5-49" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Power&quot;</span>,</span>
-<span id="cb5-50"><a href="#cb5-50" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Power Comparison: BSSR Design Rules&quot;</span>,</span>
-<span id="cb5-51"><a href="#cb5-51" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;Dashed line indicates target power = 0.8&quot;</span></span>
-<span id="cb5-52"><a href="#cb5-52" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb5-53"><a href="#cb5-53" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb5-54"><a href="#cb5-54" tabindex="-1"></a>    <span class="at">text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>),</span>
-<span id="cb5-55"><a href="#cb5-55" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">13</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">5</span>)),</span>
-<span id="cb5-56"><a href="#cb5-56" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">10</span>)),</span>
-<span id="cb5-57"><a href="#cb5-57" tabindex="-1"></a>    <span class="at">panel.spacing =</span> <span class="fu">unit</span>(<span class="fl">0.8</span>, <span class="st">&#39;lines&#39;</span>),</span>
-<span id="cb5-58"><a href="#cb5-58" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">&#39;bottom&#39;</span>,</span>
-<span id="cb5-59"><a href="#cb5-59" tabindex="-1"></a>    <span class="at">legend.key.width =</span> <span class="fu">unit</span>(<span class="fl">1.2</span>, <span class="st">&#39;cm&#39;</span>),</span>
-<span id="cb5-60"><a href="#cb5-60" tabindex="-1"></a>    <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>),</span>
-<span id="cb5-61"><a href="#cb5-61" tabindex="-1"></a>    <span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb5-62"><a href="#cb5-62" tabindex="-1"></a>    <span class="at">legend.margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">8</span>, <span class="at">r =</span> <span class="dv">0</span>, <span class="at">b =</span> <span class="dv">0</span>, <span class="at">l =</span> <span class="dv">0</span>),</span>
-<span id="cb5-63"><a href="#cb5-63" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">8</span>)),</span>
-<span id="cb5-64"><a href="#cb5-64" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">r =</span> <span class="dv">8</span>)),</span>
-<span id="cb5-65"><a href="#cb5-65" tabindex="-1"></a>    <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>),</span>
-<span id="cb5-66"><a href="#cb5-66" tabindex="-1"></a>    <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>),</span>
-<span id="cb5-67"><a href="#cb5-67" tabindex="-1"></a>    <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>, <span class="at">r =</span> <span class="dv">10</span>, <span class="at">b =</span> <span class="dv">5</span>, <span class="at">l =</span> <span class="dv">5</span>)</span>
-<span id="cb5-68"><a href="#cb5-68" tabindex="-1"></a>  )</span></code></pre></div>
-<p><img role="img" src="data:image/png;base64,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" width="100%" style="display: block; margin: auto;" /></p>
-</div>
-</div>
-<div id="understanding-the-results" class="section level2">
-<h2>Understanding the Results</h2>
-<div id="design-rule-comparison" class="section level3">
-<h3>Design Rule Comparison</h3>
-<p>The plot above shows three different BSSR approaches:</p>
-<ul>
-<li><strong>Restricted Design</strong>: Conservative approach where
-final sample size ≥ initial sample size</li>
-<li><strong>Unrestricted Design</strong>: Flexible approach allowing
-both increases and decreases</li>
-<li><strong>Weighted Design</strong>: Advanced approach using weighted
-averaging across scenarios</li>
-</ul>
-</div>
-<div id="key-observations" class="section level3">
-<h3>Key Observations</h3>
-<ol style="list-style-type: decimal">
-<li><strong>All designs maintain target power</strong>: The horizontal
-dashed line shows the target power of 0.8</li>
-<li><strong>Weighted design shows robust performance</strong>: More
-consistent power across different pooled response rates</li>
-<li><strong>Allocation ratio matters</strong>: Different allocation
-ratios (r=1 vs r=2) show different patterns</li>
-</ol>
-</div>
-</div>
-<div id="statistical-tests-available" class="section level2">
-<h2>Statistical Tests Available</h2>
-<p>The package supports five different exact statistical tests:</p>
-<table>
-<colgroup>
-<col width="14%" />
-<col width="14%" />
-<col width="31%" />
-<col width="39%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Test</th>
-<th>Code</th>
-<th>Description</th>
-<th>Characteristics</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Pearson chi-squared</td>
-<td><code>&#39;Chisq&#39;</code></td>
-<td>One-sided exact test</td>
-<td>Good for large samples</td>
-</tr>
-<tr class="even">
-<td>Fisher exact</td>
-<td><code>&#39;Fisher&#39;</code></td>
-<td>Classical conditional test</td>
-<td>Conservative, widely accepted</td>
-</tr>
-<tr class="odd">
-<td>Fisher mid-p</td>
-<td><code>&#39;Fisher-midP&#39;</code></td>
-<td>Less conservative Fisher</td>
-<td>Better power than Fisher exact</td>
-</tr>
-<tr class="even">
-<td>Z-pooled</td>
-<td><code>&#39;Z-pool&#39;</code></td>
-<td>Unconditional exact test</td>
-<td>Good compromise</td>
-</tr>
-<tr class="odd">
-<td>Boschloo</td>
-<td><code>&#39;Boschloo&#39;</code></td>
-<td>Most powerful unconditional</td>
-<td>Highest power, computationally intensive</td>
-</tr>
-</tbody>
-</table>
-<div id="test-comparison-example" class="section level3">
-<h3>Test Comparison Example</h3>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Compare different statistical tests</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>tests <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&#39;Chisq&#39;</span>, <span class="st">&#39;Fisher&#39;</span>, <span class="st">&#39;Fisher-midP&#39;</span>, <span class="st">&#39;Z-pool&#39;</span>, <span class="st">&#39;Boschloo&#39;</span>)</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>test_results <span class="ot">&lt;-</span> <span class="fu">sapply</span>(tests, <span class="cf">function</span>(test) {</span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="fu">BinaryPower</span>(<span class="at">p1 =</span> <span class="fl">0.5</span>, <span class="at">p2 =</span> <span class="fl">0.2</span>, <span class="at">N1 =</span> <span class="dv">30</span>, <span class="at">N2 =</span> <span class="dv">30</span>, <span class="at">alpha =</span> <span class="fl">0.025</span>, <span class="at">Test =</span> test)</span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>})</span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a></span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>test_comparison_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  <span class="at">Test =</span> tests,</span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  <span class="at">Power =</span> <span class="fu">round</span>(test_results, <span class="dv">3</span>)</span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>)</span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a></span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="fu">print</span>(test_comparison_df)</span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;                    Test Power</span></span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; Chisq             Chisq 0.692</span></span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; Fisher           Fisher 0.596</span></span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt; Fisher-midP Fisher-midP 0.679</span></span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; Z-pool           Z-pool 0.678</span></span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt; Boschloo       Boschloo 0.671</span></span></code></pre></div>
-</div>
-</div>
-<div id="practical-considerations" class="section level2">
-<h2>Practical Considerations</h2>
-<div id="when-to-use-bssr" class="section level3">
-<h3>When to Use BSSR</h3>
-<p>BSSR is particularly valuable when: - Initial assumptions about
-response rates are uncertain - Regulatory efficiency is important -
-Maintaining study blinding is critical - Exact statistical control is
-required</p>
-</div>
-<div id="design-choice-guidelines" class="section level3">
-<h3>Design Choice Guidelines</h3>
-<ul>
-<li><strong>Restricted</strong>: Use when regulatory/logistical
-constraints limit sample size increases</li>
-<li><strong>Unrestricted</strong>: Use when flexibility is paramount and
-resources allow</li>
-<li><strong>Weighted</strong>: Use when robust performance across
-scenarios is desired</li>
-</ul>
-</div>
-</div>
-<div id="next-steps" class="section level2">
-<h2>Next Steps</h2>
-<p>This vignette provided a basic introduction to <code>bbssr</code>.
-For more advanced topics, see:</p>
-<ul>
-<li><code>vignette(&quot;bbssr-statistical-methods&quot;)</code> - Detailed
-statistical methodology</li>
-<li>Package documentation: <code>help(package = &quot;bbssr&quot;)</code></li>
-</ul>
+<div id="where-to-go-next" class="section level2">
+<h2>Where to go next</h2>
+<p>The <code>bbssr-statistical-methods</code> vignette derives the tests
+and the re-estimation rules. The <code>bbssr-interim-reestimation</code>
+vignette follows a single trial from planning to the interim decision.
+The <code>bbssr-validation</code> vignette compares the package against
+<code>stats</code>, <code>Exact</code> and <code>exact2x2</code>, and
+reports timings.</p>
 </div>
 
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/BinaryPowerBSSR.R
 \name{BinaryPowerBSSR}
 \alias{BinaryPowerBSSR}
-\title{Power Calculation for Two-Arm Trials with Binary Endpoints Using Blinded Sample Size Re-estimation (BSSR)}
+\title{Power of a Blinded Sample Size Re-estimation Design for Binary Endpoints}
 \usage{
 BinaryPowerBSSR(
   asmd.p1,
@@ -17,8 +17,11 @@ BinaryPowerBSSR(
   alpha,
   tar.power,
   Test,
-  restricted,
-  weighted
+  restricted = FALSE,
+  alternative = c("greater", "two.sided"),
+  tsmethod = c("minlike", "central"),
+  n.grid = 100,
+  bb.gamma = 0
 )
 }
 \arguments{
@@ -26,7 +29,7 @@ BinaryPowerBSSR(
 
 \item{asmd.p2}{Assumed proportion of responders for group 2}
 
-\item{p}{Vector of pooled proportions of responders from both groups (can specify multiple values)}
+\item{p}{Vector of true pooled proportions of responders from both groups}
 
 \item{Delta.A}{Assumed treatment effect (risk difference)}
 
@@ -36,77 +39,79 @@ BinaryPowerBSSR(
 
 \item{N2}{Initial sample size of group 2}
 
-\item{omega}{Fraction of sample size used for interim analysis (i.e., for BSSR)}
+\item{omega}{Fraction of the initial sample size observed at the interim analysis}
 
 \item{r}{Allocation ratio to group 1}
 
-\item{alpha}{One-sided level of significance}
+\item{alpha}{Level of significance for the alternative specified by \code{alternative}}
 
 \item{tar.power}{Target power}
 
-\item{Test}{Type of statistical test. Options: 'Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', or 'Boschloo'}
+\item{Test}{Type of statistical test. Options: \code{'Chisq'}, \code{'Fisher'},
+\code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}}
 
-\item{restricted}{Logical. If TRUE, restricted design is chosen}
+\item{restricted}{Logical. If \code{TRUE}, the re-estimated sample size is not allowed
+to fall below the initial sample size. Default is \code{FALSE}}
 
-\item{weighted}{Logical. If TRUE, weighted approach is chosen}
+\item{alternative}{Direction of the alternative hypothesis. Options: \code{'greater'}
+(default) or \code{'two.sided'}}
+
+\item{tsmethod}{Convention used to construct the two-sided version of the conditional
+tests. Options: \code{'minlike'} (default) or \code{'central'}}
+
+\item{n.grid}{Number of grid points used to search over the nuisance parameter of the
+unconditional tests. Default is 100}
+
+\item{bb.gamma}{Confidence level parameter of the Berger-Boos procedure. The default of
+0 disables the procedure}
 }
 \value{
-A data frame containing:
+An object of class \code{bbssr_powerbssr}, a data frame with one row per element
+of \code{p} containing:
 \describe{
 \item{p1}{True probability of responders for group 1}
 \item{p2}{True probability of responders for group 2}
-\item{p}{True probability of pooled responders from both groups}
-\item{power.BSSR}{Power for BSSR design}
-\item{power.TRAD}{Power for traditional design}
+\item{p}{True pooled probability of responders from both groups}
+\item{power.BSSR}{Power of the BSSR design}
+\item{power.TRAD}{Power of the fixed-sample design}
+\item{E.N}{Expected total sample size of the BSSR design}
 }
 }
 \description{
-Calculates the power for two-arm trials with binary endpoints when blinded sample size
-re-estimation (BSSR) is implemented. The function supports five different statistical tests
-and allows for both restricted and unrestricted designs with optional weighted approaches.
+Calculates the power of a two-arm trial with a binary endpoint when blinded sample size
+re-estimation (BSSR) is implemented, together with the power of the corresponding
+fixed-sample design. Five exact tests are supported, each of which can be applied with a
+one-sided or a two-sided alternative, under either a restricted or an unrestricted
+design rule.
 }
 \details{
-The function supports the following five one-sided tests:
-\itemize{
-\item The one-sided Pearson chi-squared test (Chisq)
-\item The Fisher exact test (Fisher)
-\item The Fisher mid-p test (Fisher-midP)
-\item The Z-pooled exact unconditional test (Z-pool)
-\item The Boschloo exact unconditional test (Boschloo)
-}
+At the interim analysis the pooled number of responders is observed without unblinding.
+The pooled proportion is combined with the assumed treatment effect \code{Delta.A} to
+recover group-specific proportions, from which the sample size is re-estimated. The power
+is then averaged over the distribution of the interim outcome.
+
+Setting \code{Delta.T} to 0 gives the exact type I error rate of the design.
+
+The weighted approach available in earlier versions of the package has been removed.
 }
 \examples{
-# Simple BSSR calculation with fast Chi-squared test
-result1 <- BinaryPowerBSSR(
-  asmd.p1 = 0.6, asmd.p2 = 0.3,
-  p = 0.45,
+# Small BSSR calculation with the chi-squared test
+BinaryPowerBSSR(
+  asmd.p1 = 0.6, asmd.p2 = 0.3, p = 0.45,
   Delta.A = 0.3, Delta.T = 0.3,
   N1 = 5, N2 = 5, omega = 0.5, r = 1,
-  alpha = 0.025, tar.power = 0.8,
-  Test = 'Chisq',
-  restricted = FALSE, weighted = FALSE
+  alpha = 0.025, tar.power = 0.8, Test = 'Chisq'
 )
-print(result1)
 
 \donttest{
-# More computationally intensive BSSR examples
-result2 <- BinaryPowerBSSR(
-  asmd.p1 = 0.45,
-  asmd.p2 = 0.09,
-  p = seq(0.14, 0.23, by = 0.01),
-  Delta.A = 0.36,
-  Delta.T = 0.36,
-  N1 = 24,
-  N2 = 24,
-  omega = 0.5,
-  r = 1,
-  alpha = 0.025,
-  tar.power = 0.8,
-  Test = 'Z-pool',
-  restricted = FALSE,
-  weighted = TRUE
+res <- BinaryPowerBSSR(
+  asmd.p1 = 0.45, asmd.p2 = 0.09, p = seq(0.14, 0.23, by = 0.01),
+  Delta.A = 0.36, Delta.T = 0.36,
+  N1 = 24, N2 = 24, omega = 0.5, r = 1,
+  alpha = 0.025, tar.power = 0.8, Test = 'Z-pool'
 )
-print(result2)
+print(res)
+plot(res)
 }
 
 }
