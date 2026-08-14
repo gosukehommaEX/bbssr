@@ -6,7 +6,7 @@ library(ggplot2)
 
 p.grid <- seq(0.19, 0.40, by = 0.03)
 args <- list(
-  asmd.p1 = 0.45, asmd.p2 = 0.09, p = p.grid,
+  p = p.grid,
   Delta.A = 0.36, Delta.T = 0.36, N1 = 24, N2 = 24, omega = 0.5, r = 1,
   alpha = 0.025, tar.power = 0.8, Test = 'Z-pool'
 )

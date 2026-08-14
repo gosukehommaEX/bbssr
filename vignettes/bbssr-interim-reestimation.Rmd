@@ -68,7 +68,6 @@ Before committing to the design, check what the re-estimation buys. The interim 
 
 ```{r evaluate}
 design <- BinaryPowerBSSR(
-  asmd.p1 = 0.45, asmd.p2 = 0.20,
   p = seq(0.20, 0.45, by = 0.05),
   Delta.A = Delta.A, Delta.T = Delta.A,
   N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
@@ -160,7 +159,7 @@ Setting `Delta.T` to zero makes the two groups identical, so `power.BSSR` and `p
 
 ```{r type1-check}
 null <- BinaryPowerBSSR(
-  asmd.p1 = 0.45, asmd.p2 = 0.20, p = seq(0.02, 0.98, by = 0.02),
+  p = seq(0.02, 0.98, by = 0.02),
   Delta.A = Delta.A, Delta.T = 0,
   N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
   alpha = 0.025, tar.power = 0.8, Test = 'Chisq', restricted = TRUE

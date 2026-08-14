@@ -5,8 +5,6 @@
 \title{Power of a Blinded Sample Size Re-estimation Design for Binary Endpoints}
 \usage{
 BinaryPowerBSSR(
-  asmd.p1,
-  asmd.p2,
   p,
   Delta.A,
   Delta.T,
@@ -25,10 +23,6 @@ BinaryPowerBSSR(
 )
 }
 \arguments{
-\item{asmd.p1}{Assumed proportion of responders for group 1}
-
-\item{asmd.p2}{Assumed proportion of responders for group 2}
-
 \item{p}{Vector of true pooled proportions of responders from both groups}
 
 \item{Delta.A}{Assumed treatment effect (risk difference)}
@@ -104,7 +98,7 @@ The weighted approach available in earlier versions of the package has been remo
 \examples{
 # Small BSSR calculation with the chi-squared test
 BinaryPowerBSSR(
-  asmd.p1 = 0.6, asmd.p2 = 0.3, p = 0.45,
+  p = 0.45,
   Delta.A = 0.3, Delta.T = 0.3,
   N1 = 5, N2 = 5, omega = 0.5, r = 1,
   alpha = 0.025, tar.power = 0.8, Test = 'Chisq'
@@ -112,7 +106,7 @@ BinaryPowerBSSR(
 
 \donttest{
 res <- BinaryPowerBSSR(
-  asmd.p1 = 0.45, asmd.p2 = 0.09, p = seq(0.14, 0.23, by = 0.01),
+  p = seq(0.19, 0.37, by = 0.03),
   Delta.A = 0.36, Delta.T = 0.36,
   N1 = 24, N2 = 24, omega = 0.5, r = 1,
   alpha = 0.025, tar.power = 0.8, Test = 'Z-pool'

@@ -23,9 +23,10 @@ region of an exact test to the enrolment decision at an interim analysis.
 
 Version 2 corrects the p-value of the exact unconditional tests, adds two-sided
 alternatives and the Berger-Boos procedure, introduces `BinaryBSSR()` for re-estimating
-from observed interim data, and moves the inner loops to C++. The `weighted` argument of
-`BinaryPowerBSSR()` has been removed and `BinaryPower()` now returns a data frame. See
-[NEWS.md](NEWS.md) for the full list and for what to change in code written for version 1.
+from observed interim data, and moves the inner loops to C++. `BinaryPowerBSSR()` has lost
+the `weighted`, `asmd.p1` and `asmd.p2` arguments, and `BinaryPower()` now returns a data
+frame. See [NEWS.md](NEWS.md) for the full list and for what to change in code written for
+version 1.
 
 ## Installation
 
@@ -138,7 +139,6 @@ than a single p-value. All 441 p-values of a 20 against 20 Boschloo grid take ab
 
 ```r
 BinaryPowerBSSR(
-  asmd.p1 = 0.45, asmd.p2 = 0.09,
   p = seq(0.19, 0.37, by = 0.03),
   Delta.A = 0.36, Delta.T = 0.36,
   N1 = 24, N2 = 24, omega = 0.5, r = 1,

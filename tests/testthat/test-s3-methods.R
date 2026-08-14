@@ -3,7 +3,7 @@ test_that("print methods return their argument invisibly and produce output", {
     rr = BinaryRR(5, 5, 0.025, 'Chisq'),
     power = BinaryPower(0.5, 0.2, 8, 8, 0.025, 'Chisq'),
     samplesize = BinarySampleSize(0.5, 0.2, 1, 0.025, 0.8, 'Chisq'),
-    powerbssr = BinaryPowerBSSR(asmd.p1 = 0.6, asmd.p2 = 0.3, p = 0.45,
+    powerbssr = BinaryPowerBSSR(p = 0.45,
                                 Delta.A = 0.3, Delta.T = 0.3, N1 = 6, N2 = 6,
                                 omega = 0.5, r = 1, alpha = 0.025,
                                 tar.power = 0.8, Test = 'Chisq'),
@@ -30,7 +30,7 @@ test_that("plot methods return ggplot objects", {
     plot(BinaryRR(6, 6, 0.025, 'Chisq')),
     plot(BinaryPower(seq(0.3, 0.7, by = 0.1), rep(0.2, 5), 10, 10, 0.025, 'Chisq')),
     plot(BinarySampleSize(0.5, 0.2, 1, 0.025, 0.8, 'Chisq'), N2.range = 20:24),
-    plot(BinaryPowerBSSR(asmd.p1 = 0.6, asmd.p2 = 0.3, p = c(0.4, 0.45, 0.5),
+    plot(BinaryPowerBSSR(p = c(0.4, 0.45, 0.5),
                          Delta.A = 0.3, Delta.T = 0.3, N1 = 6, N2 = 6,
                          omega = 0.5, r = 1, alpha = 0.025,
                          tar.power = 0.8, Test = 'Chisq'))

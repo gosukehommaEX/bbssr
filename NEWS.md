@@ -79,6 +79,12 @@ major version number has been raised.
 * The `weighted` argument of `BinaryPowerBSSR()` has been removed, along with the weighted
   design it selected. Calls that supply it will fail with an unused argument error.
 
+* The `asmd.p1` and `asmd.p2` arguments of `BinaryPowerBSSR()` have been removed. They
+  entered the calculation only through the weights of the weighted design, so with that
+  design gone they had no effect on the result. The planning assumption is carried by
+  `Delta.A` together with the initial sample sizes `N1` and `N2`. Calls that supply them
+  will fail with an unused argument error.
+
 * `BinaryPower()` returns a one-row-per-scenario data frame of class `bbssr_power` rather
   than a bare numeric vector. Code that used the returned value directly should now read
   the `Power` column.
