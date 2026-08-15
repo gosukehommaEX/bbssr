@@ -609,18 +609,18 @@ the nuisance parameter runs in compiled code.</p>
 <span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>  <span class="at">unit =</span> <span class="st">&#39;ms&#39;</span></span>
 <span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>)</span>
 <span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co">#&gt; Unit: milliseconds</span></span>
-<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt;                   expr       min        lq      mean    median      uq</span></span>
-<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt;                  Chisq  0.766901  1.504501  1.583081  1.645551  1.7636</span></span>
-<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt;                 Fisher  7.138401  8.212200  9.631071  8.857201 10.5834</span></span>
-<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt;                 Z-pool 17.369401 18.825201 21.585331 20.893851 24.0320</span></span>
-<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt;               Boschloo 20.713701 26.861802 30.586201 29.356502 33.3005</span></span>
-<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt;  Boschloo, Berger-Boos 61.804301 66.660701 69.174641 69.153502 72.6891</span></span>
-<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt;        max neval   cld</span></span>
-<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt;   1.989701    10 a    </span></span>
-<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt;  16.118301    10  b   </span></span>
-<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt;  29.163801    10   c  </span></span>
-<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt;  42.048801    10    d </span></span>
-<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt;  77.419801    10     e</span></span></code></pre></div>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt;                   expr       min        lq      mean    median        uq</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt;                  Chisq  0.679401  0.881901  1.483821  1.392451  1.684701</span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt;                 Fisher  3.423401  6.435501 13.586141  6.832301 24.736901</span></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt;                 Z-pool 16.304501 20.597102 29.110111 22.550301 37.341101</span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt;               Boschloo 22.562101 31.051301 38.952051 33.214652 47.277902</span></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt;  Boschloo, Berger-Boos 61.647801 69.634101 79.341741 79.612252 86.070601</span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt;         max neval  cld</span></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt;    3.179001    10 a   </span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt;   38.975701    10 ab  </span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt;   57.834300    10  bc </span></span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt;   75.337802    10   c </span></span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt;  101.611401    10    d</span></span></code></pre></div>
 <p>The Berger-Boos variant costs roughly twice as much as the plain
 Boschloo test, because the confidence bounds of every possible responder
 total are added to the grid over the nuisance parameter.</p>
@@ -641,9 +641,9 @@ charges <code>Exact</code> only for the p-values of a single row.</p>
 <span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>  <span class="at">unit =</span> <span class="st">&#39;ms&#39;</span></span>
 <span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a>)</span>
 <span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt; Unit: milliseconds</span></span>
-<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt;              expr      min         lq       mean     median         uq      max</span></span>
-<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="co">#&gt;  bbssr.whole.grid   5.8121   5.952901   6.771441   6.068601   7.573201   8.4504</span></span>
-<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="co">#&gt;     Exact.one.row 347.1576 455.379201 460.408741 481.609801 491.846401 526.0507</span></span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt;              expr        min         lq     mean     median         uq      max</span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="co">#&gt;  bbssr.whole.grid   5.727301   6.441101  13.2451   7.434401   8.218101  38.4046</span></span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="co">#&gt;     Exact.one.row 553.572601 630.529701 638.6756 649.906301 679.525401 679.8439</span></span>
 <span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a><span class="co">#&gt;  neval cld</span></span>
 <span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a><span class="co">#&gt;      5  a </span></span>
 <span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a><span class="co">#&gt;      5   b</span></span></code></pre></div>
