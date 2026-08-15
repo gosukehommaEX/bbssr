@@ -12,3 +12,4 @@
 ^vignettes/.*_files$
 ^vignettes/.*_cache$
 ^tools$
+^reproduce-output$
