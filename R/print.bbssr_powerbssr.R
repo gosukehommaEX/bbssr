@@ -28,7 +28,8 @@ print.bbssr_powerbssr <- function(x, digits = 4, ...) {
               if (isTRUE(attr(x, 'restricted'))) 'restricted' else 'unrestricted'))
   cat(sprintf('  Initial size    : N1 = %s, N2 = %s\n',
               format(attr(x, 'N1')), format(attr(x, 'N2'))))
-  cat(sprintf('  Interim fraction: %s\n', format(attr(x, 'omega'))))
+  cat(sprintf('  Interim fraction: %s, giving n1 = %d and n2 = %d\n',
+              format(attr(x, 'omega')), attr(x, 'n1.interim'), attr(x, 'n2.interim')))
   cat(sprintf('  Treatment effect: assumed %s, true %s\n',
               format(attr(x, 'Delta.A')), format(attr(x, 'Delta.T'))))
   cat(sprintf('  Alpha           : %s, target power %s\n\n',

@@ -99,3 +99,39 @@ test_that("BinaryPowerBSSR accepts an interim fraction of one", {
     'omega'
   )
 })
+
+test_that("the allocation ratio is preserved by the interim and the final sample sizes", {
+  for (r in c(1, 2, 3)) {
+    res <- BinaryPowerBSSR(
+      p = 0.35, Delta.A = 0.3, Delta.T = 0.3,
+      N1 = ceiling(r * 11), N2 = 11, omega = 0.8, r = r,
+      alpha = 0.025, tar.power = 0.8, Test = 'Chisq'
+    )
+    # A whole allocation ratio must be reproduced exactly at the interim analysis
+    expect_equal(attr(res, 'n1.interim'), as.integer(r * attr(res, 'n2.interim')),
+                 info = sprintf('r = %g', r))
+  }
+})
+
+test_that("a fractional allocation ratio keeps the interim sizes within one patient", {
+  for (r in c(0.5, 1.5, 2.5)) {
+    res <- BinaryPowerBSSR(
+      p = 0.35, Delta.A = 0.3, Delta.T = 0.3,
+      N1 = ceiling(r * 11), N2 = 11, omega = 0.8, r = r,
+      alpha = 0.025, tar.power = 0.8, Test = 'Chisq'
+    )
+    n1 <- attr(res, 'n1.interim')
+    n2 <- attr(res, 'n2.interim')
+    expect_equal(n1, as.integer(ceiling(r * n2)), info = sprintf('r = %g', r))
+    expect_lt(abs(n1 - r * n2), 1)
+  }
+})
+
+test_that("an initial size inconsistent with the allocation ratio is flagged", {
+  expect_warning(
+    BinaryPowerBSSR(p = 0.45, Delta.A = 0.3, Delta.T = 0.3,
+                    N1 = 7, N2 = 6, omega = 0.5, r = 1,
+                    alpha = 0.025, tar.power = 0.8, Test = 'Chisq'),
+    'ratio r to 1'
+  )
+})

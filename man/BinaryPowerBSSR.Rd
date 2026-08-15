@@ -33,7 +33,10 @@ BinaryPowerBSSR(
 
 \item{N2}{Initial sample size of group 2}
 
-\item{omega}{Fraction of the initial sample size observed at the interim analysis}
+\item{omega}{Fraction of the initial sample size observed at the interim analysis. The
+interim size of group 2 is \code{ceiling(omega N2)} and that of group 1 is
+\code{ceiling(r ceiling(omega N2))}, so the interim analysis keeps the allocation
+ratio}
 
 \item{r}{Allocation ratio to group 1}
 
@@ -70,6 +73,8 @@ of \code{p} containing:
 \item{power.TRAD}{Power of the fixed-sample design}
 \item{E.N}{Expected total sample size of the BSSR design}
 }
+The interim sample sizes are stored as the attributes \code{n1.interim} and
+\code{n2.interim}.
 }
 \description{
 Calculates the power of a two-arm trial with a binary endpoint when blinded sample size
@@ -79,6 +84,14 @@ one-sided or a two-sided alternative, under either a restricted or an unrestrict
 design rule.
 }
 \details{
+Both the interim and the final sample size of group 1 are obtained from the size of
+group 2 by a single application of \code{ceiling(r ...)}, so the allocation ratio is
+preserved as closely as whole numbers allow and is exact whenever \code{r} is a whole
+number. The size of the second stage follows as the difference between the final and
+the interim size, which keeps the two stages adding up to the final size. The argument
+\code{N1} enters only through the fixed-sample comparator, and a warning is issued when
+it is not \code{ceiling(r N2)}.
+
 At the interim analysis the pooled number of responders is observed without unblinding.
 The pooled proportion is combined with the assumed treatment effect \code{Delta.A} to
 recover group-specific proportions, from which the sample size is re-estimated. The power

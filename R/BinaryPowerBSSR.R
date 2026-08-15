@@ -11,7 +11,10 @@
 #' @param Delta.T True treatment effect (risk difference)
 #' @param N1 Initial sample size of group 1
 #' @param N2 Initial sample size of group 2
-#' @param omega Fraction of the initial sample size observed at the interim analysis
+#' @param omega Fraction of the initial sample size observed at the interim analysis. The
+#'   interim size of group 2 is \code{ceiling(omega N2)} and that of group 1 is
+#'   \code{ceiling(r ceiling(omega N2))}, so the interim analysis keeps the allocation
+#'   ratio
 #' @param r Allocation ratio to group 1
 #' @param alpha Level of significance for the alternative specified by \code{alternative}
 #' @param tar.power Target power
@@ -38,8 +41,18 @@
 #'   \item{power.TRAD}{Power of the fixed-sample design}
 #'   \item{E.N}{Expected total sample size of the BSSR design}
 #' }
+#' The interim sample sizes are stored as the attributes \code{n1.interim} and
+#' \code{n2.interim}.
 #'
 #' @details
+#' Both the interim and the final sample size of group 1 are obtained from the size of
+#' group 2 by a single application of \code{ceiling(r ...)}, so the allocation ratio is
+#' preserved as closely as whole numbers allow and is exact whenever \code{r} is a whole
+#' number. The size of the second stage follows as the difference between the final and
+#' the interim size, which keeps the two stages adding up to the final size. The argument
+#' \code{N1} enters only through the fixed-sample comparator, and a warning is issued when
+#' it is not \code{ceiling(r N2)}.
+#'
 #' At the interim analysis the pooled number of responders is observed without unblinding.
 #' The pooled proportion is combined with the assumed treatment effect \code{Delta.A} to
 #' recover group-specific proportions, from which the sample size is re-estimated. The power
@@ -90,9 +103,15 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega, r,
   if (length(omega) != 1 || omega <= 0 || omega > 1) {
     stop('omega must be a single value in (0, 1]')
   }
-  # Initial sample sizes used for BSSR
-  N11 <- as.integer(ceiling(omega * N1))
+  if (N1 != ceiling(r * N2)) {
+    warning('N1 differs from ceiling(r * N2), the fixed-sample comparator is not ',
+            'allocated in the ratio r to 1')
+  }
+  # Interim sample sizes. The experimental group is obtained from the control group by a
+  # single rounding, so the interim allocation is as close to r to 1 as integers allow and
+  # equals r times the control group exactly whenever r is a whole number
   N12 <- as.integer(ceiling(omega * N2))
+  N11 <- as.integer(ceiling(r * N12))
   # Estimate the pooled proportion in a blinded fashion
   hat.p <- c(outer(0:N11, 0:N12, '+') / (N11 + N12))
   # Derive hat{p}_{1} and hat{p}_{2} using hat{p} and Delta.A
@@ -112,12 +131,16 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega, r,
   }
   BSSR.N2 <- vapply(key.p, function(k) as.numeric(get(k, envir = ss.cache)),
                     numeric(1), USE.NAMES = FALSE)
-  if (restricted == TRUE) N22 <- pmax(N2, BSSR.N2) - N12 else N22 <- pmax(N12, BSSR.N2) - N12
-  N22 <- as.integer(N22)
-  N21 <- as.integer(ceiling(r * N22))
-  # Final sample sizes
-  hat.N1 <- N11 + N21
-  hat.N2 <- N12 + N22
+  # Final sample sizes, again with a single rounding of the control group. The second
+  # stage follows as the difference, so the two stages add up to the final size exactly
+  hat.N2 <- if (restricted == TRUE) {
+    as.integer(pmax(N2, BSSR.N2))
+  } else {
+    as.integer(pmax(N12, BSSR.N2))
+  }
+  hat.N1 <- as.integer(ceiling(r * hat.N2))
+  N22 <- hat.N2 - N12
+  N21 <- hat.N1 - N11
   hat.N <- hat.N1 + hat.N2
   # True proportion for each treatment group
   p1 <- p + (1 / (1 + r)) * Delta.T
@@ -180,6 +203,8 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega, r,
   attr(out, 'N1') <- N1
   attr(out, 'N2') <- N2
   attr(out, 'omega') <- omega
+  attr(out, 'n1.interim') <- N11
+  attr(out, 'n2.interim') <- N12
   attr(out, 'Delta.A') <- Delta.A
   attr(out, 'Delta.T') <- Delta.T
   class(out) <- c('bbssr_powerbssr', 'data.frame')

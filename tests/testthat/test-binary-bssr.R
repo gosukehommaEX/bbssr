@@ -72,3 +72,27 @@ test_that("BinaryBSSR validates its arguments", {
   expect_error(BinaryBSSR(20, 20, 5, 0.3, 1, 0.025, 0.8, 'Chisq', restricted = TRUE),
                'must be supplied')
 })
+
+test_that("the final sizes honour the allocation ratio for a whole r", {
+  for (r in c(1, 2, 3)) {
+    res <- BinaryBSSR(n1 = ceiling(r * 12), n2 = 12, S = 9, Delta.A = 0.3, r = r,
+                      alpha = 0.025, tar.power = 0.8, Test = 'Chisq')
+    expect_equal(res$N1.final, as.integer(ceiling(r * res$N2.final)),
+                 info = sprintf('r = %g', r))
+  }
+})
+
+test_that("an imbalance in the observed interim data is corrected, not carried forward", {
+  # Group 1 is two patients short of the two to one target at the interim
+  res <- BinaryBSSR(n1 = 18, n2 = 10, S = 9, Delta.A = 0.3, r = 2,
+                    alpha = 0.025, tar.power = 0.8, Test = 'Chisq')
+  expect_equal(res$N1.final, as.integer(2 * res$N2.final))
+  expect_gte(res$n1.stage2, 0)
+})
+
+test_that("a fractional allocation ratio is handled", {
+  res <- BinaryBSSR(n1 = 18, n2 = 12, S = 9, Delta.A = 0.3, r = 1.5,
+                    alpha = 0.025, tar.power = 0.8, Test = 'Chisq')
+  expect_equal(res$N1.final, as.integer(ceiling(1.5 * res$N2.final)))
+  expect_lt(abs(res$N1.final - 1.5 * res$N2.final), 1)
+})

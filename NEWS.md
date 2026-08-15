@@ -32,6 +32,19 @@ major version number has been raised.
 * `pmin(1, x)` with a scalar first argument drops the `dim` attribute of `x`. This affected
   the matrix of p-values returned for a two-sided chi-squared test.
 
+* The allocation ratio was not preserved by the re-estimation when `r` was not 1. The
+  interim size of group 1 was `ceiling(omega N1)` and the second-stage size was
+  `ceiling(r N22)`, so the final size of group 1 was the sum of three separate roundings
+  and did not equal `ceiling(r)` times the final size of group 2. With `r = 2`, `N2 = 33`
+  and `omega = 0.8` the interim allocation was 53 to 27 rather than 54 to 27, and a
+  re-estimated control group of 40 gave 79 rather than 80 in group 1. Both the interim and
+  the final size of group 1 are now obtained from the size of group 2 by a single
+  `ceiling(r ...)`, and the second stage follows as the difference. The allocation ratio is
+  therefore exact whenever `r` is a whole number, and as close as whole numbers allow
+  otherwise. Results for `r = 1` are unchanged. `BinaryBSSR()` brings group 1 to
+  `ceiling(r N2.final)` for the same reason, which also corrects an imbalance that is
+  already present in the observed interim data.
+
 ## New features
 
 * All five tests accept `alternative = 'greater'` (the default, and the behaviour of
@@ -60,7 +73,8 @@ major version number has been raised.
   method. The classes are `bbssr_rr`, `bbssr_power`, `bbssr_samplesize`,
   `bbssr_powerbssr` and `bbssr_bssr`.
 
-* `BinaryPowerBSSR()` reports the expected total sample size in a new column `E.N`.
+* `BinaryPowerBSSR()` reports the expected total sample size in a new column `E.N`, and
+  carries the interim sample sizes as the attributes `n1.interim` and `n2.interim`.
 
 * Arguments are validated, and invalid sample sizes, significance levels, allocation
   ratios and grid sizes now produce an informative error.

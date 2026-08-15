@@ -60,10 +60,12 @@
 #' \code{hat.p2 = hat.p - r Delta.A / (1 + r)}, truncated to the unit interval, and the
 #' sample size is then re-estimated by \code{\link{BinarySampleSize}}.
 #'
-#' Under the unrestricted rule the second-stage sample size is the re-estimated sample size
-#' minus what has already been observed, and is never negative. Under the restricted rule
-#' the re-estimated sample size is first raised to the planned sample size, so the trial can
-#' only grow.
+#' Under the unrestricted rule the final size of group 2 is the larger of the re-estimated
+#' size and what has already been observed. Under the restricted rule it is raised to the
+#' planned size first, so the trial can only grow. The final size of group 1 is then
+#' \code{ceiling(r N2.final)}, so an imbalance already present at the interim is corrected
+#' by the remaining enrolment instead of being carried forward. Neither second-stage size
+#' is ever negative.
 #'
 #' While \code{\link{BinaryPowerBSSR}} evaluates the operating characteristics of a BSSR
 #' design at the planning stage, this function is applied once, to the data of a trial that
@@ -118,11 +120,13 @@ BinaryBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test,
                          alternative, tsmethod, n.grid, bb.gamma)
   N1.re <- ss[['N1']]
   N2.re <- ss[['N2']]
-  # Second-stage sample sizes
-  n2.stage2 <- if (restricted) as.integer(max(N2, N2.re) - n2) else as.integer(max(n2, N2.re) - n2)
-  n1.stage2 <- as.integer(ceiling(r * n2.stage2))
+  # Second-stage sample sizes. The final size of group 2 is fixed first, and group 1 is
+  # brought to ceiling(r N2.final), so any imbalance already present at the interim is
+  # corrected by the remaining enrolment rather than carried forward
+  N2.final <- if (restricted) as.integer(max(N2, N2.re)) else as.integer(max(n2, N2.re))
+  n2.stage2 <- N2.final - n2
+  n1.stage2 <- max(0L, as.integer(ceiling(r * N2.final)) - n1)
   N1.final <- n1 + n1.stage2
-  N2.final <- n2 + n2.stage2
   Power <- BinaryPower(hat.p1, hat.p2, N1.final, N2.final, alpha, Test,
                        alternative, tsmethod, n.grid, bb.gamma)$Power
   out <- data.frame(
