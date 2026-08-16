@@ -4,10 +4,41 @@
 \alias{plot.bbssr_power}
 \title{Plot Exact Power against the Response Probability of Group 1}
 \usage{
-\method{plot}{bbssr_power}(x, ...)
+\method{plot}{bbssr_power}(
+  x,
+  main = NULL,
+  sub = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  ylim = c(0, 1),
+  show.points = TRUE,
+  colours = NULL,
+  base_size = 11,
+  ...
+)
 }
 \arguments{
 \item{x}{An object of class \code{bbssr_power} returned by \code{\link{BinaryPower}}}
+
+\item{main}{Title of the plot. The default of \code{NULL} builds the title from the
+object and a single \code{NA} drops it}
+
+\item{sub}{Subtitle of the plot, following the convention of \code{main}}
+
+\item{xlab}{Label of the horizontal axis, following the convention of \code{main}}
+
+\item{ylab}{Label of the vertical axis, following the convention of \code{main}}
+
+\item{ylim}{Numeric vector of length two giving the range of the vertical axis, or
+\code{NULL} for a range chosen from the data}
+
+\item{show.points}{Logical. If \code{TRUE}, the default, a marker is drawn at every
+evaluated response probability. Set it to \code{FALSE} to draw the curve alone, which
+is easier to read on a fine grid}
+
+\item{colours}{Colour of the curve}
+
+\item{base_size}{Base font size of the theme, in points}
 
 \item{...}{Further arguments, currently ignored}
 }
@@ -17,9 +48,17 @@ A \code{ggplot} object
 \description{
 Plot Exact Power against the Response Probability of Group 1
 }
+\details{
+The vertical range is imposed with \code{\link[ggplot2]{coord_cartesian}}, so points
+outside \code{ylim} are hidden rather than removed from the data.
+}
 \examples{
 pw <- BinaryPower(p1 = seq(0.3, 0.8, by = 0.1), p2 = rep(0.2, 6),
                   N1 = 20, N2 = 20, alpha = 0.025, Test = 'Chisq')
 plot(pw)
+
+# Enlarge the type, rescale the vertical axis, rename the axes and drop the markers
+plot(pw, base_size = 14, ylim = c(0.2, 1), sub = NA, show.points = FALSE,
+     xlab = 'Response probability, experimental group', ylab = 'Exact power')
 
 }

@@ -34,8 +34,8 @@ major version number has been raised.
 
 * The allocation ratio was not preserved by the re-estimation when `r` was not 1. The
   interim size of group 1 was `ceiling(omega N1)` and the second-stage size was
-  `ceiling(r N22)`, so the final size of group 1 was the sum of three separate roundings
-  and did not equal `ceiling(r)` times the final size of group 2. With `r = 2`, `N2 = 33`
+  `ceiling(r N22)`, so the final size of group 1 was rounded up three separate times and
+  did not equal `ceiling(r)` times the final size of group 2. With `r = 2`, `N2 = 33`
   and `omega = 0.8` the interim allocation was 53 to 27 rather than 54 to 27, and a
   re-estimated control group of 40 gave 79 rather than 80 in group 1. Both the interim and
   the final size of group 1 are now obtained from the size of group 2 by a single
@@ -72,6 +72,21 @@ major version number has been raised.
   `BinaryPower()`, `BinarySampleSize()` and `BinaryPowerBSSR()` also have a `plot()`
   method. The classes are `bbssr_rr`, `bbssr_power`, `bbssr_samplesize`,
   `bbssr_powerbssr` and `bbssr_bssr`.
+
+* The `plot()` methods accept `main`, `sub`, `xlab`, `ylab`, `base_size` and `colours`, so
+  the title, the axis labels, the font size and the palette can be replaced without
+  editing the returned object. A label left at `NULL` keeps the text built from the
+  object and a label set to `NA` is dropped. Where a legend is drawn, `legend.title` and
+  `legend.labels` rename it, and where a vertical scale is continuous, `ylim` sets its
+  range through `coord_cartesian()`, which hides rather than removes the points outside
+  the range. The reference lines are no longer fixed: `plot.bbssr_powerbssr()` and
+  `plot.bbssr_samplesize()` take `ref.line`, and `plot.bbssr_samplesize()` also takes
+  `ref.line.N2`. The methods that draw a curve also take `show.points`, which removes the
+  marker at each evaluated point and leaves the curve alone, so a fine grid stays legible.
+  This matters when `Delta.T` is 0, since the two power columns of
+  `BinaryPowerBSSR()` are then rejection probabilities under the null hypothesis and the
+  line belongs at the level of significance rather than at the target power. The defaults
+  reproduce the earlier plots exactly.
 
 * `BinaryPowerBSSR()` reports the expected total sample size in a new column `E.N`, and
   carries the interim sample sizes as the attributes `n1.interim` and `n2.interim`.

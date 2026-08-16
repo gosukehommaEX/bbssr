@@ -4,10 +4,41 @@
 \alias{plot.bbssr_rr}
 \title{Plot a Rejection Region}
 \usage{
-\method{plot}{bbssr_rr}(x, ...)
+\method{plot}{bbssr_rr}(
+  x,
+  main = NULL,
+  sub = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  legend.title = NULL,
+  legend.labels = NULL,
+  colours = NULL,
+  base_size = 11,
+  ...
+)
 }
 \arguments{
 \item{x}{An object of class \code{bbssr_rr} returned by \code{\link{BinaryRR}}}
+
+\item{main}{Title of the plot. The default of \code{NULL} builds the title from the
+object and a single \code{NA} drops it}
+
+\item{sub}{Subtitle of the plot, following the convention of \code{main}}
+
+\item{xlab}{Label of the horizontal axis, following the convention of \code{main}}
+
+\item{ylab}{Label of the vertical axis, following the convention of \code{main}}
+
+\item{legend.title}{Title of the legend. The default of \code{NULL} leaves the legend
+untitled}
+
+\item{legend.labels}{Character vector of length two replacing the entries of the
+legend, in the order retained then rejected}
+
+\item{colours}{Character vector of length two giving the fill of the tiles, in the order
+retained then rejected}
+
+\item{base_size}{Base font size of the theme, in points}
 
 \item{...}{Further arguments, currently ignored}
 }
@@ -26,5 +57,10 @@ matches the layout of the map printed by \code{\link{print.bbssr_rr}}.
 \examples{
 RR <- BinaryRR(N1 = 10, N2 = 10, alpha = 0.025, Test = 'Chisq')
 plot(RR)
+
+# Enlarge the type and relabel the legend
+plot(RR, base_size = 14, legend.title = 'Decision',
+     legend.labels = c('do not reject', 'reject'),
+     colours = c('white', 'grey30'))
 
 }
