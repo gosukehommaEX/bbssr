@@ -18,7 +18,6 @@ been removed and `BinaryPower()` now returns a data frame rather than a numeric 
 
 * local R installation, R 4.6.0 on Windows 11
 * win-builder, R-devel and R-release
-* macOS builder, https://mac.r-project.org/macbuilder/
 * GitHub Actions, R-CMD-check on Ubuntu (devel, release, oldrel-1), macOS and Windows
 
 ## R CMD check results
