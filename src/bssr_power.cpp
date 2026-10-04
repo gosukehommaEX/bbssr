@@ -65,10 +65,20 @@ NumericVector bssr_power(List rr_list, IntegerVector rr_id, IntegerVector x11,
     runs[k] = column_runs(rr);
   }
   const int n_cell = x11.size();
+  for (int c = 0; c < n_cell; ++c) {
+    if (x11[c] < 0 || x11[c] > n11 || x12[c] < 0 || x12[c] > n12 ||
+        rr_id[c] < 0 || rr_id[c] >= K) {
+      stop("an interim cell lies outside the interim outcome grid");
+    }
+  }
   const int n_scen = p1.size();
   NumericVector out(n_scen);
   std::vector<std::vector<double> > pmf2(K), lower1(K), upper1(K);
+  std::vector<double> w1(n11 + 1), w2(n12 + 1);
   for (int s = 0; s < n_scen; ++s) {
+    // Distributions of the interim responder counts
+    for (int a = 0; a <= n11; ++a) w1[a] = R::dbinom(a, n11, p1[s], 0);
+    for (int b = 0; b <= n12; ++b) w2[b] = R::dbinom(b, n12, p2[s], 0);
     // Second-stage distributions for each final sample size
     for (int k = 0; k < K; ++k) {
       const int m21 = n21[k];
@@ -123,7 +133,7 @@ NumericVector bssr_power(List rr_list, IntegerVector rr_id, IntegerVector x11,
         }
         cp += pmf2[k][b] * col_prob;
       }
-      const double v = R::dbinom(a0, n11, p1[s], 0) * R::dbinom(b0, n12, p2[s], 0) * cp;
+      const double v = w1[a0] * w2[b0] * cp;
       if (!ISNAN(v)) total += v;
     }
     out[s] = total;

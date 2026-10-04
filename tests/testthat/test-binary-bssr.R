@@ -96,3 +96,34 @@ test_that("a fractional allocation ratio is handled", {
   expect_equal(res$N1.final, as.integer(ceiling(1.5 * res$N2.final)))
   expect_lt(abs(res$N1.final - 1.5 * res$N2.final), 1)
 })
+
+test_that("the lower-tail alternative mirrors the upper-tail one", {
+  up <- BinaryBSSR(20, 20, 11, 0.3, 1, 0.025, 0.8, 'Boschloo')
+  down <- BinaryBSSR(20, 20, 11, -0.3, 1, 0.025, 0.8, 'Boschloo', alternative = 'less')
+  expect_equal(c(down$hat.p1, down$hat.p2), c(up$hat.p2, up$hat.p1))
+  expect_equal(c(down$N1.final, down$N2.final), c(up$N1.final, up$N2.final))
+  expect_equal(down$Power, up$Power, tolerance = 1e-12)
+})
+
+test_that("the normal methods, the rounding rules and the bounds are applied", {
+  res <- BinaryBSSR(20, 20, 11, 0.3, 1, 0.025, 0.8, 'Chisq', ss.method = 'standard')
+  n2 <- ss_raw_n2(res$hat.p1, res$hat.p2, 1, 0.025, 0.8, 'greater', 'standard')
+  expect_equal(res$N2.re, ceil_tol(n2))
+  capped <- BinaryBSSR(20, 20, 11, 0.3, 1, 0.025, 0.8, 'Chisq', ss.method = 'standard',
+                       N.max = 50)
+  expect_lte(capped$N.final, 50)
+  floor.n <- BinaryBSSR(20, 20, 11, 0.3, 1, 0.025, 0.8, 'Chisq', ss.method = 'standard',
+                        N.min = 120)
+  expect_gte(floor.n$N.final, 120)
+  tot <- BinaryBSSR(20, 20, 11, 0.3, 1, 0.025, 0.8, 'Chisq', ss.method = 'standard',
+                    rounding = 'total')
+  expect_equal(tot$N.final, max(40, ceil_tol(2 * n2)))
+})
+
+test_that("coinciding recovered rates require the planned sample size", {
+  expect_error(BinaryBSSR(10, 10, 0, 1.5, 1, 0.025, 0.8, 'Chisq', effect = 'RR'),
+               'coincide')
+  res <- BinaryBSSR(10, 10, 0, 1.5, 1, 0.025, 0.8, 'Chisq', effect = 'RR', N1 = 30,
+                    N2 = 30)
+  expect_equal(c(res$N1.final, res$N2.final), c(30L, 30L))
+})

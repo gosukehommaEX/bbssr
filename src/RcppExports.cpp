@@ -40,6 +40,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// power_from_rr_multi
+NumericVector power_from_rr_multi(LogicalMatrix RR, NumericMatrix dbinom1, NumericMatrix dbinom2);
+RcppExport SEXP _bbssr_power_from_rr_multi(SEXP RRSEXP, SEXP dbinom1SEXP, SEXP dbinom2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< LogicalMatrix >::type RR(RRSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type dbinom1(dbinom1SEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type dbinom2(dbinom2SEXP);
+    rcpp_result_gen = Rcpp::wrap(power_from_rr_multi(RR, dbinom1, dbinom2));
+    return rcpp_result_gen;
+END_RCPP
+}
 // bssr_power
 NumericVector bssr_power(List rr_list, IntegerVector rr_id, IntegerVector x11, IntegerVector x12, IntegerVector n21, IntegerVector n22, NumericVector p1, NumericVector p2, int n11, int n12);
 RcppExport SEXP _bbssr_bssr_power(SEXP rr_listSEXP, SEXP rr_idSEXP, SEXP x11SEXP, SEXP x12SEXP, SEXP n21SEXP, SEXP n22SEXP, SEXP p1SEXP, SEXP p2SEXP, SEXP n11SEXP, SEXP n12SEXP) {
@@ -64,6 +77,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_bbssr_max_tail_prob", (DL_FUNC) &_bbssr_max_tail_prob, 7},
     {"_bbssr_power_from_rr", (DL_FUNC) &_bbssr_power_from_rr, 3},
+    {"_bbssr_power_from_rr_multi", (DL_FUNC) &_bbssr_power_from_rr_multi, 3},
     {"_bbssr_bssr_power", (DL_FUNC) &_bbssr_bssr_power, 10},
     {NULL, NULL, 0}
 };

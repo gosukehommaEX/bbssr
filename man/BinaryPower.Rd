@@ -11,7 +11,7 @@ BinaryPower(
   N2,
   alpha,
   Test,
-  alternative = c("greater", "two.sided"),
+  alternative = c("greater", "less", "two.sided"),
   tsmethod = c("minlike", "central"),
   n.grid = 100,
   bb.gamma = 0
@@ -33,7 +33,7 @@ as \code{p1})}
 \code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}}
 
 \item{alternative}{Direction of the alternative hypothesis. Options: \code{'greater'}
-(default) or \code{'two.sided'}}
+(default), \code{'less'} or \code{'two.sided'}}
 
 \item{tsmethod}{Convention used to construct the two-sided version of the conditional
 tests. Options: \code{'minlike'} (default) or \code{'central'}}

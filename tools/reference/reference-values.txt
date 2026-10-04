@@ -1,0 +1,38 @@
+# test file	key	relative tolerance	values (15 significant digits)
+test-split_pooled.R	OR p=0.3 psi=2.0 r=1	1e-10	0.37171431429143 0.22828568570857
+test-split_pooled.R	OR p=0.42 psi=0.5 r=2	1e-10	0.363439316317354 0.533121367365293
+test-split_pooled.R	OR p=0.8 psi=3.0 r=2	1e-10	0.862117466393437 0.675765067213126
+test-ss_raw_n2.R	ss_raw_n2 0.42 0.27 1 0.025 0.8 greater standard	1e-10	156.473696640835
+test-ss_raw_n2.R	ss_raw_n2 0.25 0.05 1 0.05 0.8 two.sided null.variance	1e-10	50.0366083064754
+test-ss_raw_n2.R	ss_raw_n2 0.95 0.75 3 0.05 0.8 two.sided null.variance	1e-10	23.5466392030473
+test-ss_raw_n2.R	ss_raw_n2 0.6 0.3 2 0.025 0.9 greater standard	1e-10	41.6637220158309
+test-BinaryTypeIErrorBSSR.R	grid BSSR	1e-10	0.00587954153053613 0.0200190561764609 0.0258863223338634 0.0267549931177167 0.02685016525665 0.0265394059647221 0.0264742715234961 0.0270632673880154 0.0272673261675164 0.0271092013571726 0.0272673261675164 0.0270632673880154 0.0264742715234961 0.0265394059647221 0.0268501652566501 0.0267549931177166 0.0258863223338633 0.0200190561764608 0.00587954153053614
+test-BinaryTypeIErrorBSSR.R	grid TRAD	1e-10	0.021054107257618 0.0292884788109491 0.0266506424787675 0.0254801349292422 0.0260948735515528 0.0265265508282962 0.0255417227643221 0.0254154435256733 0.0263080294428053 0.0267904681779776 0.0263080294428052 0.0254154435256733 0.0255417227643221 0.0265265508282962 0.0260948735515528 0.0254801349292422 0.0266506424787676 0.0292884788109491 0.021054107257618
+test-BinaryTypeIErrorBSSR.R	refined max	1e-10	0.0272864324696431 0.0293761105282989
+test-BinaryTypeIErrorBSSR.R	refined location folded	1e-06	0.437684575915883 0.0935671159139482
+test-BinaryAlphaAdjBSSR.R	max at nominal	1e-10	0.0272864324696431 0.0293761105282989
+test-BinaryAlphaAdjBSSR.R	adjusted level	1e-10	0.0204375745495781 0.0207700483966619
+test-BinaryAlphaAdjBSSR.R	max at adjusted level	1e-10	0.0237418455147917 0.0247660131242264
+test-summary.bbssr_powerbssr.R	E.N	1e-10	80.3764079043752
+test-summary.bbssr_powerbssr.R	SD.N	1e-10	5.59614424051928
+test-summary.bbssr_powerbssr.R	quartiles	1e-10	78 82 84
+test-binary-power-bssr.R	Chisq greater r=1 Delta.T=0.3 power	1e-10	0.756413406488437 0.750705544729915
+test-binary-power-bssr.R	Chisq greater r=1 Delta.T=0.3 E.N	1e-10	65.3059377228023 75.5787040704
+test-binary-power-bssr.R	Chisq greater r=1 Delta.T=0.0 power	1e-10	0.0259608935849485 0.0256688814937207
+test-binary-power-bssr.R	Chisq greater r=1 Delta.T=0.0 E.N	1e-10	65.1643484472 74.8364847760477
+test-binary-power-bssr.R	Chisq two.sided r=2 Delta.T=0.3 power	1e-10	0.77122764699632 0.768379918422814
+test-binary-power-bssr.R	Chisq two.sided r=2 Delta.T=0.3 E.N	1e-10	87.8982388035471 104.98263754682
+test-binary-power-bssr.R	Chisq two.sided r=2 Delta.T=0.0 power	1e-10	0.0249933395369282 0.0263553983742971
+test-binary-power-bssr.R	Chisq two.sided r=2 Delta.T=0.0 E.N	1e-10	88.2161329574933 104.408012704229
+test-binary-power-bssr.R	Boschloo greater r=2 Delta.T=0.3 power	1e-10	0.791254739800101 0.77323324422443
+test-binary-power-bssr.R	Boschloo greater r=2 Delta.T=0.3 E.N	1e-10	74.9981051601408 88.8779736124967
+test-binary-power-bssr.R	Boschloo greater r=2 Delta.T=0.0 power	1e-10	0.021701985297022 0.0236598768778865
+test-binary-power-bssr.R	Boschloo greater r=2 Delta.T=0.0 E.N	1e-10	75.3153533847523 88.4155899013014
+test-binary-power-bssr.R	Z-pool greater r=1 Delta.T=0.3 power	1e-10	0.761550296377532 0.745360578459642
+test-binary-power-bssr.R	Z-pool greater r=1 Delta.T=0.3 E.N	1e-10	68.7037165753312 78.3691243008
+test-binary-power-bssr.R	Z-pool greater r=1 Delta.T=0.0 power	1e-10	0.0230522969203677 0.0217694140545424
+test-binary-power-bssr.R	Z-pool greater r=1 Delta.T=0.0 E.N	1e-10	68.5263087744 77.6771381811188
+test-binary-power-bssr.R	Fisher greater r=1 Delta.T=0.3 power	1e-10	0.777587216232051 0.765350195503184
+test-binary-power-bssr.R	Fisher greater r=1 Delta.T=0.3 E.N	1e-10	80.4580176190472 89.5666384256
+test-binary-power-bssr.R	Fisher greater r=1 Delta.T=0.0 power	1e-10	0.0142450507723455 0.0158535596996759
+test-binary-power-bssr.R	Fisher greater r=1 Delta.T=0.0 E.N	1e-10	80.4621801307999 88.897260350634

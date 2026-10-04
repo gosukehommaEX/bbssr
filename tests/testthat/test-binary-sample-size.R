@@ -60,3 +60,37 @@ test_that("BinarySampleSize validates its arguments", {
   expect_error(BinarySampleSize(0.5, 0.2, 1, 0.025, 1, 'Chisq'), 'tar.power')
   expect_error(BinarySampleSize(c(0.5, 0.6), 0.2, 1, 0.025, 0.8, 'Chisq'), 'single value')
 })
+
+test_that("the normal approximation gives the published sample sizes", {
+  # Kieser (2020), Example 21.1: 2 x 157 patients
+  k <- BinarySampleSize(0.42, 0.27, 1, 0.05, 0.8, 'Chisq', alternative = 'two.sided',
+                        method = 'standard')
+  expect_equal(c(k$N1, k$N2), c(157L, 157L))
+  # Friede and Kieser (2004), Table I. The larger group receives the larger probability
+  fk <- function(p, r, rounding) {
+    BinarySampleSize(p + 0.2, p, r, 0.05, 0.8, 'Chisq', alternative = 'two.sided',
+                     method = 'null.variance', rounding = rounding)$N
+  }
+  expect_equal(vapply(c(0.05, 0.2, 0.4), fk, numeric(1), r = 1, rounding = 'group'),
+               c(102, 166, 198))
+  expect_equal(vapply(c(0.05, 0.2, 0.4, 0.6, 0.75), fk, numeric(1), r = 3,
+                      rounding = 'friede-kieser'),
+               c(168, 239, 260, 198, 95))
+})
+
+test_that("the lower-tail alternative mirrors the upper-tail one", {
+  for (tst in c('Chisq', 'Boschloo')) {
+    up <- BinarySampleSize(0.6, 0.3, 1, 0.025, 0.8, tst)
+    down <- BinarySampleSize(0.3, 0.6, 1, 0.025, 0.8, tst, alternative = 'less')
+    expect_equal(c(down$N1, down$N2), c(up$N1, up$N2), info = tst)
+    expect_equal(down$Power, up$Power, tolerance = 1e-12, info = tst)
+  }
+})
+
+test_that("the direction of the effect must agree with the alternative", {
+  expect_error(BinarySampleSize(0.2, 0.5, 1, 0.025, 0.8, 'Chisq'), "'greater'")
+  expect_error(BinarySampleSize(0.5, 0.2, 1, 0.025, 0.8, 'Chisq', alternative = 'less'),
+               "'less'")
+  expect_error(BinarySampleSize(0.5, 0.2, 1, 0.025, 0.8, 'Chisq', rounding = 'total'),
+               'rounding')
+})

@@ -1,6 +1,69 @@
 # bbssr (development version)
 
+## New features
+
+* `BinaryTypeIErrorBSSR()` evaluates the type I error rate of a re-estimation design and
+  of the corresponding fixed-sample design over the common response probability, and
+  locates the largest value. The rate is a polynomial in the response probability, so the
+  largest local maxima on the grid are refined by a one-dimensional optimization.
+
+* `BinaryAlphaAdjBSSR()` finds the adjusted nominal level that keeps the largest type I
+  error rate at or below the target level (Kieser and Friede, 2000; Friede and Kieser,
+  2004). The adjusted level can be applied to the final analysis only, which allows a
+  bisection, or to the re-estimation as well, which uses a stepwise search.
+
+* The sample size can be re-estimated from the normal approximation instead of the exact
+  power, through `ss.method = 'standard'` (formula 21.3 of Kieser, 2020) or
+  `ss.method = 'null.variance'` (formula 1 of Friede and Kieser, 2004). The same options
+  are available in `BinarySampleSize()` as `method`. The re-estimation can also use a
+  test (`ss.Test`) or a level (`ss.alpha`) other than those of the final analysis.
+  The normal approximation uses the recovered proportions before truncation to the unit
+  interval, with each Bernoulli variance truncated at zero, so that the assumed effect is
+  kept as in formula (2) of Friede and Kieser (2004). Truncating the proportions instead
+  shrinks the assumed difference near the boundary and inflates the re-estimated size.
+
+* `rounding` selects how an unrounded sample size becomes whole numbers: by group
+  (`'group'`, the rule of earlier versions), by the rule of Friede and Kieser (2004)
+  (`'friede-kieser'`), or by rounding the total (`'total'`).
+
+* `N.min` and `N.max` bound the final total sample size of a re-estimation design, for
+  example to cap it at twice the initial size or to keep patients who are enrolled but
+  not yet evaluated.
+
+* `n.interim` gives the interim sample sizes directly, as an alternative to `omega`.
+
+* `effect = 'RR'` and `effect = 'OR'` split the blinded pooled proportion with an assumed
+  risk ratio or odds ratio instead of a risk difference. Formula (21.12) of Kieser (2020)
+  for the odds ratio repeats the formula for the risk ratio, so the odds ratio is
+  obtained by solving the defining quadratic equation instead.
+
+* All functions accept `alternative = 'less'`, obtained by exchanging the two groups.
+
+* `BinaryPowerBSSR()` returns the final sample size of every interim outcome as the
+  attribute `reestimation` and the distribution of the final sample size as the
+  attribute `N.dist`, and `summary()` reports its standard deviation and quantiles.
+
+* `inst/reproduce/reproduce-published.R` reproduces Table I and Section 5 of Friede and
+  Kieser (2004) and Example 21.1 of Kieser (2020).
+
+## Changes in behaviour
+
+* `BinarySampleSize()` stops with an error when the direction of `p1 - p2` contradicts
+  the alternative. It previously searched without end in this case.
+
+* `BinaryBSSR()` no longer requires `Delta.A` to lie in (0, 1), since negative risk
+  differences and ratios are now allowed, and under the restricted rule it never returns
+  a final size below the observed interim size.
+
+* The p-values of each test are stored instead of its rejection regions, so a region at
+  any level is obtained without recomputing them.
+
 ## Performance
+
+* The exact sample size search of the re-estimation evaluates the power at each
+  candidate sample size once for all recovered pairs of proportions, in compiled code
+  that follows the summation order of `BinaryPower()`, so each pair receives the same
+  sample size as a separate search would give.
 
 * A rejection region depends only on the sample sizes, the level and the test, yet the
   sample size search of `BinarySampleSize()` and the re-estimation of `BinaryPowerBSSR()`

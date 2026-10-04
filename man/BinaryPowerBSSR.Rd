@@ -10,24 +10,33 @@ BinaryPowerBSSR(
   Delta.T,
   N1,
   N2,
-  omega,
+  omega = NULL,
   r,
   alpha,
   tar.power,
   Test,
   restricted = FALSE,
-  alternative = c("greater", "two.sided"),
+  alternative = c("greater", "less", "two.sided"),
   tsmethod = c("minlike", "central"),
   n.grid = 100,
-  bb.gamma = 0
+  bb.gamma = 0,
+  effect = c("RD", "RR", "OR"),
+  ss.method = c("exact", "standard", "null.variance"),
+  ss.Test = Test,
+  ss.alpha = alpha,
+  rounding = c("group", "friede-kieser", "total"),
+  N.min = NULL,
+  N.max = NULL,
+  n.interim = NULL
 )
 }
 \arguments{
 \item{p}{Vector of true pooled proportions of responders from both groups}
 
-\item{Delta.A}{Assumed treatment effect (risk difference)}
+\item{Delta.A}{Assumed treatment effect, on the scale given by \code{effect}, used to
+split the blinded pooled proportion into group-specific proportions}
 
-\item{Delta.T}{True treatment effect (risk difference)}
+\item{Delta.T}{True treatment effect, on the scale given by \code{effect}}
 
 \item{N1}{Initial sample size of group 1}
 
@@ -36,22 +45,23 @@ BinaryPowerBSSR(
 \item{omega}{Fraction of the initial sample size observed at the interim analysis. The
 interim size of group 2 is \code{ceiling(omega N2)} and that of group 1 is
 \code{ceiling(r ceiling(omega N2))}, so the interim analysis keeps the allocation
-ratio}
+ratio. Either \code{omega} or \code{n.interim} must be supplied}
 
 \item{r}{Allocation ratio to group 1}
 
-\item{alpha}{Level of significance for the alternative specified by \code{alternative}}
+\item{alpha}{Level of significance of the final analysis, for the alternative specified
+by \code{alternative}}
 
 \item{tar.power}{Target power}
 
-\item{Test}{Type of statistical test. Options: \code{'Chisq'}, \code{'Fisher'},
-\code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}}
+\item{Test}{Type of statistical test of the final analysis. Options: \code{'Chisq'},
+\code{'Fisher'}, \code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}}
 
 \item{restricted}{Logical. If \code{TRUE}, the re-estimated sample size is not allowed
 to fall below the initial sample size. Default is \code{FALSE}}
 
 \item{alternative}{Direction of the alternative hypothesis. Options: \code{'greater'}
-(default) or \code{'two.sided'}}
+(default), \code{'less'} or \code{'two.sided'}}
 
 \item{tsmethod}{Convention used to construct the two-sided version of the conditional
 tests. Options: \code{'minlike'} (default) or \code{'central'}}
@@ -61,6 +71,34 @@ unconditional tests. Default is 100}
 
 \item{bb.gamma}{Confidence level parameter of the Berger-Boos procedure. The default of
 0 disables the procedure}
+
+\item{effect}{Scale of \code{Delta.A} and \code{Delta.T}. Options: \code{'RD'}
+(default) for the risk difference \code{p1 - p2}, \code{'RR'} for the risk ratio
+\code{p1 / p2} or \code{'OR'} for the odds ratio}
+
+\item{ss.method}{How the sample size is re-estimated from the recovered proportions.
+Options: \code{'exact'} (default), \code{'standard'} or \code{'null.variance'}, as in
+\code{\link{BinarySampleSize}}}
+
+\item{ss.Test}{Test whose exact power is used for the re-estimation when
+\code{ss.method = 'exact'}. Default is \code{Test}}
+
+\item{ss.alpha}{Level of significance used for the re-estimation. Default is
+\code{alpha}}
+
+\item{rounding}{How the re-estimated sample size is turned into whole numbers.
+Options: \code{'group'} (default), \code{'friede-kieser'} or \code{'total'}. Only
+\code{'group'} is available with \code{ss.method = 'exact'}. See Details}
+
+\item{N.min}{Lower bound on the final total sample size, or \code{NULL} (default) for
+none beyond the interim total. It can be used to keep the patients who are already
+enrolled but not yet evaluated at the interim analysis}
+
+\item{N.max}{Upper bound on the final total sample size, or \code{NULL} (default) for
+none}
+
+\item{n.interim}{Interim sample sizes of group 1 and group 2, as a vector of length
+two. An alternative to \code{omega}}
 }
 \value{
 An object of class \code{bbssr_powerbssr}, a data frame with one row per element
@@ -74,39 +112,56 @@ of \code{p} containing:
 \item{E.N}{Expected total sample size of the BSSR design}
 }
 The interim sample sizes are stored as the attributes \code{n1.interim} and
-\code{n2.interim}.
+\code{n2.interim}. The attribute \code{reestimation} holds, for every pooled number of
+interim responders \code{s}, the recovered proportions and the final sample sizes, and
+the attribute \code{N.dist} holds the distribution of the final sample size for every
+row of the result, identified by the column \code{scenario}. \code{summary()} reports the standard deviation and quantiles of
+the final sample size.
 }
 \description{
 Calculates the power of a two-arm trial with a binary endpoint when blinded sample size
 re-estimation (BSSR) is implemented, together with the power of the corresponding
-fixed-sample design. Five exact tests are supported, each of which can be applied with a
-one-sided or a two-sided alternative, under either a restricted or an unrestricted
-design rule.
+fixed-sample design, the expected final sample size and its distribution. Five exact
+tests are supported, each of which can be applied with a one-sided or a two-sided
+alternative, under either a restricted or an unrestricted design rule.
 }
 \details{
-Both the interim and the final sample size of group 1 are obtained from the size of
-group 2 by a single application of \code{ceiling(r ...)}, so the allocation ratio is
-preserved as closely as whole numbers allow and is exact whenever \code{r} is a whole
-number. The size of the second stage follows as the difference between the final and
-the interim size, which keeps the two stages adding up to the final size. The argument
-\code{N1} enters only through the fixed-sample comparator, and a warning is issued when
-it is not \code{ceiling(r N2)}.
-
 At the interim analysis the pooled number of responders is observed without unblinding.
 The pooled proportion is combined with the assumed treatment effect \code{Delta.A} to
-recover group-specific proportions, from which the sample size is re-estimated. The power
-is then averaged over the distribution of the interim outcome.
+recover group-specific proportions, from which the sample size is re-estimated. For the
+risk difference the recovered proportions are \code{hat.p + Delta.A / (1 + r)} and
+\code{hat.p - r Delta.A / (1 + r)}, and for the risk ratio and the odds ratio they are
+the proportions with the pooled value \code{hat.p} and the ratio \code{Delta.A},
+formulas (21.11) and (21.12) of Kieser (2020). The exact search of
+\code{ss.method = 'exact'} uses the recovered proportions truncated to the unit
+interval. The normal approximation uses them before truncation, with each Bernoulli
+variance truncated at zero, so that the assumed effect is kept as in formula (2) of
+Friede and Kieser (2004). The power is then averaged over the distribution of the
+interim outcome.
 
-Setting \code{Delta.T} to 0 makes the two groups identical, so \code{power.BSSR} and
-\code{power.TRAD} become rejection probabilities under the null hypothesis. They are
-evaluated only at the values supplied through \code{p}, since the function does not
-search over the unit interval on its own. The largest type I error rate of the design is
-therefore obtained by passing a grid such as \code{p = seq(0.02, 0.98, by = 0.02)} and
-taking the maximum of the \code{power.BSSR} column. The rejection region and the
-re-estimated sample size are shared across the elements of \code{p}, so a fine grid
-costs much less than the same number of separate calls.
+Under \code{rounding = 'group'}, both the interim and the final sample size of group 1
+are obtained from the size of group 2 by a single application of
+\code{ceiling(r ...)}, so the allocation ratio is preserved as closely as whole numbers
+allow and is exact whenever \code{r} is a whole number. Under
+\code{rounding = 'friede-kieser'}, which requires \code{ss.method = 'standard'} or
+\code{'null.variance'}, the second stage receives the rounded-up excess of the
+unrounded re-estimated total over the interim total, split into
+\code{ceiling(n / (1 + r))} and \code{ceiling(r n / (1 + r))} patients as in Friede and
+Kieser (2004). Under \code{rounding = 'total'} the unrounded total is rounded up and
+group 2 receives \code{floor(N / (1 + r))} patients. In each case the final total is
+kept between the interim total (or \code{N.min}, or the initial total under the
+restricted rule) and \code{N.max}. The argument \code{N1} enters only through the
+fixed-sample comparator and the restricted rule, and under \code{rounding = 'group'} a
+warning is issued when it is not \code{ceiling(r N2)}.
 
-The weighted approach available in earlier versions of the package has been removed.
+Recovered proportions that coincide admit no sample size. The risk ratio produces them
+when no interim patient responds, and the odds ratio when no interim patient or every
+interim patient responds. The initial sample size is kept for such interim outcomes.
+
+Setting \code{Delta.T} to the null value (0 for the risk difference, 1 for a ratio)
+makes the two groups identical, so \code{power.BSSR} and \code{power.TRAD} become
+rejection probabilities under the null hypothesis. \code{\link{BinaryTypeIErrorBSSR}}
+evaluates them over the unit interval and locates the maximum.
 }
 \examples{
 # Small BSSR calculation with the chi-squared test
@@ -125,9 +180,31 @@ res <- BinaryPowerBSSR(
   alpha = 0.025, tar.power = 0.8, Test = 'Z-pool'
 )
 print(res)
+summary(res)
 plot(res)
+
+# Re-estimation by the normal approximation with an upper bound of twice the
+# initial sample size, and a final analysis with the Boschloo test
+BinaryPowerBSSR(
+  p = seq(0.2, 0.4, by = 0.05),
+  Delta.A = 0.3, Delta.T = 0.3,
+  N1 = 30, N2 = 30, n.interim = c(15, 15), r = 1,
+  alpha = 0.025, tar.power = 0.8, Test = 'Boschloo',
+  ss.method = 'standard', N.max = 120
+)
 }
 
+}
+\references{
+Friede T, Kieser M (2004). Sample size recalculation for binary data in internal pilot
+study designs. \emph{Pharmaceutical Statistics}, 3(4), 269-279.
+
+Kieser M (2020). \emph{Methods and Applications of Sample Size Calculation and
+Recalculation in Clinical Trials}. Springer, Cham.
+}
+\seealso{
+\code{\link{BinaryTypeIErrorBSSR}}, \code{\link{BinaryAlphaAdjBSSR}},
+\code{\link{BinaryBSSR}}
 }
 \author{
 Gosuke Homma (\email{my.name.is.gosuke@gmail.com})

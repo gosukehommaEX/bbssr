@@ -13,7 +13,7 @@
 #' @param Test Type of statistical test. Options: \code{'Chisq'}, \code{'Fisher'},
 #'   \code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}
 #' @param alternative Direction of the alternative hypothesis. Options: \code{'greater'}
-#'   (default) or \code{'two.sided'}
+#'   (default), \code{'less'} or \code{'two.sided'}
 #' @param tsmethod Convention used to construct the two-sided version of the conditional
 #'   tests. Options: \code{'minlike'} (default) or \code{'central'}
 #' @param n.grid Number of grid points used to search over the nuisance parameter of the
@@ -58,7 +58,7 @@
 #' @export
 #' @importFrom stats dbinom
 BinaryPower <- function(p1, p2, N1, N2, alpha, Test,
-                        alternative = c('greater', 'two.sided'),
+                        alternative = c('greater', 'less', 'two.sided'),
                         tsmethod = c('minlike', 'central'),
                         n.grid = 100, bb.gamma = 0) {
   alternative <- match.arg(alternative)

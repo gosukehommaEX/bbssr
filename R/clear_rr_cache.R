@@ -1,14 +1,14 @@
-#' Empty the Store of Rejection Regions
+#' Empty the Store of p-Values
 #'
-#' Internal helper that removes every rejection region kept by \code{get_rr} and resets
-#' the count of stored cells.
+#' Internal helper that removes every p-value matrix kept by \code{get_pvalue}, from which
+#' the rejection regions are derived, and resets the count of stored cells.
 #'
 #' @return \code{NULL}, invisibly
 #'
 #' @keywords internal
 #' @noRd
 clear_rr_cache <- function() {
-  .bbssr_cache$rr <- new.env(parent = emptyenv())
+  .bbssr_cache$pv <- new.env(parent = emptyenv())
   .bbssr_cache$cells <- 0
   invisible(NULL)
 }

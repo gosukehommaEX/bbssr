@@ -28,10 +28,29 @@ print.bbssr_powerbssr <- function(x, digits = 4, ...) {
               if (isTRUE(attr(x, 'restricted'))) 'restricted' else 'unrestricted'))
   cat(sprintf('  Initial size    : N1 = %s, N2 = %s\n',
               format(attr(x, 'N1')), format(attr(x, 'N2'))))
-  cat(sprintf('  Interim fraction: %s, giving n1 = %d and n2 = %d\n',
-              format(attr(x, 'omega')), attr(x, 'n1.interim'), attr(x, 'n2.interim')))
-  cat(sprintf('  Treatment effect: assumed %s, true %s\n',
-              format(attr(x, 'Delta.A')), format(attr(x, 'Delta.T'))))
+  if (is.null(attr(x, 'omega'))) {
+    cat(sprintf('  Interim size    : n1 = %d and n2 = %d\n',
+                attr(x, 'n1.interim'), attr(x, 'n2.interim')))
+  } else {
+    cat(sprintf('  Interim fraction: %s, giving n1 = %d and n2 = %d\n',
+                format(attr(x, 'omega')), attr(x, 'n1.interim'), attr(x, 'n2.interim')))
+  }
+  effect <- if (is.null(attr(x, 'effect'))) 'RD' else attr(x, 'effect')
+  scale <- c(RD = 'risk difference', RR = 'risk ratio', OR = 'odds ratio')[[effect]]
+  cat(sprintf('  Treatment effect: assumed %s, true %s (%s)\n',
+              format(attr(x, 'Delta.A')), format(attr(x, 'Delta.T')), scale))
+  ss.method <- attr(x, 'ss.method')
+  if (!is.null(ss.method)) {
+    how <- if (ss.method == 'exact') {
+      sprintf('exact power of %s', attr(x, 'ss.Test'))
+    } else {
+      sprintf('normal approximation (%s), %s rounding', ss.method, attr(x, 'rounding'))
+    }
+    bounds <- c(if (!is.null(attr(x, 'N.min'))) sprintf('N.min = %s', format(attr(x, 'N.min'))),
+                if (!is.null(attr(x, 'N.max'))) sprintf('N.max = %s', format(attr(x, 'N.max'))))
+    cat(sprintf('  Re-estimation   : %s at level %s%s\n', how, format(attr(x, 'ss.alpha')),
+                if (length(bounds)) paste0(', ', paste(bounds, collapse = ', ')) else ''))
+  }
   cat(sprintf('  Alpha           : %s, target power %s\n\n',
               format(attr(x, 'alpha')), format(attr(x, 'tar.power'))))
   tab <- data.frame(

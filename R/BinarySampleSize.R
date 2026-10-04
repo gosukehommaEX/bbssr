@@ -2,7 +2,8 @@
 #'
 #' Calculates the required sample size for two-arm trials with binary endpoints using
 #' exact statistical tests. Five tests are supported, each of which can be applied with a
-#' one-sided or a two-sided alternative.
+#' one-sided or a two-sided alternative. The sample size can be obtained from the exact
+#' power of the selected test or from the normal approximation.
 #'
 #' @param p1 True probability of responders for group 1
 #' @param p2 True probability of responders for group 2
@@ -13,13 +14,26 @@
 #' @param Test Type of statistical test. Options: \code{'Chisq'}, \code{'Fisher'},
 #'   \code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}
 #' @param alternative Direction of the alternative hypothesis. Options: \code{'greater'}
-#'   (default) or \code{'two.sided'}
+#'   (default), which requires \code{p1 > p2}, \code{'less'}, which requires
+#'   \code{p1 < p2}, or \code{'two.sided'}
 #' @param tsmethod Convention used to construct the two-sided version of the conditional
 #'   tests. Options: \code{'minlike'} (default) or \code{'central'}
 #' @param n.grid Number of grid points used to search over the nuisance parameter of the
 #'   unconditional tests. Default is 100
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure. The default of
 #'   0 disables the procedure
+#' @param method How the sample size is obtained. \code{'exact'} (default) searches for
+#'   the smallest sample size at which the exact power of \code{Test} attains the target.
+#'   \code{'standard'} uses the normal approximation with the variance under the null
+#'   hypothesis for the significance term and the variance under the alternative for the
+#'   power term, formula (21.3) of Kieser (2020). \code{'null.variance'} uses the variance
+#'   under the null hypothesis for both terms, formula (1) of Friede and Kieser (2004)
+#' @param rounding How an unrounded sample size from the normal approximation is turned
+#'   into whole numbers. \code{'group'} (default) rounds up the size of group 2 and gives
+#'   group 1 \code{ceiling(r N2)} patients. \code{'friede-kieser'} rounds up the two
+#'   group sizes separately, as in Friede and Kieser (2004). \code{'total'} rounds up the
+#'   total and gives group 2 \code{floor(N / (1 + r))} patients. Only \code{'group'} is
+#'   available with \code{method = 'exact'}
 #'
 #' @return An object of class \code{bbssr_samplesize}, a data frame with one row
 #'   containing:
@@ -31,7 +45,7 @@
 #'   \item{tar.power}{Target power}
 #'   \item{Test}{Name of the statistical test}
 #'   \item{alternative}{Direction of the alternative hypothesis}
-#'   \item{Power}{Exact power at the selected sample size}
+#'   \item{Power}{Exact power of \code{Test} at the selected sample size}
 #'   \item{N1}{Required sample size of group 1}
 #'   \item{N2}{Required sample size of group 2}
 #'   \item{N}{Total required sample size}
@@ -51,6 +65,22 @@
 #' alternative and \code{alpha / 2} for a two-sided alternative. Only the starting value of
 #' the search is affected, so the returned sample size is exact in either case.
 #'
+#' The exact power is not monotone in the sample size, so the search returns the first
+#' sample size attaining the target power in the neighbourhood of the normal
+#' approximation.
+#'
+#' Under \code{method = 'standard'} or \code{'null.variance'} the steps above are
+#' replaced by the closed-form normal approximation and the rounding rule selected by
+#' \code{rounding}. The \code{Power} column still reports the exact power of \code{Test}
+#' at the resulting sample size.
+#'
+#' @references
+#' Friede T, Kieser M (2004). Sample size recalculation for binary data in internal pilot
+#' study designs. \emph{Pharmaceutical Statistics}, 3(4), 269-279.
+#'
+#' Kieser M (2020). \emph{Methods and Applications of Sample Size Calculation and
+#' Recalculation in Clinical Trials}. Springer, Cham.
+#'
 #' @examples
 #' # One-sided chi-squared test
 #' BinarySampleSize(p1 = 0.4, p2 = 0.2, r = 1, alpha = 0.025,
@@ -60,18 +90,28 @@
 #' # Two-sided Fisher exact test
 #' BinarySampleSize(p1 = 0.5, p2 = 0.2, r = 2, alpha = 0.05,
 #'                  tar.power = 0.9, Test = 'Fisher', alternative = 'two.sided')
+#'
+#' # Normal approximation with the variance under the null hypothesis, two-sided test
+#' # at level 0.05, as in Friede and Kieser (2004)
+#' BinarySampleSize(p1 = 0.4, p2 = 0.2, r = 1, alpha = 0.05, tar.power = 0.8,
+#'                  Test = 'Chisq', alternative = 'two.sided',
+#'                  method = 'null.variance')
 #' }
 #'
 #' @author Gosuke Homma (\email{my.name.is.gosuke@@gmail.com})
 #' @export
 #' @import fpCompare
-#' @importFrom stats qnorm dbinom
+#' @importFrom stats dbinom
 BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
-                             alternative = c('greater', 'two.sided'),
+                             alternative = c('greater', 'less', 'two.sided'),
                              tsmethod = c('minlike', 'central'),
-                             n.grid = 100, bb.gamma = 0) {
+                             n.grid = 100, bb.gamma = 0,
+                             method = c('exact', 'standard', 'null.variance'),
+                             rounding = c('group', 'friede-kieser', 'total')) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
+  method <- match.arg(method)
+  rounding <- match.arg(rounding)
   if (length(p1) != 1 || length(p2) != 1) stop('p1 and p2 must each be a single value')
   if (length(r) != 1 || is.na(r) || r <= 0) stop('r must be a single positive value')
   if (length(tar.power) != 1 || tar.power <= 0 || tar.power >= 1) {
@@ -79,42 +119,24 @@ BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
   }
   if (p1 %==% p2) stop('p1 and p2 must differ for a sample size to exist')
   if (p1 < 0 || p1 > 1 || p2 < 0 || p2 > 1) stop('p1 and p2 must lie in [0, 1]')
-  # Exact power at a given size of group 2. The rejection region is taken from the
-  # session store, so each region visited by the search is computed only once
-  power_at <- function(N2) {
-    N1 <- ceiling(r * N2)
-    rr <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma)
-    power_from_rr(rr, dbinom(0:N1, N1, p1), dbinom(0:N2, N2, p2))
+  if (alternative == 'greater' && p1 < p2) {
+    stop("p1 must exceed p2 when alternative is 'greater'")
   }
-  # Step 0 (initial sample size from the normal approximation to the chi-squared test)
-  alpha.eff <- if (alternative == 'two.sided') alpha / 2 else alpha
-  p <- (r * p1 + p2) / (1 + r)
-  init.N2 <- '*'(
-    (1 + 1 / r) / ((p1 - p2) ^ 2),
-    (qnorm(alpha.eff) * sqrt(p * (1 - p)) +
-       qnorm(1 - tar.power) * sqrt((p1 * (1 - p1) / r + p2 * (1 - p2)) / (1 + 1 / r))) ^ 2
-  )
-  # Step 1 (power calculation given the initial sample size)
-  N2 <- max(1, ceiling(init.N2))
-  Power <- power_at(N2)
-  # Step 2 (sample size calculation via a grid search algorithm)
-  if (Power %>=% tar.power) {
-    while ((Power %>=% tar.power) && (N2 > 1)) {
-      N2 <- N2 - 1
-      Power <- power_at(N2)
-    }
-    if (Power %<<% tar.power) N2 <- N2 + 1
-  } else {
-    while (Power %<<% tar.power) {
-      N2 <- N2 + 1
-      Power <- power_at(N2)
-    }
+  if (alternative == 'less' && p1 > p2) {
+    stop("p1 must fall below p2 when alternative is 'less'")
   }
-  # Step 3 (determine the final sample size)
-  N2 <- as.integer(N2)
-  N1 <- as.integer(ceiling(r * N2))
+  if (method == 'exact' && rounding != 'group') {
+    stop("rounding must be 'group' when method is 'exact'")
+  }
+  # Validates the test, the level and the remaining arguments of the rejection region
+  Test <- check_rr_args(1, 1, alpha, Test, n.grid, bb.gamma)$Test
+  n <- sample_size_n(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod, n.grid,
+                     bb.gamma, method, rounding)
+  N1 <- n[['N1']]
+  N2 <- n[['N2']]
   N <- N1 + N2
-  Power <- power_at(N2)
+  rr <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma)
+  Power <- power_from_rr(rr, dbinom(0:N1, N1, p1), dbinom(0:N2, N2, p2))
   out <- data.frame(
     p1 = p1, p2 = p2, r = r, alpha = alpha, tar.power = tar.power,
     Test = Test, alternative = alternative, Power = Power,
@@ -124,6 +146,8 @@ BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
   attr(out, 'tsmethod') <- tsmethod
   attr(out, 'n.grid') <- n.grid
   attr(out, 'bb.gamma') <- bb.gamma
+  attr(out, 'method') <- method
+  attr(out, 'rounding') <- rounding
   class(out) <- c('bbssr_samplesize', 'data.frame')
   out
 }

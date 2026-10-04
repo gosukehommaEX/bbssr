@@ -144,7 +144,7 @@ test_that("BinaryRR validates its arguments", {
   expect_error(BinaryRR(5, 5, 0.05, 'Boschloo', n.grid = 1), 'n.grid')
   expect_error(BinaryRR(5, 5, 0.05, 'Boschloo', bb.gamma = -1), 'bb.gamma')
   expect_error(BinaryRR(5, 5, 0.05, 'Boschloo', bb.gamma = 0.05), 'bb.gamma')
-  expect_error(BinaryRR(5, 5, 0.05, 'Chisq', alternative = 'less'),
+  expect_error(BinaryRR(5, 5, 0.05, 'Chisq', alternative = 'lower'),
                'should be one of')
 })
 
@@ -164,5 +164,17 @@ test_that("the p-value attribute keeps the shape of the outcome grid", {
       expect_equal(dim(attr(RR, 'p.value')), c(5L, 6L),
                    info = sprintf('%s, %s', tst, alt))
     }
+  }
+})
+
+test_that("the lower-tail region rejects only when group 1 falls behind", {
+  N1 <- 9
+  N2 <- 7
+  rd <- outer(0:N1 / N1, 0:N2 / N2, '-')
+  for (tst in all_tests) {
+    RR <- BinaryRR(N1, N2, 0.05, tst, alternative = 'less', n.grid = 30)
+    expect_equal(attr(RR, 'alternative'), 'less')
+    expect_true(all(rd[as_plain(RR)] < 0), info = tst)
+    expect_true(any(as_plain(RR)), info = tst)
   }
 })

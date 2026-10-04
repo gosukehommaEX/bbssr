@@ -11,7 +11,8 @@
 #'   \code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}
 #' @param alternative Direction of the alternative hypothesis. Options: \code{'greater'}
 #'   (default) for the one-sided alternative that the response probability of group 1
-#'   exceeds that of group 2, or \code{'two.sided'}
+#'   exceeds that of group 2, \code{'less'} for the one-sided alternative that it falls
+#'   below that of group 2, or \code{'two.sided'}
 #' @param tsmethod Convention used to construct the two-sided version of the conditional
 #'   tests. Options: \code{'minlike'} (default) or \code{'central'}. Ignored when
 #'   \code{alternative} is \code{'greater'}, and ignored by \code{'Chisq'} and
@@ -50,6 +51,14 @@
 #' the common response probability, which is a nuisance parameter. Outcomes sharing the same
 #' value of the ordering statistic receive the same p-value.
 #'
+#' The alternative \code{'less'} is handled by exchanging the two groups, testing the
+#' alternative \code{'greater'} and exchanging them back. Every test considered treats
+#' the groups symmetrically apart from the direction of the alternative, so this gives
+#' the lower-tail version of each test.
+#'
+#' The p-values are kept for the rest of the session and reused by later calls with the
+#' same sample sizes and test, see \code{\link{bbssr-package}}.
+#'
 #' @examples
 #' # Simple example with small sample sizes
 #' RR <- BinaryRR(N1 = 5, N2 = 5, alpha = 0.025, Test = 'Chisq')
@@ -66,53 +75,18 @@
 #' @author Gosuke Homma (\email{my.name.is.gosuke@@gmail.com})
 #' @export
 #' @import fpCompare
-#' @importFrom stats pnorm
 BinaryRR <- function(N1, N2, alpha, Test,
-                     alternative = c('greater', 'two.sided'),
+                     alternative = c('greater', 'less', 'two.sided'),
                      tsmethod = c('minlike', 'central'),
                      n.grid = 100, bb.gamma = 0) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
-  Test <- match.arg(Test, c('Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', 'Boschloo'))
-  if (length(N1) != 1 || length(N2) != 1) stop('N1 and N2 must each be a single value')
-  if (is.na(N1) || is.na(N2) || N1 != round(N1) || N2 != round(N2) || N1 < 1 || N2 < 1) {
-    stop('N1 and N2 must be positive integers')
-  }
-  if (length(alpha) != 1 || is.na(alpha) || alpha <= 0 || alpha >= 1) {
-    stop('alpha must be a single value in (0, 1)')
-  }
-  if (length(n.grid) != 1 || is.na(n.grid) || n.grid < 2) {
-    stop('n.grid must be a single integer of at least 2')
-  }
-  if (length(bb.gamma) != 1 || is.na(bb.gamma) || bb.gamma < 0 || bb.gamma >= alpha) {
-    stop('bb.gamma must be a single value satisfying 0 <= bb.gamma < alpha')
-  }
-  unconditional <- Test %in% c('Z-pool', 'Boschloo')
-  if (bb.gamma > 0 && !unconditional) {
-    warning('bb.gamma applies only to the Z-pool and Boschloo tests and is ignored here')
-  }
-  N1 <- as.integer(N1)
-  N2 <- as.integer(N2)
-  n.grid <- as.integer(n.grid)
-  if (Test == 'Chisq') {
-    Z <- zstat(N1, N2)
-    p.val <- if (alternative == 'greater') {
-      pnorm(Z, lower.tail = FALSE)
-    } else {
-      pmin(2 * pnorm(abs(Z), lower.tail = FALSE), 1)
-    }
-  } else if (Test == 'Fisher') {
-    p.val <- fisher_pvalue(N1, N2, alternative, tsmethod, midp = FALSE)
-  } else if (Test == 'Fisher-midP') {
-    p.val <- fisher_pvalue(N1, N2, alternative, tsmethod, midp = TRUE)
-  } else if (Test == 'Z-pool') {
-    Z <- zstat(N1, N2)
-    stat <- if (alternative == 'greater') Z else abs(Z)
-    p.val <- unconditional_pvalue(stat, N1, N2, n.grid, bb.gamma, decreasing = TRUE)
-  } else {
-    stat <- fisher_pvalue(N1, N2, alternative, tsmethod, midp = FALSE)
-    p.val <- unconditional_pvalue(stat, N1, N2, n.grid, bb.gamma, decreasing = FALSE)
-  }
+  a <- check_rr_args(N1, N2, alpha, Test, n.grid, bb.gamma)
+  Test <- a$Test
+  N1 <- a$N1
+  N2 <- a$N2
+  n.grid <- a$n.grid
+  p.val <- get_pvalue(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma)
   RR <- (p.val %<<% alpha)
   dim(RR) <- c(N1 + 1L, N2 + 1L)
   dimnames(RR) <- list(x1 = as.character(0:N1), x2 = as.character(0:N2))

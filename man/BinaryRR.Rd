@@ -9,7 +9,7 @@ BinaryRR(
   N2,
   alpha,
   Test,
-  alternative = c("greater", "two.sided"),
+  alternative = c("greater", "less", "two.sided"),
   tsmethod = c("minlike", "central"),
   n.grid = 100,
   bb.gamma = 0
@@ -27,7 +27,8 @@ BinaryRR(
 
 \item{alternative}{Direction of the alternative hypothesis. Options: \code{'greater'}
 (default) for the one-sided alternative that the response probability of group 1
-exceeds that of group 2, or \code{'two.sided'}}
+exceeds that of group 2, \code{'less'} for the one-sided alternative that it falls
+below that of group 2, or \code{'two.sided'}}
 
 \item{tsmethod}{Convention used to construct the two-sided version of the conditional
 tests. Options: \code{'minlike'} (default) or \code{'central'}. Ignored when
@@ -74,6 +75,14 @@ the two one-sided tail probabilities. The two-sided versions of \code{'Chisq'} a
 The unconditional tests maximize the null tail probability of an ordering statistic over
 the common response probability, which is a nuisance parameter. Outcomes sharing the same
 value of the ordering statistic receive the same p-value.
+
+The alternative \code{'less'} is handled by exchanging the two groups, testing the
+alternative \code{'greater'} and exchanging them back. Every test considered treats
+the groups symmetrically apart from the direction of the alternative, so this gives
+the lower-tail version of each test.
+
+The p-values are kept for the rest of the session and reused by later calls with the
+same sample sizes and test, see \code{\link{bbssr-package}}.
 }
 \examples{
 # Simple example with small sample sizes

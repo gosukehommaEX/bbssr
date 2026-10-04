@@ -1,0 +1,11 @@
+test_that("power_from_rr_multi equals power_from_rr for every pair", {
+  rr <- as_plain(BinaryRR(9, 7, 0.05, 'Z-pool', n.grid = 30))
+  p1 <- c(0.3, 0.55, 0.9)
+  p2 <- c(0.2, 0.1, 0.6)
+  d1 <- outer(0:9, p1, function(x, p) stats::dbinom(x, 9, p))
+  d2 <- outer(0:7, p2, function(x, p) stats::dbinom(x, 7, p))
+  got <- power_from_rr_multi(rr, d1, d2)
+  one <- vapply(1:3, function(k) power_from_rr(rr, d1[, k], d2[, k]), numeric(1))
+  expect_identical(got, one)
+  expect_error(power_from_rr_multi(rr, d1[-1, ], d2), 'do not match')
+})

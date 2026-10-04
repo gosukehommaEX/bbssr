@@ -16,10 +16,17 @@ BinaryBSSR(
   restricted = FALSE,
   N1 = NULL,
   N2 = NULL,
-  alternative = c("greater", "two.sided"),
+  alternative = c("greater", "less", "two.sided"),
   tsmethod = c("minlike", "central"),
   n.grid = 100,
-  bb.gamma = 0
+  bb.gamma = 0,
+  effect = c("RD", "RR", "OR"),
+  ss.method = c("exact", "standard", "null.variance"),
+  ss.Test = Test,
+  ss.alpha = alpha,
+  rounding = c("group", "friede-kieser", "total"),
+  N.min = NULL,
+  N.max = NULL
 )
 }
 \arguments{
@@ -30,29 +37,32 @@ BinaryBSSR(
 \item{S}{Total number of responders observed at the interim analysis, pooled over both
 groups}
 
-\item{Delta.A}{Assumed treatment effect (risk difference) used to split the blinded
-pooled proportion into group-specific proportions}
+\item{Delta.A}{Assumed treatment effect, on the scale given by \code{effect}, used to
+split the blinded pooled proportion into group-specific proportions}
 
 \item{r}{Allocation ratio to group 1 (i.e., allocation ratio of group 1:group 2 = r:1,
 r > 0)}
 
-\item{alpha}{Level of significance for the alternative specified by \code{alternative}}
+\item{alpha}{Level of significance of the final analysis, for the alternative specified
+by \code{alternative}}
 
 \item{tar.power}{Target power}
 
-\item{Test}{Type of statistical test. Options: \code{'Chisq'}, \code{'Fisher'},
-\code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}}
+\item{Test}{Type of statistical test of the final analysis. Options: \code{'Chisq'},
+\code{'Fisher'}, \code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}}
 
 \item{restricted}{Logical. If \code{TRUE}, the re-estimated sample size is not allowed
 to fall below the planned sample size given by \code{N1} and \code{N2}. Default is
 \code{FALSE}}
 
-\item{N1}{Planned sample size of group 1. Required when \code{restricted} is \code{TRUE}}
+\item{N1}{Planned sample size of group 1. Required when \code{restricted} is \code{TRUE},
+and when the recovered proportions coincide}
 
-\item{N2}{Planned sample size of group 2. Required when \code{restricted} is \code{TRUE}}
+\item{N2}{Planned sample size of group 2. Required when \code{restricted} is \code{TRUE},
+and when the recovered proportions coincide}
 
 \item{alternative}{Direction of the alternative hypothesis. Options: \code{'greater'}
-(default) or \code{'two.sided'}}
+(default), \code{'less'} or \code{'two.sided'}}
 
 \item{tsmethod}{Convention used to construct the two-sided version of the conditional
 tests. Options: \code{'minlike'} (default) or \code{'central'}}
@@ -62,6 +72,28 @@ unconditional tests. Default is 100}
 
 \item{bb.gamma}{Confidence level parameter of the Berger-Boos procedure. The default of
 0 disables the procedure}
+
+\item{effect}{Scale of \code{Delta.A}. Options: \code{'RD'} (default), \code{'RR'} or
+\code{'OR'}, as in \code{\link{BinaryPowerBSSR}}}
+
+\item{ss.method}{How the sample size is re-estimated. Options: \code{'exact'}
+(default), \code{'standard'} or \code{'null.variance'}, as in
+\code{\link{BinarySampleSize}}}
+
+\item{ss.Test}{Test whose exact power is used for the re-estimation when
+\code{ss.method = 'exact'}. Default is \code{Test}}
+
+\item{ss.alpha}{Level of significance used for the re-estimation. Default is
+\code{alpha}}
+
+\item{rounding}{How the re-estimated sample size is turned into whole numbers. Options:
+\code{'group'} (default), \code{'friede-kieser'} or \code{'total'}, as in
+\code{\link{BinaryPowerBSSR}}}
+
+\item{N.min}{Lower bound on the final total sample size, or \code{NULL} (default). It
+can be used to keep the patients who are already enrolled but not yet evaluated}
+
+\item{N.max}{Upper bound on the final total sample size, or \code{NULL} (default)}
 }
 \value{
 An object of class \code{bbssr_bssr}, a data frame with one row containing:
@@ -94,17 +126,21 @@ concealed.
 }
 \details{
 The blinded estimate of the pooled response probability is \code{hat.p = S / (n1 + n2)}.
-Group-specific proportions are recovered as
+For the risk difference, group-specific proportions are recovered as
 \code{hat.p1 = hat.p + Delta.A / (1 + r)} and
-\code{hat.p2 = hat.p - r Delta.A / (1 + r)}, truncated to the unit interval, and the
-sample size is then re-estimated by \code{\link{BinarySampleSize}}.
+\code{hat.p2 = hat.p - r Delta.A / (1 + r)}, truncated to the unit interval. For the
+risk ratio and the odds ratio they are the proportions with the pooled value
+\code{hat.p} and the ratio \code{Delta.A}. The sample size is then re-estimated as in
+\code{\link{BinarySampleSize}}.
 
-Under the unrestricted rule the final size of group 2 is the larger of the re-estimated
-size and what has already been observed. Under the restricted rule it is raised to the
-planned size first, so the trial can only grow. The final size of group 1 is then
-\code{ceiling(r N2.final)}, so an imbalance already present at the interim is corrected
-by the remaining enrolment instead of being carried forward. Neither second-stage size
-is ever negative.
+Under the unrestricted rule and \code{rounding = 'group'}, the final size of group 2 is
+the larger of the re-estimated size and what has already been observed. Under the
+restricted rule it is raised to the planned size first, so the trial can only grow, and
+\code{N.min} and \code{N.max} add a further lower and upper bound on the total. The
+final size of group 1 is then \code{ceiling(r N2.final)}, so an imbalance already
+present at the interim is corrected by the remaining enrolment instead of being carried
+forward. Neither second-stage size is ever negative. The other rounding rules are
+described in \code{\link{BinaryPowerBSSR}}.
 
 While \code{\link{BinaryPowerBSSR}} evaluates the operating characteristics of a BSSR
 design at the planning stage, this function is applied once, to the data of a trial that

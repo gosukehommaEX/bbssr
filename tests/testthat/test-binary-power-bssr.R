@@ -207,3 +207,78 @@ test_that("the results do not depend on the reuse of rejection regions", {
   expect_identical(warm, cold)
   expect_identical(off, cold)
 })
+
+test_that("Friede and Kieser (2004), Table I is reproduced", {
+  # The reference values were computed by the R package rbssr, an independent
+  # implementation of the same design, and round to the published values
+  fk <- BinaryPowerBSSR(
+    p = 0.15, Delta.A = 0.2, Delta.T = 0.2, N1 = 51, N2 = 51, n.interim = c(20, 20),
+    r = 1, alpha = 0.05, tar.power = 0.8, Test = 'Chisq', alternative = 'two.sided',
+    ss.method = 'null.variance', rounding = 'friede-kieser', N.max = 204
+  )
+  expect_equal(fk$E.N, 99.0535867880608, tolerance = 1e-8)
+  expect_equal(fk$power.BSSR, 0.778654816886751, tolerance = 1e-8)
+  expect_equal(c(round(fk$E.N, 1), round(fk$power.BSSR, 3)), c(99.1, 0.779))
+  fk3 <- BinaryPowerBSSR(
+    p = 0.9, Delta.A = 0.2, Delta.T = 0.2, N1 = 71, N2 = 24, n.interim = c(30, 10),
+    r = 3, alpha = 0.05, tar.power = 0.8, Test = 'Chisq', alternative = 'two.sided',
+    ss.method = 'null.variance', rounding = 'friede-kieser', N.max = 190
+  )
+  expect_equal(fk3$E.N, 94.7067601478391, tolerance = 1e-8)
+  expect_equal(fk3$power.BSSR, 0.693821084489667, tolerance = 1e-8)
+  expect_equal(c(round(fk3$E.N, 1), round(fk3$power.BSSR, 3)), c(94.7, 0.694))
+})
+
+test_that("the lower-tail alternative mirrors the upper-tail one", {
+  args <- list(p = c(0.3, 0.45), N1 = 10, N2 = 10, omega = 0.5, r = 1, alpha = 0.025,
+               tar.power = 0.8, Test = 'Z-pool')
+  up <- do.call(BinaryPowerBSSR, c(args, list(Delta.A = 0.3, Delta.T = 0.3)))
+  down <- do.call(BinaryPowerBSSR, c(args, list(Delta.A = -0.3, Delta.T = -0.3,
+                                                alternative = 'less')))
+  expect_equal(down$power.BSSR, up$power.BSSR, tolerance = 1e-12)
+  expect_equal(down$power.TRAD, up$power.TRAD, tolerance = 1e-12)
+  expect_equal(down$E.N, up$E.N, tolerance = 1e-12)
+})
+
+test_that("n.interim gives the same design as the equivalent omega", {
+  args <- list(p = c(0.3, 0.45), Delta.A = 0.3, Delta.T = 0.3, N1 = 10, N2 = 10, r = 1,
+               alpha = 0.025, tar.power = 0.8, Test = 'Chisq')
+  a <- do.call(BinaryPowerBSSR, c(args, list(omega = 0.5)))
+  b <- do.call(BinaryPowerBSSR, c(args, list(n.interim = c(5, 5))))
+  expect_equal(b$power.BSSR, a$power.BSSR)
+  expect_equal(b$E.N, a$E.N)
+})
+
+test_that("N.max bounds every final sample size", {
+  res <- BinaryPowerBSSR(p = c(0.3, 0.5), Delta.A = 0.2, Delta.T = 0.2, N1 = 20, N2 = 20,
+                         omega = 0.5, r = 1, alpha = 0.025, tar.power = 0.8,
+                         Test = 'Chisq', ss.method = 'standard', N.max = 60)
+  map <- attr(res, 'reestimation')
+  expect_true(all(map$N1 + map$N2 <= 60))
+  expect_true(any(map$N1 + map$N2 == 60))
+  expect_true(all(res$E.N <= 60 + 1e-9))
+})
+
+test_that("a ratio effect splits the pooled proportion by the ratio", {
+  res <- BinaryPowerBSSR(p = 0.3, Delta.A = 2, Delta.T = 2, N1 = 20, N2 = 20,
+                         omega = 0.5, r = 1, alpha = 0.025, tar.power = 0.8,
+                         Test = 'Chisq', effect = 'RR', ss.method = 'standard')
+  expect_equal(res$p1 / res$p2, 2)
+  expect_equal((res$p1 + res$p2) / 2, 0.3)
+  map <- attr(res, 'reestimation')
+  # No interim responder leaves both recovered rates at zero, so the plan is kept
+  expect_equal(c(map$N1[1], map$N2[1]), c(20, 20))
+})
+
+test_that("scenarios outside the unit interval only by rounding error are evaluated", {
+  # p[10] is 0.09999999999999999, so p2 = p - 0.1 is a rounding error below zero
+  p <- seq(0.01, 0.5, by = 0.01)
+  expect_no_warning(
+    res <- BinaryPowerBSSR(p = p, Delta.A = 0.2, Delta.T = 0.2, N1 = 8, N2 = 8,
+                           omega = 0.5, r = 1, alpha = 0.025, tar.power = 0.8,
+                           Test = 'Chisq')
+  )
+  expect_equal(nrow(res), sum(p >= 0.1 - 1e-12))
+  expect_true(all(res$p2 >= 0 & res$p1 <= 1))
+  expect_true(all(is.finite(res$power.BSSR)))
+})
