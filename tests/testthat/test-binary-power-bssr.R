@@ -135,3 +135,75 @@ test_that("an initial size inconsistent with the allocation ratio is flagged", {
     'ratio r to 1'
   )
 })
+
+# Reference values for p = c(0.3, 0.45), Delta.A = 0.3, N2 = 10, omega = 0.5,
+# alpha = 0.025 and tar.power = 0.8, computed with an independent Python implementation
+# (numpy and scipy) that re-estimates the sample size by the same search and sums the
+# joint binomial probabilities over the interim and the second-stage outcomes directly
+bssr_ref <- list(
+  list(Test = 'Chisq', alternative = 'greater', r = 1, Delta.T = 0.3,
+       power = c(0.756413406488437, 0.750705544729915),
+       E.N = c(65.3059377228023, 75.5787040704)),
+  list(Test = 'Chisq', alternative = 'greater', r = 1, Delta.T = 0,
+       power = c(0.0259608935849485, 0.0256688814937207),
+       E.N = c(65.1643484471999, 74.8364847760476)),
+  list(Test = 'Chisq', alternative = 'two.sided', r = 2, Delta.T = 0.3,
+       power = c(0.77122764699632, 0.768379918422814),
+       E.N = c(87.8982388035471, 104.98263754682)),
+  list(Test = 'Chisq', alternative = 'two.sided', r = 2, Delta.T = 0,
+       power = c(0.0249933395369282, 0.0263553983742971),
+       E.N = c(88.2161329574932, 104.40801270423)),
+  list(Test = 'Boschloo', alternative = 'greater', r = 2, Delta.T = 0.3,
+       power = c(0.791254739800101, 0.77323324422443),
+       E.N = c(74.9981051601408, 88.8779736124966)),
+  list(Test = 'Boschloo', alternative = 'greater', r = 2, Delta.T = 0,
+       power = c(0.021701985297022, 0.0236598768778865),
+       E.N = c(75.3153533847524, 88.4155899013014)),
+  list(Test = 'Z-pool', alternative = 'greater', r = 1, Delta.T = 0.3,
+       power = c(0.761550296377532, 0.745360578459642),
+       E.N = c(68.7037165753312, 78.3691243008)),
+  list(Test = 'Z-pool', alternative = 'greater', r = 1, Delta.T = 0,
+       power = c(0.0230522969203677, 0.0217694140545424),
+       E.N = c(68.5263087743999, 77.6771381811188)),
+  list(Test = 'Fisher', alternative = 'greater', r = 1, Delta.T = 0.3,
+       power = c(0.777587216232051, 0.765350195503185),
+       E.N = c(80.4580176190472, 89.5666384256)),
+  list(Test = 'Fisher', alternative = 'greater', r = 1, Delta.T = 0,
+       power = c(0.0142450507723455, 0.0158535596996759),
+       E.N = c(80.4621801307999, 88.897260350634))
+)
+
+check_bssr_ref <- function(cases) {
+  for (cs in cases) {
+    res <- BinaryPowerBSSR(
+      p = c(0.3, 0.45), Delta.A = 0.3, Delta.T = cs$Delta.T,
+      N1 = ceiling(cs$r * 10), N2 = 10, omega = 0.5, r = cs$r,
+      alpha = 0.025, tar.power = 0.8, Test = cs$Test, alternative = cs$alternative
+    )
+    info <- sprintf('%s, %s, r = %g, Delta.T = %g', cs$Test, cs$alternative, cs$r,
+                    cs$Delta.T)
+    expect_equal(res$power.BSSR, cs$power, tolerance = 1e-10, info = info)
+    expect_equal(res$E.N, cs$E.N, tolerance = 1e-10, info = info)
+  }
+}
+
+test_that("BinaryPowerBSSR agrees with an independent implementation (chi-squared)", {
+  check_bssr_ref(Filter(function(cs) cs$Test == 'Chisq', bssr_ref))
+})
+
+test_that("BinaryPowerBSSR agrees with an independent implementation (exact tests)", {
+  check_bssr_ref(Filter(function(cs) cs$Test != 'Chisq', bssr_ref))
+})
+
+test_that("the results do not depend on the reuse of rejection regions", {
+  args <- list(p = c(0.3, 0.45), Delta.A = 0.3, Delta.T = 0.3, N1 = 10, N2 = 10,
+               omega = 0.5, r = 1, alpha = 0.025, tar.power = 0.8, Test = 'Z-pool')
+  clear_rr_cache()
+  cold <- do.call(BinaryPowerBSSR, args)
+  warm <- do.call(BinaryPowerBSSR, args)
+  old <- options(bbssr.cache = FALSE)
+  on.exit(options(old))
+  off <- do.call(BinaryPowerBSSR, args)
+  expect_identical(warm, cold)
+  expect_identical(off, cold)
+})

@@ -1,3 +1,22 @@
+# bbssr (development version)
+
+## Performance
+
+* A rejection region depends only on the sample sizes, the level and the test, yet the
+  sample size search of `BinarySampleSize()` and the re-estimation of `BinaryPowerBSSR()`
+  recomputed it for every candidate sample size and every interim outcome. Each region is
+  now computed once and kept for the rest of the R session. Over a design grid of five
+  assumed effects and nine interim fractions this replaces more than ten thousand
+  evaluations of `BinaryRR()` by fewer than a hundred. The stored regions
+  are discarded when they would occupy more than about 100 MB, and
+  `options(bbssr.cache = FALSE)` turns the reuse off.
+
+* `BinaryPowerBSSR()` sums the conditional power of the second stage in compiled code.
+  Each column of the final rejection region is stored as runs of rejected outcomes, so
+  the conditional probability over a column is a difference of binomial distribution
+  functions rather than a sum over every cell. The results agree with version 2.0.0 up
+  to rounding in the last digits.
+
 # bbssr 2.0.0
 
 This is a major release. It corrects the p-value of the exact unconditional tests, adds

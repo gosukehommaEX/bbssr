@@ -65,11 +65,10 @@ BinaryPower <- function(p1, p2, N1, N2, alpha, Test,
   tsmethod <- match.arg(tsmethod)
   if (length(p1) != length(p2)) stop('p1 and p2 should be the same length')
   if (any(p1 < 0 | p1 > 1 | p2 < 0 | p2 > 1)) stop('p1 and p2 must lie in [0, 1]')
-  RR <- BinaryRR(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma)
-  Test <- attr(RR, 'Test')
-  N1 <- attr(RR, 'N1')
-  N2 <- attr(RR, 'N2')
-  rr <- matrix(as.vector(RR), nrow = N1 + 1L, ncol = N2 + 1L)
+  Test <- match.arg(Test, c('Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', 'Boschloo'))
+  rr <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma)
+  N1 <- nrow(rr) - 1L
+  N2 <- ncol(rr) - 1L
   Power <- vapply(
     seq_along(p1),
     function(i) power_from_rr(rr, dbinom(0:N1, N1, p1[i]), dbinom(0:N2, N2, p2[i])),

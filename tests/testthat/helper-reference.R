@@ -63,3 +63,24 @@ berger_boos_ref <- function(stat, N1, N2, n.grid, gamma, decreasing) {
   }
   pmin(p, 1)
 }
+
+# Rejection probability of a re-estimation design obtained by summing the joint
+# probability of the second-stage outcomes over the part of the final rejection region
+# that can be reached from each interim cell. This is the summation of version 2.0.0
+bssr_power_ref <- function(rr.list, rr.id, x11, x12, n21, n22, p1, p2, n11, n12) {
+  vapply(seq_along(p1), function(s) {
+    sum(vapply(seq_along(x11), function(cell) {
+      k <- rr.id[cell] + 1L
+      sub <- rr.list[[k]][x11[cell] + 0:n21[k] + 1L, x12[cell] + 0:n22[k] + 1L,
+                          drop = FALSE]
+      cp <- sum(outer(stats::dbinom(0:n21[k], n21[k], p1[s]),
+                      stats::dbinom(0:n22[k], n22[k], p2[s])) * sub)
+      stats::dbinom(x11[cell], n11, p1[s]) * stats::dbinom(x12[cell], n12, p2[s]) * cp
+    }, numeric(1)))
+  }, numeric(1))
+}
+
+# Number of runs of rejected cells in each column of a logical matrix
+column_run_count <- function(rr) {
+  apply(rr, 2, function(v) sum(diff(c(FALSE, v)) == 1))
+}

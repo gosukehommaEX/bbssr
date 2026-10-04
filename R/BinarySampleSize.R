@@ -65,7 +65,7 @@
 #' @author Gosuke Homma (\email{my.name.is.gosuke@@gmail.com})
 #' @export
 #' @import fpCompare
-#' @importFrom stats qnorm
+#' @importFrom stats qnorm dbinom
 BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
                              alternative = c('greater', 'two.sided'),
                              tsmethod = c('minlike', 'central'),
@@ -78,9 +78,13 @@ BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
     stop('tar.power must be a single value in (0, 1)')
   }
   if (p1 %==% p2) stop('p1 and p2 must differ for a sample size to exist')
+  if (p1 < 0 || p1 > 1 || p2 < 0 || p2 > 1) stop('p1 and p2 must lie in [0, 1]')
+  # Exact power at a given size of group 2. The rejection region is taken from the
+  # session store, so each region visited by the search is computed only once
   power_at <- function(N2) {
     N1 <- ceiling(r * N2)
-    BinaryPower(p1, p2, N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma)$Power
+    rr <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma)
+    power_from_rr(rr, dbinom(0:N1, N1, p1), dbinom(0:N2, N2, p2))
   }
   # Step 0 (initial sample size from the normal approximation to the chi-squared test)
   alpha.eff <- if (alternative == 'two.sided') alpha / 2 else alpha

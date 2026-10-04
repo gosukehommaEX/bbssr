@@ -159,35 +159,21 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega, r,
   # Interim responder counts, in the same order as hat.p
   x11 <- c(row(matrix(0L, nrow = N11 + 1L, ncol = N12 + 1L)) - 1L)
   x12 <- c(col(matrix(0L, nrow = N11 + 1L, ncol = N12 + 1L)) - 1L)
-  # Rejection regions, evaluated once per distinct pair of final sample sizes
+  # Rejection regions, one per distinct pair of final sample sizes
   key.N <- paste(hat.N1, hat.N2, sep = '_')
-  uniq.N <- !duplicated(key.N)
-  rr.cache <- new.env(parent = emptyenv())
-  for (u in which(uniq.N)) {
-    RR <- BinaryRR(hat.N1[u], hat.N2[u], alpha, Test, alternative, tsmethod, n.grid, bb.gamma)
-    assign(key.N[u], matrix(as.vector(RR), nrow = hat.N1[u] + 1L, ncol = hat.N2[u] + 1L),
-           envir = rr.cache)
-  }
-  # Conditional power of the second stage given each interim outcome
-  power.stage2 <- do.call(
-    cbind,
-    lapply(seq_along(hat.p), function(i) {
-      rr.full <- get(key.N[i], envir = rr.cache)
-      rows <- (x11[i] + 1L):(x11[i] + 1L + N21[i])
-      cols <- (x12[i] + 1L):(x12[i] + 1L + N22[i])
-      rr <- matrix(rr.full[rows, cols], nrow = length(rows), ncol = length(cols))
-      vapply(
-        seq_along(p),
-        function(j) power_from_rr(rr, dbinom(0:N21[i], N21[i], p1[j]),
-                                  dbinom(0:N22[i], N22[i], p2[j])),
-        numeric(1)
-      )
-    })
+  first.N <- which(!duplicated(key.N))
+  rr.list <- lapply(first.N, function(u) {
+    get_rr(hat.N1[u], hat.N2[u], alpha, Test, alternative, tsmethod, n.grid, bb.gamma)
+  })
+  rr.id <- match(key.N, key.N[first.N]) - 1L
+  # Conditional power of the second stage given each interim outcome, averaged over the
+  # distribution of the interim outcome. The summation runs in compiled code over the
+  # runs of rejected outcomes in each column of the rejection region
+  power.BSSR <- bssr_power(
+    rr.list, as.integer(rr.id), as.integer(x11), as.integer(x12),
+    as.integer(N21[first.N]), as.integer(N22[first.N]),
+    p1, p2, N11, N12
   )
-  # Average over the distribution of the interim outcome
-  power.BSSR <- vapply(seq_along(p), function(k) {
-    sum(c(dbinom1[, k] %o% dbinom2[, k]) * power.stage2[k, ], na.rm = TRUE)
-  }, numeric(1))
   E.N <- vapply(seq_along(p), function(k) {
     sum(c(dbinom1[, k] %o% dbinom2[, k]) * hat.N)
   }, numeric(1))

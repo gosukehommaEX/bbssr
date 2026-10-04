@@ -23,6 +23,17 @@ Berger-Boos procedure.
 }
 }
 
+\section{Reuse of rejection regions}{
+
+A rejection region depends only on the sample sizes, the level and the test. The
+functions that evaluate power, sample size and re-estimation designs therefore compute
+each rejection region once and keep it for the rest of the R session, which makes a
+second evaluation of a related design much faster than the first. The stored regions
+are discarded when they would occupy more than about 100 MB, and
+\code{options(bbssr.cache = FALSE)} turns the reuse off. The results are the same
+either way.
+}
+
 \seealso{
 Useful links:
 \itemize{
