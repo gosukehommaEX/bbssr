@@ -92,30 +92,38 @@ add('Friede and Kieser (2004)', 'FK2004 Section 5: maximum level, fixed design',
     fixed.level, 4)
 K <- (qnorm(0.975) + qnorm(0.8))^2
 n.grid <- seq(20, 348, by = 2)
-level_ipd <- function(level) {
+level_ipd <- function(level, level.ss) {
   vapply(n.grid, function(n) {
     v <- n * 0.15^2 / (4 * K)
     p <- (1 - sqrt(1 - 4 * v)) / 2
     BinaryPowerBSSR(p = p, Delta.A = 0.15, Delta.T = 0, N1 = 122, N2 = 122,
                     n.interim = c(60, 60), r = 1, alpha = level, tar.power = 0.8,
                     Test = 'Chisq', alternative = 'two.sided',
-                    ss.method = 'null.variance', ss.alpha = 0.05,
+                    ss.method = 'null.variance', ss.alpha = level.ss,
                     rounding = 'friede-kieser', N.max = max(2 * n, 120))$power.BSSR
   }, numeric(1))
 }
-ipd <- level_ipd(0.05)
-# The adjusted critical value 3.97 of the chi-squared statistic is applied to the final
-# analysis only
+ipd <- level_ipd(0.05, 0.05)
+# Level of the adjusted critical value 3.97 of the chi-squared statistic. The published
+# maximum of 0.049 is reproduced when the recalculation also uses this level, as in
+# Kieser (2020, Example 21.1); applying it to the final analysis only is reported as INFO
 level.397 <- pchisq(3.97, 1, lower.tail = FALSE)
-ipd.adj <- level_ipd(level.397)
-write.csv(data.frame(n = n.grid, level = ipd, level.adjusted = ipd.adj),
+ipd.adj <- level_ipd(level.397, level.397)
+ipd.adj.test <- level_ipd(level.397, 0.05)
+write.csv(data.frame(n = n.grid, level = ipd, level.adjusted = ipd.adj,
+                     level.adjusted.test.only = ipd.adj.test),
           file.path(out.dir, 'friede-kieser-2004-section5.csv'), row.names = FALSE)
 add('Friede and Kieser (2004)', 'FK2004 Section 5: maximum level, internal pilot design',
     0.0518, max(ipd), 4)
 add('Friede and Kieser (2004)', 'FK2004 Section 5: level of the critical value 3.97',
     0.046, level.397, 3)
 add('Friede and Kieser (2004)',
-    'FK2004 Section 5: maximum level with the critical value 3.97', 0.049, max(ipd.adj), 3)
+    'FK2004 Section 5: maximum level with the critical value 3.97', 0.049, max(ipd.adj), 3,
+    'The recalculation also uses the adjusted level')
+add('Friede and Kieser (2004)',
+    'FK2004 Section 5: maximum level with the critical value 3.97 in the final analysis only',
+    0.049, max(ipd.adj.test), NA,
+    'INFO: the recalculation uses the nominal level 0.05')
 
 # Kieser (2020), Example 21.1 -------------------------------------------------------------
 # BACLOREA trial: placebo rate 0.42 against 0.27, so group 1 (baclofen) has the lower

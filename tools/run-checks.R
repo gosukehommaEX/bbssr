@@ -32,7 +32,30 @@ timing_grid <- function() {
 clear_rr_cache()
 t1 <- system.time(timing_grid())[['elapsed']]
 t2 <- system.time(timing_grid())[['elapsed']]
-note(sprintf('timing: first run %.2f s, second run %.2f s', t1, t2))
+note(sprintf('timing, load_all() build without optimization: first run %.2f s, second run %.2f s',
+             t1, t2))
+# The same timing with an optimized build, installed into a temporary library and run in
+# a separate R process, which is how the package is used after installation. The
+# installation runs R CMD INSTALL in its own process, because install.packages() on
+# Windows refuses to install a package that is loaded in the current session
+opt <- tryCatch({
+  lib <- file.path(tempdir(), 'bbssr-timing-lib')
+  dir.create(lib, showWarnings = FALSE)
+  tarball <- pkgbuild::build(dest_path = tempdir(), vignettes = FALSE, quiet = TRUE)
+  inst <- callr::rcmd('INSTALL', c(paste0('--library=', lib), tarball), fail_on_status = FALSE)
+  if (inst$status != 0) stop('R CMD INSTALL failed: ', inst$stderr)
+  callr::r(function(lib, f) {
+    library(bbssr, lib.loc = lib)
+    environment(f) <- globalenv()
+    c(system.time(f())[['elapsed']], system.time(f())[['elapsed']])
+  }, args = list(lib = lib, f = timing_grid))
+}, error = function(e) conditionMessage(e))
+if (is.numeric(opt)) {
+  note(sprintf('timing, optimized installed build: first run %.2f s, second run %.2f s',
+               opt[1], opt[2]))
+} else {
+  note('timing, optimized installed build: ERROR ', opt)
+}
 
 # Reproduction of published results, written to reproduce-output/
 rep.res <- tryCatch({

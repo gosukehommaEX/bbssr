@@ -60,10 +60,11 @@
 
 ## Performance
 
-* The exact sample size search of the re-estimation evaluates the power at each
-  candidate sample size once for all recovered pairs of proportions, in compiled code
-  that follows the summation order of `BinaryPower()`, so each pair receives the same
-  sample size as a separate search would give.
+* The exact sample size search of the re-estimation runs once for all recovered pairs of
+  proportions and obtains the rejection region of each candidate sample size only once,
+  so the per-call overhead of `BinarySampleSize()` is paid once per candidate size rather
+  than once per pair. Each pair receives the same sample size as a separate search would
+  give.
 
 * A rejection region depends only on the sample sizes, the level and the test, yet the
   sample size search of `BinarySampleSize()` and the re-estimation of `BinaryPowerBSSR()`

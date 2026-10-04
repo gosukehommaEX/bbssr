@@ -58,31 +58,3 @@ double power_from_rr(LogicalMatrix RR, NumericVector dbinom1, NumericVector dbin
   }
   return total;
 }
-
-// Power of a test defined by a rejection region for several pairs of response
-// probabilities at once. Column k of dbinom1 and dbinom2 holds the binomial probability
-// mass functions of pair k. The summation follows power_from_rr term by term, so each
-// element equals the value power_from_rr returns for the same pair.
-// [[Rcpp::export]]
-NumericVector power_from_rr_multi(LogicalMatrix RR, NumericMatrix dbinom1,
-                                  NumericMatrix dbinom2) {
-  const int n1 = RR.nrow();
-  const int n2 = RR.ncol();
-  const int K = dbinom1.ncol();
-  if (dbinom1.nrow() != n1 || dbinom2.nrow() != n2 || dbinom2.ncol() != K) {
-    stop("the probability matrices do not match the rejection region");
-  }
-  NumericVector out(K);
-  for (int k = 0; k < K; ++k) {
-    double total = 0.0;
-    for (int i = 0; i < n1; ++i) {
-      double row_sum = 0.0;
-      for (int j = 0; j < n2; ++j) {
-        if (RR(i, j)) row_sum += dbinom2(j, k);
-      }
-      total += dbinom1(i, k) * row_sum;
-    }
-    out[k] = total;
-  }
-  return out;
-}
