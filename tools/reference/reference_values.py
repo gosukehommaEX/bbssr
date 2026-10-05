@@ -652,6 +652,35 @@ def block_crp():
          [int((c > 0.025 + TOL).sum()), int((ct > 0.025 + TOL).sum())], rtol=0)
 
 
+# ---------------------------------------------------------------------------------------
+# Grid of designs (B4)
+def block_grid():
+    f = "test-BinaryGridBSSR.R"
+    # Two designs of test-binary-power-bssr.R evaluated through the grid: Delta.A = 0.3,
+    # N1 = N2 = 10, omega = 0.5, exact re-estimation, p = 0.3 and 0.45, Delta.T = 0.3
+    for test in ["Chisq", "Fisher"]:
+        sizes = final_sizes_rd(0.3, 1, 5, 5, 0.025, 0.8, test, "greater", "exact")
+        pw, en, sd = [], [], []
+        for p in [0.3, 0.45]:
+            p1, p2 = p + 0.15, p - 0.15
+            pw.append(bssr_reject_prob(sizes, 5, 5, p1, p2, test, "greater", 0.025))
+            ps = interim_total_pmf(5, 5, p1, p2)
+            N = np.array([sum(sizes[s]) for s in range(11)])
+            e = float(ps @ N)
+            en.append(e)
+            sd.append(math.sqrt(float(ps @ (N - e) ** 2)))
+        emit(f, f"{test} grid power", pw)
+        emit(f, f"{test} grid E.N", en)
+        emit(f, f"{test} grid SD.N", sd)
+    # Initial sample sizes from a planning proportion of 0.4 and Delta.A = 0.3
+    n2 = exact_n2(0.55, 0.25, 1, 0.025, 0.8, "Chisq", "greater")
+    emit(f, "p.plan exact Chisq r = 1 N1 N2", [math.ceil(n2), n2], rtol=0)
+    emit(f, "p.plan exact Chisq r = 1 fixed power at p = 0.4",
+         power(0.55, 0.25, math.ceil(n2), n2, "Chisq", "greater", 0.025))
+    n2s = ceil_tol(normal_n2(0.5, 0.2, 2, 0.025, 0.8, "greater", "standard"))
+    emit(f, "p.plan standard r = 2 N1 N2", [math.ceil(2 * n2s), n2s], rtol=0)
+
+
 if __name__ == "__main__":
     print("# test file\tkey\trelative tolerance\tvalues (15 significant digits)")
     block_split_pooled()
@@ -661,3 +690,4 @@ if __name__ == "__main__":
     block_refined()
     block_ni()
     block_crp()
+    block_grid()

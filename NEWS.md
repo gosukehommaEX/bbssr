@@ -26,6 +26,13 @@
   rate is controlled for any blinded re-estimation rule when the Fisher-Boschloo test is
   applied in the analysis.
 
+* `BinaryGridBSSR()` evaluates a set of re-estimation designs, given as the rows of a
+  data frame, over common true pooled response probabilities and returns one tidy data
+  frame with the power of each design and of its fixed-sample counterpart and the
+  distribution of the final sample size. The initial sample sizes can be given or
+  obtained from a planning proportion with `BinarySampleSize()`, the largest type I
+  error rates can be added, and `summary()` and `plot()` compare the designs.
+
 * The sample size can be re-estimated from the normal approximation instead of the exact
   power, through `ss.method = 'standard'` (formula 21.3 of Kieser, 2020) or
   `ss.method = 'null.variance'` (formula 1 of Friede and Kieser, 2004). The same options

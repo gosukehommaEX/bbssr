@@ -78,3 +78,12 @@ test-BinaryCondRejectBSSR.R	Boschloo r = 2 rows and locations of the maxima	0	76
 test-BinaryCondRejectBSSR.R	Boschloo r = 2 sums	1e-10	12.4601516983984 16.136283680292
 test-BinaryCondRejectBSSR.R	Boschloo r = 2 maxima	1e-10	0.044042913608131 0.0507470722842913
 test-BinaryCondRejectBSSR.R	Boschloo r = 2 counts above the level	0	173 265
+test-BinaryGridBSSR.R	Chisq grid power	1e-10	0.756413406488437 0.750705544729915
+test-BinaryGridBSSR.R	Chisq grid E.N	1e-10	65.3059377228023 75.5787040704
+test-BinaryGridBSSR.R	Chisq grid SD.N	1e-10	15.4108334577559 12.1779563802348
+test-BinaryGridBSSR.R	Fisher grid power	1e-10	0.777587216232051 0.765350195503184
+test-BinaryGridBSSR.R	Fisher grid E.N	1e-10	80.4580176190472 89.5666384256
+test-BinaryGridBSSR.R	Fisher grid SD.N	1e-10	14.8447550877925 11.3993961793173
+test-BinaryGridBSSR.R	p.plan exact Chisq r = 1 N1 N2	0	40 40
+test-BinaryGridBSSR.R	p.plan exact Chisq r = 1 fixed power at p = 0.4	1e-10	0.801503911679796
+test-BinaryGridBSSR.R	p.plan standard r = 2 N1 N2	0	60 30

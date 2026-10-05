@@ -26,6 +26,8 @@ type I error rate of a BSSR design}
 \item{\code{\link{BinaryCondRejectBSSR}}}{Rejection probabilities of a BSSR design
 given the pooled numbers of responders, and its type I error rate decomposed by
 the interim outcome}
+\item{\code{\link{BinaryGridBSSR}}}{Power and final sample size of several BSSR
+designs over common scenarios, as one data frame}
 \item{\code{\link{BinaryBSSR}}}{Sample size re-estimation from observed interim data}
 }
 }
