@@ -61,7 +61,8 @@ test_that("the refined tail probabilities attain the certified maximum", {
     }
     inp <- tail_inputs(stat, 32, 32, theta, decreasing = (tst == 'Z-pool'))
     grid <- tail_max(inp, refined = FALSE)
-    ref <- pmin(1, tail_max(inp, refined = TRUE))
+    # pmin() takes the attributes of its first argument, so the matrix comes first
+    ref <- pmin(tail_max(inp, refined = TRUE), 1)
     expect_equal(sum(ref), want.sum[[tst]], tolerance = 1e-10, info = tst)
     # The outcomes 18 versus 10 and 22 versus 14 are rejected at the level 0.025 on the
     # grid, but their exact p-value exceeds the level

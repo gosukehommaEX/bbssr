@@ -1,18 +1,29 @@
-# Runs every check of the package in one go and writes the results to
+# Runs the checks of the package in one go and writes the results to
 # tools/output/run-checks.txt, which is read back during development.
 # Open bbssr.Rproj so that the working directory is the package root, then run
 #   source('tools/run-checks.R')
-# The script needs no object from an earlier session. It takes about five minutes.
+# for the quick run (documentation, timing of the load_all() build, reproduction of
+# published results and unit tests), or
+#   full.check <- TRUE; source('tools/run-checks.R')
+# to add the timing of an optimized installed build and R CMD check, which take most of
+# the time. The flag is removed when the script starts, so the next run is quick again.
+# The script needs no other object from an earlier session.
 
+run.full <- exists('full.check', envir = globalenv()) &&
+  isTRUE(get('full.check', envir = globalenv()))
+if (exists('full.check', envir = globalenv())) rm('full.check', envir = globalenv())
 out.dir <- file.path('tools', 'output')
 dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
 report <- character(0)
+# Each line is written to the report at once, so an interrupted run keeps what it found
 note <- function(...) {
   line <- paste0(...)
   message(line)
   report <<- c(report, line)
+  writeLines(report, file.path(out.dir, 'run-checks.txt'), useBytes = TRUE)
 }
-note('run-checks started ', format(Sys.time(), '%Y-%m-%d %H:%M:%S'))
+note('run-checks started ', format(Sys.time(), '%Y-%m-%d %H:%M:%S'),
+     if (run.full) ' (full run)' else ' (quick run, without R CMD check)')
 
 devtools::document()
 devtools::load_all()
@@ -38,7 +49,7 @@ note(sprintf('timing, load_all() build without optimization: first run %.2f s, s
 # a separate R process, which is how the package is used after installation. The
 # installation runs R CMD INSTALL in its own process, because install.packages() on
 # Windows refuses to install a package that is loaded in the current session
-opt <- tryCatch({
+opt <- if (!run.full) 'skipped in the quick run' else tryCatch({
   lib <- file.path(tempdir(), 'bbssr-timing-lib')
   dir.create(lib, showWarnings = FALSE)
   tarball <- pkgbuild::build(dest_path = tempdir(), vignettes = FALSE, quiet = TRUE)
@@ -53,8 +64,10 @@ opt <- tryCatch({
 if (is.numeric(opt)) {
   note(sprintf('timing, optimized installed build: first run %.2f s, second run %.2f s',
                opt[1], opt[2]))
-} else {
+} else if (run.full) {
   note('timing, optimized installed build: ERROR ', opt)
+} else {
+  note('timing, optimized installed build: ', opt)
 }
 
 # Reproduction of published results, written to reproduce-output/
@@ -82,10 +95,14 @@ for (t in test.res) {
 }
 
 # R CMD check
-chk <- devtools::check(error_on = 'never', quiet = TRUE)
-note(sprintf('check: %d errors, %d warnings, %d notes', length(chk$errors),
-             length(chk$warnings), length(chk$notes)))
-for (x in c(chk$errors, chk$warnings, chk$notes)) note('  ', gsub('\n', ' | ', x))
+if (run.full) {
+  chk <- devtools::check(error_on = 'never', quiet = TRUE)
+  note(sprintf('check: %d errors, %d warnings, %d notes', length(chk$errors),
+               length(chk$warnings), length(chk$notes)))
+  for (x in c(chk$errors, chk$warnings, chk$notes)) note('  ', gsub('\n', ' | ', x))
+} else {
+  note('check: skipped in the quick run')
+}
 
 note('run-checks finished ', format(Sys.time(), '%Y-%m-%d %H:%M:%S'))
 writeLines(report, file.path(out.dir, 'run-checks.txt'), useBytes = TRUE)
