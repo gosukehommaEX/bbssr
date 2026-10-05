@@ -42,15 +42,18 @@ grid <- BinaryGridBSSR(design, p = seq(0.2, 0.5, by = 0.1), Delta.A = 0.3,
 head(grid)
 ```
 
-Each row holds the index `design`, the columns of the design data frame, the initial and interim sample sizes, the true effect, the true response probabilities, the power of the re-estimation design and of the fixed-sample design, and the expected value, standard deviation and quartiles of the final total sample size. `P.N.max` is the probability that the final total reaches the largest value the design can reach.
+Each row holds the index `design`, the columns of the design data frame, the initial and interim sample sizes, the true effect, the true response probabilities, the power of the re-estimation design and of the fixed-sample design, and the expected value, standard deviation and quartiles of the final total sample size. `P.N.max` is the probability that the final total takes the largest value that any interim outcome leads to.
 
 ## Summaries and plots
 
 `summary()` gives one row per design, with the range of the power over the scenarios and the largest expected total sample size.
 
 ```{r summary}
-summary(grid)
+grid.summary <- summary(grid)
+grid.summary
 ```
+
+With Fisher's exact test in the final analysis the power of the re-estimation design stays at or below `r round(max(grid.summary$power.BSSR.max[grid.summary$Test == 'Fisher']), 3)`. The sample size is re-estimated here by the normal approximation of `ss.method = 'standard'`, which does not depend on the test, and Fisher's test needs more patients than the chi-squared test to reach the same power. The exact re-estimation of `ss.method = 'exact'` uses the exact power of the test of the final analysis instead.
 
 `plot()` draws the power or the expected total sample size against the true pooled response probability, with one colour per value of a column and, optionally, one panel per value of another.
 

@@ -71,7 +71,7 @@ by.method <- data.frame(s = map$s, hat.p = round(map$hat.p, 3),
 by.method[seq(1, nrow(by.method), by = 4), ]
 ```
 
-The exact search uses the exact power of the chosen test, so it depends on the test of the final analysis, whereas the two formulas do not. At the lowest interim outcomes the recovered probability of group 2 would be negative. The exact search needs probabilities inside the unit interval and truncates it to zero, which is what the columns `hat.p1` and `hat.p2` show. The formulas use the recovered probabilities before truncation, with each Bernoulli variance truncated at zero, so that the assumed difference is kept as in formula (2) of Friede and Kieser (2004).
+The exact search uses the exact power of the chosen test, so it depends on the test of the final analysis, whereas the two formulas do not. At the lowest interim outcomes the recovered probability of group 2 would be negative, and at the highest that of group 1 would exceed one. The exact search needs probabilities inside the unit interval and truncates them to it, which is what the columns `hat.p1` and `hat.p2` show. The truncation shrinks the recovered difference, which is why the exact column rises again at both ends. The formulas use the recovered probabilities before truncation, with each Bernoulli variance truncated at zero, so that the assumed difference is kept as in formula (2) of Friede and Kieser (2004).
 
 The power and the expected total sample size of the three versions are as follows.
 
@@ -89,7 +89,7 @@ data.frame(
 
 ## Another test or level for the re-estimation
 
-By default the sample size is re-estimated with the test and the level of the final analysis. `ss.Test` gives another test for the exact search, and `ss.alpha` another level. A final analysis with the Boschloo test can, for example, re-estimate the sample size with the exact power of the chi-squared test, which is quicker to search over.
+By default the sample size is re-estimated with the test and the level of the final analysis. `ss.Test` gives another test for the exact search, and `ss.alpha` another level. A final analysis with the Boschloo test can, for example, re-estimate the sample size with the exact power of the chi-squared test, which is quicker to search over. The chi-squared test does not keep the nominal level and attains the target power with fewer patients than the Boschloo test, so the sizes it gives are smaller, and the power of the Boschloo test falls further below the target, as the table shows.
 
 ```{r ss-test}
 boschloo <- modifyList(design, list(Test = 'Boschloo'))
@@ -189,8 +189,11 @@ n.dist <- attr(fits$exact, 'N.dist')
 head(n.dist)
 ```
 
-```{r distribution-plot}
+```{r ggplot2, message = FALSE, warning = FALSE}
 library(ggplot2)
+```
+
+```{r distribution-plot}
 ggplot(n.dist, aes(x = N, y = prob)) +
   geom_col() +
   facet_wrap(~ p, labeller = label_both) +

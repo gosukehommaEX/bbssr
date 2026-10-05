@@ -389,7 +389,7 @@ published$agrees <- abs(round(published$recomputed, published$digits) -
 published
 ```
 
-`r sum(published$agrees)` of the `r nrow(published)` values above agree with the publication after rounding. The script reports every value that it does not reproduce, together with the reason when one is known.
+Of the `r nrow(published)` values above, `r sum(published$agrees)` agree with the publication after rounding. The script reports every value that it does not reproduce, together with the reason when one is known.
 
 ## Summary
 

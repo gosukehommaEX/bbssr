@@ -158,7 +158,7 @@ interim <- BinaryBSSR(n1 = ceiling(plan$N1 / 2), n2 = ceiling(plan$N2 / 2), S = 
 interim
 ```
 
-The interim analysis sits at half of the planned `r plan$N2` patients per group. `r interim$S` responders among `r interim$n` patients give a blinded pooled rate of `r round(interim$hat.p, 3)`, against the assumed `r 0.5 * (0.45 + 0.09)`, and the re-estimated total is `r interim$N.re` patients against the `r plan$N` of the plan. The `bbssr-interim-reestimation` vignette works through this in more detail.
+The interim analysis sits at half of the planned `r plan$N2` patients per group. With `r interim$S` responders among `r interim$n` patients the blinded pooled rate is `r round(interim$hat.p, 3)`, against the assumed `r 0.5 * (0.45 + 0.09)`, and the re-estimated total is `r interim$N.re` patients against the `r plan$N` of the plan. The `bbssr-interim-reestimation` vignette works through this in more detail.
 
 ## Two-sided tests
 

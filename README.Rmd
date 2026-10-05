@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# bbssr: Blinded Sample Size Re-Estimation for Binary Endpoints <img src="man/figures/bbssr_sticker.png" align="right" height="139" />
+# bbssr: Blinded Sample Size Re-Estimation for Binary Endpoints <img src="man/figures/bbssr_sticker.png" align="right" height="139" alt="bbssr logo" />
 
 <!-- badges: start -->
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/bbssr)](https://CRAN.R-project.org/package=bbssr)

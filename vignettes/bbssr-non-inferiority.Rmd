@@ -69,11 +69,12 @@ boundary_size <- function(RR, margin) {
   }, numeric(1))
   data.frame(p2 = p2[which.max(size)], size = max(size))
 }
-cbind(Test = c('Blackwelder', 'Farrington-Manning'),
-      rbind(boundary_size(rr.bw, 0.1), boundary_size(rr.fm, 0.1)))
+sizes <- cbind(Test = c('Blackwelder', 'Farrington-Manning'),
+               rbind(boundary_size(rr.bw, 0.1), boundary_size(rr.fm, 0.1)))
+sizes
 ```
 
-The nominal level is 0.025. The size of an asymptotic test at a given sample size can lie on either side of it, so it is worth computing for the sample sizes of a design.
+The nominal level is 0.025. With `r attr(rr.fm, 'N1')` patients per group the size is `r signif(sizes$size[1], 3)` for the Blackwelder test, attained at $p_{2} =$ `r sizes$p2[1]`, and `r signif(sizes$size[2], 3)` for the Farrington-Manning test. The size of an asymptotic test at a given sample size can lie on either side of the nominal level, so it is worth computing for the sample sizes of a design.
 
 ## Sample size
 
@@ -98,7 +99,7 @@ ni.ss
 
 ## Blinded sample size re-estimation
 
-Friede, Mitchell and Mueller-Velten (2007) re-estimate the sample size of a non-inferiority trial from the blinded overall response rate, which is the pooled response probability of the package. The assumed difference is usually 0, so both recovered rates equal the blinded pooled rate, and the sample size is re-estimated by the formula of Farrington and Manning (`ss.method = 'standard'`) or of Blackwelder (`ss.method = 'alternative.variance'`). The design below is planned for a pooled response probability of 0.7 and re-estimates the sample size after half of the patients.
+Friede, Mitchell and Mueller-Velten (2007) re-estimate the sample size of a non-inferiority trial from the blinded overall response rate, which is the pooled response probability of the package. The assumed difference is usually 0, so both recovered probabilities equal the blinded pooled response probability, and the sample size is re-estimated by the formula of Farrington and Manning (`ss.method = 'standard'`) or of Blackwelder (`ss.method = 'alternative.variance'`). The design below is planned for a pooled response probability of 0.7 and re-estimates the sample size after half of the patients.
 
 ```{r bssr}
 plan <- BinarySampleSize(p1 = 0.7, p2 = 0.7, r = 1, alpha = 0.025, tar.power = 0.8,
