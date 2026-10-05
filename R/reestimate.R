@@ -6,7 +6,8 @@
 #'
 #' A pair of equal probabilities admits no sample size. The risk ratio produces one when
 #' no interim patient responds, and the odds ratio when no interim patient or every
-#' interim patient responds. The planned sizes
+#' interim patient responds. With a non-inferiority margin, a pair on the boundary of the
+#' null hypothesis admits no sample size instead. The planned sizes
 #' \code{N1.plan} and \code{N2.plan} are returned for such a pair.
 #'
 #' @param hat.p1 Recovered response probabilities of group 1. They must lie in the unit
@@ -26,6 +27,8 @@
 #' @param N2.plan Planned sample size of group 2, or \code{NULL}
 #' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the
 #'   unconditional tests is refined between the grid points
+#' @param margin Non-inferiority margin on the scale of the risk difference, 0 for a test
+#'   of superiority
 #'
 #' @return A data frame with columns \code{n.raw} (unrounded total, \code{NA} under
 #'   \code{method = 'exact'}), \code{N1.re} and \code{N2.re}
@@ -34,30 +37,40 @@
 #' @noRd
 #' @import fpCompare
 reestimate <- function(hat.p1, hat.p2, r, alpha, tar.power, Test, alternative, tsmethod,
-                       n.grid, bb.gamma, method, rounding, N1.plan, N2.plan, ref.pvalue) {
-  degenerate <- hat.p1 %==% hat.p2
+                       n.grid, bb.gamma, method, rounding, N1.plan, N2.plan, ref.pvalue,
+                       margin) {
+  degenerate <- if (margin == 0) {
+    hat.p1 %==% hat.p2
+  } else if (alternative == 'less') {
+    (hat.p2 - hat.p1 + margin) %==% 0
+  } else {
+    (hat.p1 - hat.p2 + margin) %==% 0
+  }
   if (any(degenerate) && (is.null(N1.plan) || is.null(N2.plan))) {
-    stop('the recovered response probabilities coincide, so no sample size can be ',
-         're-estimated; supply the planned sample sizes N1 and N2')
+    stop(if (margin == 0) 'the recovered response probabilities coincide' else
+           'the recovered response probabilities lie on the null boundary',
+         ', so no sample size can be re-estimated; supply the planned sample sizes N1 ',
+         'and N2')
   }
   n <- length(hat.p1)
   n.raw <- rep(NA_real_, n)
   N1.re <- integer(n)
   N2.re <- integer(n)
   if (method != 'exact') {
-    n.raw <- (1 + r) * ss_raw_n2(hat.p1, hat.p2, r, alpha, tar.power, alternative, method)
+    n.raw <- '*'(1 + r, ss_raw_n2(hat.p1, hat.p2, r, alpha, tar.power, alternative, method,
+                                  margin))
   }
   key <- paste(hat.p1, hat.p2, sep = '_')
   first <- which(!duplicated(key) & !degenerate)
   if (method == 'exact') {
     # One search over all distinct pairs, sharing the power at every candidate size
     N2.u <- ss_exact_search(hat.p1[first], hat.p2[first], r, alpha, tar.power, Test,
-                            alternative, tsmethod, n.grid, bb.gamma, ref.pvalue)
+                            alternative, tsmethod, n.grid, bb.gamma, ref.pvalue, margin)
     N1.u <- as.integer(ceiling(r * N2.u))
   } else if (length(first) > 0) {
     n.u <- vapply(first, function(u) {
       sample_size_n(hat.p1[u], hat.p2[u], r, alpha, tar.power, Test, alternative,
-                    tsmethod, n.grid, bb.gamma, method, rounding, ref.pvalue)
+                    tsmethod, n.grid, bb.gamma, method, rounding, ref.pvalue, margin)
     }, integer(2))
     N1.u <- n.u['N1', ]
     N2.u <- n.u['N2', ]

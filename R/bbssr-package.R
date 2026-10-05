@@ -2,9 +2,9 @@
 #'
 #' Tools for blinded sample size re-estimation (BSSR) in two-arm clinical trials with
 #' binary endpoints, together with the exact power and sample size calculations the
-#' re-estimation relies on. Five exact tests are supported, each available with a one-sided
-#' or a two-sided alternative, and the exact unconditional tests can be combined with the
-#' Berger-Boos procedure.
+#' re-estimation relies on. Seven tests are supported, each available with a one-sided or a
+#' two-sided alternative. Two of them also test non-inferiority with a margin, and the
+#' exact unconditional tests can be combined with the Berger-Boos procedure.
 #'
 #' @section Main functions:
 #' \describe{

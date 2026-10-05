@@ -19,10 +19,10 @@ BinaryAlphaAdjBSSR(
   n.grid = 100,
   bb.gamma = 0,
   effect = c("RD", "RR", "OR"),
-  ss.method = c("exact", "standard", "null.variance"),
+  ss.method = c("exact", "standard", "null.variance", "alternative.variance"),
   ss.Test = Test,
   ss.alpha = alpha,
-  rounding = c("group", "friede-kieser", "total"),
+  rounding = c("group", "friede-kieser", "total", "nearest"),
   N.min = NULL,
   N.max = NULL,
   n.interim = NULL,
@@ -30,6 +30,7 @@ BinaryAlphaAdjBSSR(
   adjust = c("test", "both"),
   tol = 1e-08,
   step = 1e-05,
+  margin = 0,
   ref.pvalue = FALSE
 )
 }
@@ -53,7 +54,8 @@ ratio. Either \code{omega} or \code{n.interim} must be supplied}
 \item{tar.power}{Target power}
 
 \item{Test}{Type of statistical test of the final analysis. Options: \code{'Chisq'},
-\code{'Fisher'}, \code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}}
+\code{'Fisher'}, \code{'Fisher-midP'}, \code{'Z-pool'}, \code{'Boschloo'},
+\code{'Blackwelder'} or \code{'Farrington-Manning'}}
 
 \item{restricted}{Logical. If \code{TRUE}, the re-estimated sample size is not allowed
 to fall below the initial sample size. Default is \code{FALSE}}
@@ -75,8 +77,8 @@ unconditional tests. Default is 100}
 \code{p1 / p2} or \code{'OR'} for the odds ratio}
 
 \item{ss.method}{How the sample size is re-estimated from the recovered proportions.
-Options: \code{'exact'} (default), \code{'standard'} or \code{'null.variance'}, as in
-\code{\link{BinarySampleSize}}}
+Options: \code{'exact'} (default), \code{'standard'}, \code{'null.variance'} or
+\code{'alternative.variance'}, as in \code{\link{BinarySampleSize}}}
 
 \item{ss.Test}{Test whose exact power is used for the re-estimation when
 \code{ss.method = 'exact'}. Default is \code{Test}}
@@ -86,8 +88,9 @@ Options: \code{'exact'} (default), \code{'standard'} or \code{'null.variance'}, 
 \code{adjust = 'both'}}
 
 \item{rounding}{How the re-estimated sample size is turned into whole numbers.
-Options: \code{'group'} (default), \code{'friede-kieser'} or \code{'total'}. Only
-\code{'group'} is available with \code{ss.method = 'exact'}. See Details}
+Options: \code{'group'} (default), \code{'friede-kieser'}, \code{'total'} or
+\code{'nearest'}. Only \code{'group'} is available with \code{ss.method = 'exact'}.
+See Details}
 
 \item{N.min}{Lower bound on the final total sample size, or \code{NULL} (default) for
 none beyond the interim total. It can be used to keep the patients who are already
@@ -100,7 +103,9 @@ none}
 two. An alternative to \code{omega}}
 
 \item{theta}{Grid of common response probabilities at which the type I error rate is
-evaluated. Default is \code{seq(0.005, 0.995, by = 0.005)}}
+evaluated. Default is \code{seq(0.005, 0.995, by = 0.005)}. With a non-zero
+\code{margin}, \code{theta} is the pooled response probability
+\code{(r p1 + p2) / (1 + r)} on the boundary of the null hypothesis, see Details}
 
 \item{adjust}{Which part of the design uses the adjusted level. \code{'test'}
 (default) applies it to the final analysis only, so the re-estimation keeps using
@@ -111,6 +116,16 @@ evaluated. Default is \code{seq(0.005, 0.995, by = 0.005)}}
 
 \item{step}{Decrement of the level in the search used when \code{adjust = 'both'}.
 Default is \code{1e-5}}
+
+\item{margin}{Non-inferiority margin on the scale of the risk difference. The
+default of 0 gives a test of superiority. A value other than 0 tests the null
+hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
+\code{alternative} is \code{'greater'}, and \code{p1 - p2 >= margin} against
+\code{p1 - p2 < margin} when it is \code{'less'}. It requires
+\code{Test = 'Blackwelder'} or \code{'Farrington-Manning'}, see
+\code{\link{BinaryRR}}. A negative value tests for superiority by more than its
+absolute value. With a value other than 0 the assumed
+and the true effects are risk differences (\code{effect = 'RD'})}
 
 \item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
 of the unconditional tests is refined between the grid points, see
@@ -126,7 +141,8 @@ BSSR design and one for the fixed-sample design containing:
 \item{max.TIE}{Largest type I error rate at the nominal level \code{alpha}}
 \item{alpha.adj}{Adjusted nominal level}
 \item{max.TIE.adj}{Largest type I error rate at the adjusted level}
-\item{theta.adj}{Common response probability at which \code{max.TIE.adj} occurs}
+\item{theta.adj}{Common response probability, or pooled response probability on the
+null boundary, at which \code{max.TIE.adj} occurs}
 }
 }
 \description{

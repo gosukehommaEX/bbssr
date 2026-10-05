@@ -21,13 +21,19 @@
 #'   \item{total}{The unrounded total is truncated to the bounds and rounded up. Group 2
 #'     receives \code{floor(N / (1 + r))} patients and group 1 the remainder, each at least
 #'     its interim size.}
+#'   \item{nearest}{The unrounded total \code{n} is truncated to the bounds. Group 2
+#'     receives \code{round(n / (1 + r))} and group 1 \code{round(r n / (1 + r))}
+#'     patients, each at least its interim size, where \code{round} rounds halves up. This
+#'     reproduces the computations of Friede et al. (2007). The total can therefore
+#'     exceed \code{N.max} by one patient.}
 #' }
 #'
 #' @param re Data frame returned by \code{reestimate}
 #' @param n11 Interim sample size of group 1
 #' @param n12 Interim sample size of group 2
 #' @param r Allocation ratio to group 1
-#' @param rounding \code{'group'}, \code{'friede-kieser'} or \code{'total'}
+#' @param rounding \code{'group'}, \code{'friede-kieser'}, \code{'total'} or
+#'   \code{'nearest'}
 #' @param restricted Logical. If \code{TRUE}, the planned sizes are lower bounds
 #' @param N1.plan Planned sample size of group 1, or \code{NULL}
 #' @param N2.plan Planned sample size of group 2, or \code{NULL}
@@ -66,6 +72,9 @@ final_sizes <- function(re, n11, n12, r, rounding, restricted, N1.plan, N2.plan,
     n2 <- pmax(ceil_tol(n.c - n1), 0)
     N2 <- n12 + ceil_tol(n2 / (1 + r))
     N1 <- n11 + ceil_tol(r * n2 / (1 + r))
+  } else if (rounding == 'nearest') {
+    N2 <- pmax(n12, floor(n.c / (1 + r) + 0.5))
+    N1 <- pmax(n11, floor(r * n.c / (1 + r) + 0.5))
   } else {
     N <- ceil_tol(n.c)
     N2 <- pmax(n12, floor(N / (1 + r)))

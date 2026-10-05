@@ -19,15 +19,16 @@ BinaryTypeIErrorBSSR(
   n.grid = 100,
   bb.gamma = 0,
   effect = c("RD", "RR", "OR"),
-  ss.method = c("exact", "standard", "null.variance"),
+  ss.method = c("exact", "standard", "null.variance", "alternative.variance"),
   ss.Test = Test,
   ss.alpha = alpha,
-  rounding = c("group", "friede-kieser", "total"),
+  rounding = c("group", "friede-kieser", "total", "nearest"),
   N.min = NULL,
   N.max = NULL,
   n.interim = NULL,
   theta = seq(0.005, 0.995, by = 0.005),
   refine = TRUE,
+  margin = 0,
   ref.pvalue = FALSE
 )
 }
@@ -52,7 +53,8 @@ by \code{alternative}}
 \item{tar.power}{Target power}
 
 \item{Test}{Type of statistical test of the final analysis. Options: \code{'Chisq'},
-\code{'Fisher'}, \code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}}
+\code{'Fisher'}, \code{'Fisher-midP'}, \code{'Z-pool'}, \code{'Boschloo'},
+\code{'Blackwelder'} or \code{'Farrington-Manning'}}
 
 \item{restricted}{Logical. If \code{TRUE}, the re-estimated sample size is not allowed
 to fall below the initial sample size. Default is \code{FALSE}}
@@ -74,8 +76,8 @@ unconditional tests. Default is 100}
 \code{p1 / p2} or \code{'OR'} for the odds ratio}
 
 \item{ss.method}{How the sample size is re-estimated from the recovered proportions.
-Options: \code{'exact'} (default), \code{'standard'} or \code{'null.variance'}, as in
-\code{\link{BinarySampleSize}}}
+Options: \code{'exact'} (default), \code{'standard'}, \code{'null.variance'} or
+\code{'alternative.variance'}, as in \code{\link{BinarySampleSize}}}
 
 \item{ss.Test}{Test whose exact power is used for the re-estimation when
 \code{ss.method = 'exact'}. Default is \code{Test}}
@@ -84,8 +86,9 @@ Options: \code{'exact'} (default), \code{'standard'} or \code{'null.variance'}, 
 \code{alpha}}
 
 \item{rounding}{How the re-estimated sample size is turned into whole numbers.
-Options: \code{'group'} (default), \code{'friede-kieser'} or \code{'total'}. Only
-\code{'group'} is available with \code{ss.method = 'exact'}. See Details}
+Options: \code{'group'} (default), \code{'friede-kieser'}, \code{'total'} or
+\code{'nearest'}. Only \code{'group'} is available with \code{ss.method = 'exact'}.
+See Details}
 
 \item{N.min}{Lower bound on the final total sample size, or \code{NULL} (default) for
 none beyond the interim total. It can be used to keep the patients who are already
@@ -98,10 +101,22 @@ none}
 two. An alternative to \code{omega}}
 
 \item{theta}{Grid of common response probabilities at which the type I error rate is
-evaluated. Default is \code{seq(0.005, 0.995, by = 0.005)}}
+evaluated. Default is \code{seq(0.005, 0.995, by = 0.005)}. With a non-zero
+\code{margin}, \code{theta} is the pooled response probability
+\code{(r p1 + p2) / (1 + r)} on the boundary of the null hypothesis, see Details}
 
 \item{refine}{Logical. If \code{TRUE} (default), the largest local maxima on the grid
 are refined by a one-dimensional optimization between the neighbouring grid points}
+
+\item{margin}{Non-inferiority margin on the scale of the risk difference. The
+default of 0 gives a test of superiority. A value other than 0 tests the null
+hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
+\code{alternative} is \code{'greater'}, and \code{p1 - p2 >= margin} against
+\code{p1 - p2 < margin} when it is \code{'less'}. It requires
+\code{Test = 'Blackwelder'} or \code{'Farrington-Manning'}, see
+\code{\link{BinaryRR}}. A negative value tests for superiority by more than its
+absolute value. With a value other than 0 the assumed
+and the true effects are risk differences (\code{effect = 'RD'})}
 
 \item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
 of the unconditional tests is refined between the grid points, see
@@ -112,7 +127,10 @@ the fixed-sample comparator and to the exact re-estimation}
 An object of class \code{bbssr_tie}, a data frame with one row per element of
 \code{theta} containing:
 \describe{
-\item{theta}{Common response probability of the two groups}
+\item{theta}{Common response probability of the two groups, or the pooled response
+probability on the null boundary}
+\item{p1}{Response probability of group 1}
+\item{p2}{Response probability of group 2}
 \item{TIE.BSSR}{Type I error rate of the BSSR design}
 \item{TIE.TRAD}{Type I error rate of the fixed-sample design with sample sizes
 \code{N1} and \code{N2}}
@@ -124,8 +142,10 @@ responders.
 }
 \description{
 Evaluates the type I error rate of a two-arm trial with a binary endpoint and blinded
-sample size re-estimation (BSSR) over the common response probability, together with
-that of the corresponding fixed-sample design, and locates the largest value of each.
+sample size re-estimation (BSSR) over the common response probability, or over the
+pooled response probability on the boundary of a non-inferiority hypothesis, together
+with that of the corresponding fixed-sample design, and locates the largest value of
+each.
 }
 \details{
 Under the null hypothesis both groups share the response probability \code{theta}. The
@@ -139,6 +159,12 @@ for every design.
 The type I error rate is a polynomial in \code{theta}. With \code{refine = TRUE} the
 three largest local maxima on the grid are refined, so the reported maximum does not
 depend on the spacing of the grid as long as the grid separates the local maxima.
+
+With a non-inferiority \code{margin} the null hypothesis is \code{p1 - p2 <= -margin},
+or \code{p1 - p2 >= margin} for \code{alternative = 'less'}, and the type I error rate
+is evaluated on its boundary, as in Friede et al. (2007). The boundary is parametrized
+by the pooled response probability \code{theta}, and the values of \code{theta} at
+which a response probability falls outside the unit interval are dropped.
 }
 \examples{
 tie <- BinaryTypeIErrorBSSR(
@@ -164,6 +190,10 @@ study designs. \emph{Pharmaceutical Statistics}, 3(4), 269-279.
 
 Kieser M (2020). \emph{Methods and Applications of Sample Size Calculation and
 Recalculation in Clinical Trials}. Springer, Cham.
+
+Friede T, Mitchell C, Mueller-Velten G (2007). Blinded sample size reestimation in
+non-inferiority trials with binary endpoints. \emph{Biometrical Journal}, 49(6),
+903-916.
 }
 \seealso{
 \code{\link{BinaryAlphaAdjBSSR}}, \code{\link{BinaryPowerBSSR}}

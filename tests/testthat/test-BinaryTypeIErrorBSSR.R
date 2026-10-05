@@ -9,7 +9,10 @@ test_that("BinaryTypeIErrorBSSR agrees with an independent implementation on a g
   theta <- seq(0.05, 0.95, by = 0.05)
   res <- do.call(BinaryTypeIErrorBSSR, c(tie_args, list(theta = theta, refine = FALSE)))
   expect_s3_class(res, 'bbssr_tie')
-  expect_named(res, c('theta', 'TIE.BSSR', 'TIE.TRAD'))
+  expect_named(res, c('theta', 'p1', 'p2', 'TIE.BSSR', 'TIE.TRAD'))
+  # Without a margin both groups share the response probability theta
+  expect_identical(res$p1, res$theta)
+  expect_identical(res$p2, res$theta)
   bssr <- c(0.00587954153053613, 0.0200190561764609, 0.0258863223338634,
             0.0267549931177166, 0.0268501652566501, 0.0265394059647221,
             0.0264742715234961, 0.0270632673880154, 0.0272673261675163,
@@ -72,4 +75,25 @@ test_that("ref.pvalue reaches every rejection region and removes the grid excess
   # by tools/reference/reference_values.py
   expect_equal(attr(grid, 'max')$TIE[2], 0.0250058337172828, tolerance = 1e-9)
   expect_equal(attr(ref, 'max')$TIE[2], 0.023344357650963, tolerance = 1e-9)
+})
+
+test_that("BinaryTypeIErrorBSSR evaluates the boundary of a non-inferiority hypothesis", {
+  seen <- ref_pvalue_calls(tie <- BinaryTypeIErrorBSSR(
+    Delta.A = 0, N1 = 54, N2 = 54, n.interim = c(30, 30), r = 1, alpha = 0.025,
+    tar.power = 0.8, Test = 'Farrington-Manning', ss.method = 'standard',
+    rounding = 'nearest', margin = 0.2, theta = c(0.05, 0.3, 0.5, 0.7, 0.95),
+    refine = FALSE
+  ))
+  expect_gt(nrow(seen), 0)
+  expect_true(all(seen$margin == 0.2))
+  # theta = 0.05 and 0.95 put a response probability outside the unit interval
+  expect_equal(tie$theta, c(0.3, 0.5, 0.7))
+  expect_equal(tie$p1 - tie$p2, rep(-0.2, 3))
+  # Reference values from tools/reference/reference_values.py, BSSR and fixed design in
+  # turn for each value of theta
+  expect_equal(c(rbind(tie$TIE.BSSR, tie$TIE.TRAD)),
+               c(0.0263276781009502, 0.0258676571158215, 0.0245342677114993,
+                 0.0229853663986697, 0.0263276781009502, 0.0258676571158216),
+               tolerance = 1e-10)
+  expect_equal(attr(tie, 'margin'), 0.2)
 })

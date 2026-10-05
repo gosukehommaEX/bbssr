@@ -52,3 +52,16 @@ test-binary-rr.R	Z-pool 150 x 60 cell (103, 32)	1e-10	0.0304116803087155
 test-max_tail_prob_refined.R	Z-pool 150 x 60 cell (103, 32)	1e-10	0.0304116803087155
 test-binary-rr.R	Z-pool 6 x 12 sum	1e-10	55.1616136367008
 test-binary-rr.R	Boschloo 5 x 89 sum	1e-10	289.919122001934
+test-fm_restricted.R	restricted estimates	1e-09	0.222389288048392 0.372389288048392 0 0.2 1 0.9 0.3 0 0.283388372295963 0.333388372295963
+test-fm_restricted.R	large sample values	1e-06	0.670595327339649 0.770595327339649
+test-zstat_margin.R	Blackwelder 1982 examples	1e-10	1.31005615894438 0.816496580927726
+test-zstat_margin.R	Farrington-Manning cell	1e-08	-0.050332228904682
+test-binary-power.R	Farrington-Manning 1990 example	1e-08	0.81320090915784
+test-binary-power.R	Farrington-Manning 1990 Table I	1e-08	0.913399732016454 0.902410125176024 0.908496094749286
+test-binary-power.R	Blackwelder power	1e-08	0.356600952518614
+test-ss_raw_n2.R	Farrington-Manning raw n2	1e-08	203.384814904683 207.035706110068
+test-ss_raw_n2.R	Blackwelder raw n2	1e-10	154.149252312023
+test-binary-sample-size.R	exact Farrington-Manning N2	0	113 160
+test-binary-power-bssr.R	non-inferiority power and E.N	1e-10	0.792565321803051 181.159310064003
+test-binary-power-bssr.R	non-inferiority boundary	1e-10	0.0245342677114993 187.723544195855
+test-BinaryTypeIErrorBSSR.R	non-inferiority type I error	1e-10	0.0263276781009502 0.0258676571158215 0.0245342677114993 0.0229853663986697 0.0263276781009502 0.0258676571158216

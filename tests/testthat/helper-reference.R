@@ -85,16 +85,17 @@ column_run_count <- function(rr) {
   apply(rr, 2, function(v) sum(diff(c(FALSE, v)) == 1))
 }
 
-# Test and refinement flag of every call of get_pvalue() made while code is evaluated,
-# which shows whether ref.pvalue reaches each p-value matrix used by a function
+# Test, refinement flag and margin of every call of get_pvalue() made while code is
+# evaluated, which shows whether ref.pvalue and margin reach each p-value matrix used by a
+# function
 ref_pvalue_calls <- function(code) {
-  seen <- data.frame(Test = character(0), ref.pvalue = logical(0))
+  seen <- data.frame(Test = character(0), ref.pvalue = logical(0), margin = numeric(0))
   real <- get_pvalue
   testthat::local_mocked_bindings(
     get_pvalue = function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma,
-                          ref.pvalue) {
-      seen[nrow(seen) + 1L, ] <<- list(Test, ref.pvalue)
-      real(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue)
+                          ref.pvalue, margin) {
+      seen[nrow(seen) + 1L, ] <<- list(Test, ref.pvalue, margin)
+      real(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue, margin)
     }
   )
   force(code)

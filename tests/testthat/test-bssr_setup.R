@@ -1,7 +1,7 @@
 test_that("bssr_setup lists every interim cell with its final sample size", {
   map <- bssr_map(0.3, 10, 10, NULL, c(4, 3), 1, 0.025, 0.8, 'Chisq', FALSE, 'greater',
                   'minlike', 100L, 0, 'RD', 'standard', 'Chisq', 0.025, 'group', NULL,
-                  NULL, FALSE)
+                  NULL, FALSE, 0)
   st <- bssr_setup(map)
   expect_equal(length(st$x11), 5 * 4)
   expect_equal(st$x11[1:6], c(0:4, 0))

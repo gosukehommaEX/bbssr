@@ -1,8 +1,9 @@
 #' Power Calculation for Two-Arm Trials with Binary Endpoints
 #'
-#' Calculates power for two-arm trials with binary endpoints using exact statistical tests.
-#' Five tests are supported, each of which can be applied with a one-sided or a two-sided
-#' alternative, and vectors of response probabilities are accepted.
+#' Calculates the exact power for two-arm trials with binary endpoints. Seven tests are
+#' supported (see \code{\link{BinaryRR}}), each of which can be applied with a one-sided or
+#' a two-sided alternative, and two of them also test non-inferiority with a margin on the
+#' scale of the risk difference. Vectors of response probabilities are accepted.
 #'
 #' @param p1 True probability of responders for group 1 (can be a vector)
 #' @param p2 True probability of responders for group 2 (can be a vector of the same length
@@ -11,7 +12,8 @@
 #' @param N2 Sample size for group 2
 #' @param alpha Level of significance for the alternative specified by \code{alternative}
 #' @param Test Type of statistical test. Options: \code{'Chisq'}, \code{'Fisher'},
-#'   \code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}
+#'   \code{'Fisher-midP'}, \code{'Z-pool'}, \code{'Boschloo'}, \code{'Blackwelder'} or
+#'   \code{'Farrington-Manning'}
 #' @param alternative Direction of the alternative hypothesis. Options: \code{'greater'}
 #'   (default), \code{'less'} or \code{'two.sided'}
 #' @param tsmethod Convention used to construct the two-sided version of the conditional
@@ -20,6 +22,14 @@
 #'   unconditional tests. Default is 100
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure. The default of
 #'   0 disables the procedure
+#' @param margin Non-inferiority margin on the scale of the risk difference. The
+#'   default of 0 gives a test of superiority. A value other than 0 tests the null
+#'   hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
+#'   \code{alternative} is \code{'greater'}, and \code{p1 - p2 >= margin} against
+#'   \code{p1 - p2 < margin} when it is \code{'less'}. It requires
+#'   \code{Test = 'Blackwelder'} or \code{'Farrington-Manning'}, see
+#'   \code{\link{BinaryRR}}. A negative value tests for superiority by more than its
+#'   absolute value
 #' @param ref.pvalue Logical. If \code{TRUE}, the maximization over the nuisance parameter
 #'   of the unconditional tests is refined between the grid points, see
 #'   \code{\link{BinaryRR}}. Default is \code{FALSE}
@@ -63,13 +73,15 @@
 BinaryPower <- function(p1, p2, N1, N2, alpha, Test,
                         alternative = c('greater', 'less', 'two.sided'),
                         tsmethod = c('minlike', 'central'),
-                        n.grid = 100, bb.gamma = 0, ref.pvalue = FALSE) {
+                        n.grid = 100, bb.gamma = 0, margin = 0, ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   if (length(p1) != length(p2)) stop('p1 and p2 should be the same length')
   if (any(p1 < 0 | p1 > 1 | p2 < 0 | p2 > 1)) stop('p1 and p2 must lie in [0, 1]')
-  Test <- match.arg(Test, c('Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', 'Boschloo'))
-  rr <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue)
+  Test <- match.arg(Test, c('Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', 'Boschloo',
+                            'Blackwelder', 'Farrington-Manning'))
+  rr <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue,
+               margin)
   N1 <- nrow(rr) - 1L
   N2 <- ncol(rr) - 1L
   Power <- vapply(
@@ -82,6 +94,7 @@ BinaryPower <- function(p1, p2, N1, N2, alpha, Test,
     Test = Test, alternative = alternative, Power = Power,
     stringsAsFactors = FALSE
   )
+  attr(out, 'margin') <- margin
   class(out) <- c('bbssr_power', 'data.frame')
   out
 }

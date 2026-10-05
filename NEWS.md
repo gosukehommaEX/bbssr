@@ -39,6 +39,28 @@
 
 * All functions accept `alternative = 'less'`, obtained by exchanging the two groups.
 
+* Two tests of non-inferiority are added, `Test = 'Blackwelder'` (Blackwelder, 1982),
+  whose standard error uses the observed proportions, and `Test = 'Farrington-Manning'`
+  (Farrington and Manning, 1990), whose standard error uses the maximum likelihood
+  estimates under the null hypothesis. The argument `margin` of every function gives the
+  margin on the scale of the risk difference. Without a margin the two tests are tests of
+  superiority, and the Farrington-Manning test coincides with `'Chisq'`. Their rejection
+  regions, power and sample sizes are computed exactly, as for the other tests.
+
+* With a margin, the normal approximation of `method = 'standard'` is formula (4) of
+  Farrington and Manning (1990), and the new `method = 'alternative.variance'` gives the
+  formula of Blackwelder (1982). `rounding = 'nearest'` rounds each group to the nearest
+  whole number. The blinded re-estimation of Friede, Mitchell and Mueller-Velten (2007)
+  follows from `Delta.A = 0` and a margin, and `BinaryTypeIErrorBSSR()` and
+  `BinaryAlphaAdjBSSR()` evaluate the type I error rate on the boundary of the null
+  hypothesis, parametrized by the pooled response probability.
+
+* `inst/reproduce/reproduce-published.R` also reproduces Tables I and II and the first
+  example of Farrington and Manning (1990), Table 3 and the examples of Blackwelder
+  (1982), and Tables 2 and 3 and Sections 5 and 6 of Friede, Mitchell and Mueller-Velten
+  (2007). A difference from a published value counts as explained only when it is within
+  the tolerance recorded with its reason.
+
 * `ref.pvalue = TRUE` refines the maximization over the nuisance parameter of the
   Z-pooled and Boschloo tests, in every function that computes a rejection region. The
   maximum over the grid of `n.grid` points can understate the p-value, so a test can

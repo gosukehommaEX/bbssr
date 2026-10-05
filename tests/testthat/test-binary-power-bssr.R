@@ -298,5 +298,33 @@ test_that("BinaryPowerBSSR passes ref.pvalue to the analysis and the re-estimati
   expect_true(all(seen$ref.pvalue == (seen$Test == 'Z-pool')))
   expect_true(any(seen$Test == 'Chisq'))
   seen <- ref_pvalue_calls(run())
+  expect_gt(nrow(seen), 0)
   expect_false(any(seen$ref.pvalue))
+})
+
+test_that("BinaryPowerBSSR handles a non-inferiority margin", {
+  # Interim analysis of 30 per group, margin 0.2, re-estimation by the formula of
+  # Farrington and Manning with each group rounded to the nearest whole number. Reference
+  # values from tools/reference/reference_values.py
+  run <- function(p, Delta.T) {
+    BinaryPowerBSSR(p = p, Delta.A = 0, Delta.T = Delta.T, N1 = 54, N2 = 54,
+                    n.interim = c(30, 30), r = 1, alpha = 0.025, tar.power = 0.8,
+                    Test = 'Farrington-Manning', ss.method = 'standard',
+                    rounding = 'nearest', margin = 0.2)
+  }
+  seen <- ref_pvalue_calls(res <- run(0.4, 0))
+  expect_gt(nrow(seen), 0)
+  expect_true(all(seen$margin == 0.2))
+  expect_equal(attr(res, 'margin'), 0.2)
+  expect_equal(c(res$power.BSSR, res$E.N), c(0.792565321803051, 181.159310064003),
+               tolerance = 1e-10)
+  # On the null boundary the power is the type I error rate
+  res <- run(0.5, -0.2)
+  expect_equal(c(res$p1, res$p2), c(0.4, 0.6))
+  expect_equal(c(res$power.BSSR, res$E.N), c(0.0245342677114993, 187.723544195855),
+               tolerance = 1e-10)
+  expect_error(BinaryPowerBSSR(p = 0.4, Delta.A = -0.2, Delta.T = 0, N1 = 54, N2 = 54,
+                               n.interim = c(30, 30), r = 1, alpha = 0.025,
+                               tar.power = 0.8, Test = 'Farrington-Manning',
+                               ss.method = 'standard', margin = 0.2), 'exceed -margin')
 })

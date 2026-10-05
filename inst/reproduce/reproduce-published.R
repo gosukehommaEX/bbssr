@@ -1,31 +1,38 @@
 # Reproduces the published numerical results of Friede and Kieser (2004, Table I and
-# Section 5) and Kieser (2020, Example 21.1) with bbssr.
+# Section 5), Kieser (2020, Example 21.1), Farrington and Manning (1990, Tables I and II and
+# the first example), Blackwelder (1982, Table 3 and the examples) and Friede, Mitchell and
+# Mueller-Velten (2007, Tables 2 and 3 and Sections 5 and 6) with bbssr.
 # Run from the package root after devtools::load_all(). The results are written to
 # reproduce-output/: published-comparison.csv lists every published value next to the
 # recomputed value with a verdict (PASS, EXPLAINED, FAIL or INFO), and summary.md is
-# generated from it. The full run takes a few minutes.
+# generated from it. The full run takes several minutes.
 
 out.dir <- 'reproduce-output'
 dir.create(out.dir, showWarnings = FALSE)
 t.start <- Sys.time()
 cmp <- list()
-add <- function(source, item, published, recomputed, digits, note = '') {
+add <- function(source, item, published, recomputed, digits, note = '', rule = 'round') {
   cmp[[length(cmp) + 1L]] <<- data.frame(source = source, item = item,
                                          published = published, recomputed = recomputed,
-                                         digits = digits, note = note,
+                                         digits = digits, rule = rule, note = note,
                                          stringsAsFactors = FALSE)
 }
-# Discrepancies that are understood, with the reason. A row listed here is reported as
-# EXPLAINED instead of FAIL; it is never used to hide an unexpected difference
-explained <- list(
-  'Kieser 2020: fixed design, Delta = 0.30, maximum level' = paste(
-    'The range of the overall rate behind the summary statistics is not stated. Over',
-    '[0.15, 0.85] the recomputed maximum is reported; outside this range the level of the',
-    'fixed design rises to about 0.029 near p = 0.09.'),
-  'Kieser 2020: IPS design, Delta = 0.30, maximum level' = paste(
-    'Same as for the fixed design: the range of the overall rate is not stated, and the',
-    'recomputed maximum is taken over [0.15, 0.85].')
-)
+# Discrepancies that are understood. Each entry lists the items it covers, the largest
+# absolute difference from the published value that its reason accounts for, and the
+# reason. An item that does not pass is EXPLAINED only when an entry covers it and its
+# difference is within the tolerance of that entry; otherwise it is a FAIL, so an entry
+# never hides an unexpected difference
+explained <- list()
+explain <- function(items, tol, reason) {
+  explained[[length(explained) + 1L]] <<- list(items = items, tol = tol, reason = reason)
+}
+explain('Kieser 2020: fixed design, Delta = 0.30, maximum level', 1e-4, paste(
+  'The range of the overall rate behind the summary statistics is not stated. Over',
+  '[0.15, 0.85] the recomputed maximum is reported; outside this range the level of the',
+  'fixed design rises to about 0.029 near p = 0.09.'))
+explain('Kieser 2020: IPS design, Delta = 0.30, maximum level', 1e-4, paste(
+  'Same as for the fixed design: the range of the overall rate is not stated, and the',
+  'recomputed maximum is taken over [0.15, 0.85].'))
 
 # Friede and Kieser (2004), Table I -----------------------------------------------------
 # Two-sided chi-squared test at level 0.05, target power 0.8, alternative 0.2, sample size
@@ -208,20 +215,286 @@ add('Kieser (2020)', 'Kieser 2020: upper quartile of the total sample size, p = 
 add('Kieser (2020)', sprintf('Kieser 2020: interquartile range, p = %g', kS$p[c(1, 3)]),
     c(31, 7), kS$N.q75[c(1, 3)] - kS$N.q25[c(1, 3)], 0)
 
+# Farrington and Manning (1990), Tables I and II and the first example -------------------
+# One-sided level 0.05 and power 0.9 for the risk difference s0 under the null hypothesis,
+# with sample sizes from formula (4) rounded to the nearest integer. The article tests
+# p1 - p2 <= s0 and writes theta = N2 / N1, so the margin is -s0 and r = 1 / theta. The
+# true powers are computed at the published sample sizes. The published powers agree with
+# the powers without the outcome of no responders in either group, which the test rejects
+# in the settings with s0 < 0, truncated to two decimals (in per cent), except for the
+# entry p1 = 0.5, p2 = 0.1, s0 = 0.2, theta = 3/2, which lies 0.01 percentage points below
+# the recomputed power. The recomputed power leaves this outcome out and is compared after
+# truncation
+fm.src <- 'Farrington and Manning (1990)'
+fm <- data.frame(
+  p1 = rep(c(0.1, 0.2, 0.5, 0.05, 0.1, 0.25, 0.01, 0.02, 0.05), each = 3),
+  p2 = rep(c(0.1, 0.1, 0.1, 0.05, 0.05, 0.05, 0.01, 0.01, 0.01), each = 3),
+  s0 = rep(c(-0.2, -0.1, 0.2, -0.2, -0.05, 0.1, -0.2, -0.01, 0.02), each = 3),
+  theta = rep(c(2 / 3, 1, 3 / 2), times = 9),
+  N1.pub = c(63, 46, 34, 75, 57, 45, 94, 78, 67, 45, 32, 23, 168, 128, 101, 235, 197, 173,
+             26, 18, 13, 914, 695, 544, 1357, 1151, 1018),
+  N2.pub = c(42, 46, 52, 50, 57, 68, 62, 78, 101, 30, 32, 35, 112, 128, 151, 156, 197, 260,
+             18, 18, 19, 609, 695, 816, 905, 1151, 1527),
+  pw.pub = c(91.56, 91.17, 90.98, 91.25, 91.34, 91.20, 90.14, 90.60, 90.23, 88.40, 88.84,
+             90.70, 90.84, 91.36, 92.68, 90.77, 90.59, 90.65, 22.68, 16.34, 12.07, 90.75,
+             91.97, 92.63, 90.91, 90.88, 90.68) / 100
+)
+fm[c('N1', 'N2', 'power', 'power.article')] <- NA_real_
+for (i in seq_len(nrow(fm))) {
+  m <- -fm$s0[i]
+  ss <- BinarySampleSize(fm$p1[i], fm$p2[i], 1 / fm$theta[i], 0.05, 0.9,
+                         'Farrington-Manning', method = 'standard', rounding = 'nearest',
+                         margin = m)
+  fm$N1[i] <- ss$N1
+  fm$N2[i] <- ss$N2
+  n1 <- fm$N1.pub[i]
+  n2 <- fm$N2.pub[i]
+  fm$power[i] <- BinaryPower(fm$p1[i], fm$p2[i], n1, n2, 0.05, 'Farrington-Manning',
+                             margin = m)$Power
+  # The first cell of the rejection region is the outcome (0, 0)
+  rej00 <- as.vector(BinaryRR(n1, n2, 0.05, 'Farrington-Manning', margin = m))[1]
+  fm$power.article[i] <- fm$power[i] -
+    rej00 * dbinom(0, n1, fm$p1[i]) * dbinom(0, n2, fm$p2[i])
+}
+write.csv(fm, file.path(out.dir, 'farrington-manning-1990-table1.csv'), row.names = FALSE)
+fm.lab <- sprintf('FM1990 Table I: p1 = %g, p2 = %g, s0 = %g, theta = %s', fm$p1, fm$p2,
+                  fm$s0, rep(c('2/3', '1', '3/2'), times = 9))
+add(fm.src, paste0(fm.lab, ': N1'), fm$N1.pub, fm$N1, 0)
+add(fm.src, paste0(fm.lab, ': N2'), fm$N2.pub, fm$N2, 0)
+add(fm.src, paste0(fm.lab, ': true power'), fm$pw.pub, fm$power.article, 4,
+    ifelse(fm$power - fm$power.article > 5e-5,
+           sprintf('Without the outcome (0, 0); bbssr, which rejects it, gives %.4f',
+                   fm$power), ''),
+    rule = 'truncate')
+explain(paste0(fm.lab[c(5, 20)], ': true power'), 2e-5, paste(
+  'The recomputed power lies less than 0.002 percentage points below the published',
+  'value, so truncation to two decimals gives one unit less; rounding gives the',
+  'published value.'))
+# First example: p1 = 0.4, p2 = 0.05 and s0 = 0.2 with equal groups, level 0.05 and
+# power 0.8
+fm.ex <- bbssr:::fm_restricted(0.4, 0.05, 1, 0.2)
+add(fm.src, 'FM1990 example: restricted estimate of p1', 0.2935, fm.ex$p1, 4)
+add(fm.src, 'FM1990 example: restricted estimate of p2', 0.0935, fm.ex$p2, 4)
+ss <- BinarySampleSize(0.4, 0.05, 1, 0.05, 0.8, 'Farrington-Manning', method = 'standard',
+                       rounding = 'nearest', margin = -0.2)
+add(fm.src, c('FM1990 example: N1', 'FM1990 example: N2'), 80, c(ss$N1, ss$N2), 0)
+add(fm.src, 'FM1990 example: true power at N1 = N2 = 80', 0.813,
+    BinaryPower(0.4, 0.05, 80, 80, 0.05, 'Farrington-Manning', margin = -0.2)$Power, 3)
+# Table II, Method 3: the two settings with equal groups that Table I does not contain
+fm2 <- data.frame(p = c(0.05, 0.01), s0 = c(-0.1, -0.02), N.pub = c(103, 558))
+fm2[c('N1', 'N2')] <- NA_real_
+for (i in seq_len(nrow(fm2))) {
+  ss <- BinarySampleSize(fm2$p[i], fm2$p[i], 1, 0.05, 0.9, 'Farrington-Manning',
+                         method = 'standard', rounding = 'nearest', margin = -fm2$s0[i])
+  fm2$N1[i] <- ss$N1
+  fm2$N2[i] <- ss$N2
+}
+fm2.lab <- sprintf('FM1990 Table II: p1 = p2 = %g, s0 = %g, Method 3', fm2$p, fm2$s0)
+add(fm.src, paste0(fm2.lab, ': N1'), fm2$N.pub, fm2$N1, 0)
+add(fm.src, paste0(fm2.lab, ': N2'), fm2$N.pub, fm2$N2, 0)
+
+# Blackwelder (1982), Table 3 and the examples ------------------------------------------
+# The statistics use the unpooled standard error. In the examples with 30 patients per
+# group (pp. 347 and 350), the rows and columns of the p-value matrix are the numbers of
+# responders plus one. Group 1 is the standard therapy for the conventional null
+# hypothesis H0 and the experimental therapy for the null hypothesis H0' that the standard
+# therapy is better by at least delta
+bw.src <- 'Blackwelder (1982)'
+p.sup <- attr(BinaryRR(30, 30, 0.05, 'Blackwelder'), 'p.value')
+p.ni <- attr(BinaryRR(30, 30, 0.05, 'Blackwelder', margin = 0.2), 'p.value')
+add(bw.src, 'BW1982 p. 347: statistic for H0, 18 / 30 against 13 / 30', 1.31,
+    qnorm(p.sup[19, 14], lower.tail = FALSE), 2)
+add(bw.src, 'BW1982 p. 347: one-sided p-value for H0, 18 / 30 against 13 / 30', 0.095,
+    p.sup[19, 14], 3, 'The article gives about 0.095')
+add(bw.src, 'BW1982 p. 350: statistic for H0, 21 / 30 against 18 / 30', 0.816,
+    qnorm(p.sup[22, 19], lower.tail = FALSE), 3)
+add(bw.src, 'BW1982 p. 350: one-sided p-value for H0, 21 / 30 against 18 / 30', 0.21,
+    p.sup[22, 19], 2)
+add(bw.src, "BW1982 p. 350: statistic for H0' with delta = 0.2, 18 / 30 against 21 / 30",
+    -0.816, -qnorm(p.ni[19, 22], lower.tail = FALSE), 3,
+    paste('The article subtracts the experimental rate from the standard rate, the',
+          'reverse of bbssr'))
+add(bw.src, paste("BW1982 p. 350: one-sided p-value for H0' with delta = 0.2, 18 / 30",
+                  'against 21 / 30'), 0.21, p.ni[19, 22], 2)
+# Table 3: one-sided level 0.05, power 0.9 and equal groups, each rounded up. The true
+# difference is delta under H0 and ps - pe under H0'
+bw.sup <- data.frame(ps = c(0.9, 0.9, 0.6, 0.6, 0.4, 0.4),
+                     pe = c(0.8, 0.7, 0.5, 0.4, 0.3, 0.2),
+                     N.pub = c(430, 130, 840, 206, 772, 172))
+bw.sup$N <- vapply(seq_len(nrow(bw.sup)), function(i) {
+  BinarySampleSize(bw.sup$ps[i], bw.sup$pe[i], 1, 0.05, 0.9, 'Blackwelder',
+                   method = 'alternative.variance')$N
+}, numeric(1))
+bw.ni <- data.frame(ps = c(0.9, 0.9, 0.6, 0.6, 0.4, 0.4, 0.9, 0.9, 0.6, 0.6),
+                    pe = c(0.9, 0.9, 0.6, 0.6, 0.4, 0.4, 0.85, 0.8, 0.55, 0.5),
+                    delta = c(0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2),
+                    N.pub = c(310, 78, 824, 206, 824, 206, 1492, 430, 3342, 840))
+bw.ni$N <- vapply(seq_len(nrow(bw.ni)), function(i) {
+  BinarySampleSize(bw.ni$pe[i], bw.ni$ps[i], 1, 0.05, 0.9, 'Blackwelder',
+                   method = 'alternative.variance', margin = bw.ni$delta[i])$N
+}, numeric(1))
+write.csv(rbind(data.frame(hypothesis = 'H0', bw.sup[c('ps', 'pe')], delta = 0,
+                           bw.sup[c('N.pub', 'N')]),
+                data.frame(hypothesis = "H0'", bw.ni)),
+          file.path(out.dir, 'blackwelder-1982-table3.csv'), row.names = FALSE)
+add(bw.src, sprintf('BW1982 Table 3, H0: ps = %g, pe = %g: total sample size', bw.sup$ps,
+                    bw.sup$pe), bw.sup$N.pub, bw.sup$N, 0)
+bw.lab <- sprintf("BW1982 Table 3, H0': ps = %g, pe = %g, delta = %g: total sample size",
+                  bw.ni$ps, bw.ni$pe, bw.ni$delta)
+add(bw.src, bw.lab, bw.ni$N.pub, bw.ni$N, 0)
+add(bw.src, paste("BW1982 Table 3, H0': ps = 0.6, pe = 0.55, delta = 0.1: formula of the",
+                  'article with the quantiles 1.645 and 1.282'), 3342,
+    2 * ceiling((1.645 + 1.282)^2 * (0.6 * 0.4 + 0.55 * 0.45) / (0.6 - 0.55 - 0.1)^2), 0,
+    'Evaluated in this script, not by bbssr')
+explain(bw.lab[9], 2, paste(
+  'The article uses the rounded quantiles 1.645 and 1.282, with which its formula gives',
+  '3342 (next item); the exact quantiles give 3340.'))
+
+# Friede, Mitchell and Mueller-Velten (2007), Tables 2 and 3 and Sections 5 and 6 --------
+# Margin 0.1, one-sided level 0.025, target power 0.8 and assumed difference 0, with the
+# overall response rate as the nuisance parameter. Group 1 is the experimental group, and
+# the article writes q = n2 / n1, so r = 1 / q. The fixed sample sizes round the two groups
+# up separately (rounding = 'friede-kieser'). The article does not state how the
+# re-estimated sample sizes are rounded; here each group is rounded to the nearest integer
+# (rounding = 'nearest')
+fmm.src <- 'Friede et al. (2007)'
+fmm_n <- function(p, q, Test, method) {
+  BinarySampleSize(p, p, 1 / q, 0.025, 0.8, Test, method = method,
+                   rounding = 'friede-kieser', margin = 0.1)
+}
+fmm_bssr <- function(p, N1, N2, n.interim, r, Test, ss.method) {
+  BinaryPowerBSSR(p = p, Delta.A = 0, Delta.T = 0, N1 = N1, N2 = N2, n.interim = n.interim,
+                  r = r, alpha = 0.025, tar.power = 0.8, Test = Test,
+                  ss.method = ss.method, rounding = 'nearest', margin = 0.1)
+}
+# Section 5: sample sizes of formulae (1) (Blackwelder) and (2) (Farrington-Manning) quoted
+# in the text
+s5 <- data.frame(p = c(0.7, 0.7, 0.9, 0.9, 0.9, 0.9), q = c(1, 1 / 3, 1, 1 / 3, 1, 1 / 3),
+                 Test = rep(c('Blackwelder', 'Farrington-Manning'), times = c(4, 2)),
+                 N.pub = c(660, 880, 284, 378, 310, 306), stringsAsFactors = FALSE)
+s5$N <- vapply(seq_len(nrow(s5)), function(i) {
+  fmm_n(s5$p[i], s5$q[i], s5$Test[i],
+        if (s5$Test[i] == 'Blackwelder') 'alternative.variance' else 'standard')$N
+}, numeric(1))
+add(fmm.src, sprintf('FMM2007 Section 5: %s test, p = %g, q = %s: total sample size',
+                     s5$Test, s5$p, rep(c('1', '1/3'), times = 3)), s5$N.pub, s5$N, 0)
+# Table 2: Farrington-Manning test, true overall rate equal to the assumed rate and an
+# internal pilot study of half of each group of the fixed design, rounded to the nearest
+# integer
+t2 <- data.frame(pa = rep(c(0.3, 0.4, 0.5, 0.6, 0.7), each = 3),
+                 q = rep(c(1 / 3, 1 / 2, 1), times = 5),
+                 pw.fixed.pub = c(80.1, 80.2, 80.1, 80.3, 80.1, 80.4, 80.1, 79.9, 79.5,
+                                  80.2, 80.0, 80.4, 80.2, 80.1, 80.1) / 100,
+                 pw.bssr.pub = c(rep(80.0, 8), 79.5, rep(80.0, 6)) / 100,
+                 N.pub = c(928, 770, 658, 1023, 857, 750, 1035, 876, 780, 966, 825, 750,
+                           815, 707, 658),
+                 q05.pub = c(875, 717, 602, 997, 831, 720, 1018, 863, 772, 920, 786, 720,
+                             736, 641, 602),
+                 EN.pub = c(925.2, 767.3, 655.8, 1019.5, 854.5, 747.0, 1031.8, 872.9, 776.9,
+                            962.2, 822.5, 747.0, 811.7, 703.9, 655.8),
+                 q95.pub = c(971, 812, 704, 1035, 872, 768, 1039, 877, 778, 999, 852, 768,
+                             881, 761, 704))
+t2[c('N', 'pw.fixed', 'pw.bssr', 'q05', 'EN', 'q95')] <- NA_real_
+for (i in seq_len(nrow(t2))) {
+  ss <- fmm_n(t2$pa[i], t2$q[i], 'Farrington-Manning', 'standard')
+  res <- fmm_bssr(t2$pa[i], ss$N1, ss$N2, floor(c(ss$N1, ss$N2) / 2 + 0.5), 1 / t2$q[i],
+                  'Farrington-Manning', 'standard')
+  sm <- summary(res, probs = c(0.05, 0.95))
+  qs <- grep('^N\\.q', names(sm))
+  t2$N[i] <- ss$N
+  t2$pw.fixed[i] <- res$power.TRAD
+  t2$pw.bssr[i] <- res$power.BSSR
+  t2$q05[i] <- sm[1, qs[1]]
+  t2$EN[i] <- res$E.N
+  t2$q95[i] <- sm[1, qs[2]]
+}
+write.csv(t2, file.path(out.dir, 'friede-2007-table2.csv'), row.names = FALSE)
+t2.lab <- sprintf('FMM2007 Table 2: pa = %g, q = %s', t2$pa, rep(c('1/3', '1/2', '1'), 5))
+t2.it <- function(x) paste0(t2.lab, ': ', x)
+add(fmm.src, t2.it('power, fixed design'), t2$pw.fixed.pub, t2$pw.fixed, 3)
+add(fmm.src, t2.it('power, re-estimation'), t2$pw.bssr.pub, t2$pw.bssr, 3)
+add(fmm.src, t2.it('total sample size, fixed design'), t2$N.pub, t2$N, 0)
+add(fmm.src, t2.it('5% quantile of the total sample size'), t2$q05.pub, t2$q05, 0)
+add(fmm.src, t2.it('mean total sample size'), t2$EN.pub, t2$EN, 1)
+add(fmm.src, t2.it('95% quantile of the total sample size'), t2$q95.pub, t2$q95, 0)
+fmm.round <- paste(
+  'The article does not state how the re-estimated sample sizes are rounded to whole',
+  'patients. The rounding rule shifts the distribution of the total sample size by one or',
+  'two patients and the power by fractions of a percentage point; here each group is',
+  'rounded to the nearest integer.')
+explain(t2.it('power, re-estimation'), 1e-3, fmm.round)
+explain(t2.it('mean total sample size'), 0.7, fmm.round)
+explain(c(t2.it('5% quantile of the total sample size'),
+          t2.it('95% quantile of the total sample size')), 2, fmm.round)
+# Table 3: Farrington-Manning test, assumed overall rate 0.7 and true overall rate 0.42,
+# equal groups of n0 / 2 patients and an internal pilot study of n0 / 5 patients
+t3 <- data.frame(n0 = seq(400, 1000, by = 100),
+                 pw.fixed.pub = c(52.34, 62.46, 70.46, 76.67, 81.65, 86.46, 89.44) / 100,
+                 pw.bssr.pub = c(79.45, 79.55, 79.62, 79.66, 79.68, 79.72, 79.75) / 100,
+                 EN.pub = c(750.7, 752.6, 753.6, 754.4, 755.2, 755.7, 756.1),
+                 SD.pub = c(29.5, 26.1, 23.4, 21.6, 20.1, 18.8, 17.6))
+t3[c('pw.fixed', 'pw.bssr', 'EN', 'SD', 'N.max')] <- NA_real_
+for (i in seq_len(nrow(t3))) {
+  res <- fmm_bssr(0.42, t3$n0[i] / 2, t3$n0[i] / 2, rep(t3$n0[i] / 10, 2), 1,
+                  'Farrington-Manning', 'standard')
+  map <- attr(res, 'reestimation')
+  t3$pw.fixed[i] <- res$power.TRAD
+  t3$pw.bssr[i] <- res$power.BSSR
+  t3$EN[i] <- res$E.N
+  t3$SD[i] <- summary(res)$SD.N
+  t3$N.max[i] <- max(map$N1 + map$N2)
+}
+write.csv(t3, file.path(out.dir, 'friede-2007-table3.csv'), row.names = FALSE)
+t3.it <- function(x) paste0(sprintf('FMM2007 Table 3: n0 = %g', t3$n0), ': ', x)
+add(fmm.src, t3.it('power, fixed design'), t3$pw.fixed.pub, t3$pw.fixed, 4)
+add(fmm.src, t3.it('power, re-estimation'), t3$pw.bssr.pub, t3$pw.bssr, 4)
+add(fmm.src, t3.it('mean total sample size'), t3$EN.pub, t3$EN, 1)
+add(fmm.src, t3.it('standard deviation of the total sample size'), t3$SD.pub, t3$SD, 1)
+add(fmm.src, t3.it('largest total sample size'), 780, t3$N.max, 0,
+    'The caption gives 780 for all lines')
+fmm.bound <- paste(
+  'The article computes the power only to within 0.0001, as the mean of an upper and a',
+  'lower bound (Section 4).')
+explain(t3.it('power, fixed design'), 1e-4, fmm.bound)
+explain(t3.it('power, re-estimation'), 2e-4, paste(fmm.bound, fmm.round))
+explain(t3.it('mean total sample size'), 0.4, fmm.round)
+explain(t3.it('standard deviation of the total sample size'), 0.2, fmm.round)
+# Section 6: the example trial with 330 patients per group, true overall rate 0.42 and an
+# internal pilot study of 20 per cent (66 patients per group). The Blackwelder test
+# re-estimates with formula (1) and the Farrington-Manning test with formula (2)
+s6.pub <- list('Blackwelder' = c(0.745, 0.797, 759),
+               'Farrington-Manning' = c(0.749, 0.797, 754))
+for (tst in names(s6.pub)) {
+  res <- fmm_bssr(0.42, 330, 330, c(66, 66), 1, tst,
+                  if (tst == 'Blackwelder') 'alternative.variance' else 'standard')
+  s6.lab <- sprintf('FMM2007 Section 6: %s test: %s', tst,
+                    c('power, fixed design', 'power, re-estimation',
+                      'expected total sample size'))
+  add(fmm.src, s6.lab, s6.pub[[tst]], c(res$power.TRAD, res$power.BSSR, res$E.N),
+      c(3, 3, 0))
+}
+
 # Verdicts and summary -------------------------------------------------------------------
 tab <- do.call(rbind, cmp)
-tab$verdict <- ifelse(
-  is.na(tab$digits) | is.na(tab$published), 'INFO',
-  ifelse(abs(round(tab$recomputed, tab$digits) - tab$published) < 1e-9, 'PASS',
-         ifelse(tab$item %in% names(explained), 'EXPLAINED', 'FAIL'))
-)
-hit <- tab$verdict == 'EXPLAINED'
-tab$note[hit] <- unlist(explained[tab$item[hit]])
+info <- is.na(tab$digits) | is.na(tab$published)
+d <- ifelse(info, 0, tab$digits)
+shown <- ifelse(tab$rule == 'truncate', floor(tab$recomputed * 10^d + 1e-9) / 10^d,
+                round(tab$recomputed, d))
+tab$verdict <- ifelse(info, 'INFO',
+                      ifelse(abs(shown - tab$published) < 1e-9, 'PASS', 'FAIL'))
+tab$tolerance <- NA_real_
+for (e in explained) {
+  hit <- tab$verdict == 'FAIL' & tab$item %in% e$items &
+    abs(tab$recomputed - tab$published) <= e$tol + 1e-12
+  tab$verdict[hit] <- 'EXPLAINED'
+  tab$tolerance[hit] <- e$tol
+  tab$note[hit] <- e$reason
+}
 write.csv(tab, file.path(out.dir, 'published-comparison.csv'), row.names = FALSE)
 writeLines(capture.output(sessionInfo()), file.path(out.dir, 'session.txt'))
 
 counts <- table(factor(tab$verdict, levels = c('PASS', 'EXPLAINED', 'FAIL', 'INFO')))
-fmt <- function(x) ifelse(is.na(x), '', format(signif(x, 6)))
+fmt <- function(x) ifelse(is.na(x), '', formatC(x, digits = 6, format = 'g'))
 md <- c(
   '# Reproduction of published results with bbssr',
   '',
@@ -233,13 +506,27 @@ md <- c(
   sprintf('PASS: %d, EXPLAINED: %d, FAIL: %d, INFO: %d', counts[['PASS']],
           counts[['EXPLAINED']], counts[['FAIL']], counts[['INFO']]),
   '',
-  'A value passes when the recomputed value, rounded to the digits of the publication,',
-  'equals the published value.',
+  'A value passes when the recomputed value, rounded to the digits of the publication',
+  '(truncated where the publication truncates), equals the published value. A value that',
+  'does not pass is EXPLAINED when a documented reason covers it and its difference from',
+  'the published value is within the tolerance stated with the reason; otherwise it is a',
+  'FAIL.',
   '',
-  '| Verdict | Item | Published | Recomputed | Note |',
-  '|---|---|---|---|---|',
-  sprintf('| %s | %s | %s | %s | %s |', tab$verdict, tab$item, fmt(tab$published),
-          fmt(tab$recomputed), tab$note)
+  '| Verdict | Item | Published | Recomputed | Tolerance | Note |',
+  '|---|---|---|---|---|---|',
+  sprintf('| %s | %s | %s | %s | %s | %s |', tab$verdict, tab$item, fmt(tab$published),
+          fmt(tab$recomputed), fmt(tab$tolerance), tab$note)
 )
 writeLines(md, file.path(out.dir, 'summary.md'))
 print(counts)
+# Item names must be unique, and every explained item must have a comparison. This is
+# checked after the output is written, so that a mistake does not discard the results
+if (anyDuplicated(tab$item)) {
+  dup <- unique(tab$item[duplicated(tab$item)])
+  stop('duplicated items: ', paste(dup, collapse = '; '))
+}
+covered <- unlist(lapply(explained, function(e) e$items))
+if (!all(covered %in% tab$item)) {
+  stop('explained items without a comparison: ',
+       paste(setdiff(covered, tab$item), collapse = '; '))
+}

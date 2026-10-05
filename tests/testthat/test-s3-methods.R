@@ -165,3 +165,13 @@ test_that("both reference lines of the sample size plot can be moved and dropped
   expect_length(ggplot2::ggplot_build(bare)$data, 2)
   expect_identical(bare$labels$subtitle, sprintf('Selected N2 = %d', ss$N2[1]))
 })
+
+test_that("the printed output reports a non-inferiority margin", {
+  out <- utils::capture.output(print(BinaryRR(10, 10, 0.05, 'Blackwelder', margin = 0.1)))
+  expect_true(any(grepl('Margin        : 0.1', out)))
+  out <- utils::capture.output(print(BinaryRR(10, 10, 0.05, 'Blackwelder')))
+  expect_false(any(grepl('Margin', out)))
+  ss <- BinarySampleSize(0.7, 0.7, 1, 0.025, 0.8, 'Farrington-Manning',
+                         method = 'standard', margin = 0.1)
+  expect_true(any(grepl('Margin', utils::capture.output(print(ss)))))
+})

@@ -15,6 +15,7 @@ BinaryPower(
   tsmethod = c("minlike", "central"),
   n.grid = 100,
   bb.gamma = 0,
+  margin = 0,
   ref.pvalue = FALSE
 )
 }
@@ -31,7 +32,8 @@ as \code{p1})}
 \item{alpha}{Level of significance for the alternative specified by \code{alternative}}
 
 \item{Test}{Type of statistical test. Options: \code{'Chisq'}, \code{'Fisher'},
-\code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}}
+\code{'Fisher-midP'}, \code{'Z-pool'}, \code{'Boschloo'}, \code{'Blackwelder'} or
+\code{'Farrington-Manning'}}
 
 \item{alternative}{Direction of the alternative hypothesis. Options: \code{'greater'}
 (default), \code{'less'} or \code{'two.sided'}}
@@ -44,6 +46,15 @@ unconditional tests. Default is 100}
 
 \item{bb.gamma}{Confidence level parameter of the Berger-Boos procedure. The default of
 0 disables the procedure}
+
+\item{margin}{Non-inferiority margin on the scale of the risk difference. The
+default of 0 gives a test of superiority. A value other than 0 tests the null
+hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
+\code{alternative} is \code{'greater'}, and \code{p1 - p2 >= margin} against
+\code{p1 - p2 < margin} when it is \code{'less'}. It requires
+\code{Test = 'Blackwelder'} or \code{'Farrington-Manning'}, see
+\code{\link{BinaryRR}}. A negative value tests for superiority by more than its
+absolute value}
 
 \item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
 of the unconditional tests is refined between the grid points, see
@@ -64,9 +75,10 @@ An object of class \code{bbssr_power}, a data frame with one row per element of
 }
 }
 \description{
-Calculates power for two-arm trials with binary endpoints using exact statistical tests.
-Five tests are supported, each of which can be applied with a one-sided or a two-sided
-alternative, and vectors of response probabilities are accepted.
+Calculates the exact power for two-arm trials with binary endpoints. Seven tests are
+supported (see \code{\link{BinaryRR}}), each of which can be applied with a one-sided or
+a two-sided alternative, and two of them also test non-inferiority with a margin on the
+scale of the risk difference. Vectors of response probabilities are accepted.
 }
 \details{
 The power is obtained by summing the joint probability mass function of the two

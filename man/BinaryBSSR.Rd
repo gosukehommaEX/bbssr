@@ -21,12 +21,13 @@ BinaryBSSR(
   n.grid = 100,
   bb.gamma = 0,
   effect = c("RD", "RR", "OR"),
-  ss.method = c("exact", "standard", "null.variance"),
+  ss.method = c("exact", "standard", "null.variance", "alternative.variance"),
   ss.Test = Test,
   ss.alpha = alpha,
-  rounding = c("group", "friede-kieser", "total"),
+  rounding = c("group", "friede-kieser", "total", "nearest"),
   N.min = NULL,
   N.max = NULL,
+  margin = 0,
   ref.pvalue = FALSE
 )
 }
@@ -50,7 +51,8 @@ by \code{alternative}}
 \item{tar.power}{Target power}
 
 \item{Test}{Type of statistical test of the final analysis. Options: \code{'Chisq'},
-\code{'Fisher'}, \code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}}
+\code{'Fisher'}, \code{'Fisher-midP'}, \code{'Z-pool'}, \code{'Boschloo'},
+\code{'Blackwelder'} or \code{'Farrington-Manning'}}
 
 \item{restricted}{Logical. If \code{TRUE}, the re-estimated sample size is not allowed
 to fall below the planned sample size given by \code{N1} and \code{N2}. Default is
@@ -78,8 +80,8 @@ unconditional tests. Default is 100}
 \code{'OR'}, as in \code{\link{BinaryPowerBSSR}}}
 
 \item{ss.method}{How the sample size is re-estimated. Options: \code{'exact'}
-(default), \code{'standard'} or \code{'null.variance'}, as in
-\code{\link{BinarySampleSize}}}
+(default), \code{'standard'}, \code{'null.variance'} or
+\code{'alternative.variance'}, as in \code{\link{BinarySampleSize}}}
 
 \item{ss.Test}{Test whose exact power is used for the re-estimation when
 \code{ss.method = 'exact'}. Default is \code{Test}}
@@ -88,13 +90,23 @@ unconditional tests. Default is 100}
 \code{alpha}}
 
 \item{rounding}{How the re-estimated sample size is turned into whole numbers. Options:
-\code{'group'} (default), \code{'friede-kieser'} or \code{'total'}, as in
-\code{\link{BinaryPowerBSSR}}}
+\code{'group'} (default), \code{'friede-kieser'}, \code{'total'} or \code{'nearest'},
+as in \code{\link{BinaryPowerBSSR}}}
 
 \item{N.min}{Lower bound on the final total sample size, or \code{NULL} (default). It
 can be used to keep the patients who are already enrolled but not yet evaluated}
 
 \item{N.max}{Upper bound on the final total sample size, or \code{NULL} (default)}
+
+\item{margin}{Non-inferiority margin on the scale of the risk difference. The
+default of 0 gives a test of superiority. A value other than 0 tests the null
+hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
+\code{alternative} is \code{'greater'}, and \code{p1 - p2 >= margin} against
+\code{p1 - p2 < margin} when it is \code{'less'}. It requires
+\code{Test = 'Blackwelder'} or \code{'Farrington-Manning'}, see
+\code{\link{BinaryRR}}. A negative value tests for superiority by more than its
+absolute value. With a value other than 0 the assumed
+and the true effects are risk differences (\code{effect = 'RD'})}
 
 \item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
 of the unconditional tests is refined between the grid points, see

@@ -107,7 +107,7 @@ test_that("the lower-tail alternative mirrors the upper-tail one", {
 
 test_that("the normal methods, the rounding rules and the bounds are applied", {
   res <- BinaryBSSR(20, 20, 11, 0.3, 1, 0.025, 0.8, 'Chisq', ss.method = 'standard')
-  n2 <- ss_raw_n2(res$hat.p1, res$hat.p2, 1, 0.025, 0.8, 'greater', 'standard')
+  n2 <- ss_raw_n2(res$hat.p1, res$hat.p2, 1, 0.025, 0.8, 'greater', 'standard', 0)
   expect_equal(res$N2.re, ceil_tol(n2))
   capped <- BinaryBSSR(20, 20, 11, 0.3, 1, 0.025, 0.8, 'Chisq', ss.method = 'standard',
                        N.max = 50)
@@ -136,5 +136,20 @@ test_that("BinaryBSSR passes ref.pvalue to the re-estimation and the final analy
   res <- BinaryBSSR(10, 10, 9, 0.3, 1, 0.025, 0.8, 'Boschloo', ref.pvalue = TRUE)
   expect_true(attr(res, 'ref.pvalue'))
   seen <- ref_pvalue_calls(BinaryBSSR(10, 10, 9, 0.3, 1, 0.025, 0.8, 'Boschloo'))
+  expect_gt(nrow(seen), 0)
   expect_false(any(seen$ref.pvalue))
+})
+
+test_that("BinaryBSSR re-estimates under a non-inferiority margin", {
+  res <- BinaryBSSR(30, 30, 24, 0, 1, 0.025, 0.8, 'Farrington-Manning',
+                    ss.method = 'standard', rounding = 'nearest', margin = 0.2)
+  n2 <- ss_raw_n2(0.4, 0.4, 1, 0.025, 0.8, 'greater', 'standard', 0.2)
+  expect_equal(c(res$N1.final, res$N2.final), rep(max(30, floor(n2 + 0.5)), 2))
+  expect_equal(attr(res, 'margin'), 0.2)
+  expect_error(BinaryBSSR(30, 30, 24, -0.2, 1, 0.025, 0.8, 'Farrington-Manning',
+                          ss.method = 'standard', margin = 0.2), 'exceed -margin')
+  seen <- ref_pvalue_calls(BinaryBSSR(30, 30, 24, 0, 1, 0.025, 0.8, 'Farrington-Manning',
+                                      margin = 0.2))
+  expect_gt(nrow(seen), 1)
+  expect_true(all(seen$margin == 0.2))
 })

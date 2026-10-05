@@ -26,7 +26,8 @@
 #'   \item{max.TIE}{Largest type I error rate at the nominal level \code{alpha}}
 #'   \item{alpha.adj}{Adjusted nominal level}
 #'   \item{max.TIE.adj}{Largest type I error rate at the adjusted level}
-#'   \item{theta.adj}{Common response probability at which \code{max.TIE.adj} occurs}
+#'   \item{theta.adj}{Common response probability, or pooled response probability on the
+#'     null boundary, at which \code{max.TIE.adj} occurs}
 #' }
 #'
 #' @details
@@ -76,13 +77,14 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
                                tsmethod = c('minlike', 'central'),
                                n.grid = 100, bb.gamma = 0,
                                effect = c('RD', 'RR', 'OR'),
-                               ss.method = c('exact', 'standard', 'null.variance'),
+                               ss.method = c('exact', 'standard', 'null.variance',
+                                             'alternative.variance'),
                                ss.Test = Test, ss.alpha = alpha,
-                               rounding = c('group', 'friede-kieser', 'total'),
+                               rounding = c('group', 'friede-kieser', 'total', 'nearest'),
                                N.min = NULL, N.max = NULL, n.interim = NULL,
                                theta = seq(0.005, 0.995, by = 0.005),
                                adjust = c('test', 'both'), tol = 1e-8, step = 1e-5,
-                               ref.pvalue = FALSE) {
+                               margin = 0, ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
@@ -97,12 +99,21 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
     stop('step must be a single value in (0, alpha)')
   }
   theta <- sort(unique(theta))
-  Test <- check_rr_args(N1, N2, alpha, Test, n.grid, bb.gamma, ref.pvalue)$Test
+  Test <- check_rr_args(N1, N2, alpha, Test, n.grid, bb.gamma, ref.pvalue, alternative,
+                        margin)$Test
+  # Response probabilities on the boundary of the null hypothesis, which are both theta
+  # when the margin is 0
+  ok <- null_boundary(theta, r, alternative, margin)$ok
+  if (!any(ok)) {
+    stop('no value of theta gives response probabilities in [0, 1] on the null boundary')
+  }
+  theta <- theta[ok]
   # p-values of a rejection region, from which the region at any level follows
   pvalues <- function(n1, n2) {
-    a <- check_rr_args(n1, n2, alpha, Test, n.grid, bb.gamma, ref.pvalue)
+    a <- check_rr_args(n1, n2, alpha, Test, n.grid, bb.gamma, ref.pvalue, alternative,
+                       margin)
     get_pvalue(a$N1, a$N2, a$Test, alternative, tsmethod, a$n.grid, bb.gamma,
-               a$ref.pvalue)
+               a$ref.pvalue, a$margin)
   }
   # Largest type I error rate over theta of a design whose rejection regions are given
   max_tie <- function(f) refine_max(f, theta, f(theta))
@@ -131,8 +142,10 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   make_trad <- function(level) {
     rr <- pv.fixed %<<% level
     function(t) {
-      vapply(t, function(u) power_from_rr(rr, dbinom(0:N1, N1, u), dbinom(0:N2, N2, u)),
-             numeric(1))
+      b <- null_boundary(t, r, alternative, margin)
+      vapply(seq_along(t), function(i) {
+        power_from_rr(rr, dbinom(0:N1, N1, b$p1[i]), dbinom(0:N2, N2, b$p2[i]))
+      }, numeric(1))
     }
   }
   res.trad <- bisect(make_trad)
@@ -140,14 +153,18 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   design_at <- function(level.ss) {
     map <- bssr_map(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Test,
                     restricted, alternative, tsmethod, n.grid, bb.gamma, effect,
-                    ss.method, ss.Test, level.ss, rounding, N.min, N.max, ref.pvalue)
+                    ss.method, ss.Test, level.ss, rounding, N.min, N.max, ref.pvalue,
+                    margin)
     setup <- bssr_setup(map)
     pv.list <- lapply(seq_along(setup$N1), function(k) pvalues(setup$N1[k], setup$N2[k]))
     list(setup = setup, pv.list = pv.list)
   }
   make_bssr <- function(d, level) {
     rr.list <- lapply(d$pv.list, function(m) m %<<% level)
-    function(t) bssr_reject(d$setup, rr.list, t, t)
+    function(t) {
+      b <- null_boundary(t, r, alternative, margin)
+      bssr_reject(d$setup, rr.list, b$p1, b$p2)
+    }
   }
   if (adjust == 'test') {
     d <- design_at(ss.alpha)
@@ -180,6 +197,7 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   attr(out, 'Delta.A') <- Delta.A
   attr(out, 'effect') <- effect
   attr(out, 'ss.method') <- ss.method
+  attr(out, 'margin') <- margin
   attr(out, 'ref.pvalue') <- ref.pvalue
   class(out) <- c('bbssr_alphaadj', 'data.frame')
   out

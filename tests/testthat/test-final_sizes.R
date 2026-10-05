@@ -44,3 +44,13 @@ test_that("the total rule rounds the total and splits it", {
   expect_identical(fin$N1 + fin$N2, c(313L, 158L))
   expect_identical(fin$N2, c(156L, 79L))
 })
+
+test_that("final_sizes rounds each group to the nearest whole number under 'nearest'", {
+  re <- re_of(c(50, 101.2, 30), c(34L, 68L, 20L), c(17L, 34L, 10L))
+  fin <- final_sizes(re, 30, 15, 2, 'nearest', FALSE, NULL, NULL, NULL, NULL)
+  expect_equal(fin$N1, c(33L, 67L, 30L))
+  expect_equal(fin$N2, c(17L, 34L, 15L))
+  fin <- final_sizes(re, 30, 15, 2, 'nearest', FALSE, NULL, NULL, NULL, 60)
+  expect_equal(fin$N1, c(33L, 40L, 30L))
+  expect_equal(fin$N2, c(17L, 20L, 15L))
+})

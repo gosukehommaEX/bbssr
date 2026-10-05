@@ -19,15 +19,19 @@
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
 #' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the
 #'   unconditional tests is refined between the grid points
+#' @param margin Non-inferiority margin on the scale of the risk difference, 0 for a test
+#'   of superiority
 #'
 #' @return A numeric matrix of dimension \code{(N1 + 1)} by \code{(N2 + 1)}
 #'
 #' @keywords internal
 #' @noRd
 #' @importFrom stats pnorm
-rr_pvalue <- function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue) {
+rr_pvalue <- function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue,
+                      margin) {
   if (alternative == 'less') {
-    return(t(rr_pvalue(N2, N1, Test, 'greater', tsmethod, n.grid, bb.gamma, ref.pvalue)))
+    return(t(rr_pvalue(N2, N1, Test, 'greater', tsmethod, n.grid, bb.gamma, ref.pvalue,
+                       margin)))
   }
   if (Test == 'Chisq') {
     Z <- zstat(N1, N2)
@@ -40,6 +44,14 @@ rr_pvalue <- function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref
     fisher_pvalue(N1, N2, alternative, tsmethod, midp = FALSE)
   } else if (Test == 'Fisher-midP') {
     fisher_pvalue(N1, N2, alternative, tsmethod, midp = TRUE)
+  } else if (Test %in% c('Blackwelder', 'Farrington-Manning')) {
+    se <- if (Test == 'Blackwelder') 'unpooled' else 'restricted'
+    Z <- zstat_margin(N1, N2, margin, se)
+    if (alternative == 'greater') {
+      pnorm(Z, lower.tail = FALSE)
+    } else {
+      pmin(2 * pnorm(abs(Z), lower.tail = FALSE), 1)
+    }
   } else if (Test == 'Z-pool') {
     Z <- zstat(N1, N2)
     stat <- if (alternative == 'greater') Z else abs(Z)

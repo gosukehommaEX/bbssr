@@ -82,3 +82,30 @@ test_that("BinaryPower passes ref.pvalue to the p-value computation", {
   ref <- BinaryPower(0.45, 0.45, 32, 32, 0.025, 'Z-pool', ref.pvalue = TRUE)$Power
   expect_lt(ref, grid)
 })
+
+test_that("the power of the Farrington-Manning test reproduces the article", {
+  # Example of Farrington and Manning (1990): p1 = 0.4, p2 = 0.05, s0 = 0.2 and 80 patients
+  # per group give a true power of 81.3 per cent (p. 1451)
+  pw <- BinaryPower(0.4, 0.05, 80, 80, 0.05, 'Farrington-Manning', margin = -0.2)$Power
+  expect_equal(round(100 * pw, 1), 81.3)
+  expect_equal(pw, 0.81320090915784, tolerance = 1e-8)
+  # Table I: p1 = 0.2, p2 = 0.1, s0 = -0.1 with 57 per group (91.34), p1 = 0.5, p2 = 0.1,
+  # s0 = 0.2 with 67 and 101 (90.23), and p1 = 0.1, p2 = 0.05, s0 = -0.05 with 168 and 112
+  # (90.84). The exact values come from tools/reference/reference_values.py
+  fm <- function(p1, p2, N1, N2, margin) {
+    BinaryPower(p1, p2, N1, N2, 0.05, 'Farrington-Manning', margin = margin)$Power
+  }
+  pw <- c(fm(0.2, 0.1, 57, 57, 0.1), fm(0.5, 0.1, 67, 101, -0.2),
+          fm(0.1, 0.05, 168, 112, 0.05))
+  expect_equal(round(100 * pw, 1), round(c(91.34, 90.23, 90.84), 1))
+  expect_equal(pw, c(0.913399732016454, 0.902410125176024, 0.908496094749286),
+               tolerance = 1e-8)
+})
+
+test_that("BinaryPower passes the margin to the p-value computation", {
+  seen <- ref_pvalue_calls(pw <- BinaryPower(0.65, 0.7, 120, 100, 0.025, 'Blackwelder',
+                                             margin = 0.15))
+  expect_equal(seen$margin, 0.15)
+  expect_equal(pw$Power, 0.356600952518614, tolerance = 1e-8)
+  expect_equal(attr(pw, 'margin'), 0.15)
+})

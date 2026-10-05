@@ -21,13 +21,14 @@ BinaryPowerBSSR(
   n.grid = 100,
   bb.gamma = 0,
   effect = c("RD", "RR", "OR"),
-  ss.method = c("exact", "standard", "null.variance"),
+  ss.method = c("exact", "standard", "null.variance", "alternative.variance"),
   ss.Test = Test,
   ss.alpha = alpha,
-  rounding = c("group", "friede-kieser", "total"),
+  rounding = c("group", "friede-kieser", "total", "nearest"),
   N.min = NULL,
   N.max = NULL,
   n.interim = NULL,
+  margin = 0,
   ref.pvalue = FALSE
 )
 }
@@ -56,7 +57,8 @@ by \code{alternative}}
 \item{tar.power}{Target power}
 
 \item{Test}{Type of statistical test of the final analysis. Options: \code{'Chisq'},
-\code{'Fisher'}, \code{'Fisher-midP'}, \code{'Z-pool'}, or \code{'Boschloo'}}
+\code{'Fisher'}, \code{'Fisher-midP'}, \code{'Z-pool'}, \code{'Boschloo'},
+\code{'Blackwelder'} or \code{'Farrington-Manning'}}
 
 \item{restricted}{Logical. If \code{TRUE}, the re-estimated sample size is not allowed
 to fall below the initial sample size. Default is \code{FALSE}}
@@ -78,8 +80,8 @@ unconditional tests. Default is 100}
 \code{p1 / p2} or \code{'OR'} for the odds ratio}
 
 \item{ss.method}{How the sample size is re-estimated from the recovered proportions.
-Options: \code{'exact'} (default), \code{'standard'} or \code{'null.variance'}, as in
-\code{\link{BinarySampleSize}}}
+Options: \code{'exact'} (default), \code{'standard'}, \code{'null.variance'} or
+\code{'alternative.variance'}, as in \code{\link{BinarySampleSize}}}
 
 \item{ss.Test}{Test whose exact power is used for the re-estimation when
 \code{ss.method = 'exact'}. Default is \code{Test}}
@@ -88,8 +90,9 @@ Options: \code{'exact'} (default), \code{'standard'} or \code{'null.variance'}, 
 \code{alpha}}
 
 \item{rounding}{How the re-estimated sample size is turned into whole numbers.
-Options: \code{'group'} (default), \code{'friede-kieser'} or \code{'total'}. Only
-\code{'group'} is available with \code{ss.method = 'exact'}. See Details}
+Options: \code{'group'} (default), \code{'friede-kieser'}, \code{'total'} or
+\code{'nearest'}. Only \code{'group'} is available with \code{ss.method = 'exact'}.
+See Details}
 
 \item{N.min}{Lower bound on the final total sample size, or \code{NULL} (default) for
 none beyond the interim total. It can be used to keep the patients who are already
@@ -100,6 +103,16 @@ none}
 
 \item{n.interim}{Interim sample sizes of group 1 and group 2, as a vector of length
 two. An alternative to \code{omega}}
+
+\item{margin}{Non-inferiority margin on the scale of the risk difference. The
+default of 0 gives a test of superiority. A value other than 0 tests the null
+hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
+\code{alternative} is \code{'greater'}, and \code{p1 - p2 >= margin} against
+\code{p1 - p2 < margin} when it is \code{'less'}. It requires
+\code{Test = 'Blackwelder'} or \code{'Farrington-Manning'}, see
+\code{\link{BinaryRR}}. A negative value tests for superiority by more than its
+absolute value. With a value other than 0 the assumed
+and the true effects are risk differences (\code{effect = 'RD'})}
 
 \item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
 of the unconditional tests is refined between the grid points, see
@@ -127,9 +140,10 @@ the final sample size.
 \description{
 Calculates the power of a two-arm trial with a binary endpoint when blinded sample size
 re-estimation (BSSR) is implemented, together with the power of the corresponding
-fixed-sample design, the expected final sample size and its distribution. Five exact
-tests are supported, each of which can be applied with a one-sided or a two-sided
-alternative, under either a restricted or an unrestricted design rule.
+fixed-sample design, the expected final sample size and its distribution. Seven tests
+are supported (see \code{\link{BinaryRR}}), each of which can be applied with a
+one-sided or a two-sided alternative, under either a restricted or an unrestricted design
+rule.
 }
 \details{
 At the interim analysis the pooled number of responders is observed without unblinding.
@@ -156,7 +170,10 @@ unrounded re-estimated total over the interim total, split into
 Kieser (2004). Under \code{rounding = 'total'} the unrounded total is rounded up and
 group 2 receives \code{floor(N / (1 + r))} patients. In each case the final total is
 kept between the interim total (or \code{N.min}, or the initial total under the
-restricted rule) and \code{N.max}. The argument \code{N1} enters only through the
+restricted rule) and \code{N.max}. Under \code{rounding = 'nearest'} the unrounded
+total is split in the ratio \code{r} to 1 and each group is rounded to the nearest
+whole number, which reproduces the computations of Friede et al. (2007). The argument
+\code{N1} enters only through the
 fixed-sample comparator and the restricted rule, and under \code{rounding = 'group'} a
 warning is issued when it is not \code{ceiling(r N2)}.
 
@@ -168,6 +185,14 @@ Setting \code{Delta.T} to the null value (0 for the risk difference, 1 for a rat
 makes the two groups identical, so \code{power.BSSR} and \code{power.TRAD} become
 rejection probabilities under the null hypothesis. \code{\link{BinaryTypeIErrorBSSR}}
 evaluates them over the unit interval and locates the maximum.
+
+With a non-inferiority \code{margin}, the design of Friede et al. (2007) is obtained.
+The assumed effect \code{Delta.A} is usually 0, which recovers the pooled proportion
+for both groups, the sample size is re-estimated by the formula of Farrington and
+Manning (\code{ss.method = 'standard'}) or of Blackwelder
+(\code{ss.method = 'alternative.variance'}), and \code{Delta.T = -margin} (or
+\code{margin} for \code{alternative = 'less'}) gives the rejection probability on the
+boundary of the null hypothesis.
 }
 \examples{
 # Small BSSR calculation with the chi-squared test
@@ -198,6 +223,14 @@ BinaryPowerBSSR(
   alpha = 0.025, tar.power = 0.8, Test = 'Boschloo',
   ss.method = 'standard', N.max = 120
 )
+
+# Non-inferiority with a margin of 0.1, as in Friede et al. (2007)
+BinaryPowerBSSR(
+  p = c(0.5, 0.7), Delta.A = 0, Delta.T = 0,
+  N1 = 329, N2 = 329, n.interim = c(66, 66), r = 1,
+  alpha = 0.025, tar.power = 0.8, Test = 'Farrington-Manning',
+  ss.method = 'standard', rounding = 'nearest', margin = 0.1
+)
 }
 
 }
@@ -207,6 +240,10 @@ study designs. \emph{Pharmaceutical Statistics}, 3(4), 269-279.
 
 Kieser M (2020). \emph{Methods and Applications of Sample Size Calculation and
 Recalculation in Clinical Trials}. Springer, Cham.
+
+Friede T, Mitchell C, Mueller-Velten G (2007). Blinded sample size reestimation in
+non-inferiority trials with binary endpoints. \emph{Biometrical Journal}, 49(6),
+903-916.
 }
 \seealso{
 \code{\link{BinaryTypeIErrorBSSR}}, \code{\link{BinaryAlphaAdjBSSR}},

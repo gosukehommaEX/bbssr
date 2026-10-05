@@ -257,3 +257,51 @@ test_that("BinaryRR passes ref.pvalue to the p-value computation", {
   seen <- ref_pvalue_calls(BinaryRR(8, 6, 0.05, 'Boschloo'))
   expect_equal(seen$ref.pvalue, FALSE)
 })
+
+test_that("the Blackwelder test reproduces the example of Blackwelder (1982)", {
+  # 18 of 30 responders with the experimental and 21 of 30 with the standard therapy give
+  # a one-sided p-value of 0.21 for a difference of 0.2 (p. 350)
+  p <- attr(BinaryRR(30, 30, 0.05, 'Blackwelder', margin = 0.2), 'p.value')
+  expect_equal(round(p[19, 22], 2), 0.21)
+  expect_equal(p[19, 22], stats::pnorm(0.816496580927726, lower.tail = FALSE),
+               tolerance = 1e-10)
+})
+
+test_that("a margin is tested in the direction of the alternative", {
+  for (tst in c('Blackwelder', 'Farrington-Manning')) {
+    less <- attr(BinaryRR(14, 11, 0.05, tst, alternative = 'less', margin = 0.1),
+                 'p.value')
+    greater <- attr(BinaryRR(11, 14, 0.05, tst, margin = 0.1), 'p.value')
+    expect_equal(less, t(greater), info = tst)
+  }
+  # Under 'less', H0: p1 - p2 >= margin is rejected for small p1 - p2. The p-value of 4 / 14
+  # against 6 / 11 from the Blackwelder statistic written out directly
+  pl <- attr(BinaryRR(14, 11, 0.05, 'Blackwelder', alternative = 'less', margin = 0.1),
+             'p.value')
+  se <- sqrt((4 / 14) * (10 / 14) / 14 + (6 / 11) * (5 / 11) / 11)
+  expect_equal(pl[5, 7], pnorm((4 / 14 - 6 / 11 - 0.1) / se), tolerance = 1e-12)
+  # The Farrington-Manning test without a margin is the chi-squared test
+  expect_identical(as_plain(BinaryRR(15, 12, 0.025, 'Farrington-Manning')),
+                   as_plain(BinaryRR(15, 12, 0.025, 'Chisq')))
+  # A larger margin rejects more outcomes under the Blackwelder test, whose standard
+  # error does not depend on the margin
+  a <- as_plain(BinaryRR(20, 20, 0.025, 'Blackwelder', margin = 0.1))
+  b <- as_plain(BinaryRR(20, 20, 0.025, 'Blackwelder', margin = 0.2))
+  expect_true(all(b[a]))
+  expect_gt(sum(b), sum(a))
+})
+
+test_that("a non-zero margin needs a non-inferiority test and a one-sided alternative", {
+  expect_error(BinaryRR(10, 10, 0.05, 'Chisq', margin = 0.1), 'Blackwelder')
+  expect_error(BinaryRR(10, 10, 0.05, 'Blackwelder', alternative = 'two.sided',
+                        margin = 0.1), 'one-sided')
+  expect_error(BinaryRR(10, 10, 0.05, 'Blackwelder', margin = 1), 'margin')
+  expect_equal(attr(BinaryRR(10, 10, 0.05, 'Blackwelder', margin = 0.1), 'margin'), 0.1)
+})
+
+test_that("BinaryRR passes the margin to the p-value computation", {
+  seen <- ref_pvalue_calls(BinaryRR(8, 6, 0.05, 'Farrington-Manning', margin = 0.15))
+  expect_equal(seen$margin, 0.15)
+  seen <- ref_pvalue_calls(BinaryRR(8, 6, 0.05, 'Farrington-Manning'))
+  expect_equal(seen$margin, 0)
+})

@@ -1,7 +1,7 @@
 test_that("bssr_map agrees with BinaryBSSR for every interim total", {
   map <- bssr_map(0.3, 12, 12, 0.5, NULL, 1, 0.025, 0.8, 'Chisq', FALSE, 'greater',
                   'minlike', 100L, 0, 'RD', 'exact', 'Chisq', 0.025, 'group', NULL, NULL,
-                  FALSE)
+                  FALSE, 0)
   expect_equal(attr(map, 'n11'), 6L)
   expect_equal(attr(map, 'n12'), 6L)
   expect_equal(map$s, 0:12)
@@ -18,7 +18,8 @@ test_that("n.interim and omega describe the same interim analysis", {
                Test = 'Chisq', restricted = FALSE, alternative = 'greater',
                tsmethod = 'minlike', n.grid = 100L, bb.gamma = 0, effect = 'RD',
                ss.method = 'standard', ss.Test = 'Chisq', ss.alpha = 0.025,
-               rounding = 'group', N.min = NULL, N.max = NULL)
+               rounding = 'group', N.min = NULL, N.max = NULL, ref.pvalue = FALSE,
+               margin = 0)
   a <- do.call(bssr_map, c(args, list(omega = 0.5, n.interim = NULL)))
   b <- do.call(bssr_map, c(args, list(omega = NULL, n.interim = c(10, 5))))
   expect_identical(a, b)
@@ -33,5 +34,5 @@ test_that("n.interim and omega describe the same interim analysis", {
 test_that("bssr_map rejects an exact re-estimation with another rounding rule", {
   expect_error(bssr_map(0.3, 12, 12, 0.5, NULL, 1, 0.025, 0.8, 'Chisq', FALSE, 'greater',
                         'minlike', 100L, 0, 'RD', 'exact', 'Chisq', 0.025, 'total', NULL,
-                        NULL, FALSE), 'rounding')
+                        NULL, FALSE, 0), 'rounding')
 })

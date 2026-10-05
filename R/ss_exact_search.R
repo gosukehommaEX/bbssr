@@ -24,6 +24,9 @@
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
 #' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the
 #'   unconditional tests is refined between the grid points
+#' @param margin Non-inferiority margin on the scale of the risk difference, 0 for a test
+#'   of superiority. With a margin other than 0 the search starts from
+#'   the formula of Farrington and Manning (1990)
 #'
 #' @return An integer vector of sizes of group 2
 #'
@@ -32,7 +35,7 @@
 #' @import fpCompare
 #' @importFrom stats qnorm dbinom
 ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod,
-                            n.grid, bb.gamma, ref.pvalue) {
+                            n.grid, bb.gamma, ref.pvalue, margin) {
   store <- new.env(parent = emptyenv())
   # Rejection region at a given size of group 2, obtained once per search
   rr_at <- function(N2) {
@@ -40,7 +43,7 @@ ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsme
     hit <- store[[key]]
     if (is.null(hit)) {
       hit <- get_rr(ceiling(r * N2), N2, alpha, Test, alternative, tsmethod, n.grid,
-                    bb.gamma, ref.pvalue)
+                    bb.gamma, ref.pvalue, margin)
       assign(key, hit, envir = store)
     }
     hit
@@ -58,6 +61,9 @@ ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsme
     (qnorm(alpha.eff) * sqrt(p * (1 - p)) +
        qnorm(1 - tar.power) * sqrt((p1 * (1 - p1) / r + p2 * (1 - p2)) / (1 + 1 / r))) ^ 2
   )
+  if (margin != 0) {
+    init.N2 <- ss_raw_n2(p1, p2, r, alpha, tar.power, alternative, 'standard', margin)
+  }
   out <- integer(length(p1))
   for (k in seq_along(p1)) {
     # Step 1 (power calculation given the initial sample size)

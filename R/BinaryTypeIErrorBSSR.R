@@ -1,19 +1,26 @@
 #' Type I Error Rate of a Blinded Sample Size Re-estimation Design
 #'
 #' Evaluates the type I error rate of a two-arm trial with a binary endpoint and blinded
-#' sample size re-estimation (BSSR) over the common response probability, together with
-#' that of the corresponding fixed-sample design, and locates the largest value of each.
+#' sample size re-estimation (BSSR) over the common response probability, or over the
+#' pooled response probability on the boundary of a non-inferiority hypothesis, together
+#' with that of the corresponding fixed-sample design, and locates the largest value of
+#' each.
 #'
 #' @inheritParams BinaryPowerBSSR
 #' @param theta Grid of common response probabilities at which the type I error rate is
-#'   evaluated. Default is \code{seq(0.005, 0.995, by = 0.005)}
+#'   evaluated. Default is \code{seq(0.005, 0.995, by = 0.005)}. With a non-zero
+#'   \code{margin}, \code{theta} is the pooled response probability
+#'   \code{(r p1 + p2) / (1 + r)} on the boundary of the null hypothesis, see Details
 #' @param refine Logical. If \code{TRUE} (default), the largest local maxima on the grid
 #'   are refined by a one-dimensional optimization between the neighbouring grid points
 #'
 #' @return An object of class \code{bbssr_tie}, a data frame with one row per element of
 #'   \code{theta} containing:
 #' \describe{
-#'   \item{theta}{Common response probability of the two groups}
+#'   \item{theta}{Common response probability of the two groups, or the pooled response
+#'     probability on the null boundary}
+#'   \item{p1}{Response probability of group 1}
+#'   \item{p2}{Response probability of group 2}
 #'   \item{TIE.BSSR}{Type I error rate of the BSSR design}
 #'   \item{TIE.TRAD}{Type I error rate of the fixed-sample design with sample sizes
 #'     \code{N1} and \code{N2}}
@@ -36,12 +43,22 @@
 #' three largest local maxima on the grid are refined, so the reported maximum does not
 #' depend on the spacing of the grid as long as the grid separates the local maxima.
 #'
+#' With a non-inferiority \code{margin} the null hypothesis is \code{p1 - p2 <= -margin},
+#' or \code{p1 - p2 >= margin} for \code{alternative = 'less'}, and the type I error rate
+#' is evaluated on its boundary, as in Friede et al. (2007). The boundary is parametrized
+#' by the pooled response probability \code{theta}, and the values of \code{theta} at
+#' which a response probability falls outside the unit interval are dropped.
+#'
 #' @references
 #' Friede T, Kieser M (2004). Sample size recalculation for binary data in internal pilot
 #' study designs. \emph{Pharmaceutical Statistics}, 3(4), 269-279.
 #'
 #' Kieser M (2020). \emph{Methods and Applications of Sample Size Calculation and
 #' Recalculation in Clinical Trials}. Springer, Cham.
+#'
+#' Friede T, Mitchell C, Mueller-Velten G (2007). Blinded sample size reestimation in
+#' non-inferiority trials with binary endpoints. \emph{Biometrical Journal}, 49(6),
+#' 903-916.
 #'
 #' @examples
 #' tie <- BinaryTypeIErrorBSSR(
@@ -70,12 +87,14 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
                                  tsmethod = c('minlike', 'central'),
                                  n.grid = 100, bb.gamma = 0,
                                  effect = c('RD', 'RR', 'OR'),
-                                 ss.method = c('exact', 'standard', 'null.variance'),
+                                 ss.method = c('exact', 'standard', 'null.variance',
+                                               'alternative.variance'),
                                  ss.Test = Test, ss.alpha = alpha,
-                                 rounding = c('group', 'friede-kieser', 'total'),
+                                 rounding = c('group', 'friede-kieser', 'total',
+                                              'nearest'),
                                  N.min = NULL, N.max = NULL, n.interim = NULL,
                                  theta = seq(0.005, 0.995, by = 0.005), refine = TRUE,
-                                 ref.pvalue = FALSE) {
+                                 margin = 0, ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
@@ -87,18 +106,30 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   theta <- sort(unique(theta))
   map <- bssr_map(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Test,
                   restricted, alternative, tsmethod, n.grid, bb.gamma, effect,
-                  ss.method, ss.Test, ss.alpha, rounding, N.min, N.max, ref.pvalue)
+                  ss.method, ss.Test, ss.alpha, rounding, N.min, N.max, ref.pvalue,
+                  margin)
+  # Response probabilities on the boundary of the null hypothesis, which are both theta
+  # when the margin is 0
+  if (!any(null_boundary(theta, r, alternative, margin)$ok)) {
+    stop('no value of theta gives response probabilities in [0, 1] on the null boundary')
+  }
+  theta <- theta[null_boundary(theta, r, alternative, margin)$ok]
   setup <- bssr_setup(map)
   rr.list <- lapply(seq_along(setup$N1), function(k) {
     get_rr(setup$N1[k], setup$N2[k], alpha, Test, alternative, tsmethod, n.grid, bb.gamma,
-           ref.pvalue)
+           ref.pvalue, margin)
   })
   rr.fixed <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma,
-                     ref.pvalue)
-  f.bssr <- function(t) bssr_reject(setup, rr.list, t, t)
+                     ref.pvalue, margin)
+  f.bssr <- function(t) {
+    b <- null_boundary(t, r, alternative, margin)
+    bssr_reject(setup, rr.list, b$p1, b$p2)
+  }
   f.trad <- function(t) {
-    vapply(t, function(u) power_from_rr(rr.fixed, dbinom(0:N1, N1, u), dbinom(0:N2, N2, u)),
-           numeric(1))
+    b <- null_boundary(t, r, alternative, margin)
+    vapply(seq_along(t), function(i) {
+      power_from_rr(rr.fixed, dbinom(0:N1, N1, b$p1[i]), dbinom(0:N2, N2, b$p2[i]))
+    }, numeric(1))
   }
   tie.bssr <- f.bssr(theta)
   tie.trad <- f.trad(theta)
@@ -109,7 +140,9 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
     m.bssr <- list(x = theta[which.max(tie.bssr)], y = max(tie.bssr))
     m.trad <- list(x = theta[which.max(tie.trad)], y = max(tie.trad))
   }
-  out <- data.frame(theta = theta, TIE.BSSR = tie.bssr, TIE.TRAD = tie.trad)
+  b <- null_boundary(theta, r, alternative, margin)
+  out <- data.frame(theta = theta, p1 = b$p1, p2 = b$p2, TIE.BSSR = tie.bssr,
+                    TIE.TRAD = tie.trad)
   attr(out, 'max') <- data.frame(Design = c('BSSR', 'TRAD'),
                                  theta = c(m.bssr$x, m.trad$x),
                                  TIE = c(m.bssr$y, m.trad$y),
@@ -127,6 +160,7 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   attr(out, 'effect') <- effect
   attr(out, 'ss.method') <- ss.method
   attr(out, 'refine') <- refine
+  attr(out, 'margin') <- margin
   attr(out, 'ref.pvalue') <- ref.pvalue
   attr(out, 'reestimation') <- map
   class(out) <- c('bbssr_tie', 'data.frame')

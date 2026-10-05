@@ -57,7 +57,11 @@ plot.bbssr_tie <- function(x, main = NULL, sub = NULL, xlab = NULL, ylab = NULL,
       title = resolve_label(main, sprintf('Type I error rate, %s test', attr(x, 'Test'))),
       subtitle = resolve_label(sub, sprintf('Dashed line at the nominal level of %s',
                                             format(alpha))),
-      x = resolve_label(xlab, 'Common response probability'),
+      x = resolve_label(xlab, if (isTRUE(attr(x, 'margin') != 0)) {
+        'Pooled response probability on the null boundary'
+      } else {
+        'Common response probability'
+      }),
       y = resolve_label(ylab, 'Type I error rate'),
       colour = resolve_label(legend.title, 'Design')
     ) +

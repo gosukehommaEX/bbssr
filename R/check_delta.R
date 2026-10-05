@@ -2,19 +2,40 @@
 #'
 #' Internal helper checking that an assumed treatment effect is a single value on the
 #' scale given by \code{effect}, that it differs from the value under the null hypothesis
-#' and that its direction agrees with \code{alternative}.
+#' and that its direction agrees with \code{alternative}. With a non-inferiority margin
+#' the null value is \code{-margin} for \code{'greater'} and \code{margin} for
+#' \code{'less'}, and only the risk difference and one-sided alternatives are allowed.
 #'
 #' @param Delta Treatment effect
 #' @param effect \code{'RD'}, \code{'RR'} or \code{'OR'}
 #' @param alternative \code{'greater'}, \code{'less'} or \code{'two.sided'}
 #' @param name Name of the argument, used in the error messages
+#' @param margin Non-inferiority margin on the scale of the risk difference, 0 for a test
+#'   of superiority
 #'
 #' @return \code{NULL}, invisibly
 #'
 #' @keywords internal
 #' @noRd
-check_delta <- function(Delta, effect, alternative, name = 'Delta.A') {
+check_delta <- function(Delta, effect, alternative, name = 'Delta.A', margin) {
   if (length(Delta) != 1 || is.na(Delta)) stop(name, ' must be a single value')
+  if (length(margin) != 1 || !is.numeric(margin) || is.na(margin) || abs(margin) >= 1) {
+    stop('margin must be a single value in (-1, 1)')
+  }
+  if (margin != 0) {
+    if (effect != 'RD') stop("a non-zero margin requires effect = 'RD'")
+    if (alternative == 'two.sided') {
+      stop('a non-zero margin requires a one-sided alternative')
+    }
+    if (abs(Delta) >= 1) stop(name, ' must lie in (-1, 1) for a risk difference')
+    if (alternative == 'greater' && !(Delta > -margin)) {
+      stop(name, " must exceed -margin when alternative is 'greater'")
+    }
+    if (alternative == 'less' && !(Delta < margin)) {
+      stop(name, " must fall below margin when alternative is 'less'")
+    }
+    return(invisible(NULL))
+  }
   if (effect == 'RD') {
     null <- 0
     if (abs(Delta) >= 1) stop(name, ' must lie in (-1, 1) for a risk difference')

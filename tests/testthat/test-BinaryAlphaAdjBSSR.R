@@ -51,5 +51,21 @@ test_that("BinaryAlphaAdjBSSR passes ref.pvalue to every p-value computation", {
   expect_true(all(seen$ref.pvalue))
   expect_true(attr(res, 'ref.pvalue'))
   seen <- ref_pvalue_calls(run())
+  expect_gt(nrow(seen), 0)
   expect_false(any(seen$ref.pvalue))
+})
+
+test_that("BinaryAlphaAdjBSSR evaluates the boundary of a non-inferiority hypothesis", {
+  seen <- ref_pvalue_calls(res <- BinaryAlphaAdjBSSR(
+    Delta.A = 0, N1 = 54, N2 = 54, n.interim = c(30, 30), r = 1, alpha = 0.025,
+    tar.power = 0.8, Test = 'Farrington-Manning', ss.method = 'standard',
+    rounding = 'nearest', margin = 0.2, theta = c(0.3, 0.5, 0.7)
+  ))
+  expect_gt(nrow(seen), 0)
+  expect_true(all(seen$margin == 0.2))
+  # The largest rates are at least those at the grid points, see
+  # test-BinaryTypeIErrorBSSR.R, and the adjusted levels control them
+  expect_true(all(res$max.TIE >= c(0.0263276781009502, 0.0258676571158215) - 1e-12))
+  expect_true(all(res$max.TIE.adj <= 0.025))
+  expect_equal(attr(res, 'margin'), 0.2)
 })

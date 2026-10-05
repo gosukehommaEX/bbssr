@@ -2,16 +2,21 @@
 # tools/output/run-checks.txt, which is read back during development.
 # Open bbssr.Rproj so that the working directory is the package root, then run
 #   source('tools/run-checks.R')
-# for the quick run (documentation, timing of the load_all() build, reproduction of
-# published results and unit tests), or
+# for the quick run (documentation, timing of the load_all() build and unit tests),
+#   reproduce <- TRUE; source('tools/run-checks.R')
+# to add the reproduction of published results, or
 #   full.check <- TRUE; source('tools/run-checks.R')
-# to add the timing of an optimized installed build and R CMD check, which take most of
-# the time. The flag is removed when the script starts, so the next run is quick again.
+# to run everything, including the timing of an optimized installed build and R CMD
+# check. The flags are removed when the script starts, so the next run is quick again.
 # The script needs no other object from an earlier session.
 
-run.full <- exists('full.check', envir = globalenv()) &&
-  isTRUE(get('full.check', envir = globalenv()))
-if (exists('full.check', envir = globalenv())) rm('full.check', envir = globalenv())
+flag <- function(name) {
+  on <- exists(name, envir = globalenv()) && isTRUE(get(name, envir = globalenv()))
+  if (exists(name, envir = globalenv())) rm(list = name, envir = globalenv())
+  on
+}
+run.full <- flag('full.check')
+run.reproduce <- flag('reproduce') || run.full
 out.dir <- file.path('tools', 'output')
 dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
 report <- character(0)
@@ -23,7 +28,8 @@ note <- function(...) {
   writeLines(report, file.path(out.dir, 'run-checks.txt'), useBytes = TRUE)
 }
 note('run-checks started ', format(Sys.time(), '%Y-%m-%d %H:%M:%S'),
-     if (run.full) ' (full run)' else ' (quick run, without R CMD check)')
+     if (run.full) ' (full run)' else if (run.reproduce) ' (quick run with reproduction)'
+     else ' (quick run)')
 
 devtools::document()
 devtools::load_all()
@@ -71,7 +77,7 @@ if (is.numeric(opt)) {
 }
 
 # Reproduction of published results, written to reproduce-output/
-rep.res <- tryCatch({
+rep.res <- if (!run.reproduce) 'skipped' else tryCatch({
   source(file.path('inst', 'reproduce', 'reproduce-published.R'), local = new.env())
   tab <- utils::read.csv(file.path('reproduce-output', 'published-comparison.csv'))
   counts <- table(factor(tab$verdict, levels = c('PASS', 'EXPLAINED', 'FAIL', 'INFO')))

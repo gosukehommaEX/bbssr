@@ -423,6 +423,165 @@ def block_refined():
          certified_pvalues(fisher_upper(5, 89), 5, 89, False).sum())
 
 
+# ---------------------------------------------------------------------------------------
+# Non-inferiority tests of Blackwelder (1982) and Farrington and Manning (1990)
+def restricted_mle(x1, n1, x2, n2, s0):
+    """Maximum likelihood estimates under p1 - p2 = s0, by bisection on the score.
+
+    The log likelihood is concave in p1 on the admissible interval, so its derivative is
+    decreasing and its sign change is found by bisection. This shares nothing with the
+    closed form of the package."""
+    x1, x2 = np.broadcast_arrays(np.asarray(x1, float), np.asarray(x2, float))
+    lo = np.full(x1.shape, max(0.0, s0)); hi = np.full(x1.shape, min(1.0, 1.0 + s0))
+    def score(t):
+        t2 = t - s0
+        with np.errstate(divide="ignore", invalid="ignore"):
+            a = np.where(x1 > 0, x1 / t, 0.0) - np.where(n1 - x1 > 0, (n1 - x1) / (1 - t), 0.0)
+            b = np.where(x2 > 0, x2 / t2, 0.0) - np.where(n2 - x2 > 0, (n2 - x2) / (1 - t2), 0.0)
+        return a + b
+    for _ in range(200):
+        mid = 0.5 * (lo + hi)
+        sc = score(mid)
+        lo = np.where(sc > 0, mid, lo); hi = np.where(sc > 0, hi, mid)
+    t = 0.5 * (lo + hi)
+    return t, t - s0
+
+
+def large_sample_restricted(p1, p2, theta, s0):
+    """Large sample values: the restricted estimates with expected counts p1 and theta p2."""
+    t1, t2 = restricted_mle(np.asarray(p1) * 1e6, 1e6, np.asarray(p2) * theta * 1e6, theta * 1e6, s0)
+    return float(t1), float(t2)
+
+
+@lru_cache(maxsize=None)
+def ni_pvalues(N1, N2, test, margin):
+    x1 = np.arange(N1 + 1)[:, None]; x2 = np.arange(N2 + 1)[None, :]
+    h1, h2 = x1 / N1, x2 / N2
+    num = h1 - h2 + margin + 0 * x2
+    if test == "Blackwelder":
+        var = h1 * (1 - h1) / N1 + h2 * (1 - h2) / N2
+    else:
+        t1, t2 = restricted_mle(x1 + 0 * x2, N1, x2 + 0 * x1, N2, -margin)
+        var = t1 * (1 - t1) / N1 + t2 * (1 - t2) / N2
+    var = var + 0 * num
+    with np.errstate(divide="ignore", invalid="ignore"):
+        z = np.where(var > 0, num / np.sqrt(np.where(var > 0, var, 1.0)),
+                     np.where(num == 0, 0.0, np.sign(num) * np.inf))
+    return norm.sf(z)
+
+
+def ni_reject(N1, N2, test, margin, alpha):
+    return ni_pvalues(N1, N2, test, margin) < alpha - TOL
+
+
+def ni_power(p1, p2, N1, N2, test, margin, alpha):
+    R = ni_reject(N1, N2, test, margin, alpha).astype(float)
+    return binom.pmf(np.arange(N1 + 1), N1, p1) @ R @ binom.pmf(np.arange(N2 + 1), N2, p2)
+
+
+def ni_raw_n2(p1, p2, r, alpha, tp, margin, method):
+    """Unrounded size of group 2, alternative 'greater'."""
+    za, zb = norm.ppf(1 - alpha), norm.ppf(tp)
+    t1, t2 = large_sample_restricted(min(1, max(0, p1)), min(1, max(0, p2)), 1 / r, -margin)
+    v0 = t1 * (1 - t1) / r + t2 * (1 - t2)
+    v1 = max(p1 * (1 - p1), 0) / r + max(p2 * (1 - p2), 0)
+    if method == "null.variance":
+        v1 = v0
+    if method == "alternative.variance":
+        v0 = v1
+    return (za * math.sqrt(v0) + zb * math.sqrt(v1)) ** 2 / (p1 - p2 + margin) ** 2
+
+
+def ni_exact_n2(p1, p2, r, alpha, tp, test, margin):
+    pa = lambda n2: ni_power(p1, p2, math.ceil(r * n2), n2, test, margin, alpha)
+    ge = lambda a, b: a - b > -TOL
+    lt = lambda a, b: b - a > TOL
+    n2 = max(1, math.ceil(ni_raw_n2(p1, p2, r, alpha, tp, margin, "standard")))
+    P = pa(n2)
+    if ge(P, tp):
+        while ge(P, tp) and n2 > 1:
+            n2 -= 1
+            P = pa(n2)
+        if lt(P, tp):
+            n2 += 1
+    else:
+        while lt(P, tp):
+            n2 += 1
+            P = pa(n2)
+    return n2
+
+
+def ni_bssr(n11, n12, r, DA, margin, alpha, tp, test, method, p1, p2):
+    """Unrestricted design, nearest rounding of each group, power and expected size."""
+    n = n11 + n12
+    sizes = {}
+    for s in range(n + 1):
+        ph = s / n
+        a, b = ph + DA / (1 + r), ph - r * DA / (1 + r)
+        n2 = ni_raw_n2(a, b, r, alpha, tp, margin, method)
+        tot = max(n, (1 + r) * n2)
+        sizes[s] = (max(n11, math.floor(r * tot / (1 + r) + 0.5)), max(n12, math.floor(tot / (1 + r) + 0.5)))
+    w1 = binom.pmf(np.arange(n11 + 1), n11, p1); w2 = binom.pmf(np.arange(n12 + 1), n12, p2)
+    power = 0.0
+    for x11 in range(n11 + 1):
+        for x12 in range(n12 + 1):
+            N1, N2 = sizes[x11 + x12]; m1, m2 = N1 - n11, N2 - n12
+            R = ni_reject(N1, N2, test, margin, alpha)[x11:x11 + m1 + 1, x12:x12 + m2 + 1]
+            power += w1[x11] * w2[x12] * (binom.pmf(np.arange(m1 + 1), m1, p1) @ R.astype(float)
+                                           @ binom.pmf(np.arange(m2 + 1), m2, p2))
+    ps = interim_total_pmf(n11, n12, p1, p2)
+    EN = float(ps @ np.array([sum(sizes[s]) for s in range(n + 1)]))
+    return power, EN, sizes
+
+
+def block_ni():
+    f = "test-fm_restricted.R"
+    cases = [(3, 12, 7, 20, -0.15), (0, 18, 0, 18, -0.2), (12, 12, 20, 20, 0.1), (5, 10, 0, 15, 0.3),
+             (8, 25, 9, 30, -0.05)]
+    vals = []
+    for x1, n1, x2, n2, s0 in cases:
+        t1, t2 = restricted_mle(x1, n1, x2, n2, s0)
+        vals += [float(t1), float(t2)]
+    # Estimates on the boundary of the admissible range are 0 up to the bisection error
+    vals = [0.0 if abs(v) < 1e-12 else v for v in vals]
+    emit(f, "restricted estimates", vals, rtol=1e-9)
+    emit(f, "large sample values", large_sample_restricted(0.7, 0.7, 1 / 3, -0.1), rtol=1e-6)
+    f = "test-zstat_margin.R"
+    z1 = (13 / 30 - 18 / 30 + 0) / math.sqrt((13 / 30) * (17 / 30) / 30 + 0.6 * 0.4 / 30)
+    z2 = (18 / 30 - 21 / 30 + 0.2) / math.sqrt(0.6 * 0.4 / 30 + 0.7 * 0.3 / 30)
+    emit(f, "Blackwelder 1982 examples", [-z1, z2])
+    t1, t2 = restricted_mle(9, 25, 14, 30, -0.1)
+    emit(f, "Farrington-Manning cell", (9 / 25 - 14 / 30 + 0.1) / math.sqrt(t1 * (1 - t1) / 25 + t2 * (1 - t2) / 30),
+         rtol=1e-8)
+    f = "test-binary-power.R"
+    emit(f, "Farrington-Manning 1990 example", ni_power(0.4, 0.05, 80, 80, "FM", -0.2, 0.05), rtol=1e-8)
+    emit(f, "Farrington-Manning 1990 Table I", [ni_power(0.2, 0.1, 57, 57, "FM", 0.1, 0.05),
+                                                ni_power(0.5, 0.1, 67, 101, "FM", -0.2, 0.05),
+                                                ni_power(0.1, 0.05, 168, 112, "FM", 0.05, 0.05)], rtol=1e-8)
+    emit(f, "Blackwelder power", ni_power(0.65, 0.7, 120, 100, "Blackwelder", 0.15, 0.025), rtol=1e-8)
+    f = "test-ss_raw_n2.R"
+    emit(f, "Farrington-Manning raw n2", [ni_raw_n2(0.7, 0.7, 3, 0.025, 0.8, 0.1, "standard"),
+                                          ni_raw_n2(0.3, 0.25, 0.5, 0.05, 0.9, 0.1, "null.variance")],
+         rtol=1e-8)
+    emit(f, "Blackwelder raw n2", ni_raw_n2(0.9, 0.9, 1, 0.05, 0.9, 0.1, "alternative.variance"), rtol=1e-10)
+    f = "test-binary-sample-size.R"
+    emit(f, "exact Farrington-Manning N2", [ni_exact_n2(0.8, 0.8, 1, 0.025, 0.8, "FM", 0.15),
+                                            ni_exact_n2(0.6, 0.65, 2, 0.025, 0.9, "Blackwelder", 0.2)],
+         rtol=0)
+    f = "test-binary-power-bssr.R"
+    pw, EN, _ = ni_bssr(30, 30, 1, 0, 0.2, 0.025, 0.8, "FM", "standard", 0.4, 0.4)
+    pw0, EN0, _ = ni_bssr(30, 30, 1, 0, 0.2, 0.025, 0.8, "FM", "standard", 0.4, 0.6)
+    emit(f, "non-inferiority power and E.N", [pw, EN])
+    emit(f, "non-inferiority boundary", [pw0, EN0])
+    f = "test-BinaryTypeIErrorBSSR.R"
+    tie = []
+    for th in (0.3, 0.5, 0.7):
+        a, b = th - 0.2 / 2, th + 0.2 / 2
+        tie.append(ni_bssr(30, 30, 1, 0, 0.2, 0.025, 0.8, "FM", "standard", a, b)[0])
+        tie.append(ni_power(a, b, 54, 54, "FM", 0.2, 0.025))
+    emit(f, "non-inferiority type I error", tie)
+
+
 if __name__ == "__main__":
     print("# test file\tkey\trelative tolerance\tvalues (15 significant digits)")
     block_split_pooled()
@@ -430,3 +589,4 @@ if __name__ == "__main__":
     block_type1()
     block_bssr_exact()
     block_refined()
+    block_ni()
