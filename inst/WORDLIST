@@ -25,6 +25,7 @@ Clopper
 CMD
 CRP
 crp
+DD
 doi
 EMA
 frac
@@ -56,11 +57,13 @@ README
 reestimation
 reproducibly
 responders
+RL
 roxygen
 RR
 sim
 Statistica
 substack
+tb
 tfrac
 tsmethod
 unblinding
