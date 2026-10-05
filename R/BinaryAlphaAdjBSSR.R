@@ -49,6 +49,12 @@
 #' size at every step and can take much longer than the bisection. The fixed-sample design
 #' always uses the bisection, since its sample size does not depend on the level.
 #'
+#' In both searches the type I error rate at a new level is first evaluated at the single
+#' grid point where the largest rate of the last level that failed was found. If it
+#' exceeds \code{alpha} there, the level fails without the evaluation over the whole grid
+#' and the refinement. The largest rate over \code{theta} is never below the rate at a
+#' grid point, so every decision, and hence the result, is that of the full evaluation.
+#'
 #' @references
 #' Kieser M, Friede T (2000). Re-calculating the sample size in internal pilot study
 #' designs with control of the type I error rate. \emph{Statistics in Medicine}, 19(7),
@@ -115,24 +121,39 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
     get_pvalue(a$N1, a$N2, a$Test, alternative, tsmethod, a$n.grid, bb.gamma,
                a$ref.pvalue, a$margin)
   }
-  # Largest type I error rate over theta of a design whose rejection regions are given
-  max_tie <- function(f) refine_max(f, theta, f(theta))
+  # Largest type I error rate over theta of a design whose rejection regions are given.
+  # With a probe, the index of a grid point, the rate is first evaluated there, and a
+  # value above alpha is returned at once: the largest rate is at least this value, so the
+  # level fails either way. Otherwise the grid is evaluated in full, and the grid point of
+  # the largest rate is returned as the next probe
+  max_tie <- function(f, probe = NULL) {
+    if (!is.null(probe)) {
+      v <- f(theta[probe])
+      if (isTRUE(v > alpha)) return(list(x = theta[probe], y = v, probe = probe))
+    }
+    y <- f(theta)
+    m <- refine_max(f, theta, y)
+    m$probe <- which.max(y)
+    m
+  }
   # Bisection over the level for designs whose sample sizes do not depend on the level
   bisect <- function(make_f) {
     m <- max_tie(make_f(alpha))
     m0 <- m
     if (m$y <= alpha) return(list(level = alpha, m0 = m0, m = m))
+    probe <- m$probe
     lo <- 0
     hi <- alpha
     m.lo <- list(x = NA_real_, y = 0)
     while (hi - lo > tol * alpha) {
       mid <- (lo + hi) / 2
-      m <- max_tie(make_f(mid))
+      m <- max_tie(make_f(mid), probe)
       if (m$y <= alpha) {
         lo <- mid
         m.lo <- m
       } else {
         hi <- mid
+        probe <- m$probe
       }
     }
     list(level = lo, m0 = m0, m = m.lo)
@@ -176,7 +197,7 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
     while (m$y > alpha) {
       level <- level - step
       if (level <= 0) stop('no level above zero controls the type I error rate')
-      m <- max_tie(make_bssr(design_at(level), level))
+      m <- max_tie(make_bssr(design_at(level), level), m$probe)
     }
     res.bssr <- list(level = level, m0 = m0, m = m)
   }

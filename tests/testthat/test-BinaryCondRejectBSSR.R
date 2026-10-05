@@ -77,8 +77,10 @@ test_that("the decomposition by s adds up to the type I error rate", {
   expect_equal(tie$theta, c(0.2, 0.5))
   expect_named(by.s, c('theta', 's', 'N1', 'N2', 'prob.s', 'TIE.s', 'contribution'))
   expect_equal(nrow(by.s), 2 * 13)
-  expect_equal(unname(tapply(by.s$prob.s, by.s$theta, sum)), c(1, 1), tolerance = 1e-14)
-  expect_equal(unname(tapply(by.s$contribution, by.s$theta, sum)), tie$TIE,
+  # tapply() returns a one-dimensional array, so its values are compared as a vector
+  expect_equal(as.vector(tapply(by.s$prob.s, by.s$theta, sum)), c(1, 1),
+               tolerance = 1e-14)
+  expect_equal(as.vector(tapply(by.s$contribution, by.s$theta, sum)), tie$TIE,
                tolerance = 1e-14)
   expect_true(all(by.s$TIE.s >= 0 & by.s$TIE.s <= 1))
   expect_equal(tie$TIE, c(0.0108006327232362, 0.0158076801034762), tolerance = 1e-10)
@@ -111,9 +113,11 @@ test_that("ref.pvalue reaches every rejection region and the margin is 0", {
   expect_true(attr(res, 'ref.pvalue'))
 })
 
-test_that("BinaryCondRejectBSSR validates theta and takes no margin", {
+test_that("BinaryCondRejectBSSR validates theta and accepts only a margin of 0", {
   expect_error(do.call(BinaryCondRejectBSSR, c(crp_args, list(theta = c(0.2, 1.2)))),
                'theta')
   expect_error(do.call(BinaryCondRejectBSSR, c(crp_args, list(margin = 0.1))),
-               'unused argument')
+               'margin must be 0')
+  expect_identical(do.call(BinaryCondRejectBSSR, c(crp_args, list(margin = 0))),
+                   do.call(BinaryCondRejectBSSR, crp_args))
 })

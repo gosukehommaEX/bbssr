@@ -14,6 +14,21 @@ test_that("BinaryAlphaAdjBSSR agrees with an independent implementation", {
   expect_true(all(res$max.TIE.adj <= 0.025))
 })
 
+test_that("a failing level is recognised at one grid point without the full evaluation", {
+  full <- 0
+  real <- refine_max
+  local_mocked_bindings(refine_max = function(f, x, y, ...) {
+    full <<- full + 1
+    real(f, x, y, ...)
+  })
+  res <- do.call(BinaryAlphaAdjBSSR, adj_args)
+  # Each bisection halves an interval of width alpha until it is at most 1e-8 alpha, which
+  # takes 27 steps, so without the probe the grid would be evaluated 2 x (1 + 27) times
+  expect_gt(full, 2)
+  expect_lt(full, 2 * (1 + 27))
+  expect_equal(res$alpha.adj, c(0.0204375745496, 0.0207700483967), tolerance = 1e-7)
+})
+
 test_that("the adjusted level controls the type I error rate", {
   res <- do.call(BinaryAlphaAdjBSSR, adj_args)
   tie <- do.call(BinaryTypeIErrorBSSR,

@@ -261,10 +261,16 @@ fm.lab <- sprintf('FM1990 Table I: p1 = %g, p2 = %g, s0 = %g, theta = %s', fm$p1
                   fm$s0, rep(c('2/3', '1', '3/2'), times = 9))
 add(fm.src, paste0(fm.lab, ': N1'), fm$N1.pub, fm$N1, 0)
 add(fm.src, paste0(fm.lab, ': N2'), fm$N2.pub, fm$N2, 0)
-add(fm.src, paste0(fm.lab, ': true power'), fm$pw.pub, fm$power.article, 4,
-    ifelse(fm$power - fm$power.article > 5e-5,
-           sprintf('Without the outcome (0, 0); bbssr, which rejects it, gives %.4f',
-                   fm$power), ''),
+fm.note <- ifelse(fm$power - fm$power.article > 5e-5,
+                  sprintf(paste('Without the outcome (0, 0); bbssr, which rejects it,',
+                                'gives %.4f'), fm$power), '')
+# The entry that is not reproduced stays a FAIL, since no reason has been found
+fm.note[fm$p1 == 0.5 & fm$p2 == 0.1 & abs(fm$theta - 1.5) < 1e-12] <- paste(
+  'Not reproduced, cause not identified. An independent implementation with numpy and',
+  'scipy gives the same 0.90241. Neighbouring sample sizes (66 to 68 and 100 to 102),',
+  'the critical value 1.645, exchanged groups and single-precision arithmetic do not',
+  'give the published value.')
+add(fm.src, paste0(fm.lab, ': true power'), fm$pw.pub, fm$power.article, 4, fm.note,
     rule = 'truncate')
 explain(paste0(fm.lab[c(5, 20)], ': true power'), 2e-5, paste(
   'The recomputed power lies less than 0.002 percentage points below the published',

@@ -169,6 +169,12 @@ lowered from \code{alpha} in steps of \code{step} until the type I error rate is
 controlled. This search re-estimates the sample
 size at every step and can take much longer than the bisection. The fixed-sample design
 always uses the bisection, since its sample size does not depend on the level.
+
+In both searches the type I error rate at a new level is first evaluated at the single
+grid point where the largest rate of the last level that failed was found. If it
+exceeds \code{alpha} there, the level fails without the evaluation over the whole grid
+and the refinement. The largest rate over \code{theta} is never below the rate at a
+grid point, so every decision, and hence the result, is that of the full evaluation.
 }
 \examples{
 \donttest{

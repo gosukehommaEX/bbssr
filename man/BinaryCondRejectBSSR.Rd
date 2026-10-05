@@ -27,6 +27,7 @@ BinaryCondRejectBSSR(
   N.max = NULL,
   n.interim = NULL,
   theta = NULL,
+  margin = 0,
   ref.pvalue = FALSE
 )
 }
@@ -101,6 +102,10 @@ two. An alternative to \code{omega}}
 \item{theta}{Optional vector of common response probabilities at which the type I
 error rate is decomposed by the pooled number of interim responders. Default is
 \code{NULL}, which skips the decomposition}
+
+\item{margin}{Must be 0, the default, since only tests of superiority are covered (see
+Details). The argument keeps the arguments the same as those of
+\code{\link{BinaryTypeIErrorBSSR}}}
 
 \item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
 of the unconditional tests is refined between the grid points, see

@@ -105,6 +105,13 @@
 
 ## Performance
 
+* `BinaryAlphaAdjBSSR()` evaluates the type I error rate at a new level first at the grid
+  point where the largest rate of the last failing level was found, and rejects the
+  level at once if the rate exceeds the target level there. The largest rate over the
+  grid is at least this value, so the adjusted levels are unchanged, and the evaluation
+  over the whole grid and its refinement are spared for most failing levels, which
+  matters most with `adjust = 'both'`.
+
 * The exact sample size search of the re-estimation runs once for all recovered pairs of
   proportions and obtains the rejection region of each candidate sample size only once,
   so the per-call overhead of `BinarySampleSize()` is paid once per candidate size rather

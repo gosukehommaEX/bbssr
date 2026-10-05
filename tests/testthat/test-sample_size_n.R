@@ -9,11 +9,13 @@ test_that("the exact method reproduces BinarySampleSize", {
 
 test_that("the three rounding rules follow their definitions", {
   # Unrounded size of group 2 is 23.5466 for r = 3, so the total is 94.19
-  args <- list(0.95, 0.75, 3, 0.05, 0.8, 'Chisq', 'two.sided', 'minlike', 100L, 0,
-               'null.variance')
-  grp <- do.call(sample_size_n, c(args, 'group', FALSE, 0))
-  fk <- do.call(sample_size_n, c(args, 'friede-kieser', FALSE, 0))
-  tot <- do.call(sample_size_n, c(args, 'total', FALSE, 0))
+  args <- list(p1 = 0.95, p2 = 0.75, r = 3, alpha = 0.05, tar.power = 0.8, Test = 'Chisq',
+               alternative = 'two.sided', tsmethod = 'minlike', n.grid = 100L,
+               bb.gamma = 0, method = 'null.variance')
+  rest <- list(ref.pvalue = FALSE, margin = 0)
+  grp <- do.call(sample_size_n, c(args, list(rounding = 'group'), rest))
+  fk <- do.call(sample_size_n, c(args, list(rounding = 'friede-kieser'), rest))
+  tot <- do.call(sample_size_n, c(args, list(rounding = 'total'), rest))
   expect_identical(grp, c(N1 = 72L, N2 = 24L))
   # Friede and Kieser (2004), Table I: 95 patients for theta = 3 and p1 = 0.75
   expect_identical(fk, c(N1 = 71L, N2 = 24L))

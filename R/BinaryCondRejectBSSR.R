@@ -13,6 +13,9 @@
 #' @param theta Optional vector of common response probabilities at which the type I
 #'   error rate is decomposed by the pooled number of interim responders. Default is
 #'   \code{NULL}, which skips the decomposition
+#' @param margin Must be 0, the default, since only tests of superiority are covered (see
+#'   Details). The argument keeps the arguments the same as those of
+#'   \code{\link{BinaryTypeIErrorBSSR}}
 #' @param ref.pvalue Logical. If \code{TRUE}, the maximization over the nuisance parameter
 #'   of the unconditional tests is refined between the grid points, see
 #'   \code{\link{BinaryRR}}. Default is \code{FALSE}. It applies to the final analysis and
@@ -121,12 +124,15 @@ BinaryCondRejectBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
                                  rounding = c('group', 'friede-kieser', 'total',
                                               'nearest'),
                                  N.min = NULL, N.max = NULL, n.interim = NULL,
-                                 theta = NULL, ref.pvalue = FALSE) {
+                                 theta = NULL, margin = 0, ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
   ss.method <- match.arg(ss.method)
   rounding <- match.arg(rounding)
+  if (length(margin) != 1 || !is.numeric(margin) || is.na(margin) || margin != 0) {
+    stop('only tests of superiority are covered, so margin must be 0')
+  }
   if (!is.null(theta)) {
     if (length(theta) < 1 || anyNA(theta) || any(theta < 0 | theta > 1)) {
       stop('theta must be NULL or a vector of values in [0, 1]')
