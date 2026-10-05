@@ -1,0 +1,152 @@
+---
+title: "Non-inferiority Trials"
+author: "Gosuke Homma"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Non-inferiority Trials}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.5,
+  fig.align = "center"
+)
+```
+
+```{r load}
+library(bbssr)
+```
+
+## Hypotheses and margin
+
+Let group 1 receive the experimental treatment and group 2 the control. A non-inferiority trial with a margin $\delta > 0$ on the scale of the risk difference tests
+$$
+H_{0}: p_{1} - p_{2} \le -\delta \quad \text{against} \quad H_{1}: p_{1} - p_{2} > -\delta ,
+$$
+which corresponds to `alternative = 'greater'` and `margin = delta`. With `alternative = 'less'` the null hypothesis is $p_{1} - p_{2} \ge \delta$, which suits an endpoint for which a lower response probability is better. A negative margin tests superiority by more than its absolute value. A margin other than 0 requires one of the two tests below and a one-sided alternative.
+
+## The two tests
+
+Both tests refer
+$$
+Z = \frac{\hat{p}_{1} - \hat{p}_{2} + \delta}{\widehat{\mathrm{SE}}}
+$$
+to the standard normal distribution and reject $H_{0}$ when $Z > z_{1 - \alpha}$. The test of Blackwelder (1982), `Test = 'Blackwelder'`, uses the standard error at the observed proportions,
+$$
+\widehat{\mathrm{SE}} = \sqrt{\frac{\hat{p}_{1}(1 - \hat{p}_{1})}{N_{1}} + \frac{\hat{p}_{2}(1 - \hat{p}_{2})}{N_{2}}} .
+$$
+The test of Farrington and Manning (1990), `Test = 'Farrington-Manning'`, uses the same expression at the maximum likelihood estimates $\tilde{p}_{1}$ and $\tilde{p}_{2}$ under the restriction $p_{1} - p_{2} = -\delta$. With $\delta = 0$ the Farrington-Manning test is the chi-squared test and the Blackwelder test is the Wald test.
+
+The two tests are asymptotic, but the package computes their rejection regions, power and sample sizes exactly, as for the other tests.
+
+```{r rr}
+rr.bw <- BinaryRR(N1 = 60, N2 = 60, alpha = 0.025, Test = 'Blackwelder', margin = 0.1)
+rr.fm <- BinaryRR(N1 = 60, N2 = 60, alpha = 0.025, Test = 'Farrington-Manning',
+                  margin = 0.1)
+c(Blackwelder = sum(rr.bw), Farrington.Manning = sum(rr.fm))
+plot(rr.fm)
+```
+
+The size of a test of non-inferiority is its largest rejection probability on the boundary $p_{1} = p_{2} - \delta$ of the null hypothesis. The function below evaluates it over a fine grid of $p_{2}$.
+
+```{r boundary-size}
+boundary_size <- function(RR, margin) {
+  N1 <- attr(RR, 'N1')
+  N2 <- attr(RR, 'N2')
+  m <- matrix(as.vector(RR), N1 + 1L, N2 + 1L)
+  p2 <- seq(margin + 0.001, 0.999, by = 0.001)
+  size <- vapply(p2, function(q) {
+    sum(outer(dbinom(0:N1, N1, q - margin), dbinom(0:N2, N2, q)) * m)
+  }, numeric(1))
+  data.frame(p2 = p2[which.max(size)], size = max(size))
+}
+cbind(Test = c('Blackwelder', 'Farrington-Manning'),
+      rbind(boundary_size(rr.bw, 0.1), boundary_size(rr.fm, 0.1)))
+```
+
+The nominal level is 0.025. The size of an asymptotic test at a given sample size can lie on either side of it, so it is worth computing for the sample sizes of a design.
+
+## Sample size
+
+With a margin, `BinarySampleSize()` replaces the difference in the normal approximation by its distance $p_{1} - p_{2} + \delta$ from the boundary of the null hypothesis. `method = 'standard'` evaluates the variance in the term of the significance level at the large sample values of the restricted estimates, which gives formula (4) of Farrington and Manning (1990). `method = 'alternative.variance'` uses the variance under the alternative in both terms, which gives the formula of Blackwelder (1982). `method = 'exact'` steps from the formula of Farrington and Manning, one patient at a time, to the sample size at which the exact power of the test first attains the target. Below, both groups have a response probability of 0.7 and the margin is 0.15.
+
+```{r sample-size}
+ni.ss <- expand.grid(method = c('exact', 'standard', 'alternative.variance'),
+                     Test = c('Blackwelder', 'Farrington-Manning'),
+                     stringsAsFactors = FALSE)
+ni.ss$N <- NA
+ni.ss$Power <- NA
+for (i in seq_len(nrow(ni.ss))) {
+  ss <- BinarySampleSize(p1 = 0.7, p2 = 0.7, r = 1, alpha = 0.025, tar.power = 0.8,
+                         Test = ni.ss$Test[i], method = ni.ss$method[i], margin = 0.15)
+  ni.ss$N[i] <- ss$N
+  ni.ss$Power[i] <- round(ss$Power, 4)
+}
+ni.ss
+```
+
+`Power` is the exact power of the test at the sample size of each row, so the rows of the two formulas show how close the normal approximation comes to the target for each test.
+
+## Blinded sample size re-estimation
+
+Friede, Mitchell and Mueller-Velten (2007) re-estimate the sample size of a non-inferiority trial from the blinded overall response rate, which is the pooled response probability of the package. The assumed difference is usually 0, so both recovered rates equal the blinded pooled rate, and the sample size is re-estimated by the formula of Farrington and Manning (`ss.method = 'standard'`) or of Blackwelder (`ss.method = 'alternative.variance'`). The design below is planned for a pooled response probability of 0.7 and re-estimates the sample size after half of the patients.
+
+```{r bssr}
+plan <- BinarySampleSize(p1 = 0.7, p2 = 0.7, r = 1, alpha = 0.025, tar.power = 0.8,
+                         Test = 'Farrington-Manning', method = 'standard', margin = 0.15)
+ni <- BinaryPowerBSSR(
+  p = seq(0.4, 0.8, by = 0.1), Delta.A = 0, Delta.T = 0,
+  N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1, alpha = 0.025, tar.power = 0.8,
+  Test = 'Farrington-Manning', ss.method = 'standard', margin = 0.15
+)
+ni
+plot(ni)
+summary(ni)
+```
+
+The planned total sample size is `r plan$N`. The variance of a binary endpoint is largest at one half, so the fixed-sample design loses power when the true pooled response probability lies closer to one half than the planning value, and the re-estimation enlarges the trial in that case. At a pooled response probability of `r ni$p[1]` the power is `r round(ni$power.BSSR[1], 3)` with re-estimation and `r round(ni$power.TRAD[1], 3)` without.
+
+## Type I error rate on the boundary
+
+With a margin, `BinaryTypeIErrorBSSR()` evaluates the type I error rate on the boundary of the null hypothesis. The boundary is parametrized by the pooled response probability `theta`, and the values at which a response probability falls outside the unit interval are dropped.
+
+```{r tie}
+ni.tie <- BinaryTypeIErrorBSSR(
+  Delta.A = 0, N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1, alpha = 0.025,
+  tar.power = 0.8, Test = 'Farrington-Manning', ss.method = 'standard', margin = 0.15,
+  theta = seq(0.1, 0.9, by = 0.01)
+)
+ni.tie
+plot(ni.tie)
+```
+
+The same rejection probabilities follow from `BinaryPowerBSSR()` with the true difference on the boundary, `Delta.T = -margin`.
+
+```{r boundary-check}
+on.boundary <- BinaryPowerBSSR(
+  p = c(0.5, 0.7), Delta.A = 0, Delta.T = -0.15,
+  N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1, alpha = 0.025, tar.power = 0.8,
+  Test = 'Farrington-Manning', ss.method = 'standard', margin = 0.15
+)
+rows <- vapply(c(0.5, 0.7), function(t) which.min(abs(ni.tie$theta - t)), integer(1))
+max(abs(on.boundary$power.BSSR - ni.tie$TIE.BSSR[rows]))
+```
+
+`BinaryAlphaAdjBSSR()` accepts the margin in the same way and adjusts the nominal level on the boundary.
+
+## References
+
+Blackwelder, W. C. (1982). "Proving the null hypothesis" in clinical trials. *Controlled Clinical Trials*, 3, 345-353.
+
+Farrington, C. P. and Manning, G. (1990). Test statistics and sample size formulae for comparative binomial trials with null hypothesis of non-zero risk difference or non-unity relative risk. *Statistics in Medicine*, 9, 1447-1454.
+
+Friede, T., Mitchell, C. and Mueller-Velten, G. (2007). Blinded sample size reestimation in non-inferiority trials with binary endpoints. *Biometrical Journal*, 49, 903-916.

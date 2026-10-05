@@ -1,0 +1,209 @@
+---
+title: "Options of the Sample Size Re-estimation"
+author: "Gosuke Homma"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Options of the Sample Size Re-estimation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.5,
+  fig.align = "center"
+)
+```
+
+```{r load}
+library(bbssr)
+```
+
+## A reference design
+
+At the interim analysis the blinded pooled response probability is split into two group-specific probabilities with the assumed effect, and the sample size is re-estimated from them. This vignette goes through the arguments that control how this is done. They are shared by `BinaryPowerBSSR()`, `BinaryBSSR()`, `BinaryTypeIErrorBSSR()`, `BinaryAlphaAdjBSSR()`, `BinaryCondRejectBSSR()` and `BinaryGridBSSR()`.
+
+The examples use a trial with an assumed risk difference of 0.3, one-to-one allocation, a one-sided level of 0.025, a target power of 0.8 and the chi-squared test in the final analysis. The initial sample size is planned for response probabilities of 0.5 and 0.2, and the interim analysis takes place after half of it.
+
+```{r design}
+plan <- BinarySampleSize(p1 = 0.5, p2 = 0.2, r = 1, alpha = 0.025, tar.power = 0.8,
+                         Test = 'Chisq')
+design <- list(Delta.A = 0.3, N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
+               alpha = 0.025, tar.power = 0.8, Test = 'Chisq')
+p.true <- seq(0.2, 0.5, by = 0.1)
+plan
+```
+
+## Exact power or the normal approximation
+
+`ss.method` selects how the sample size is re-estimated from the recovered probabilities.
+
+- `'exact'` (the default) steps from the normal approximation, one patient at a time, to the sample size at which the exact power of the test first attains the target, as `BinarySampleSize()` does.
+- `'standard'` uses the normal approximation with the variance under the null hypothesis in the term of the significance level and the variance under the alternative in the term of the power, formula (21.3) of Kieser (2020).
+- `'null.variance'` uses the variance under the null hypothesis in both terms, formula (1) of Friede and Kieser (2004).
+- `'alternative.variance'` uses the variance under the alternative in both terms. With a non-inferiority margin this is the formula of Blackwelder (1982), see the `bbssr-non-inferiority` vignette.
+
+The `bbssr-statistical-methods` vignette gives the formulas. The table below shows the final total sample size that each method gives for every fourth value of the pooled number of interim responders `s`.
+
+```{r methods}
+methods <- c('exact', 'standard', 'null.variance')
+fits <- lapply(methods, function(m) {
+  do.call(BinaryPowerBSSR, c(design, list(p = p.true, Delta.T = 0.3, ss.method = m)))
+})
+names(fits) <- methods
+final.total <- function(fit) {
+  map <- attr(fit, 'reestimation')
+  map$N1 + map$N2
+}
+map <- attr(fits$exact, 'reestimation')
+by.method <- data.frame(s = map$s, hat.p = round(map$hat.p, 3),
+                        hat.p1 = round(map$hat.p1, 3), hat.p2 = round(map$hat.p2, 3),
+                        exact = final.total(fits$exact),
+                        standard = final.total(fits$standard),
+                        null.variance = final.total(fits$null.variance))
+by.method[seq(1, nrow(by.method), by = 4), ]
+```
+
+The exact search uses the exact power of the chosen test, so it depends on the test of the final analysis, whereas the two formulas do not. At the lowest interim outcomes the recovered probability of group 2 would be negative. The exact search needs probabilities inside the unit interval and truncates it to zero, which is what the columns `hat.p1` and `hat.p2` show. The formulas use the recovered probabilities before truncation, with each Bernoulli variance truncated at zero, so that the assumed difference is kept as in formula (2) of Friede and Kieser (2004).
+
+The power and the expected total sample size of the three versions are as follows.
+
+```{r methods-power}
+data.frame(
+  p = p.true,
+  power.exact = round(fits$exact$power.BSSR, 4),
+  power.standard = round(fits$standard$power.BSSR, 4),
+  power.null.variance = round(fits$null.variance$power.BSSR, 4),
+  E.N.exact = round(fits$exact$E.N, 1),
+  E.N.standard = round(fits$standard$E.N, 1),
+  E.N.null.variance = round(fits$null.variance$E.N, 1)
+)
+```
+
+## Another test or level for the re-estimation
+
+By default the sample size is re-estimated with the test and the level of the final analysis. `ss.Test` gives another test for the exact search, and `ss.alpha` another level. A final analysis with the Boschloo test can, for example, re-estimate the sample size with the exact power of the chi-squared test, which is quicker to search over.
+
+```{r ss-test}
+boschloo <- modifyList(design, list(Test = 'Boschloo'))
+fit.boschloo <- do.call(BinaryPowerBSSR, c(boschloo, list(p = p.true, Delta.T = 0.3)))
+fit.chisq <- do.call(BinaryPowerBSSR,
+                     c(boschloo, list(p = p.true, Delta.T = 0.3, ss.Test = 'Chisq')))
+data.frame(
+  p = p.true,
+  power.ss.Boschloo = round(fit.boschloo$power.BSSR, 4),
+  power.ss.Chisq = round(fit.chisq$power.BSSR, 4),
+  E.N.ss.Boschloo = round(fit.boschloo$E.N, 1),
+  E.N.ss.Chisq = round(fit.chisq$E.N, 1)
+)
+```
+
+`ss.alpha` matters when the final analysis uses an adjusted level. `BinaryAlphaAdjBSSR()` with `adjust = 'test'` lowers the level of the final analysis only, so the re-estimation keeps `ss.alpha`, and with `adjust = 'both'` it lowers both, see the `bbssr-type1-error` vignette.
+
+## Whole numbers
+
+The normal approximation gives an unrounded sample size, and `rounding` turns it into whole numbers.
+
+- `'group'` (the default) rounds up the size of group 2 and gives group 1 `ceiling(r * N2)` patients. It is the only rule available with `ss.method = 'exact'`.
+- `'friede-kieser'` gives the second stage the rounded-up excess of the unrounded total over the interim total, split into `ceiling(n / (1 + r))` and `ceiling(r * n / (1 + r))` patients as in Friede and Kieser (2004).
+- `'total'` rounds up the total and gives group 2 `floor(N / (1 + r))` patients.
+- `'nearest'` rounds each group to the nearest whole number, as in Farrington and Manning (1990).
+
+With an allocation ratio of 2 to 1 the four rules give the following final sample sizes for one interim outcome.
+
+```{r rounding}
+rounding.rules <- c('group', 'friede-kieser', 'total', 'nearest')
+do.call(rbind, lapply(rounding.rules, function(rule) {
+  b <- BinaryBSSR(n1 = 30, n2 = 15, S = 18, Delta.A = 0.25, r = 2, alpha = 0.025,
+                  tar.power = 0.8, Test = 'Chisq', ss.method = 'standard',
+                  rounding = rule)
+  data.frame(rounding = rule, N1.final = b$N1.final, N2.final = b$N2.final,
+             N.final = b$N.final)
+}))
+```
+
+## Bounds on the final sample size
+
+The final total sample size is never smaller than the interim total. Three arguments add further bounds. `restricted = TRUE` keeps the initial sample size as a lower bound, so the trial can only grow. `N.min` is a lower bound on the total, which can keep the patients who are already enrolled but not yet evaluated at the interim analysis. `N.max` is an upper bound on the total. Below it is set to the initial total, so that the trial can only shrink, which is the mirror image of the restricted rule. Under the rounding rules `'friede-kieser'` and `'nearest'`, which round the two groups separately, the total can exceed `N.max` by one patient.
+
+```{r bounds}
+bounds <- list(unrestricted = list(), restricted = list(restricted = TRUE),
+               capped = list(N.max = plan$N))
+do.call(rbind, lapply(names(bounds), function(nm) {
+  fit <- do.call(BinaryPowerBSSR, c(design, list(p = p.true, Delta.T = 0.3,
+                                                 ss.method = 'standard'),
+                                    bounds[[nm]]))
+  s <- summary(fit)
+  data.frame(rule = nm, p = s$p, power.BSSR = round(fit$power.BSSR, 4),
+             E.N = round(s$E.N, 1), N.q50 = s$N.q50, P.N.max = round(s$P.N.max, 3))
+}))
+```
+
+`P.N.max` is the probability that the final total takes the largest value that any interim outcome leads to. When the cap binds, this is the probability of ending at the cap, or one patient below it when the cap cannot be split in the ratio `r` to 1.
+
+## Interim sample sizes
+
+`omega` gives the interim analysis as a fraction of the initial sample size. Group 2 then has `ceiling(omega * N2)` patients at the interim analysis and group 1 has `ceiling(r * ceiling(omega * N2))`, so the interim analysis keeps the allocation ratio. `n.interim` gives the two interim sample sizes directly instead, for example when the interim analysis is triggered by a number of evaluated patients.
+
+```{r interim-sizes}
+c(n1.interim = attr(fits$exact, 'n1.interim'),
+  n2.interim = attr(fits$exact, 'n2.interim'))
+fit.interim <- do.call(BinaryPowerBSSR,
+                       c(modifyList(design, list(omega = NULL)),
+                         list(p = p.true, Delta.T = 0.3, n.interim = c(20, 15))))
+c(n1.interim = attr(fit.interim, 'n1.interim'),
+  n2.interim = attr(fit.interim, 'n2.interim'))
+```
+
+## Risk ratio and odds ratio
+
+The assumed effect `Delta.A` and the true effect `Delta.T` are risk differences by default. With `effect = 'RR'` they are risk ratios `p1 / p2`, and the recovered probabilities are those with the pooled value $\hat{p}$ and the ratio `Delta.A`, formula (21.11) of Kieser (2020). With `effect = 'OR'` they are odds ratios, and the recovered probabilities are obtained from the quadratic equation that the odds ratio and the pooled value define. The same interim data give the following recovered probabilities and re-estimated sample sizes on the three scales.
+
+```{r effects}
+effects <- data.frame(effect = c('RD', 'RR', 'OR'), Delta.A = c(0.2, 2.5, 3),
+                      stringsAsFactors = FALSE)
+do.call(rbind, lapply(seq_len(nrow(effects)), function(i) {
+  b <- BinaryBSSR(n1 = 20, n2 = 20, S = 12, Delta.A = effects$Delta.A[i], r = 1,
+                  alpha = 0.025, tar.power = 0.8, Test = 'Chisq',
+                  effect = effects$effect[i])
+  data.frame(effect = effects$effect[i], Delta.A = effects$Delta.A[i],
+             hat.p = b$hat.p, hat.p1 = round(b$hat.p1, 4), hat.p2 = round(b$hat.p2, 4),
+             N.re = b$N.re)
+}))
+```
+
+## Distribution of the final sample size
+
+`BinaryPowerBSSR()` reports the expected final total sample size `E.N`. `summary()` adds its standard deviation, its quartiles and the probability that it reaches the largest attainable value, and the attribute `N.dist` holds the whole distribution for every scenario.
+
+```{r distribution}
+summary(fits$exact)
+n.dist <- attr(fits$exact, 'N.dist')
+head(n.dist)
+```
+
+```{r distribution-plot}
+library(ggplot2)
+ggplot(n.dist, aes(x = N, y = prob)) +
+  geom_col() +
+  facet_wrap(~ p, labeller = label_both) +
+  labs(x = 'Final total sample size', y = 'Probability') +
+  theme_bw()
+```
+
+## References
+
+Blackwelder, W. C. (1982). "Proving the null hypothesis" in clinical trials. *Controlled Clinical Trials*, 3, 345-353.
+
+Farrington, C. P. and Manning, G. (1990). Test statistics and sample size formulae for comparative binomial trials with null hypothesis of non-zero risk difference or non-unity relative risk. *Statistics in Medicine*, 9, 1447-1454.
+
+Friede, T. and Kieser, M. (2004). Sample size recalculation for binary data in internal pilot study designs. *Pharmaceutical Statistics*, 3, 269-279.
+
+Kieser, M. (2020). *Methods and Applications of Sample Size Calculation and Recalculation in Clinical Trials*. Springer.

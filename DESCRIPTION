@@ -6,18 +6,23 @@ Authors@R: person("Gosuke", "Homma", email = "my.name.is.gosuke@gmail.com",
                   role = c("aut", "cre"))
 Description: Tools for blinded sample size re-estimation (BSSR) in two-arm clinical 
     trials with binary endpoints, together with the exact power and sample size 
-    calculations that the re-estimation relies on. Five exact statistical tests are 
+    calculations that the re-estimation relies on. Seven statistical tests are 
     implemented: Pearson chi-squared, Fisher exact, Fisher mid-p, Z-pooled exact 
-    unconditional, and Boschloo exact unconditional. Each test is available with a 
+    unconditional, Boschloo exact unconditional, and the tests of non-inferiority of 
+    Blackwelder (1982) <doi:10.1016/0197-2456(82)90024-1> and of Farrington and 
+    Manning (1990) <doi:10.1002/sim.4780091208>. Each test is available with a 
     one-sided or a two-sided alternative, and the exact unconditional tests can be 
-    combined with the Berger-Boos procedure. Sample sizes can be re-estimated either at 
-    the planning stage, to study the operating characteristics of a design, or from the 
-    blinded data of a trial that is under way. Statistical methods based on Mehrotra et 
-    al. (2003) <doi:10.1111/1541-0420.00051>, Berger and Boos (1994) 
-    <doi:10.1080/01621459.1994.10476836> and Kieser (2020) 
-    <doi:10.1007/978-3-030-49528-2_21>.
+    combined with the Berger-Boos procedure. The power, the distribution of the final 
+    sample size and the type I error rate of a re-estimation design are computed 
+    exactly, the significance level can be adjusted so that the type I error rate is 
+    controlled, and the sample size can be re-estimated from the blinded data of a 
+    trial that is under way. Statistical methods based on Mehrotra et al. (2003) 
+    <doi:10.1111/1541-0420.00051>, Berger and Boos (1994) 
+    <doi:10.1080/01621459.1994.10476836>, Friede and Kieser (2004) 
+    <doi:10.1002/pst.140>, Friede et al. (2007) <doi:10.1002/bimj.200610373> and 
+    Kieser (2020) <doi:10.1007/978-3-030-49528-2_21>.
 License: MIT + file LICENSE
-URL: https://github.com/gosukehommaEX/bbssr
+URL: https://gosukehommaex.github.io/bbssr/, https://github.com/gosukehommaEX/bbssr
 BugReports: https://github.com/gosukehommaEX/bbssr/issues
 Depends: R (>= 3.5.0)
 Imports: 

@@ -47,6 +47,7 @@ either way.
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://gosukehommaex.github.io/bbssr/}
   \item \url{https://github.com/gosukehommaEX/bbssr}
   \item Report bugs at \url{https://github.com/gosukehommaEX/bbssr/issues}
 }

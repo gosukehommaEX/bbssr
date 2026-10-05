@@ -16,7 +16,9 @@ vignettes/*_files/
 vignettes/*_cache/
 /doc/
 reproduce-output/
-validation-output/
 
 # Output of tools/run-checks.R
 tools/output/
+
+# pkgdown site, built locally or by the pkgdown workflow
+docs/

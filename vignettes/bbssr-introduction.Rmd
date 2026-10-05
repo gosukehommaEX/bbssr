@@ -30,17 +30,17 @@ library(bbssr)
 
 A trial with a binary endpoint needs an assumed response probability in each group before the first patient is enrolled. If the pooled response probability turns out to differ from what was assumed, the trial ends up either underpowered or larger than it needed to be. Blinded sample size re-estimation addresses this by looking at the pooled number of responders partway through the trial and adjusting the remaining enrolment, without ever splitting the data by treatment group.
 
-The package covers the whole chain of calculations that this requires. Everything rests on `BinaryRR()`, which returns the rejection region of an exact test over the grid of possible outcomes. `BinaryPower()` sums the binomial probability mass over that region, `BinarySampleSize()` searches for the smallest sample size attaining a target power, `BinaryPowerBSSR()` averages the power over the distribution of the interim data, and `BinaryBSSR()` applies the re-estimation to a single observed interim data set.
+The package covers the whole chain of calculations that this requires. Everything rests on `BinaryRR()`, which returns the rejection region of a test over the grid of possible outcomes. `BinaryPower()` sums the binomial probability mass over that region, `BinarySampleSize()` searches, from the normal approximation, for the sample size at which the exact power first attains a target, `BinaryPowerBSSR()` averages the power over the distribution of the interim data, and `BinaryBSSR()` applies the re-estimation to a single observed interim data set. `BinaryTypeIErrorBSSR()` evaluates the type I error rate of a re-estimation design over the nuisance parameter, `BinaryAlphaAdjBSSR()` lowers the nominal level until that rate is controlled, and `BinaryCondRejectBSSR()` decomposes the rate by the interim outcome. `BinaryGridBSSR()` evaluates several designs over common scenarios and returns one data frame.
 
-## The five tests
+## The seven tests
 
 ```{r tests}
 tests <- c('Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', 'Boschloo')
 ```
 
-`Chisq` is the Pearson chi-squared test without a continuity correction. `Fisher` is the Fisher exact test and `Fisher-midP` its mid-p variant. `Z-pool` and `Boschloo` are exact unconditional tests, which remove the nuisance parameter by maximizing the null tail probability over the common response probability rather than by conditioning on the observed margin.
+`Chisq` is the Pearson chi-squared test without a continuity correction. `Fisher` is the Fisher exact test and `Fisher-midP` its mid-p variant. `Z-pool` and `Boschloo` are exact unconditional tests, which remove the nuisance parameter by maximizing the null tail probability over the common response probability rather than by conditioning on the total number of responders. `Blackwelder` and `Farrington-Manning` are the tests of non-inferiority of Blackwelder (1982) and of Farrington and Manning (1990), which take a margin on the scale of the risk difference through the argument `margin`. With `margin = 0` they are tests of superiority, and the Farrington-Manning test then coincides with `Chisq`. The `bbssr-non-inferiority` vignette covers these two tests, and the comparisons below use the other five.
 
-The unconditional tests are the most powerful of the five and the slowest to compute. Only `Fisher`, `Z-pool` and `Boschloo` guarantee that the type I error rate stays below the nominal level for every value of the nuisance parameter. The chi-squared and mid-p tests trade that guarantee for shorter rejection thresholds.
+Only `Fisher`, `Z-pool` and `Boschloo` keep the type I error rate of a fixed-sample design at or below the nominal level for every value of the nuisance parameter. For the two unconditional tests this holds up to the search over a grid of the nuisance parameter, which `ref.pvalue = TRUE` refines. The two unconditional tests are slower to compute than Fisher's test and usually more powerful. The chi-squared and mid-p tests do not carry the guarantee.
 
 ## Rejection regions
 
@@ -53,7 +53,7 @@ RR
 plot(RR)
 ```
 
-The region is monotone: more responders in group 1, or fewer in group 2, can only move an outcome into the rejection region. Because the Boschloo p-value never exceeds the Fisher p-value, the Boschloo region always contains the Fisher region.
+The region is monotone: more responders in group 1, or fewer in group 2, can only move an outcome into the rejection region. Without the Berger-Boos procedure the Boschloo p-value never exceeds the Fisher p-value, so the Boschloo region always contains the Fisher region.
 
 ```{r rr-compare}
 n_rejected <- vapply(tests, function(tst) {
@@ -92,7 +92,7 @@ data.frame(
 )
 ```
 
-This is why the sample size search evaluates the exact power at every candidate rather than inverting a smooth approximation.
+This is why the sample size search evaluates the exact power at every candidate it visits rather than inverting a smooth approximation.
 
 ## Blinded sample size re-estimation
 
@@ -101,8 +101,9 @@ Consider a trial designed for a response probability of 0.45 in group 1 and 0.09
 The variance of a binary endpoint is largest at one half, so at a fixed risk difference the required sample size grows as the pooled probability approaches that value. A trial sized at a pooled probability of 0.27 is therefore over-powered if the true value turns out lower, and under-powered if it turns out higher.
 
 ```{r bssr-plan}
-BinarySampleSize(p1 = 0.45, p2 = 0.09, r = 1, alpha = 0.025,
-                 tar.power = 0.8, Test = 'Z-pool')
+plan <- BinarySampleSize(p1 = 0.45, p2 = 0.09, r = 1, alpha = 0.025,
+                         tar.power = 0.8, Test = 'Z-pool')
+plan
 ```
 
 `BinaryPowerBSSR()` traces both effects. The scenarios below run from a pooled probability of 0.19 up to 0.37, with the design fixed at the sample size above.
@@ -111,7 +112,7 @@ BinarySampleSize(p1 = 0.45, p2 = 0.09, r = 1, alpha = 0.025,
 res <- BinaryPowerBSSR(
   p = seq(0.19, 0.37, by = 0.03),
   Delta.A = 0.36, Delta.T = 0.36,
-  N1 = 24, N2 = 24, omega = 0.5, r = 1,
+  N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
   alpha = 0.025, tar.power = 0.8, Test = 'Z-pool'
 )
 res
@@ -121,7 +122,7 @@ res
 plot(res)
 ```
 
-The `power.TRAD` column falls steadily as the pooled probability rises, from well above the target at the low end to well below it at the high end. The `power.BSSR` column stays nearer the target at both ends, since the re-estimation removes patients in the first case and adds them in the second. The `E.N` column shows the expected total sample size that the re-estimation settles on, against the 48 patients of the fixed design.
+The `power.TRAD` column falls steadily as the pooled probability rises, from well above the target at the low end to well below it at the high end. The `power.BSSR` column stays nearer the target at both ends, since the re-estimation removes patients in the first case and adds them in the second. Away from the low end it lies a little below the target. The `E.N` column shows the expected total sample size that the re-estimation settles on, against the `r plan$N` patients of the fixed design. `summary(res)` adds the standard deviation and the quartiles of the final total sample size.
 
 ## Restricted and unrestricted rules
 
@@ -130,7 +131,7 @@ Under the unrestricted rule the trial may end up smaller than planned when the i
 ```{r rules}
 args <- list(
   p = seq(0.19, 0.37, by = 0.06),
-  Delta.A = 0.36, Delta.T = 0.36, N1 = 24, N2 = 24, omega = 0.5, r = 1,
+  Delta.A = 0.36, Delta.T = 0.36, N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
   alpha = 0.025, tar.power = 0.8, Test = 'Chisq'
 )
 unrestricted <- do.call(BinaryPowerBSSR, c(args, list(restricted = FALSE)))
@@ -144,22 +145,24 @@ data.frame(
 )
 ```
 
-For any single interim outcome that calls for more patients than planned the two rules give the same answer, since neither caps the increase. They part company when the interim outcome calls for fewer. The columns below are expectations over all interim outcomes, so they converge rather than coincide as the pooled probability rises. The unrestricted rule then takes the saving, ending with a smaller trial and a power closer to the target. The restricted rule keeps the planned sample size, which leaves the trial over-powered but never smaller than what the protocol promised.
+For any single interim outcome that calls for more patients than planned the two rules give the same answer, since neither caps the increase. They part company when the interim outcome calls for fewer. The columns above are expectations over all interim outcomes, so they converge rather than coincide as the pooled probability rises. The unrestricted rule takes the saving and ends with a smaller expected trial. The restricted rule keeps at least the planned sample size, which costs patients but never leaves the trial smaller than what the protocol promised.
 
 ## Re-estimating from observed interim data
 
 The functions above describe a design before the trial starts. Once the trial is running, the interim analysis produces one number that can be shared without unblinding, namely the total count of responders. `BinaryBSSR()` turns that number into an enrolment decision.
 
 ```{r bssr-interim}
-BinaryBSSR(n1 = 12, n2 = 12, S = 8, Delta.A = 0.36, r = 1,
-           alpha = 0.025, tar.power = 0.8, Test = 'Z-pool')
+interim <- BinaryBSSR(n1 = ceiling(plan$N1 / 2), n2 = ceiling(plan$N2 / 2), S = 8,
+                      Delta.A = 0.36, r = 1, alpha = 0.025, tar.power = 0.8,
+                      Test = 'Z-pool')
+interim
 ```
 
-The interim analysis sits at half of the planned 24 patients per group. Eight responders among 24 patients give a blinded pooled rate of 0.33, above the assumed 0.27, so the re-estimated total exceeds the plan and the second stage has to enrol more patients than originally scheduled. The `bbssr-interim-reestimation` vignette works through this in more detail.
+The interim analysis sits at half of the planned `r plan$N2` patients per group. `r interim$S` responders among `r interim$n` patients give a blinded pooled rate of `r round(interim$hat.p, 3)`, against the assumed `r 0.5 * (0.45 + 0.09)`, and the re-estimated total is `r interim$N.re` patients against the `r plan$N` of the plan. The `bbssr-interim-reestimation` vignette works through this in more detail.
 
 ## Two-sided tests
 
-Every test accepts `alternative = 'two.sided'`. For the conditional tests the two-sided p-value follows one of two conventions, selected with `tsmethod`.
+Every test accepts `alternative = 'two.sided'`. For the conditional tests, and for the Boschloo test, whose ordering statistic is the Fisher p-value, the two-sided p-value follows one of two conventions, selected with `tsmethod`.
 
 ```{r two-sided}
 pw <- function(alpha, alternative, tsmethod = 'minlike') {
@@ -175,10 +178,43 @@ round(c(
 ), 4)
 ```
 
-At the same nominal level the two-sided test is the less powerful, since half of the level is spent on a direction the alternative does not point in. At twice the level it comes back to the one-sided test, because the lower tail contributes almost nothing to the power when the true effect is positive.
+At the same nominal level the two-sided test is the less powerful, since half of the level is spent on a direction the alternative does not point in. At twice the level it comes back to the one-sided test, because the lower tail contributes almost nothing to the power when the true effect is positive. With equal group sizes the conditional distribution of the responder count of group 1 is symmetric, so the two conventions give the same power here. With unequal group sizes they can differ, as the `bbssr-statistical-methods` vignette shows.
 
-The `bbssr-statistical-methods` vignette explains the two conventions and the Berger-Boos refinement of the unconditional tests.
+The alternative `'less'`, under which group 1 has the lower response probability, is obtained by exchanging the two groups, so it gives the same power as `'greater'` with the groups exchanged.
+
+```{r less}
+c(greater = BinaryPower(0.6, 0.3, 40, 40, 0.025, 'Fisher')$Power,
+  less = BinaryPower(0.3, 0.6, 40, 40, 0.025, 'Fisher', alternative = 'less')$Power)
+```
+
+The `bbssr-statistical-methods` vignette explains the two conventions and the Berger-Boos procedure for the unconditional tests.
+
+## Type I error rate of a re-estimation design
+
+A test that keeps the nominal level at a fixed sample size need not keep it once the sample size depends on the interim data. `BinaryTypeIErrorBSSR()` evaluates the rejection probability of the design above under equal response probabilities, over a grid of the common value, and refines the largest local maxima.
+
+```{r type1}
+tie <- BinaryTypeIErrorBSSR(
+  Delta.A = 0.36, N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
+  alpha = 0.025, tar.power = 0.8, Test = 'Z-pool'
+)
+tie
+```
+
+The `bbssr-type1-error` vignette explains this output and shows how `BinaryAlphaAdjBSSR()` lowers the nominal level when the rate exceeds it.
 
 ## Where to go next
 
-The `bbssr-statistical-methods` vignette derives the tests and the re-estimation rules. The `bbssr-interim-reestimation` vignette follows a single trial from planning to the interim decision. The `bbssr-validation` vignette compares the package against `stats`, `Exact` and `exact2x2`, and reports timings.
+- `bbssr-interim-reestimation` follows a single trial from planning to the interim decision.
+- `bbssr-reestimation-rules` covers the options of the re-estimation: the normal approximation, the rounding rules, bounds on the final sample size and the risk ratio and odds ratio.
+- `bbssr-design-grid` compares several designs with `BinaryGridBSSR()`.
+- `bbssr-non-inferiority` covers the tests with a margin and the re-estimation in non-inferiority trials.
+- `bbssr-type1-error` covers the type I error rate, the adjusted level and the conditional rejection probabilities.
+- `bbssr-statistical-methods` derives the tests and the re-estimation.
+- `bbssr-validation` compares the package with `stats`, `Exact`, `exact2x2` and published results, and reports timings.
+
+## References
+
+Blackwelder, W. C. (1982). "Proving the null hypothesis" in clinical trials. *Controlled Clinical Trials*, 3, 345-353.
+
+Farrington, C. P. and Manning, G. (1990). Test statistics and sample size formulae for comparative binomial trials with null hypothesis of non-zero risk difference or non-unity relative risk. *Statistics in Medicine*, 9, 1447-1454.

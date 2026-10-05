@@ -4,7 +4,10 @@
 #   source('tools/run-checks.R')
 # for the quick run (documentation, timing of the load_all() build and unit tests),
 #   reproduce <- TRUE; source('tools/run-checks.R')
-# to add the reproduction of published results and the validation scripts, or
+# to add the reproduction of published results and the scripts in tools/validation/,
+#   docs <- TRUE; source('tools/run-checks.R')
+# to add README.md from README.Rmd, every vignette rendered in a separate R process with
+# its time, the spelling check and the pkgdown site in docs/, or
 #   full.check <- TRUE; source('tools/run-checks.R')
 # to run everything, including the timing of an optimized installed build and R CMD
 # check. The flags are removed when the script starts, so the next run is quick again.
@@ -17,6 +20,7 @@ flag <- function(name) {
 }
 run.full <- flag('full.check')
 run.reproduce <- flag('reproduce') || run.full
+run.docs <- flag('docs') || run.full
 out.dir <- file.path('tools', 'output')
 dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
 report <- character(0)
@@ -29,7 +33,7 @@ note <- function(...) {
 }
 note('run-checks started ', format(Sys.time(), '%Y-%m-%d %H:%M:%S'),
      if (run.full) ' (full run)' else if (run.reproduce) ' (quick run with reproduction)'
-     else ' (quick run)')
+     else if (run.docs) ' (quick run with documentation)' else ' (quick run)')
 
 devtools::document()
 devtools::load_all()
@@ -85,14 +89,22 @@ rep.res <- if (!run.reproduce) 'skipped' else tryCatch({
 }, error = function(e) paste('ERROR:', cli::ansi_strip(conditionMessage(e))))
 note('reproduction: ', rep.res)
 
-# Numerical examination of Kieser (2020, Sect. 21.3), written to validation-output/
-val.res <- if (!run.reproduce) 'skipped' else tryCatch({
-  source(file.path('inst', 'validation', 'kieser-2020-section-21-3.R'), local = new.env())
-  tab <- utils::read.csv(file.path('validation-output', 'kieser-2020-section-21-3.csv'))
-  counts <- table(factor(tab$verdict, levels = c('PASS', 'FAIL', 'INFO')))
-  paste(names(counts), counts, collapse = ', ')
-}, error = function(e) paste('ERROR:', cli::ansi_strip(conditionMessage(e))))
-note('validation: ', val.res)
+# Every script in tools/validation/, if the folder is present, run from the package root
+val.files <- sort(list.files(file.path('tools', 'validation'), pattern = '[.]R$',
+                             full.names = TRUE))
+if (!run.reproduce) {
+  note('validation: skipped')
+} else if (length(val.files) == 0) {
+  note('validation: no script present')
+} else {
+  for (f in val.files) {
+    val.res <- tryCatch({
+      sprintf('done in %.1f s',
+              system.time(source(f, local = new.env()))[['elapsed']])
+    }, error = function(e) paste('ERROR:', cli::ansi_strip(conditionMessage(e))))
+    note('validation, ', basename(f), ': ', val.res)
+  }
+}
 
 # Unit tests
 test.res <- devtools::test(reporter = 'silent', stop_on_failure = FALSE)
@@ -107,6 +119,66 @@ for (t in test.res) {
            gsub('\n', ' | ', cli::ansi_strip(conditionMessage(e))))
     }
   }
+}
+
+# Documentation: README.md from README.Rmd, every vignette rendered in a separate R
+# process from the installed package, the spelling check and the pkgdown site in docs/.
+# The package is installed into the user library first, since the path of the package
+# contains characters that pkgdown cannot install from, and the remaining steps are
+# skipped when the installation fails. Warnings raised in a chunk are written into the
+# rendered output by knitr, so they are counted there
+run.docs.steps <- run.docs
+if (run.docs) {
+  inst.res <- tryCatch({
+    devtools::install(upgrade = 'never', quiet = TRUE)
+    paste('bbssr', callr::r(function() as.character(utils::packageVersion('bbssr'))),
+          'installed')
+  }, error = function(e) paste('ERROR:', cli::ansi_strip(conditionMessage(e))))
+  note('docs, installation: ', inst.res)
+  run.docs.steps <- !startsWith(inst.res, 'ERROR')
+}
+if (run.docs.steps) {
+  readme.res <- tryCatch({
+    callr::r(function(f) {
+      rmarkdown::render(f, output_options = list(html_preview = FALSE), quiet = TRUE,
+                        envir = new.env())
+    }, args = list(f = normalizePath('README.Rmd')))
+    sprintf('README.md written, %d warnings in the output',
+            sum(grepl('^#> Warning', readLines('README.md', warn = FALSE))))
+  }, error = function(e) paste('ERROR:', cli::ansi_strip(conditionMessage(e))))
+  note('docs, README: ', readme.res)
+  for (f in sort(list.files('vignettes', pattern = '[.]Rmd$', full.names = TRUE))) {
+    vig.res <- tryCatch({
+      res <- callr::r(function(f, out) {
+        t <- system.time(html <- rmarkdown::render(f, output_dir = out,
+                                                   intermediates_dir = out,
+                                                   quiet = TRUE, envir = new.env()))
+        list(time = t[['elapsed']],
+             warnings = sum(grepl('#&gt; Warning', readLines(html, warn = FALSE))))
+      }, args = list(f = normalizePath(f), out = tempfile('vignette-')))
+      sprintf('%.1f s, %d warnings in the output', res$time, res$warnings)
+    }, error = function(e) paste('ERROR:', cli::ansi_strip(conditionMessage(e))))
+    note('docs, vignette ', basename(f), ': ', gsub('\n', ' | ', vig.res))
+  }
+  spell.res <- tryCatch({
+    sp <- spelling::spell_check_package()
+    words <- if (nrow(sp) == 0) character(0) else {
+      vapply(seq_len(nrow(sp)), function(i) {
+        paste0(sp$word[i], ': ', paste(sp$found[[i]], collapse = ', '))
+      }, character(1))
+    }
+    writeLines(words, file.path(out.dir, 'spelling.txt'), useBytes = TRUE)
+    sprintf('%d words not in the dictionary or inst/WORDLIST, listed in %s',
+            nrow(sp), file.path(out.dir, 'spelling.txt'))
+  }, error = function(e) paste('ERROR:', cli::ansi_strip(conditionMessage(e))))
+  note('docs, spelling: ', spell.res)
+  site.res <- tryCatch({
+    pkgdown::build_site(install = FALSE, preview = FALSE)
+    'site written to docs/'
+  }, error = function(e) paste('ERROR:', cli::ansi_strip(conditionMessage(e))))
+  note('docs, pkgdown: ', site.res)
+} else if (!run.docs) {
+  note('docs: skipped')
 }
 
 # R CMD check

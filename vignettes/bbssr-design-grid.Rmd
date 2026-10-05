@@ -1,0 +1,100 @@
+---
+title: "Comparing Designs with BinaryGridBSSR"
+author: "Gosuke Homma"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Comparing Designs with BinaryGridBSSR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.5,
+  fig.align = "center"
+)
+```
+
+```{r load}
+library(bbssr)
+```
+
+## One data frame for many designs
+
+Choosing a design means comparing several candidates, for example tests, timings of the interim analysis or assumed effects, over the same scenarios. `BinaryGridBSSR()` takes the candidates as the rows of a data frame, evaluates each with `BinaryPowerBSSR()` at common true pooled response probabilities, and returns one data frame with a row for each design and each probability.
+
+The columns of the design data frame are arguments of `BinaryPowerBSSR()`. Arguments shared by all designs are given through `...`, and an argument may not appear in both places. Below, two tests are crossed with two timings of the interim analysis.
+
+```{r grid}
+design <- expand.grid(Test = c('Chisq', 'Fisher'), omega = c(0.3, 0.5),
+                      stringsAsFactors = FALSE)
+design
+grid <- BinaryGridBSSR(design, p = seq(0.2, 0.5, by = 0.1), Delta.A = 0.3,
+                       N1 = 40, N2 = 40, r = 1, alpha = 0.025, tar.power = 0.8,
+                       ss.method = 'standard')
+head(grid)
+```
+
+Each row holds the index `design`, the columns of the design data frame, the initial and interim sample sizes, the true effect, the true response probabilities, the power of the re-estimation design and of the fixed-sample design, and the expected value, standard deviation and quartiles of the final total sample size. `P.N.max` is the probability that the final total reaches the largest value the design can reach.
+
+## Summaries and plots
+
+`summary()` gives one row per design, with the range of the power over the scenarios and the largest expected total sample size.
+
+```{r summary}
+summary(grid)
+```
+
+`plot()` draws the power or the expected total sample size against the true pooled response probability, with one colour per value of a column and, optionally, one panel per value of another.
+
+```{r plot-power}
+plot(grid, colour.by = 'Test', facet.by = 'omega')
+```
+
+```{r plot-size}
+plot(grid, what = 'E.N', colour.by = 'Test', facet.by = 'omega')
+```
+
+## Initial sample sizes from a planning proportion
+
+Instead of the columns `N1` and `N2`, a design can give a pooled planning proportion `p.plan`. The planning proportions of the two groups are then obtained from `p.plan` and the assumed effect, as in the re-estimation, and the initial sample sizes are those of `BinarySampleSize()` with the test, level, target power and allocation ratio of the design, the method `ss.method` of the re-estimation and its rounding rule. With `type1 = TRUE` the largest type I error rates of each design and of its fixed-sample counterpart are added to the attribute `designs`, as computed by `BinaryTypeIErrorBSSR()`.
+
+```{r planned}
+planned <- data.frame(Delta.A = c(0.2, 0.25, 0.3), p.plan = 0.35)
+grid.plan <- BinaryGridBSSR(planned, p = seq(0.2, 0.5, by = 0.1), omega = 0.5, r = 1,
+                            alpha = 0.025, tar.power = 0.8, Test = 'Chisq',
+                            ss.method = 'standard', type1 = TRUE)
+attr(grid.plan, 'designs')
+```
+
+## Designs specified in different ways
+
+A missing value in a column means that the argument is not given for that design. Designs whose interim analysis is given by `omega` and designs whose interim sample sizes are given by the columns `n1.interim` and `n2.interim` can therefore share one data frame.
+
+```{r mixed}
+mixed <- data.frame(omega = c(0.5, NA), n1.interim = c(NA, 12), n2.interim = c(NA, 12))
+grid.mixed <- BinaryGridBSSR(mixed, p = 0.35, Delta.A = 0.3, N1 = 40, N2 = 40, r = 1,
+                             alpha = 0.025, tar.power = 0.8, Test = 'Chisq',
+                             ss.method = 'standard')
+grid.mixed[, c('design', 'n1.interim', 'n2.interim', 'power.BSSR', 'E.N')]
+```
+
+## A true effect other than the assumed one
+
+The power is evaluated at the assumed effect of each design unless `Delta.T` gives the true effect, either as an argument for all designs or as a column of the design data frame.
+
+```{r true-effect}
+grid.smaller <- BinaryGridBSSR(design, p = seq(0.2, 0.5, by = 0.1), Delta.T = 0.2,
+                               Delta.A = 0.3, N1 = 40, N2 = 40, r = 1, alpha = 0.025,
+                               tar.power = 0.8, ss.method = 'standard')
+summary(grid.smaller)
+```
+
+Errors and warnings raised while a design is evaluated are prefixed with the index of the design, and `verbose = TRUE` reports the progress. The p-values of each test are kept for the rest of the session, so designs that share sample sizes are evaluated faster after the first one.

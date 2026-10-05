@@ -36,7 +36,7 @@ Chunks that need one of the optional packages are skipped when it is unavailable
 
 ## Conditional tests against stats
 
-The Fisher p-values are compared with `stats::fisher.test` at every outcome of a small grid, for the one-sided alternative and for both two-sided conventions.
+The Fisher p-values are compared with `stats::fisher.test` at every outcome of a small grid, for the one-sided alternative and for the two-sided `minlike` convention.
 
 ```{r fisher-vs-stats}
 N1 <- 7
@@ -78,7 +78,7 @@ max(abs(got - want))
 
 ## Unconditional tests against a direct evaluation
 
-The unconditional p-value is the null tail probability maximized over the nuisance parameter. The reference below forms the tail set of each outcome explicitly and searches the same grid, which is slow but follows the definition with no shared code.
+The unconditional p-value is the null tail probability maximized over the nuisance parameter. The reference below forms the tail set of each outcome explicitly and searches the same grid, which is slow but follows the definition. It shares with the package only the Fisher p-values that order the outcomes for the Boschloo test, and these are checked against `stats::fisher.test` above.
 
 ```{r brute-force}
 unconditional_ref <- function(stat, N1, N2, n.grid, decreasing) {
@@ -156,7 +156,7 @@ data.frame(
 )
 ```
 
-The legacy calculation gives the two outcomes different p-values and rejects at one of them but not the other. The rejection region it produces still holds the type I error rate below the nominal level, because the accumulation stops as soon as the running total exceeds alpha, but the decision depends on how the sorting routine breaks the tie rather than on the data.
+The legacy calculation gives the two outcomes different p-values and rejects at one of them but not the other. The rejection region it produces still holds the type I error rate below the nominal level. The legacy p-values do not decrease along the ordering, so the region is an initial segment of it, and at every value of the nuisance parameter on the grid its rejection probability is the running total at its last member, which is below alpha. The decision nevertheless depends on how the sorting routine breaks the tie rather than on the data.
 
 ```{r tie-type1}
 max_type1 <- function(reject, N1, N2, n.grid = 401) {
@@ -194,7 +194,7 @@ data.frame(
 )
 ```
 
-Residual differences come from the grid over the nuisance parameter, which the two packages place differently.
+Residual differences come from the search over the nuisance parameter, which the two packages carry out differently.
 
 ## Comparison with exact2x2
 
@@ -217,7 +217,8 @@ data.frame(
 ## Type I error rate of every test
 
 ```{r type1-table}
-tests <- c('Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', 'Boschloo')
+tests <- c('Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', 'Boschloo', 'Blackwelder',
+           'Farrington-Manning')
 type1 <- function(Test, alternative, N = 30, alpha = 0.025) {
   RR <- BinaryRR(N, N, alpha, Test, alternative = alternative, n.grid = 200)
   max_type1(matrix(as.vector(RR), N + 1, N + 1), N, N, n.grid = 801)
@@ -233,13 +234,14 @@ data.frame(
 )
 ```
 
-The nominal level is 0.025. The three exact tests stay below it for both alternatives, at every sample size and every value of the nuisance parameter. The chi-squared and mid-p tests carry no such guarantee, and the `exceeds.alpha` column records where they overshoot at this configuration.
+The nominal level is 0.025. In this configuration the three exact tests stay below it for both alternatives. Their p-values are maximized over a grid of the nuisance parameter, which can understate the exact p-value, and `ref.pvalue = TRUE` refines the maximum when the size has to be guaranteed, as the `bbssr-statistical-methods` vignette shows. The chi-squared, mid-p, Blackwelder and Farrington-Manning tests carry no such guarantee, and the `exceeds.alpha` column records where they overshoot at this configuration. Without a margin the Farrington-Manning test coincides with the chi-squared test, and the Blackwelder test is the Wald test with the unpooled standard error.
 
 ## Speed
 
-The whole rejection region is computed in one pass, so obtaining a power curve costs little more than a single p-value. The inner loop over the nuisance parameter runs in compiled code.
+The whole rejection region is computed in one pass, so obtaining a power curve costs little more than a single p-value. The inner loop over the nuisance parameter runs in compiled code. The p-values of each test are normally kept for the rest of the session, so the timings below turn this off with `options(bbssr.cache = FALSE)` and measure the computation itself.
 
 ```{r timing, eval = has_bench}
+old <- options(bbssr.cache = FALSE)
 microbenchmark::microbenchmark(
   Chisq = BinaryRR(50, 50, 0.025, 'Chisq'),
   Fisher = BinaryRR(50, 50, 0.025, 'Fisher'),
@@ -249,15 +251,17 @@ microbenchmark::microbenchmark(
   times = 10L,
   unit = 'ms'
 )
+options(old)
 ```
 
-The Berger-Boos variant costs roughly twice as much as the plain Boschloo test, because the confidence bounds of every possible responder total are added to the grid over the nuisance parameter.
+The Berger-Boos variant costs more than the plain Boschloo test, because the confidence bounds of every possible responder total are added to the grid over the nuisance parameter.
 
-A cell-by-cell comparison against a package that computes one p-value at a time is not like for like, since `BinaryRR()` returns all 2601 p-values of the grid above. The comparison below therefore charges `Exact` only for the p-values of a single row.
+A cell-by-cell comparison against a package that computes one p-value at a time is not like for like, since `BinaryRR()` returns the p-values of every outcome of its grid. The comparison below therefore charges `Exact` only for the p-values of a single row.
 
 ```{r timing-exact, eval = has_exact && has_bench}
 N1 <- 20
 N2 <- 20
+old <- options(bbssr.cache = FALSE)
 microbenchmark::microbenchmark(
   bbssr.whole.grid = BinaryRR(N1, N2, 0.025, 'Boschloo'),
   Exact.one.row = for (x1 in 0:N1) {
@@ -268,6 +272,7 @@ microbenchmark::microbenchmark(
   times = 5L,
   unit = 'ms'
 )
+options(old)
 ```
 
 ## Sample size search
@@ -290,6 +295,114 @@ do.call(rbind, lapply(c('Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', 'Boschloo'),
 
 The power reaches the target at the returned sample size and falls short one patient per group below it.
 
+## Re-estimation designs
+
+A design whose final sample size does not depend on the interim data is a fixed-sample design. Bounding the final total sample size from below and from above by the initial total turns a re-estimation design into one, and its power must then equal that of the fixed-sample design.
+
+```{r fixed-special-case}
+fixed <- BinaryPowerBSSR(
+  p = seq(0.2, 0.6, by = 0.1), Delta.A = 0.3, Delta.T = 0.3,
+  N1 = 30, N2 = 30, n.interim = c(15, 15), r = 1, alpha = 0.025, tar.power = 0.8,
+  Test = 'Z-pool', ss.method = 'standard', N.min = 60, N.max = 60
+)
+max(abs(fixed$power.BSSR - fixed$power.TRAD))
+```
+
+The type I error rate of a re-estimation design is computed in two separate ways. `BinaryTypeIErrorBSSR()` sums the rejection probability over the interim outcomes and the outcomes of the second stage, and `BinaryCondRejectBSSR()` averages the conditional rejection probabilities given the pooled numbers of responders of the two stages over their binomial distributions. The two agree for every test and alternative below.
+
+```{r two-routes}
+theta <- c(0.1, 0.3, 0.5, 0.7, 0.9)
+routes <- function(Test, alternative, Delta.A) {
+  args <- list(Delta.A = Delta.A, N1 = 16, N2 = 16, n.interim = c(8, 8), r = 1,
+               alpha = 0.025, tar.power = 0.8, Test = Test, alternative = alternative,
+               ss.method = 'standard', theta = theta)
+  crp <- do.call(BinaryCondRejectBSSR, args)
+  tie <- do.call(BinaryTypeIErrorBSSR, c(args, list(refine = FALSE)))
+  max(abs(attr(crp, 'TIE')$TIE - tie$TIE.BSSR))
+}
+data.frame(
+  Test = c('Chisq', 'Fisher', 'Z-pool', 'Boschloo'),
+  alternative = c('greater', 'less', 'two.sided', 'greater'),
+  max.absolute.difference = c(routes('Chisq', 'greater', 0.3),
+                              routes('Fisher', 'less', -0.3),
+                              routes('Z-pool', 'two.sided', 0.3),
+                              routes('Boschloo', 'greater', 0.3))
+)
+```
+
+## Reproduction of published results
+
+The script `reproduce-published.R`, installed with the package in the folder given by `system.file('reproduce', package = 'bbssr')`, recomputes the published numerical results of Blackwelder (1982), Farrington and Manning (1990), Friede and Kieser (2004), Friede, Mitchell and Mueller-Velten (2007) and Kieser (2020), and lists every published value next to the recomputed one. It is run from the root of the package source after `devtools::load_all()`, writes its results to the folder `reproduce-output`, and runs for several minutes. The values below are a selection that can be recomputed quickly, each compared after rounding to the digits of the publication.
+
+```{r published}
+# Kieser (2020), Example 21.1: initial sample size by formula (21.3), and the largest
+# type I error rate over the overall rate in [0.15, 0.85] for Delta = 0.30
+k.plan <- BinarySampleSize(0.27, 0.42, 1, 0.025, 0.8, 'Chisq', alternative = 'less',
+                           method = 'standard')
+k.grid <- seq(0.01, 0.99, by = 0.005)
+k.tie <- BinaryTypeIErrorBSSR(
+  Delta.A = -0.30, N1 = 39, N2 = 39, n.interim = c(20, 20), r = 1, alpha = 0.025,
+  tar.power = 0.8, Test = 'Chisq', alternative = 'less', ss.method = 'standard',
+  theta = k.grid[k.grid >= 0.15 - 1e-9 & k.grid <= 0.85 + 1e-9], refine = FALSE
+)
+# Friede and Kieser (2004), Table I: control rate 0.2, alternative 0.2, equal groups and
+# an internal pilot study of 40 patients
+fk.plan <- BinarySampleSize(0.4, 0.2, 1, 0.05, 0.8, 'Chisq', alternative = 'two.sided',
+                            method = 'null.variance', rounding = 'friede-kieser')
+fk <- BinaryPowerBSSR(
+  p = 0.3, Delta.A = 0.2, Delta.T = 0.2, N1 = fk.plan$N1, N2 = fk.plan$N2,
+  n.interim = c(20, 20), r = 1, alpha = 0.05, tar.power = 0.8, Test = 'Chisq',
+  alternative = 'two.sided', ss.method = 'null.variance', rounding = 'friede-kieser',
+  N.max = 2 * fk.plan$N
+)
+# Farrington and Manning (1990), first example: p1 = 0.4, p2 = 0.05 and s0 = 0.2, so the
+# margin is -0.2 in the parametrization of bbssr
+fm.plan <- BinarySampleSize(0.4, 0.05, 1, 0.05, 0.8, 'Farrington-Manning',
+                            method = 'standard', rounding = 'nearest', margin = -0.2)
+fm.power <- BinaryPower(0.4, 0.05, 80, 80, 0.05, 'Farrington-Manning', margin = -0.2)
+# Friede, Mitchell and Mueller-Velten (2007), Section 5: margin 0.1 and equal groups
+fmm.bw <- BinarySampleSize(0.7, 0.7, 1, 0.025, 0.8, 'Blackwelder',
+                           method = 'alternative.variance', rounding = 'friede-kieser',
+                           margin = 0.1)
+fmm.fm <- BinarySampleSize(0.9, 0.9, 1, 0.025, 0.8, 'Farrington-Manning',
+                           method = 'standard', rounding = 'friede-kieser', margin = 0.1)
+published <- data.frame(
+  source = c('Kieser (2020)', 'Kieser (2020)', 'Kieser (2020)',
+             'Friede and Kieser (2004)', 'Friede and Kieser (2004)',
+             'Friede and Kieser (2004)', 'Farrington and Manning (1990)',
+             'Farrington and Manning (1990)', 'Friede et al. (2007)',
+             'Friede et al. (2007)'),
+  quantity = c('initial total sample size, Delta = 0.15',
+               'largest level, fixed design, Delta = 0.30',
+               'largest level, re-estimation, Delta = 0.30',
+               'initial total sample size', 'expected total sample size', 'power',
+               'sample size per group', 'power at 80 patients per group',
+               'total sample size, Blackwelder, p = 0.7',
+               'total sample size, Farrington-Manning, p = 0.9'),
+  published = c(314, 0.0268, 0.0273, 166, 162.0, 0.794, 80, 0.813, 660, 310),
+  digits = c(0, 4, 4, 0, 1, 3, 0, 3, 0, 0),
+  recomputed = c(k.plan$N, max(k.tie$TIE.TRAD), max(k.tie$TIE.BSSR), fk.plan$N, fk$E.N,
+                 fk$power.BSSR, fm.plan$N1, fm.power$Power, fmm.bw$N, fmm.fm$N)
+)
+published$agrees <- abs(round(published$recomputed, published$digits) -
+                          published$published) < 1e-9
+published
+```
+
+`r sum(published$agrees)` of the `r nrow(published)` values above agree with the publication after rounding. The script reports every value that it does not reproduce, together with the reason when one is known.
+
 ## Summary
 
-The conditional tests reproduce `stats::fisher.test` to machine precision. The unconditional tests reproduce a direct evaluation of their definition to machine precision, and agree with `Exact` and `exact2x2` up to the difference between the two grids over the nuisance parameter. The three exact tests hold the type I error rate below the nominal level for one-sided and two-sided alternatives alike.
+The Fisher exact test reproduces `stats::fisher.test` to machine precision. The unconditional tests reproduce a direct evaluation of their definition to machine precision, and agree with `Exact` and `exact2x2` up to the difference in the search over the nuisance parameter. In the configuration examined, the three exact tests hold the type I error rate below the nominal level for one-sided and two-sided alternatives alike. A re-estimation design without re-estimation reproduces the fixed-sample design, the two calculations of the type I error rate of a re-estimation design agree, and published values are recomputed.
+
+## References
+
+Blackwelder, W. C. (1982). "Proving the null hypothesis" in clinical trials. *Controlled Clinical Trials*, 3, 345-353.
+
+Farrington, C. P. and Manning, G. (1990). Test statistics and sample size formulae for comparative binomial trials with null hypothesis of non-zero risk difference or non-unity relative risk. *Statistics in Medicine*, 9, 1447-1454.
+
+Friede, T. and Kieser, M. (2004). Sample size recalculation for binary data in internal pilot study designs. *Pharmaceutical Statistics*, 3, 269-279.
+
+Friede, T., Mitchell, C. and Mueller-Velten, G. (2007). Blinded sample size reestimation in non-inferiority trials with binary endpoints. *Biometrical Journal*, 49, 903-916.
+
+Kieser, M. (2020). *Methods and Applications of Sample Size Calculation and Recalculation in Clinical Trials*. Springer.

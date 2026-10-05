@@ -175,14 +175,6 @@ depend on \code{s}, and this averaging no longer holds. Outcomes with \code{CRP}
 the type I error rate is seen from the decomposition by \code{s} rather than from
 \code{CRP} alone.
 
-Kieser (2020, Sect. 21.3) states that the type I error rate is controlled for any
-blinded re-estimation rule when the Fisher-Boschloo test is applied in the analysis,
-because that test, as Fisher's exact test on which it is based, conditions on the total
-number of events. The two probabilities returned here allow this argument to be
-examined for the tests of the package, and the script
-\code{inst/validation/kieser-2020-section-21-3.R} does so for \code{Test = 'Fisher'}
-and \code{Test = 'Boschloo'}.
-
 Only tests of superiority are covered. With a non-inferiority margin the two response
 probabilities differ on the boundary of the null hypothesis, and the conditional
 distributions of the responder counts then depend on them.
@@ -205,10 +197,6 @@ attr(crp, 'max')
 plot(crp)
 }
 
-}
-\references{
-Kieser M (2020). \emph{Methods and Applications of Sample Size Calculation and
-Recalculation in Clinical Trials}. Springer, Cham.
 }
 \seealso{
 \code{\link{BinaryTypeIErrorBSSR}}, \code{\link{BinaryPowerBSSR}}

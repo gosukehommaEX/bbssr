@@ -45,7 +45,7 @@ plan <- BinarySampleSize(p1 = 0.45, p2 = 0.20, r = 1, alpha = 0.025,
 plan
 ```
 
-The assumed pooled response probability is `r 0.5 * (0.45 + 0.20)`. Its value drives the required sample size much more strongly than the risk difference alone, which is what makes it worth re-estimating.
+The assumed pooled response probability is `r 0.5 * (0.45 + 0.20)`. Its value also drives the required sample size, and unlike the risk difference it can be estimated from blinded data, which is what makes it worth re-estimating.
 
 ```{r sensitivity}
 pooled <- seq(0.20, 0.45, by = 0.05)
@@ -60,11 +60,11 @@ sens$N <- vapply(seq_len(nrow(sens)), function(i) {
 sens
 ```
 
-The required total sample size rises by about 60 percent across this range, while the risk difference stays fixed at 0.25. The reason is that the variance of a binary endpoint is largest at one half, so a pooled probability closer to that value costs patients. An error in the assumed pooled probability is therefore expensive, and it is exactly the quantity that blinded interim data can estimate.
+The required total sample size goes from `r sens$N[1]` at a pooled probability of `r sens$pooled[1]` to `r sens$N[nrow(sens)]` at `r sens$pooled[nrow(sens)]`, while the risk difference stays fixed at `r Delta.A`. The reason is that the variance of a binary endpoint is largest at one half, so a pooled probability closer to that value costs patients. An error in the assumed pooled probability is therefore expensive, and it is exactly the quantity that blinded interim data can estimate.
 
 ## Evaluating the re-estimation rule
 
-Before committing to the design, check what the re-estimation buys. The interim analysis is placed at half of the planned sample size.
+Before committing to the design, check what the re-estimation buys. The interim analysis is placed at half of the planned sample size. The evaluations in this vignette use the chi-squared test, whose rejection regions are quicker to compute than those of the Z-pooled test, as an approximation to the final analysis.
 
 ```{r evaluate}
 design <- BinaryPowerBSSR(
@@ -81,7 +81,7 @@ design
 plot(design)
 ```
 
-The fixed-sample design was sized at a pooled probability of 0.325. It keeps its power at and below that value and loses it above, falling further behind as the pooled probability approaches one half. Under the restricted rule the re-estimation never goes below the planned sample size, so it leaves the power alone in the over-powered scenarios and adds patients in the under-powered ones. The `E.N` column shows what that costs.
+The fixed-sample design was sized at a pooled probability of `r 0.5 * (0.45 + 0.20)`. It keeps its power at and below that value and loses it above, falling further behind as the pooled probability approaches one half. Under the restricted rule the re-estimation never goes below the planned sample size, so it leaves the power alone in the over-powered scenarios and adds patients in the under-powered ones. The `E.N` column shows what that costs.
 
 ## The interim analysis
 
@@ -94,7 +94,7 @@ S <- round(0.40 * (n1 + n2))
 data.frame(n1 = n1, n2 = n2, S = S, pooled.rate = round(S / (n1 + n2), 3))
 ```
 
-The observed pooled rate is above the assumed 0.325. By the argument of the previous section a higher pooled rate at the same risk difference calls for more patients, so the trial has to grow.
+The observed pooled rate of `r round(S / (n1 + n2), 3)` is above the assumed `r 0.5 * (0.45 + 0.20)`. By the argument of the previous section a higher pooled rate at the same risk difference calls for more patients, so the trial has to grow.
 
 ```{r reestimate}
 re <- BinaryBSSR(
@@ -138,7 +138,18 @@ data.frame(hat.p = edge$hat.p, hat.p1 = edge$hat.p1,
            hat.p2 = edge$hat.p2, N.re = edge$N.re)
 ```
 
-With a pooled rate of 0.05 and an assumed effect of 0.4, the control probability would be negative, so it is set to zero while the treatment probability stays at $\hat{p} + \Delta_{A} / 2$. The recovered risk difference is then only 0.25 rather than 0.4, and the re-estimated sample size is correspondingly larger. An assumed effect that the observed pooled rate cannot accommodate therefore produces conservative re-estimation, which is worth checking when the response rate is low.
+With a pooled rate of `r edge$hat.p` and an assumed effect of 0.4, the control probability would be negative, so it is set to zero while the treatment probability stays at $\hat{p} + \Delta_{A} / 2$. The recovered risk difference is then only `r edge$hat.p1 - edge$hat.p2` rather than 0.4, and the re-estimated sample size is correspondingly larger. An assumed effect that the observed pooled rate cannot accommodate therefore produces conservative re-estimation, which is worth checking when the response rate is low.
+
+This truncation belongs to the default `ss.method = 'exact'`, whose search needs probabilities inside the unit interval. The normal approximation of `ss.method = 'standard'` keeps the recovered probabilities before truncation, with each Bernoulli variance truncated at zero, so the assumed effect is kept.
+
+```{r truncation-standard}
+edge.standard <- BinaryBSSR(n1 = 20, n2 = 20, S = 2, Delta.A = 0.4, r = 1,
+                            alpha = 0.025, tar.power = 0.8, Test = 'Chisq',
+                            ss.method = 'standard')
+c(exact = edge$N.re, standard = edge.standard$N.re)
+```
+
+The `bbssr-reestimation-rules` vignette compares the two methods over all interim outcomes.
 
 ## Unequal allocation
 
@@ -151,26 +162,18 @@ BinaryBSSR(n1 = 40, n2 = 20, S = 18, Delta.A = 0.25, r = 2,
 
 ## Practical notes
 
-The interim total of responders is the only quantity that leaves the database, so the analysis stays blinded and no alpha is spent. The re-estimated sample size still depends on $\Delta_{A}$, which is fixed at the design stage and must not be revised in the light of the interim data.
+The interim total of responders is the only quantity that leaves the database, so the analysis stays blinded and no interim test is performed. The rule can still change the type I error rate, as the end of this section shows. The re-estimated sample size still depends on $\Delta_{A}$, which is fixed at the design stage and must not be revised in the light of the interim data.
 
 Fix the timing of the interim analysis, the value of $\Delta_{A}$, the test and the choice between the restricted and unrestricted rules in the protocol before the trial starts. Report the operating characteristics from `BinaryPowerBSSR()` alongside them, since the type I error rate of the procedure is a property of the whole rule rather than of the final test alone.
 
-Setting `Delta.T` to zero makes the two groups identical, so `power.BSSR` and `power.TRAD` become rejection probabilities under the null hypothesis. The function evaluates them only at the values passed through `p` and does not search over the unit interval, so the largest type I error rate has to be read off a grid.
+Setting `Delta.T` to zero in `BinaryPowerBSSR()` makes the two groups identical, so `power.BSSR` and `power.TRAD` become rejection probabilities under the null hypothesis at the values passed through `p`. `BinaryTypeIErrorBSSR()` evaluates the same rejection probabilities over a grid of the common response probability and refines the largest local maxima, so the largest type I error rate does not have to be read off a grid.
 
 ```{r type1-check}
-null <- BinaryPowerBSSR(
-  p = seq(0.02, 0.98, by = 0.02),
-  Delta.A = Delta.A, Delta.T = 0,
-  N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
+null <- BinaryTypeIErrorBSSR(
+  Delta.A = Delta.A, N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
   alpha = 0.025, tar.power = 0.8, Test = 'Chisq', restricted = TRUE
 )
-data.frame(
-  largest.type1.BSSR = round(max(null$power.BSSR), 5),
-  attained.at.p = null$p[which.max(null$power.BSSR)],
-  largest.type1.fixed = round(max(null$power.TRAD), 5)
-)
+attr(null, 'max')
 ```
 
-The rejection region and the re-estimated sample size are shared across the elements of `p`, so a grid of this size costs little more than a handful of scenarios.
-
-Both figures sit above the nominal 0.025, for two separate reasons. The chi-squared test is not exact, which is why the fixed-sample design alone already overshoots, and the re-estimation then pushes the maximum higher still. Substituting an exact test such as `Boschloo` removes the first source but not the second, because the type I error rate of an adaptive rule is not inherited from the test it applies at the end. Running this check is therefore worthwhile whichever test is chosen.
+The largest type I error rate is `r signif(attr(null, 'max')$TIE[1], 4)` for the re-estimation design and `r signif(attr(null, 'max')$TIE[2], 4)` for the fixed-sample design, against the nominal 0.025. Two separate sources contribute. The chi-squared test is not exact, so the fixed-sample design alone can exceed the level, and the re-estimation changes the rate again, because the type I error rate of an adaptive rule is not inherited from the test it applies at the end. Substituting an exact test removes the first source, and whether the second matters has to be checked for the design. Running this check is therefore worthwhile whichever test is chosen, and the `bbssr-type1-error` vignette shows how `BinaryAlphaAdjBSSR()` lowers the nominal level until the rate is controlled.

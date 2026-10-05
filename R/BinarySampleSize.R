@@ -23,8 +23,9 @@
 #'   unconditional tests. Default is 100
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure. The default of
 #'   0 disables the procedure
-#' @param method How the sample size is obtained. \code{'exact'} (default) searches for
-#'   the smallest sample size at which the exact power of \code{Test} attains the target.
+#' @param method How the sample size is obtained. \code{'exact'} (default) steps from the
+#'   normal approximation, one patient at a time, to the sample size at which the exact
+#'   power of \code{Test} first attains the target, see Details.
 #'   \code{'standard'} uses the normal approximation with the variance under the null
 #'   hypothesis for the significance term and the variance under the alternative for the
 #'   power term, formula (21.3) of Kieser (2020). \code{'null.variance'} uses the variance

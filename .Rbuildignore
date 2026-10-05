@@ -13,4 +13,7 @@
 ^vignettes/.*_cache$
 ^tools$
 ^reproduce-output$
-^validation-output$
+^README\.Rmd$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

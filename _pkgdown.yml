@@ -1,0 +1,54 @@
+url: https://gosukehommaex.github.io/bbssr/
+
+template:
+  bootstrap: 5
+
+reference:
+  - title: Fixed-sample designs
+    desc: Rejection region, exact power and sample size of a two-arm trial with a binary endpoint.
+    contents:
+      - BinaryRR
+      - BinaryPower
+      - BinarySampleSize
+  - title: Blinded sample size re-estimation
+    desc: Operating characteristics of a re-estimation design, comparison of several designs, and the re-estimation from the data of a trial that is under way.
+    contents:
+      - BinaryPowerBSSR
+      - BinaryGridBSSR
+      - BinaryBSSR
+  - title: Type I error rate
+    desc: Type I error rate of a re-estimation design, the adjusted significance level that controls it, and its decomposition by the interim outcome.
+    contents:
+      - BinaryTypeIErrorBSSR
+      - BinaryAlphaAdjBSSR
+      - BinaryCondRejectBSSR
+  - title: Printing, summaries and plots
+    contents:
+      - starts_with("print.")
+      - starts_with("summary.")
+      - starts_with("plot.")
+  - title: Package
+    contents:
+      - bbssr-package
+
+articles:
+  - title: Getting started
+    navbar: ~
+    contents:
+      - bbssr-introduction
+  - title: Designing a trial with re-estimation
+    navbar: Designing a trial
+    contents:
+      - bbssr-interim-reestimation
+      - bbssr-reestimation-rules
+      - bbssr-design-grid
+      - bbssr-non-inferiority
+  - title: Type I error rate
+    navbar: Type I error rate
+    contents:
+      - bbssr-type1-error
+  - title: Methods and validation
+    navbar: Methods and validation
+    contents:
+      - bbssr-statistical-methods
+      - bbssr-validation

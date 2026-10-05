@@ -150,9 +150,10 @@ At the interim analysis the pooled number of responders is observed without unbl
 The pooled proportion is combined with the assumed treatment effect \code{Delta.A} to
 recover group-specific proportions, from which the sample size is re-estimated. For the
 risk difference the recovered proportions are \code{hat.p + Delta.A / (1 + r)} and
-\code{hat.p - r Delta.A / (1 + r)}, and for the risk ratio and the odds ratio they are
-the proportions with the pooled value \code{hat.p} and the ratio \code{Delta.A},
-formulas (21.11) and (21.12) of Kieser (2020). The exact search of
+\code{hat.p - r Delta.A / (1 + r)}. For the risk ratio they are the proportions with
+the pooled value \code{hat.p} and the ratio \code{Delta.A}, formula (21.11) of Kieser
+(2020), and for the odds ratio they are obtained from the quadratic equation that the
+odds ratio and the pooled value define. The exact search of
 \code{ss.method = 'exact'} uses the recovered proportions truncated to the unit
 interval. The normal approximation uses them before truncation, with each Bernoulli
 variance truncated at zero, so that the assumed effect is kept as in formula (2) of
@@ -163,16 +164,18 @@ Under \code{rounding = 'group'}, both the interim and the final sample size of g
 are obtained from the size of group 2 by a single application of
 \code{ceiling(r ...)}, so the allocation ratio is preserved as closely as whole numbers
 allow and is exact whenever \code{r} is a whole number. Under
-\code{rounding = 'friede-kieser'}, which requires \code{ss.method = 'standard'} or
-\code{'null.variance'}, the second stage receives the rounded-up excess of the
-unrounded re-estimated total over the interim total, split into
+\code{rounding = 'friede-kieser'}, which requires a normal approximation, that is an
+\code{ss.method} other than \code{'exact'}, the second stage receives the rounded-up
+excess of the unrounded re-estimated total over the interim total, split into
 \code{ceiling(n / (1 + r))} and \code{ceiling(r n / (1 + r))} patients as in Friede and
 Kieser (2004). Under \code{rounding = 'total'} the unrounded total is rounded up and
-group 2 receives \code{floor(N / (1 + r))} patients. In each case the final total is
-kept between the interim total (or \code{N.min}, or the initial total under the
-restricted rule) and \code{N.max}. Under \code{rounding = 'nearest'} the unrounded
-total is split in the ratio \code{r} to 1 and each group is rounded to the nearest
-whole number, which reproduces the computations of Friede et al. (2007). The argument
+group 2 receives \code{floor(N / (1 + r))} patients. Under \code{rounding = 'nearest'}
+the unrounded total is split in the ratio \code{r} to 1 and each group is rounded to
+the nearest whole number, which reproduces the computations of Friede et al. (2007).
+In each case the final total is kept between the interim total (or \code{N.min}, or
+the initial total under the restricted rule) and \code{N.max}, except that
+\code{'friede-kieser'} and \code{'nearest'} round the two groups separately and can
+exceed \code{N.max} by one patient. The argument
 \code{N1} enters only through the
 fixed-sample comparator and the restricted rule, and under \code{rounding = 'group'} a
 warning is issued when it is not \code{ceiling(r N2)}.

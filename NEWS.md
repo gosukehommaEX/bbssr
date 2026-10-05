@@ -21,10 +21,7 @@
   number of interim responders to show the interim outcomes that raise it. Because the
   allocation is fixed within each stage, the first can exceed the level even for
   Fisher's exact test without re-estimation, whereas the conditional size of that test
-  given the total never does. `inst/validation/kieser-2020-section-21-3.R` uses both to
-  examine numerically the statement of Kieser (2020, Sect. 21.3) that the type I error
-  rate is controlled for any blinded re-estimation rule when the Fisher-Boschloo test is
-  applied in the analysis.
+  given the total never does.
 
 * `BinaryGridBSSR()` evaluates a set of re-estimation designs, given as the rows of a
   data frame, over common true pooled response probabilities and returns one tidy data
@@ -45,7 +42,8 @@
 
 * `rounding` selects how an unrounded sample size becomes whole numbers: by group
   (`'group'`, the rule of earlier versions), by the rule of Friede and Kieser (2004)
-  (`'friede-kieser'`), or by rounding the total (`'total'`).
+  (`'friede-kieser'`), by rounding the total (`'total'`), or by rounding each group to
+  the nearest whole number (`'nearest'`).
 
 * `N.min` and `N.max` bound the final total sample size of a re-estimation design, for
   example to cap it at twice the initial size or to keep patients who are enrolled but
@@ -70,17 +68,17 @@
 
 * With a margin, the normal approximation of `method = 'standard'` is formula (4) of
   Farrington and Manning (1990), and the new `method = 'alternative.variance'` gives the
-  formula of Blackwelder (1982). `rounding = 'nearest'` rounds each group to the nearest
-  whole number. The blinded re-estimation of Friede, Mitchell and Mueller-Velten (2007)
+  formula of Blackwelder (1982). The blinded re-estimation of Friede, Mitchell and Mueller-Velten (2007)
   follows from `Delta.A = 0` and a margin, and `BinaryTypeIErrorBSSR()` and
   `BinaryAlphaAdjBSSR()` evaluate the type I error rate on the boundary of the null
   hypothesis, parametrized by the pooled response probability.
 
-* `inst/reproduce/reproduce-published.R` also reproduces Tables I and II and the first
-  example of Farrington and Manning (1990), Table 3 and the examples of Blackwelder
-  (1982), and Tables 2 and 3 and Sections 5 and 6 of Friede, Mitchell and Mueller-Velten
-  (2007). A difference from a published value counts as explained only when it is within
-  the tolerance recorded with its reason.
+* `inst/reproduce/reproduce-published.R` reproduces Table I and Section 5 of Friede and
+  Kieser (2004), Example 21.1 of Kieser (2020), Tables I and II and the first example of
+  Farrington and Manning (1990), Table 3 and the examples of Blackwelder (1982), and
+  Tables 2 and 3 and Sections 5 and 6 of Friede, Mitchell and Mueller-Velten (2007). A
+  difference from a published value counts as explained only when it is within the
+  tolerance recorded with its reason.
 
 * `ref.pvalue = TRUE` refines the maximization over the nuisance parameter of the
   Z-pooled and Boschloo tests, in every function that computes a rejection region. The
@@ -94,9 +92,6 @@
 * `BinaryPowerBSSR()` returns the final sample size of every interim outcome as the
   attribute `reestimation` and the distribution of the final sample size as the
   attribute `N.dist`, and `summary()` reports its standard deviation and quantiles.
-
-* `inst/reproduce/reproduce-published.R` reproduces Table I and Section 5 of Friede and
-  Kieser (2004) and Example 21.1 of Kieser (2020).
 
 ## Changes in behaviour
 
@@ -127,18 +122,31 @@
 
 * A rejection region depends only on the sample sizes, the level and the test, yet the
   sample size search of `BinarySampleSize()` and the re-estimation of `BinaryPowerBSSR()`
-  recomputed it for every candidate sample size and every interim outcome. Each region is
-  now computed once and kept for the rest of the R session. Over a design grid of five
-  assumed effects and nine interim fractions this replaces more than ten thousand
-  evaluations of `BinaryRR()` by fewer than a hundred. The stored regions
-  are discarded when they would occupy more than about 100 MB, and
-  `options(bbssr.cache = FALSE)` turns the reuse off.
+  recomputed it for every candidate sample size and every interim outcome. The p-values
+  behind each region are now computed once and kept for the rest of the R session, and
+  a region at any level follows from them. Over a design grid of five assumed effects
+  and nine interim fractions this replaces more than ten thousand evaluations of
+  `BinaryRR()` by fewer than a hundred. The stored p-values are discarded when they would
+  occupy more than about 100 MB, and `options(bbssr.cache = FALSE)` turns the reuse off.
 
 * `BinaryPowerBSSR()` sums the conditional power of the second stage in compiled code.
   Each column of the final rejection region is stored as runs of rejected outcomes, so
   the conditional probability over a column is a difference of binomial distribution
   functions rather than a sum over every cell. The results agree with version 2.0.0 up
   to rounding in the last digits.
+
+## Documentation
+
+* The vignettes are reorganized into eight. `bbssr-introduction`,
+  `bbssr-statistical-methods`, `bbssr-interim-reestimation` and `bbssr-validation`
+  cover the new tests and functions, and four are added: `bbssr-reestimation-rules` on
+  the options of the re-estimation, `bbssr-type1-error` on the type I error rate and the
+  adjusted level, `bbssr-non-inferiority` on the tests with a margin, and
+  `bbssr-design-grid` on the comparison of designs with `BinaryGridBSSR()`. The numbers
+  quoted in the text are computed when the vignette is built.
+
+* `README.md` is generated from `README.Rmd`, and a 'pkgdown' site is built from the
+  help pages and the vignettes.
 
 # bbssr 2.0.0
 
