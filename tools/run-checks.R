@@ -130,7 +130,7 @@ for (t in test.res) {
 run.docs.steps <- run.docs
 if (run.docs) {
   inst.res <- tryCatch({
-    devtools::install(upgrade = 'never', quiet = TRUE)
+    devtools::install(upgrade = FALSE, quiet = TRUE)
     paste('bbssr', callr::r(function() as.character(utils::packageVersion('bbssr'))),
           'installed')
   }, error = function(e) paste('ERROR:', cli::ansi_strip(conditionMessage(e))))
