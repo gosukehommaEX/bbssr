@@ -1,7 +1,8 @@
 # Reproduces the published numerical results of Friede and Kieser (2004, Table I and
 # Section 5), Kieser (2020, Example 21.1), Farrington and Manning (1990, Tables I and II and
-# the first example), Blackwelder (1982, Table 3 and the examples) and Friede, Mitchell and
-# Mueller-Velten (2007, Tables 2 and 3 and Sections 5 and 6) with bbssr.
+# the first example), Blackwelder (1982, Table 3 and the examples), Friede, Mitchell and
+# Mueller-Velten (2007, Tables 2 and 3 and Sections 5 and 6) and Boschloo (1970, Sections
+# 2, 3, 4 and 6) with bbssr.
 # Run from the package root after devtools::load_all(). The results are written to
 # reproduce-output/: published-comparison.csv lists every published value next to the
 # recomputed value with a verdict (PASS, EXPLAINED, FAIL or INFO), and summary.md is
@@ -479,6 +480,80 @@ for (tst in names(s6.pub)) {
   add(fmm.src, s6.lab, s6.pub[[tst]], c(res$power.TRAD, res$power.BSSR, res$E.N),
       c(3, 3, 0))
 }
+
+# Boschloo (1970), Sections 2, 3, 4 and 6 ------------------------------------------------
+# Fisher's test is used at a raised conditional level gamma, the largest level at which
+# the unconditional size does not exceed alpha. Rejecting when the Fisher p-value is at
+# most gamma is the same as rejecting when the Boschloo p-value is at most alpha. The
+# article writes m and n for the sizes of the first and the second sample and tests
+# p1 <= p2 against p1 > p2, so N1 = m, N2 = n and the alternative is 'greater'. The
+# two-sided test gives each of the two parts of the critical region the conditional level
+# gamma / 2, which is the 'central' convention of tsmethod. The rows and columns of the
+# matrices of bbssr are the numbers of successes plus one
+bo.src <- 'Boschloo (1970)'
+bo_cells <- function(RR) matrix(as.vector(RR), attr(RR, 'N1') + 1L, attr(RR, 'N2') + 1L)
+# Section 4: power with m = n = 15 of Fisher's test (column I) and of Fisher's test at the
+# raised level (column II). Column III, the randomized test, is not part of the package
+bo <- data.frame(alpha = rep(c(0.01, 0.05), each = 4), p1 = rep(c(0.3, 0.6, 0.7, 0.8), 2),
+                 p2 = rep(c(0.1, 0.1, 0.2, 0.2), 2),
+                 fisher.pub = c(0.0755, 0.6087, 0.5268, 0.7647,
+                                0.2558, 0.8451, 0.8066, 0.9391),
+                 boschloo.pub = c(0.1493, 0.7394, 0.6796, 0.8723,
+                                  0.3531, 0.9189, 0.8962, 0.9744))
+bo[c('fisher', 'boschloo')] <- NA_real_
+for (a in c(0.01, 0.05)) {
+  i <- bo$alpha == a
+  bo$fisher[i] <- BinaryPower(bo$p1[i], bo$p2[i], 15, 15, a, 'Fisher')$Power
+  bo$boschloo[i] <- BinaryPower(bo$p1[i], bo$p2[i], 15, 15, a, 'Boschloo')$Power
+}
+write.csv(bo, file.path(out.dir, 'boschloo-1970-section4.csv'), row.names = FALSE)
+bo.lab <- sprintf('Boschloo1970 Section 4: alpha = %g, p1 = %g, p2 = %g', bo$alpha, bo$p1,
+                  bo$p2)
+add(bo.src, paste0(bo.lab, ': power, Fisher test (column I)'), bo$fisher.pub, bo$fisher,
+    4)
+add(bo.src, paste0(bo.lab, ': power, raised level (column II)'), bo$boschloo.pub,
+    bo$boschloo, 4)
+explain(paste0(bo.lab[6], ': power, Fisher test (column I)'), 6e-5, paste(
+  'The recomputed power lies less than 1e-7 above the rounding boundary 0.84515, so',
+  'rounding to four decimals gives one unit more than the published value. The table',
+  'rounds rather than truncates, as the entry 0.6087 shows (the power is 0.60866).'))
+# Sections 2, 3 and 6: m = 15, n = 10 and the one-sided level 0.05. The example of Section
+# 6 observes 5 successes out of 15 against 0 out of 10
+bo.f <- BinaryRR(15, 10, 0.05, 'Fisher')
+bo.b <- BinaryRR(15, 10, 0.05, 'Boschloo')
+bo.f2 <- BinaryRR(15, 10, 0.05, 'Fisher', alternative = 'two.sided', tsmethod = 'central')
+bo.b2 <- BinaryRR(15, 10, 0.05, 'Boschloo', alternative = 'two.sided',
+                  tsmethod = 'central')
+bo.pf <- attr(bo.f, 'p.value')
+bo.pf2 <- attr(bo.f2, 'p.value')
+bo.theta <- seq(0, 1, by = 1e-4)
+bo.size <- max(vapply(bo.theta, function(t) {
+  sum(outer(dbinom(0:15, 15, t), dbinom(0:10, 10, t)) * bo_cells(bo.f))
+}, numeric(1)))
+bo.ex <- 'Boschloo1970 Section 6: 5 / 15 against 0 / 10'
+add(bo.src, paste0(bo.ex, ': Fisher p-value'), 0.0565, bo.pf[6, 1], 4)
+add(bo.src, paste0(bo.ex, ': rejected by the Fisher test at 0.05 (1 = yes)'), 0,
+    as.numeric(bo_cells(bo.f)[6, 1]), 0)
+add(bo.src, paste0(bo.ex, ': rejected at the raised level, one-sided (1 = yes)'), 1,
+    as.numeric(bo_cells(bo.b)[6, 1]), 0)
+add(bo.src, paste0(bo.ex, ': rejected at the raised level, two-sided (1 = yes)'), 1,
+    as.numeric(bo_cells(bo.b2)[6, 1]), 0, "tsmethod = 'central'")
+add(bo.src, 'Boschloo1970 Section 2: size of the Fisher test, m = 15, n = 10, level 0.05',
+    0.02, bo.size, 2, 'The article gives about .02; maximum over a grid of step 1e-4')
+bo.fig <- 'Figure 1, m = 15, n = 10, one-sided level 0.05'
+add(bo.src, paste('Boschloo1970 Section 6: outcomes added to the critical region of the',
+                  'Fisher test'), 8, sum(bo_cells(bo.b) & !bo_cells(bo.f)), 0, bo.fig)
+add(bo.src, paste('Boschloo1970 Section 6: outcomes removed from the critical region of',
+                  'the Fisher test'), 0, sum(bo_cells(bo.f) & !bo_cells(bo.b)), 0, bo.fig)
+# Raised levels quoted from the table of the article: 0.09 for the one-sided and 0.114 for
+# the two-sided test at the level 0.05. The Fisher test at these conditional levels and
+# the Boschloo test must have the same critical region
+add(bo.src, paste('Boschloo1970 Sections 3 and 6: outcomes on which the Fisher test at',
+                  'the raised level 0.09 and the Boschloo test differ, one-sided'),
+    0, sum((bo.pf <= 0.09) != bo_cells(bo.b)), 0)
+add(bo.src, paste('Boschloo1970 Section 6: outcomes on which the Fisher test at the',
+                  'raised level 0.114 and the Boschloo test differ, two-sided'),
+    0, sum((bo.pf2 <= 0.114) != bo_cells(bo.b2)), 0, "tsmethod = 'central'")
 
 # Verdicts and summary -------------------------------------------------------------------
 tab <- do.call(rbind, cmp)

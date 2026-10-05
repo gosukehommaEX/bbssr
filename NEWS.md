@@ -75,10 +75,11 @@
 
 * `inst/reproduce/reproduce-published.R` reproduces Table I and Section 5 of Friede and
   Kieser (2004), Example 21.1 of Kieser (2020), Tables I and II and the first example of
-  Farrington and Manning (1990), Table 3 and the examples of Blackwelder (1982), and
-  Tables 2 and 3 and Sections 5 and 6 of Friede, Mitchell and Mueller-Velten (2007). A
-  difference from a published value counts as explained only when it is within the
-  tolerance recorded with its reason.
+  Farrington and Manning (1990), Table 3 and the examples of Blackwelder (1982),
+  Tables 2 and 3 and Sections 5 and 6 of Friede, Mitchell and Mueller-Velten (2007), and
+  the table of power and the example of Boschloo (1970). A difference from a published
+  value counts as explained only when it is within the tolerance recorded with its
+  reason.
 
 * `ref.pvalue = TRUE` refines the maximization over the nuisance parameter of the
   Z-pooled and Boschloo tests, in every function that computes a rejection region. The
@@ -147,6 +148,11 @@
 
 * `README.md` is generated from `README.Rmd`, and a 'pkgdown' site is built from the
   help pages and the vignettes.
+
+* `DESCRIPTION`, the help page of `BinaryRR()` and the vignettes cite Boschloo (1970),
+  where the Boschloo test was introduced as Fisher's test at a raised conditional level,
+  and the `bbssr-statistical-methods` vignette explains why this is the same test as the
+  one defined in the package.
 
 # bbssr 2.0.0
 

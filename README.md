@@ -1,12 +1,13 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# bbssr: Blinded Sample Size Re-Estimation for Binary Endpoints <img src="man/figures/bbssr_sticker.png" align="right" height="139" />
+# bbssr: Blinded Sample Size Re-Estimation for Binary Endpoints <img src="man/figures/bbssr_sticker.png" align="right" height="139" alt="bbssr logo" />
 
 <!-- badges: start -->
 
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/bbssr)](https://CRAN.R-project.org/package=bbssr)
 [![R-CMD-check](https://github.com/gosukehommaEX/bbssr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/gosukehommaEX/bbssr/actions/workflows/R-CMD-check.yaml)
+[![pkgdown](https://github.com/gosukehommaEX/bbssr/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/gosukehommaEX/bbssr/actions/workflows/pkgdown.yaml)
 [![downloads](https://cranlogs.r-pkg.org/badges/grand-total/bbssr)](https://cranlogs.r-pkg.org/badges/grand-total/bbssr)
 [![downloads](https://cranlogs.r-pkg.org/badges/bbssr)](https://cranlogs.r-pkg.org/badges/bbssr)
 <!-- badges: end -->
@@ -353,10 +354,10 @@ precision. The unconditional tests reproduce a direct evaluation of
 their definition, and agree with `Exact` and `exact2x2` up to the
 difference in the search over the nuisance parameter. The script
 `inst/reproduce/reproduce-published.R` recomputes the published results
-of Blackwelder (1982), Farrington and Manning (1990), Friede and Kieser
-(2004), Friede, Mitchell and Mueller-Velten (2007) and Kieser (2020),
-and the unit tests compare the package with independent implementations.
-Details are in the validation vignette.
+of Blackwelder (1982), Boschloo (1970), Farrington and Manning (1990),
+Friede and Kieser (2004), Friede, Mitchell and Mueller-Velten (2007) and
+Kieser (2020), and the unit tests compare the package with independent
+implementations. Details are in the validation vignette.
 
 ## References
 
@@ -371,7 +372,7 @@ Blackwelder, W. C. (1982). “Proving the null hypothesis” in clinical
 trials. *Controlled Clinical Trials*, 3, 345-353.
 
 Boschloo, R. D. (1970). Raised conditional level of significance for the
-2x2-table when testing the equality of two probabilities. *Statistica
+2 × 2-table when testing the equality of two probabilities. *Statistica
 Neerlandica*, 24, 1-9.
 
 Farrington, C. P. and Manning, G. (1990). Test statistics and sample

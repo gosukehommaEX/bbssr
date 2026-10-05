@@ -2,7 +2,8 @@
 
 Record of the check of every reference cited in DESCRIPTION, README.Rmd, the vignettes
 and the help pages. Each entry was compared with the first page of the original article
-and with Crossref (api.crossref.org) or PubMed. Checked on 2026-10-05.
+and with Crossref (api.crossref.org) or PubMed. Checked on 2026-10-05, except Berger and
+Boos (1994) and Boschloo (1970), which were checked on 2026-10-06.
 
 | Reference | Data used in the package | Original | Crossref or PubMed | Result |
 |---|---|---|---|---|
@@ -13,11 +14,34 @@ and with Crossref (api.crossref.org) or PubMed. Checked on 2026-10-05.
 | Kieser and Friede (2000) | Statistics in Medicine 19(7), 901-911 | PDF p. 901: Statist. Med. 2000; 19:901-911 (the issue is not printed) | Crossref search did not find the article. PubMed (PMID 10750058): volume 19, issue 7, pages 901-911, DOI 10.1002/(SICI)1097-0258(20000415)19:7<901::AID-SIM405>3.0.CO;2-L | Agrees |
 | Kieser (2020), Chapter 21 | Springer, Cham, doi:10.1007/978-3-030-49528-2_21 | Chapter PDF p. 225: Chapter 21, (c) Springer Nature Switzerland AG 2020, https://doi.org/10.1007/978-3-030-49528-2_21 | Crossref not checked (HTTP 429, twice) | Agrees with the original |
 | Mehrotra, Chan and Berger (2003) | Biometrics 59(2), 441-450, doi:10.1111/1541-0420.00051 | PDF p. 441: Biometrics 59, 441-450, June 2003 | Crossref: volume 59, issue 2, pages 441-450, print June 2003 | Agrees |
-| Berger and Boos (1994) | Journal of the American Statistical Association 89, 1012-1016, doi:10.1080/01621459.1994.10476836 | Not available. The reference list of Mehrotra, Chan and Berger (2003) gives Journal of the American Statistical Association 89, 1012-1016 | Crossref not checked (HTTP 429, twice) | Not verified with the original; the PDF is needed |
-| Boschloo (1970) | Statistica Neerlandica 24, 1-9 | Not available | Not checked | Not verified with the original; the PDF is needed |
+| Berger and Boos (1994) | Journal of the American Statistical Association 89, 1012-1016, doi:10.1080/01621459.1994.10476836 | PDF p. 1012: Journal of the American Statistical Association, September 1994, Vol. 89, No. 427, Theory and Methods; the article ends on p. 1016. The cover page of the publisher gives 89:427, 1012-1016 and the same DOI | Crossref not checked (HTTP 429, twice on 2026-10-06). The DOI resolves at doi.org to the article at tandfonline.com | Agrees |
+| Boschloo (1970) | Statistica Neerlandica 24(1), 1-9, doi:10.1111/j.1467-9574.1970.tb00104.x | PDF p. 1: Statistica Neerlandica 24 (1970) nr. 1; the references end on p. 9 | Crossref: volume 24, issue 1, pages 1-9, print March 1970, DOI 10.1111/j.1467-9574.1970.tb00104.x | Agrees |
 
 Berger and Boos (1994) has been cited in DESCRIPTION, README.md and the vignette
 `bbssr-statistical-methods` since version 2.0.0, and Boschloo (1970) in README.md and the
-same vignette. The two references are kept there until the originals can be checked, are
-not added anywhere else, and are removed before the release if the originals cannot be
-obtained.
+same vignette. After the check, both are also cited in the help page of `BinaryRR()`,
+Boschloo (1970) in DESCRIPTION and in the text of the two vignettes
+`bbssr-statistical-methods` and `bbssr-validation`, and the numbers of Boschloo (1970)
+are recomputed by `inst/reproduce/reproduce-published.R`. Besides the bibliographic data,
+the statements about the two articles were compared with the originals.
+
+- Berger and Boos (1994), Sections 1 and 2: for a 1 - beta confidence set C_beta of the
+  nuisance parameter under the null hypothesis, p_beta = sup over C_beta of p(theta), plus
+  beta, is a valid p-value (Lemma), and beta is chosen small, "such as .001 or .0001".
+  Example 2 applies the procedure to the 2 x 2 table with a .999 confidence interval for
+  the common proportion. The vignette describes the same procedure and writes gamma for
+  beta, after the argument `bb.gamma`.
+- Boschloo (1970), Sections 3 and 6: Fisher's test is used at a raised conditional level
+  gamma, chosen as high as possible such that the unconditional level does not exceed
+  alpha for any value of the common probability. Rejecting when the Fisher p-value is at
+  most gamma is the same as rejecting when the unconditional p-value with the Fisher
+  p-value as ordering statistic is at most alpha, which is how the package defines the
+  test. In the two-sided test each of the two parts of the critical region has the
+  conditional level gamma / 2, and the example of Section 6 rejects because
+  0.0565 < 0.114 / 2 (printed as ".565 < .144/2"). This is the `'central'` convention of
+  `tsmethod`. An independent computation with Python (exact rational conditional
+  p-values) gives the numbers of Sections 2, 3 and 6, including the two-sided raised
+  level 0.114, and columns I and II of the table of Section 4 except one entry: the power
+  of Fisher's test at alpha = .05, p1 = .6 and p2 = .1 is 0.84515004, which rounds to
+  .8452 against the published .8451. Column III, the randomized test, is not part of the
+  package.

@@ -112,7 +112,7 @@ Z(x_{1}, x_{2}) = \frac{x_{1} / N_{1} - x_{2} / N_{2}}
 \hat{p} = \frac{x_{1} + x_{2}}{N_{1} + N_{2}} ,
 $$
 
-with larger values more extreme. The Boschloo test uses the Fisher p-value itself as the ordering statistic, with smaller values more extreme.
+with larger values more extreme. The Boschloo test uses the Fisher p-value itself as the ordering statistic, with smaller values more extreme. Boschloo (1970) described this test as Fisher's test at a raised conditional level, the largest level at which the probability of rejection under the null hypothesis does not exceed $\alpha$ at any $\theta$. The probability $\Pr_{\theta}(p_{F} \le c)$ does not decrease as $c$ increases, so rejecting when $p_{F}$ is at most the raised level is the same as rejecting when the unconditional p-value above is at most $\alpha$. For a two-sided alternative the article gives each of the two parts of the rejection region half of the raised level, which is the `central` convention. The default `tsmethod = 'minlike'` orders the outcomes by the two-sided p-value of `stats::fisher.test` instead.
 
 The supremum is approximated by a search over the grid of `n.grid` equally spaced values of $\theta$ from 0 to 1, where `n.grid` defaults to 100. A grid that contains a coarser grid can only find a maximum at least as large, so refining the grid in this way can only raise the p-values. The grids of 21 and 2001 points below are nested, since the spacing of the first is a multiple of that of the second.
 
@@ -171,14 +171,14 @@ c(cell_5_1 = p[6, 2], cell_6_2 = p[7, 3])
 
 ### The Berger-Boos procedure
 
-Maximizing over the whole unit interval is wasteful, because values of $\theta$ far from the observed pooled proportion are implausible. Berger and Boos proposed maximizing over a $100(1 - \gamma)$ percent confidence interval $C_{\gamma}$ for $\theta$ instead, and adding $\gamma$ to compensate,
+Maximizing over the whole unit interval is wasteful, because values of $\theta$ far from the observed pooled proportion are implausible. Berger and Boos (1994) proposed maximizing over a $100(1 - \gamma)$ percent confidence interval $C_{\gamma}$ for $\theta$ instead, and adding $\gamma$ to compensate,
 
 $$
 p_{\gamma}(x_{1}, x_{2}) = \gamma + \sup_{\theta \in C_{\gamma}}
 \Pr_{\theta}\bigl(T(X_{1}, X_{2}) \text{ at least as extreme as } T(x_{1}, x_{2})\bigr) .
 $$
 
-The package uses an exact Clopper-Pearson interval based on $s$ responders among $N_{1} + N_{2}$ patients, so the interval differs from outcome to outcome. Setting `bb.gamma` to a positive value, conventionally $10^{-4}$ or $10^{-3}$, activates the procedure. The resulting test still controls the type I error rate at the nominal level.
+The package uses an exact Clopper-Pearson interval based on $s$ responders among $N_{1} + N_{2}$ patients, so the interval differs from outcome to outcome. Setting `bb.gamma` to a positive value activates the procedure. Berger and Boos (1994) write $\beta$ for $\gamma$ and suggest a small value such as 0.001 or 0.0001. The resulting test still controls the type I error rate at the nominal level.
 
 ```{r berger-boos}
 plain <- BinaryRR(15, 15, 0.025, 'Boschloo', n.grid = 200)
@@ -284,7 +284,7 @@ Setting $p_{1} = p_{2} = \theta$ in this sum gives the type I error rate of the 
 
 Berger, R. L. and Boos, D. D. (1994). P values maximized over a confidence set for the nuisance parameter. *Journal of the American Statistical Association*, 89, 1012-1016.
 
-Boschloo, R. D. (1970). Raised conditional level of significance for the 2x2-table when testing the equality of two probabilities. *Statistica Neerlandica*, 24, 1-9.
+Boschloo, R. D. (1970). Raised conditional level of significance for the 2 &times; 2-table when testing the equality of two probabilities. *Statistica Neerlandica*, 24, 1-9.
 
 Friede, T. and Kieser, M. (2004). Sample size recalculation for binary data in internal pilot study designs. *Pharmaceutical Statistics*, 3, 269-279.
 

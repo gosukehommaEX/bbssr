@@ -8,7 +8,8 @@ Description: Tools for blinded sample size re-estimation (BSSR) in two-arm clini
     trials with binary endpoints, together with the exact power and sample size 
     calculations that the re-estimation relies on. Seven statistical tests are 
     implemented: Pearson chi-squared, Fisher exact, Fisher mid-p, Z-pooled exact 
-    unconditional, Boschloo exact unconditional, and the tests of non-inferiority of 
+    unconditional, the exact unconditional test of Boschloo (1970) 
+    <doi:10.1111/j.1467-9574.1970.tb00104.x>, and the tests of non-inferiority of 
     Blackwelder (1982) <doi:10.1016/0197-2456(82)90024-1> and of Farrington and 
     Manning (1990) <doi:10.1002/sim.4780091208>. Each test is available with a 
     one-sided or a two-sided alternative, and the exact unconditional tests can be 

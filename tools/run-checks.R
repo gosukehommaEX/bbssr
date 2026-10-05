@@ -130,10 +130,25 @@ for (t in test.res) {
 run.docs.steps <- run.docs
 if (run.docs) {
   inst.res <- tryCatch({
-    devtools::install(upgrade = FALSE, quiet = TRUE)
+    # reload = FALSE keeps the installed DLL out of this session. load_all() does not
+    # unload a DLL loaded from the library, and Windows refuses to overwrite a DLL in use,
+    # so a reloaded package makes the installation fail in a later run of this session
+    devtools::install(upgrade = FALSE, quiet = TRUE, reload = FALSE)
     paste('bbssr', callr::r(function() as.character(utils::packageVersion('bbssr'))),
           'installed')
-  }, error = function(e) paste('ERROR:', cli::ansi_strip(conditionMessage(e))))
+  }, error = function(e) {
+    # The output of R CMD INSTALL is kept in the error object, not in its message
+    out <- character(0)
+    x <- e
+    while (inherits(x, 'condition')) {
+      for (f in c('stdout', 'stderr')) {
+        if (is.character(x[[f]])) out <- c(out, strsplit(x[[f]], '\r?\n')[[1]])
+      }
+      x <- x$parent
+    }
+    out <- utils::tail(cli::ansi_strip(out[nzchar(trimws(out))]), 10)
+    paste(c(paste('ERROR:', cli::ansi_strip(conditionMessage(e))), out), collapse = ' | ')
+  })
   note('docs, installation: ', inst.res)
   run.docs.steps <- !startsWith(inst.res, 'ERROR')
 }

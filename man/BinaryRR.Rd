@@ -79,7 +79,8 @@ The function supports the following seven tests:
 \item The Fisher exact test (Fisher)
 \item The Fisher mid-p test (Fisher-midP)
 \item The Z-pooled exact unconditional test (Z-pool)
-\item The Boschloo exact unconditional test (Boschloo)
+\item The exact unconditional test of Boschloo (1970), which orders the outcomes by
+the Fisher p-value (Boschloo)
 \item The test of Blackwelder (1982) with the unpooled standard error (Blackwelder)
 \item The test of Farrington and Manning (1990) with the standard error at the
 restricted maximum likelihood estimates (Farrington-Manning)
@@ -93,7 +94,9 @@ the two one-sided tail probabilities. The two-sided versions of \code{'Chisq'} a
 
 The unconditional tests maximize the null tail probability of an ordering statistic over
 the common response probability, which is a nuisance parameter. Outcomes sharing the same
-value of the ordering statistic receive the same p-value.
+value of the ordering statistic receive the same p-value. With a positive
+\code{bb.gamma} the maximization is restricted to a confidence interval for the
+nuisance parameter and \code{bb.gamma} is added, following Berger and Boos (1994).
 
 The tail probability of each outcome is a polynomial in the common response
 probability, and its maximum over the grid of \code{n.grid} points is a lower bound of
@@ -157,8 +160,15 @@ print(RR)
 
 }
 \references{
+Berger RL, Boos DD (1994). P values maximized over a confidence set for the nuisance
+parameter. \emph{Journal of the American Statistical Association}, 89(427),
+1012-1016.
+
 Blackwelder WC (1982). "Proving the null hypothesis" in clinical trials.
 \emph{Controlled Clinical Trials}, 3(4), 345-353.
+
+Boschloo RD (1970). Raised conditional level of significance for the 2 x 2-table when
+testing the equality of two probabilities. \emph{Statistica Neerlandica}, 24(1), 1-9.
 
 Farrington CP, Manning G (1990). Test statistics and sample size formulae for
 comparative binomial trials with null hypothesis of non-zero risk difference or

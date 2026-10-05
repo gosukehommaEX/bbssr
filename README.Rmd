@@ -20,6 +20,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/bbssr)](https://CRAN.R-project.org/package=bbssr)
 [![R-CMD-check](https://github.com/gosukehommaEX/bbssr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/gosukehommaEX/bbssr/actions/workflows/R-CMD-check.yaml)
+[![pkgdown](https://github.com/gosukehommaEX/bbssr/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/gosukehommaEX/bbssr/actions/workflows/pkgdown.yaml)
 [![downloads](https://cranlogs.r-pkg.org/badges/grand-total/bbssr)](https://cranlogs.r-pkg.org/badges/grand-total/bbssr)
 [![downloads](https://cranlogs.r-pkg.org/badges/bbssr)](https://cranlogs.r-pkg.org/badges/bbssr)
 <!-- badges: end -->
@@ -181,7 +182,7 @@ The vignettes are available with `vignette(package = "bbssr")` and on the [packa
 
 ## Validation
 
-The Fisher exact test reproduces `stats::fisher.test` to machine precision. The unconditional tests reproduce a direct evaluation of their definition, and agree with `Exact` and `exact2x2` up to the difference in the search over the nuisance parameter. The script `inst/reproduce/reproduce-published.R` recomputes the published results of Blackwelder (1982), Farrington and Manning (1990), Friede and Kieser (2004), Friede, Mitchell and Mueller-Velten (2007) and Kieser (2020), and the unit tests compare the package with independent implementations. Details are in the validation vignette.
+The Fisher exact test reproduces `stats::fisher.test` to machine precision. The unconditional tests reproduce a direct evaluation of their definition, and agree with `Exact` and `exact2x2` up to the difference in the search over the nuisance parameter. The script `inst/reproduce/reproduce-published.R` recomputes the published results of Blackwelder (1982), Boschloo (1970), Farrington and Manning (1990), Friede and Kieser (2004), Friede, Mitchell and Mueller-Velten (2007) and Kieser (2020), and the unit tests compare the package with independent implementations. Details are in the validation vignette.
 
 ## References
 
@@ -191,7 +192,7 @@ Berger, R. L. and Boos, D. D. (1994). P values maximized over a confidence set f
 
 Blackwelder, W. C. (1982). "Proving the null hypothesis" in clinical trials. *Controlled Clinical Trials*, 3, 345-353.
 
-Boschloo, R. D. (1970). Raised conditional level of significance for the 2x2-table when testing the equality of two probabilities. *Statistica Neerlandica*, 24, 1-9.
+Boschloo, R. D. (1970). Raised conditional level of significance for the 2 &times; 2-table when testing the equality of two probabilities. *Statistica Neerlandica*, 24, 1-9.
 
 Farrington, C. P. and Manning, G. (1990). Test statistics and sample size formulae for comparative binomial trials with null hypothesis of non-zero risk difference or non-unity relative risk. *Statistics in Medicine*, 9, 1447-1454.
 
