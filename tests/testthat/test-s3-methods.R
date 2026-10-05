@@ -50,6 +50,9 @@ test_that("the printed output reports the design settings", {
   expect_true(any(grepl('two.sided', out)))
   expect_true(any(grepl('minlike', out)))
   expect_true(any(grepl('Berger-Boos', out)))
+  expect_true(any(grepl('Refinement    : not used', out)))
+  out <- utils::capture.output(print(BinaryRR(6, 6, 0.05, 'Z-pool', ref.pvalue = TRUE)))
+  expect_true(any(grepl('Refinement    : local maxima refined', out)))
 })
 
 test_that("the rejection region plot uses integer breaks and matches the printed layout", {

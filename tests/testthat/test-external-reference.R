@@ -5,6 +5,7 @@
 test_that("the Boschloo p-value agrees with the Exact package", {
   skip_on_cran()
   skip_if_not_installed('Exact')
+  message('Exact ', utils::packageVersion('Exact'), ' is available, comparison run')
   N1 <- 10
   N2 <- 10
   p <- attr(BinaryRR(N1, N2, 0.025, 'Boschloo', n.grid = 1000), 'p.value')
@@ -23,6 +24,7 @@ test_that("the Boschloo p-value agrees with the Exact package", {
 test_that("the Z-pooled p-value agrees with the Exact package", {
   skip_on_cran()
   skip_if_not_installed('Exact')
+  message('Exact ', utils::packageVersion('Exact'), ' is available, comparison run')
   N1 <- 10
   N2 <- 10
   p <- attr(BinaryRR(N1, N2, 0.025, 'Z-pool', n.grid = 1000), 'p.value')
@@ -41,6 +43,7 @@ test_that("the Z-pooled p-value agrees with the Exact package", {
 test_that("the two-sided Boschloo p-value agrees with exact2x2", {
   skip_on_cran()
   skip_if_not_installed('exact2x2')
+  message('exact2x2 ', utils::packageVersion('exact2x2'), ' is available, comparison run')
   N1 <- 10
   N2 <- 10
   p <- attr(BinaryRR(N1, N2, 0.05, 'Boschloo', alternative = 'two.sided',
@@ -52,6 +55,33 @@ test_that("the two-sided Boschloo p-value agrees with exact2x2", {
                               tsmethod = 'central')$p.value
     expect_equal(p[x1 + 1, x2 + 1], ref, tolerance = 2e-3,
                  info = sprintf('x1 = %d, x2 = %d', x1, x2))
+  }
+})
+
+test_that("the refined p-values agree with the refinement of the Exact package", {
+  skip_on_cran()
+  skip_if_not_installed('Exact')
+  message('Exact ', utils::packageVersion('Exact'), ' is available, comparison run')
+  # Exact refines the maximum of its grid with optimize(), so it reaches the maximum over
+  # the unit interval whenever that maximum lies next to the largest grid value, which
+  # holds for the outcomes below
+  for (case in list(list(N = 10, cells = list(c(8, 2), c(7, 3), c(9, 1))),
+                    list(N = 32, cells = list(c(20, 10))))) {
+    N1 <- N2 <- case$N
+    for (tst in c('Z-pool', 'Boschloo')) {
+      p <- attr(BinaryRR(N1, N2, 0.025, tst, ref.pvalue = TRUE), 'p.value')
+      method <- if (tst == 'Z-pool') 'z-pooled' else 'boschloo'
+      for (cell in case$cells) {
+        x1 <- cell[1]
+        x2 <- cell[2]
+        tab <- matrix(c(x1, x2, N1 - x1, N2 - x2), nrow = 2)
+        ref <- Exact::exact.test(tab, alternative = 'greater', method = method,
+                                 npNumbers = 100, ref.pvalue = TRUE,
+                                 to.plot = FALSE)$p.value
+        expect_equal(p[x1 + 1, x2 + 1], ref, tolerance = 1e-8,
+                     info = sprintf('%s, N = %d, x1 = %d, x2 = %d', tst, N1, x1, x2))
+      }
+    }
   }
 })
 

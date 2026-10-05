@@ -16,7 +16,8 @@ BinarySampleSize(
   n.grid = 100,
   bb.gamma = 0,
   method = c("exact", "standard", "null.variance"),
-  rounding = c("group", "friede-kieser", "total")
+  rounding = c("group", "friede-kieser", "total"),
+  ref.pvalue = FALSE
 )
 }
 \arguments{
@@ -60,6 +61,10 @@ group 1 \code{ceiling(r N2)} patients. \code{'friede-kieser'} rounds up the two
 group sizes separately, as in Friede and Kieser (2004). \code{'total'} rounds up the
 total and gives group 2 \code{floor(N / (1 + r))} patients. Only \code{'group'} is
 available with \code{method = 'exact'}}
+
+\item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
+of the unconditional tests is refined between the grid points, see
+\code{\link{BinaryRR}}. Default is \code{FALSE}}
 }
 \value{
 An object of class \code{bbssr_samplesize}, a data frame with one row

@@ -30,6 +30,8 @@ print.bbssr_rr <- function(x, show.map = NULL, ...) {
     cat(sprintf('  Grid points   : %d\n', attr(x, 'n.grid')))
     bb <- attr(x, 'bb.gamma')
     cat(sprintf('  Berger-Boos   : %s\n', if (bb > 0) format(bb) else 'not used'))
+    ref <- if (isTRUE(attr(x, 'ref.pvalue'))) 'local maxima refined' else 'not used'
+    cat(sprintf('  Refinement    : %s\n', ref))
   }
   m <- matrix(as.vector(x), nrow = N1 + 1L, ncol = N2 + 1L)
   cat(sprintf('\n  Rejected outcomes: %d of %d\n\n', sum(m), length(m)))

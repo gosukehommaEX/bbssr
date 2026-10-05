@@ -81,7 +81,8 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
                                rounding = c('group', 'friede-kieser', 'total'),
                                N.min = NULL, N.max = NULL, n.interim = NULL,
                                theta = seq(0.005, 0.995, by = 0.005),
-                               adjust = c('test', 'both'), tol = 1e-8, step = 1e-5) {
+                               adjust = c('test', 'both'), tol = 1e-8, step = 1e-5,
+                               ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
@@ -96,11 +97,12 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
     stop('step must be a single value in (0, alpha)')
   }
   theta <- sort(unique(theta))
-  Test <- check_rr_args(N1, N2, alpha, Test, n.grid, bb.gamma)$Test
+  Test <- check_rr_args(N1, N2, alpha, Test, n.grid, bb.gamma, ref.pvalue)$Test
   # p-values of a rejection region, from which the region at any level follows
   pvalues <- function(n1, n2) {
-    a <- check_rr_args(n1, n2, alpha, Test, n.grid, bb.gamma)
-    get_pvalue(a$N1, a$N2, a$Test, alternative, tsmethod, a$n.grid, bb.gamma)
+    a <- check_rr_args(n1, n2, alpha, Test, n.grid, bb.gamma, ref.pvalue)
+    get_pvalue(a$N1, a$N2, a$Test, alternative, tsmethod, a$n.grid, bb.gamma,
+               a$ref.pvalue)
   }
   # Largest type I error rate over theta of a design whose rejection regions are given
   max_tie <- function(f) refine_max(f, theta, f(theta))
@@ -138,7 +140,7 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   design_at <- function(level.ss) {
     map <- bssr_map(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Test,
                     restricted, alternative, tsmethod, n.grid, bb.gamma, effect,
-                    ss.method, ss.Test, level.ss, rounding, N.min, N.max)
+                    ss.method, ss.Test, level.ss, rounding, N.min, N.max, ref.pvalue)
     setup <- bssr_setup(map)
     pv.list <- lapply(seq_along(setup$N1), function(k) pvalues(setup$N1[k], setup$N2[k]))
     list(setup = setup, pv.list = pv.list)
@@ -178,6 +180,7 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   attr(out, 'Delta.A') <- Delta.A
   attr(out, 'effect') <- effect
   attr(out, 'ss.method') <- ss.method
+  attr(out, 'ref.pvalue') <- ref.pvalue
   class(out) <- c('bbssr_alphaadj', 'data.frame')
   out
 }

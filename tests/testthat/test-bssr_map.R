@@ -1,6 +1,7 @@
 test_that("bssr_map agrees with BinaryBSSR for every interim total", {
   map <- bssr_map(0.3, 12, 12, 0.5, NULL, 1, 0.025, 0.8, 'Chisq', FALSE, 'greater',
-                  'minlike', 100L, 0, 'RD', 'exact', 'Chisq', 0.025, 'group', NULL, NULL)
+                  'minlike', 100L, 0, 'RD', 'exact', 'Chisq', 0.025, 'group', NULL, NULL,
+                  FALSE)
   expect_equal(attr(map, 'n11'), 6L)
   expect_equal(attr(map, 'n12'), 6L)
   expect_equal(map$s, 0:12)
@@ -32,5 +33,5 @@ test_that("n.interim and omega describe the same interim analysis", {
 test_that("bssr_map rejects an exact re-estimation with another rounding rule", {
   expect_error(bssr_map(0.3, 12, 12, 0.5, NULL, 1, 0.025, 0.8, 'Chisq', FALSE, 'greater',
                         'minlike', 100L, 0, 'RD', 'exact', 'Chisq', 0.025, 'total', NULL,
-                        NULL), 'rounding')
+                        NULL, FALSE), 'rounding')
 })

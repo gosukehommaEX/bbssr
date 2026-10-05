@@ -15,6 +15,7 @@ from functools import lru_cache
 
 import numpy as np
 from scipy.optimize import brentq, minimize_scalar
+from scipy.stats import beta as beta_dist
 from scipy.stats import binom, hypergeom, norm
 
 TOL = 1.4901161193847656e-08  # tolerance of fpCompare
@@ -298,9 +299,134 @@ def block_type1():
     emit(f, "quartiles", [q(0.25), q(0.5), q(0.75)])
 
 
+# ---------------------------------------------------------------------------------------
+# Refined maximization over the nuisance parameter (ref.pvalue = TRUE)
+def tail_coefficients(stat, N1, N2, decreasing):
+    """Bernstein coefficients of the tail probability of every cell, in row-major order.
+
+    The tail probability of a cell is sum_s h[s] b(s; N, theta), where h[s] is the
+    hypergeometric probability of the tail set given s responders in total."""
+    N = N1 + N2
+    s = stat.ravel()
+    x1 = np.repeat(np.arange(N1 + 1), N2 + 1)
+    x2 = np.tile(np.arange(N2 + 1), N1 + 1)
+    order = np.argsort(-s if decreasing else s, kind="stable")
+    so = s[order]
+    ref = np.maximum(np.abs(so[:-1]), np.abs(so[1:]))
+    new = np.abs(np.diff(so)) > 1e-10 * ref
+    ends = np.r_[np.where(new)[0], len(so) - 1]
+    last = np.repeat(ends, np.diff(np.r_[-1, ends]))
+    tot = x1[order] + x2[order]
+    H = np.zeros((len(s), N + 1))
+    H[np.arange(len(s)), tot] = hypergeom.pmf(x1[order], N, N1, tot)
+    H = np.cumsum(H, axis=0)[last]
+    out = np.empty_like(H)
+    out[order] = H
+    return out, x1 + x2
+
+
+def de_casteljau(c, t):
+    """Bernstein coefficients of the same polynomial on [0, t] and on [t, 1]."""
+    n = len(c)
+    left, right, w = np.empty(n), np.empty(n), c.copy()
+    for j in range(n):
+        left[j], right[n - 1 - j] = w[0], w[-1]
+        w = (1 - t) * w[:-1] + t * w[1:]
+    return left, right
+
+
+def certified_max(h, a=0.0, b=1.0, tol=1e-13):
+    """Maximum of sum_s h[s] b(s; N, theta) over [a, b] by branch and bound.
+
+    The largest Bernstein coefficient on an interval bounds the polynomial there, and the
+    end coefficients are values of the polynomial, so the interval is split until every
+    bound is within tol of the best value found. Returns the best value and the largest
+    bound left."""
+    c = h
+    if b < 1:
+        c, _ = de_casteljau(c, b)
+    if a > 0:
+        _, c = de_casteljau(c, a / b)
+    best = max(c[0], c[-1])
+    stack, bounds = [c], [best]
+    while stack:
+        c = stack.pop()
+        if c.max() <= best + tol or len(bounds) > 10 ** 6:
+            bounds.append(c.max())
+            continue
+        left, right = de_casteljau(c, 0.5)
+        best = max(best, left[-1])
+        stack += [left, right]
+    return best, max(bounds)
+
+
+def certified_pvalues(stat, N1, N2, decreasing, gamma=0.0):
+    H, tot = tail_coefficients(stat, N1, N2, decreasing)
+    N = N1 + N2
+    if gamma > 0:
+        s = np.arange(N + 1)
+        lo = beta_dist.ppf(gamma / 2, np.maximum(s, 1), N - s + 1)
+        up = beta_dist.ppf(1 - gamma / 2, s + 1, np.maximum(N - s, 1))
+        lo[s == 0], up[s == N] = 0.0, 1.0
+    p, gap, memo = np.empty(len(H)), 0.0, {}
+    for k in range(len(H)):
+        a, b = (lo[tot[k]], up[tot[k]]) if gamma > 0 else (0.0, 1.0)
+        key = (H[k].tobytes(), a, b)
+        if key not in memo:
+            memo[key] = certified_max(H[k], a, b)
+        best, bound = memo[key]
+        p[k], gap = best, max(gap, bound - best)
+    assert gap < 1e-12, gap
+    return np.minimum(1, p + gamma).reshape(N1 + 1, N2 + 1)
+
+
+def certified_size(R, N1, N2):
+    N = N1 + N2
+    h = np.zeros(N + 1)
+    for i, j in zip(*np.nonzero(R)):
+        h[i + j] += hypergeom.pmf(i, N, N1, i + j)
+    best, bound = certified_max(h)
+    assert bound - best < 1e-12
+    return best
+
+
+def block_refined():
+    f = "test-max_tail_prob_refined.R"
+    N1 = N2 = 32
+    for test, stat, dec in [("Z-pool", zstat(N1, N2), True), ("Boschloo", fisher_upper(N1, N2), False)]:
+        cert = certified_pvalues(stat, N1, N2, dec)
+        grid = pvalues(N1, N2, test, "greater")
+        emit(f, f"{test} 32 x 32 sum", cert.sum())
+        # Cells whose decision at the level 0.025 changes with the refinement
+        flip = np.argwhere((grid < 0.025 - TOL) & ~(cert < 0.025 - TOL))
+        emit(f, f"{test} 32 x 32 flipped cells", flip.ravel(), rtol=0)
+        emit(f, f"{test} 32 x 32 flipped p-values", cert[tuple(flip.T)])
+        f2 = "test-binary-rr.R"
+        emit(f2, f"{test} 32 x 32 rejected", [(grid < 0.025 - TOL).sum(), (cert < 0.025 - TOL).sum()], rtol=0)
+        size = [certified_size(grid < 0.025 - TOL, N1, N2), certified_size(cert < 0.025 - TOL, N1, N2)]
+        emit(f2, f"{test} 32 x 32 size", size)
+        if test == "Z-pool":
+            emit("test-BinaryTypeIErrorBSSR.R", "Z-pool 32 x 32 fixed-design size", size)
+    # Berger-Boos interval
+    cert = certified_pvalues(fisher_upper(20, 15), 20, 15, False, gamma=0.001)
+    emit(f, "Boschloo 20 x 15 Berger-Boos sum", cert.sum())
+    # A peak between two points of the uniform grid that the arcsine grid resolves
+    H, _ = tail_coefficients(zstat(150, 60), 150, 60, True)
+    v = certified_max(H[103 * 61 + 32])[0]
+    emit("test-binary-rr.R", "Z-pool 150 x 60 cell (103, 32)", v)
+    emit(f, "Z-pool 150 x 60 cell (103, 32)", v)
+    # Grids on which a point of the arcsine grid falls within rounding of a point of the
+    # uniform grid (n.grid = 101 contains 0.25, 0.5 and 0.75). The certified maximum does
+    # not depend on the grid
+    emit("test-binary-rr.R", "Z-pool 6 x 12 sum", certified_pvalues(zstat(6, 12), 6, 12, True).sum())
+    emit("test-binary-rr.R", "Boschloo 5 x 89 sum",
+         certified_pvalues(fisher_upper(5, 89), 5, 89, False).sum())
+
+
 if __name__ == "__main__":
     print("# test file\tkey\trelative tolerance\tvalues (15 significant digits)")
     block_split_pooled()
     block_ss_raw_n2()
     block_type1()
     block_bssr_exact()
+    block_refined()

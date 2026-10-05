@@ -13,6 +13,8 @@
 #' @param tsmethod \code{'minlike'} or \code{'central'}
 #' @param n.grid Number of grid points over the nuisance parameter
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
+#' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the
+#'   unconditional tests is refined between the grid points
 #'
 #' @return A logical matrix of dimension \code{(N1 + 1)} by \code{(N2 + 1)} without
 #'   attributes other than \code{dim}
@@ -20,8 +22,10 @@
 #' @keywords internal
 #' @noRd
 #' @import fpCompare
-get_rr <- function(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma) {
-  a <- check_rr_args(N1, N2, alpha, Test, n.grid, bb.gamma)
-  pv <- get_pvalue(a$N1, a$N2, a$Test, alternative, tsmethod, a$n.grid, bb.gamma)
+get_rr <- function(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma,
+                   ref.pvalue) {
+  a <- check_rr_args(N1, N2, alpha, Test, n.grid, bb.gamma, ref.pvalue)
+  pv <- get_pvalue(a$N1, a$N2, a$Test, alternative, tsmethod, a$n.grid, bb.gamma,
+                   a$ref.pvalue)
   pv %<<% alpha
 }

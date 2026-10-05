@@ -71,3 +71,14 @@ test_that("BinaryPower validates its arguments", {
   expect_error(BinaryPower(-0.1, 0.2, 10, 10, 0.025, 'Chisq'), 'lie in')
   expect_error(BinaryPower(0.4, 1.2, 10, 10, 0.025, 'Chisq'), 'lie in')
 })
+
+test_that("BinaryPower passes ref.pvalue to the p-value computation", {
+  seen <- ref_pvalue_calls(BinaryPower(0.6, 0.2, 10, 10, 0.025, 'Z-pool',
+                                       ref.pvalue = TRUE))
+  expect_equal(seen$ref.pvalue, TRUE)
+  # The refined region at 32 patients per group drops the outcomes 18 versus 10 and
+  # 22 versus 14, so the power at a common response probability decreases
+  grid <- BinaryPower(0.45, 0.45, 32, 32, 0.025, 'Z-pool')$Power
+  ref <- BinaryPower(0.45, 0.45, 32, 32, 0.025, 'Z-pool', ref.pvalue = TRUE)$Power
+  expect_lt(ref, grid)
+})

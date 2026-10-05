@@ -17,15 +17,17 @@
 #' @param tsmethod \code{'minlike'} or \code{'central'}
 #' @param n.grid Number of grid points over the nuisance parameter
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
+#' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the
+#'   unconditional tests is refined between the grid points
 #'
 #' @return A numeric matrix of dimension \code{(N1 + 1)} by \code{(N2 + 1)}
 #'
 #' @keywords internal
 #' @noRd
 #' @importFrom stats pnorm
-rr_pvalue <- function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma) {
+rr_pvalue <- function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue) {
   if (alternative == 'less') {
-    return(t(rr_pvalue(N2, N1, Test, 'greater', tsmethod, n.grid, bb.gamma)))
+    return(t(rr_pvalue(N2, N1, Test, 'greater', tsmethod, n.grid, bb.gamma, ref.pvalue)))
   }
   if (Test == 'Chisq') {
     Z <- zstat(N1, N2)
@@ -41,9 +43,9 @@ rr_pvalue <- function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma) {
   } else if (Test == 'Z-pool') {
     Z <- zstat(N1, N2)
     stat <- if (alternative == 'greater') Z else abs(Z)
-    unconditional_pvalue(stat, N1, N2, n.grid, bb.gamma, decreasing = TRUE)
+    unconditional_pvalue(stat, N1, N2, n.grid, bb.gamma, decreasing = TRUE, ref.pvalue)
   } else {
     stat <- fisher_pvalue(N1, N2, alternative, tsmethod, midp = FALSE)
-    unconditional_pvalue(stat, N1, N2, n.grid, bb.gamma, decreasing = FALSE)
+    unconditional_pvalue(stat, N1, N2, n.grid, bb.gamma, decreasing = FALSE, ref.pvalue)
   }
 }

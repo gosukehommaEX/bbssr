@@ -127,3 +127,14 @@ test_that("coinciding recovered rates require the planned sample size", {
                     N2 = 30)
   expect_equal(c(res$N1.final, res$N2.final), c(30L, 30L))
 })
+
+test_that("BinaryBSSR passes ref.pvalue to the re-estimation and the final analysis", {
+  seen <- ref_pvalue_calls(BinaryBSSR(10, 10, 9, 0.3, 1, 0.025, 0.8, 'Boschloo',
+                                      ref.pvalue = TRUE))
+  expect_gt(nrow(seen), 1)
+  expect_true(all(seen$ref.pvalue))
+  res <- BinaryBSSR(10, 10, 9, 0.3, 1, 0.025, 0.8, 'Boschloo', ref.pvalue = TRUE)
+  expect_true(attr(res, 'ref.pvalue'))
+  seen <- ref_pvalue_calls(BinaryBSSR(10, 10, 9, 0.3, 1, 0.025, 0.8, 'Boschloo'))
+  expect_false(any(seen$ref.pvalue))
+})

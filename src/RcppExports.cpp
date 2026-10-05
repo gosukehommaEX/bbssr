@@ -60,11 +60,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// max_tail_prob_refined
+NumericVector max_tail_prob_refined(NumericMatrix dbinom1, NumericMatrix dbinom2, IntegerVector x1, IntegerVector x2, IntegerVector idx_last, IntegerVector g_lo, IntegerVector g_hi, NumericVector theta);
+RcppExport SEXP _bbssr_max_tail_prob_refined(SEXP dbinom1SEXP, SEXP dbinom2SEXP, SEXP x1SEXP, SEXP x2SEXP, SEXP idx_lastSEXP, SEXP g_loSEXP, SEXP g_hiSEXP, SEXP thetaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type dbinom1(dbinom1SEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type dbinom2(dbinom2SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type x1(x1SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type x2(x2SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type idx_last(idx_lastSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type g_lo(g_loSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type g_hi(g_hiSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
+    rcpp_result_gen = Rcpp::wrap(max_tail_prob_refined(dbinom1, dbinom2, x1, x2, idx_last, g_lo, g_hi, theta));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_bbssr_max_tail_prob", (DL_FUNC) &_bbssr_max_tail_prob, 7},
     {"_bbssr_power_from_rr", (DL_FUNC) &_bbssr_power_from_rr, 3},
     {"_bbssr_bssr_power", (DL_FUNC) &_bbssr_bssr_power, 10},
+    {"_bbssr_max_tail_prob_refined", (DL_FUNC) &_bbssr_max_tail_prob_refined, 8},
     {NULL, NULL, 0}
 };
 

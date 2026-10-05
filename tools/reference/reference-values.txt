@@ -36,3 +36,19 @@ test-binary-power-bssr.R	Fisher greater r=1 Delta.T=0.3 power	1e-10	0.7775872162
 test-binary-power-bssr.R	Fisher greater r=1 Delta.T=0.3 E.N	1e-10	80.4580176190472 89.5666384256
 test-binary-power-bssr.R	Fisher greater r=1 Delta.T=0.0 power	1e-10	0.0142450507723455 0.0158535596996759
 test-binary-power-bssr.R	Fisher greater r=1 Delta.T=0.0 E.N	1e-10	80.4621801307999 88.897260350634
+test-max_tail_prob_refined.R	Z-pool 32 x 32 sum	1e-10	599.659595259547
+test-max_tail_prob_refined.R	Z-pool 32 x 32 flipped cells	0	18 10 22 14
+test-max_tail_prob_refined.R	Z-pool 32 x 32 flipped p-values	1e-10	0.0250058337172828 0.0250058337172828
+test-binary-rr.R	Z-pool 32 x 32 rejected	0	342 340
+test-binary-rr.R	Z-pool 32 x 32 size	1e-10	0.0250058337172828 0.023344357650963
+test-BinaryTypeIErrorBSSR.R	Z-pool 32 x 32 fixed-design size	1e-10	0.0250058337172828 0.023344357650963
+test-max_tail_prob_refined.R	Boschloo 32 x 32 sum	1e-10	557.854443840286
+test-max_tail_prob_refined.R	Boschloo 32 x 32 flipped cells	0	18 10 22 14
+test-max_tail_prob_refined.R	Boschloo 32 x 32 flipped p-values	1e-10	0.0250047740156628 0.0250047740156628
+test-binary-rr.R	Boschloo 32 x 32 rejected	0	338 336
+test-binary-rr.R	Boschloo 32 x 32 size	1e-10	0.0250047740156628 0.0233381055506759
+test-max_tail_prob_refined.R	Boschloo 20 x 15 Berger-Boos sum	1e-10	173.890983925883
+test-binary-rr.R	Z-pool 150 x 60 cell (103, 32)	1e-10	0.0304116803087155
+test-max_tail_prob_refined.R	Z-pool 150 x 60 cell (103, 32)	1e-10	0.0304116803087155
+test-binary-rr.R	Z-pool 6 x 12 sum	1e-10	55.1616136367008
+test-binary-rr.R	Boschloo 5 x 89 sum	1e-10	289.919122001934

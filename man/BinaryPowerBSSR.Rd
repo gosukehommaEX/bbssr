@@ -27,7 +27,8 @@ BinaryPowerBSSR(
   rounding = c("group", "friede-kieser", "total"),
   N.min = NULL,
   N.max = NULL,
-  n.interim = NULL
+  n.interim = NULL,
+  ref.pvalue = FALSE
 )
 }
 \arguments{
@@ -99,6 +100,11 @@ none}
 
 \item{n.interim}{Interim sample sizes of group 1 and group 2, as a vector of length
 two. An alternative to \code{omega}}
+
+\item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
+of the unconditional tests is refined between the grid points, see
+\code{\link{BinaryRR}}. Default is \code{FALSE}. It applies to the final analysis, to
+the fixed-sample comparator and to the exact re-estimation}
 }
 \value{
 An object of class \code{bbssr_powerbssr}, a data frame with one row per element

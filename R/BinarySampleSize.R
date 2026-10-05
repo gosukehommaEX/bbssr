@@ -34,6 +34,9 @@
 #'   group sizes separately, as in Friede and Kieser (2004). \code{'total'} rounds up the
 #'   total and gives group 2 \code{floor(N / (1 + r))} patients. Only \code{'group'} is
 #'   available with \code{method = 'exact'}
+#' @param ref.pvalue Logical. If \code{TRUE}, the maximization over the nuisance parameter
+#'   of the unconditional tests is refined between the grid points, see
+#'   \code{\link{BinaryRR}}. Default is \code{FALSE}
 #'
 #' @return An object of class \code{bbssr_samplesize}, a data frame with one row
 #'   containing:
@@ -107,7 +110,8 @@ BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
                              tsmethod = c('minlike', 'central'),
                              n.grid = 100, bb.gamma = 0,
                              method = c('exact', 'standard', 'null.variance'),
-                             rounding = c('group', 'friede-kieser', 'total')) {
+                             rounding = c('group', 'friede-kieser', 'total'),
+                             ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   method <- match.arg(method)
@@ -129,13 +133,15 @@ BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
     stop("rounding must be 'group' when method is 'exact'")
   }
   # Validates the test, the level and the remaining arguments of the rejection region
-  Test <- check_rr_args(1, 1, alpha, Test, n.grid, bb.gamma)$Test
+  a <- check_rr_args(1, 1, alpha, Test, n.grid, bb.gamma, ref.pvalue)
+  Test <- a$Test
+  ref.pvalue <- a$ref.pvalue
   n <- sample_size_n(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod, n.grid,
-                     bb.gamma, method, rounding)
+                     bb.gamma, method, rounding, ref.pvalue)
   N1 <- n[['N1']]
   N2 <- n[['N2']]
   N <- N1 + N2
-  rr <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma)
+  rr <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue)
   Power <- power_from_rr(rr, dbinom(0:N1, N1, p1), dbinom(0:N2, N2, p2))
   out <- data.frame(
     p1 = p1, p2 = p2, r = r, alpha = alpha, tar.power = tar.power,
@@ -148,6 +154,7 @@ BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
   attr(out, 'bb.gamma') <- bb.gamma
   attr(out, 'method') <- method
   attr(out, 'rounding') <- rounding
+  attr(out, 'ref.pvalue') <- ref.pvalue
   class(out) <- c('bbssr_samplesize', 'data.frame')
   out
 }

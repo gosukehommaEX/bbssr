@@ -16,7 +16,7 @@
 #' @noRd
 bssr_map <- function(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Test,
                      restricted, alternative, tsmethod, n.grid, bb.gamma, effect,
-                     ss.method, ss.Test, ss.alpha, rounding, N.min, N.max) {
+                     ss.method, ss.Test, ss.alpha, rounding, N.min, N.max, ref.pvalue) {
   if (!is.null(n.interim)) {
     if (!is.null(omega)) stop('supply either omega or n.interim, not both')
     if (length(n.interim) != 2 || anyNA(n.interim) || any(n.interim < 1) ||
@@ -60,7 +60,7 @@ bssr_map <- function(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Tes
   # formula (2) of Friede and Kieser (2004)
   ss.p <- if (ss.method == 'exact') list(p1 = hat.p1, p2 = hat.p2) else sp
   re <- reestimate(ss.p$p1, ss.p$p2, r, ss.alpha, tar.power, ss.Test, alternative,
-                   tsmethod, n.grid, bb.gamma, ss.method, rounding, N1, N2)
+                   tsmethod, n.grid, bb.gamma, ss.method, rounding, N1, N2, ref.pvalue)
   fin <- final_sizes(re, N11, N12, r, rounding, restricted, N1, N2, N.min, N.max)
   out <- data.frame(s = s, hat.p = hat.p, hat.p1 = hat.p1, hat.p2 = hat.p2,
                     n.raw = re$n.raw, N1.re = re$N1.re, N2.re = re$N2.re,

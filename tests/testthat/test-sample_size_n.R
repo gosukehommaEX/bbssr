@@ -1,7 +1,7 @@
 test_that("the exact method reproduces BinarySampleSize", {
   for (tst in c('Chisq', 'Fisher', 'Z-pool')) {
     n <- sample_size_n(0.6, 0.25, 1, 0.025, 0.8, tst, 'greater', 'minlike', 100L, 0,
-                       'exact', 'group')
+                       'exact', 'group', FALSE)
     ss <- BinarySampleSize(0.6, 0.25, 1, 0.025, 0.8, tst)
     expect_identical(unname(n), c(ss$N1, ss$N2), info = tst)
   }

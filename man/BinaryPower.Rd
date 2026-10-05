@@ -14,7 +14,8 @@ BinaryPower(
   alternative = c("greater", "less", "two.sided"),
   tsmethod = c("minlike", "central"),
   n.grid = 100,
-  bb.gamma = 0
+  bb.gamma = 0,
+  ref.pvalue = FALSE
 )
 }
 \arguments{
@@ -43,6 +44,10 @@ unconditional tests. Default is 100}
 
 \item{bb.gamma}{Confidence level parameter of the Berger-Boos procedure. The default of
 0 disables the procedure}
+
+\item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
+of the unconditional tests is refined between the grid points, see
+\code{\link{BinaryRR}}. Default is \code{FALSE}}
 }
 \value{
 An object of class \code{bbssr_power}, a data frame with one row per element of

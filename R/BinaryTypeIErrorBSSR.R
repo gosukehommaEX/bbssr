@@ -74,7 +74,8 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
                                  ss.Test = Test, ss.alpha = alpha,
                                  rounding = c('group', 'friede-kieser', 'total'),
                                  N.min = NULL, N.max = NULL, n.interim = NULL,
-                                 theta = seq(0.005, 0.995, by = 0.005), refine = TRUE) {
+                                 theta = seq(0.005, 0.995, by = 0.005), refine = TRUE,
+                                 ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
@@ -86,12 +87,14 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   theta <- sort(unique(theta))
   map <- bssr_map(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Test,
                   restricted, alternative, tsmethod, n.grid, bb.gamma, effect,
-                  ss.method, ss.Test, ss.alpha, rounding, N.min, N.max)
+                  ss.method, ss.Test, ss.alpha, rounding, N.min, N.max, ref.pvalue)
   setup <- bssr_setup(map)
   rr.list <- lapply(seq_along(setup$N1), function(k) {
-    get_rr(setup$N1[k], setup$N2[k], alpha, Test, alternative, tsmethod, n.grid, bb.gamma)
+    get_rr(setup$N1[k], setup$N2[k], alpha, Test, alternative, tsmethod, n.grid, bb.gamma,
+           ref.pvalue)
   })
-  rr.fixed <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma)
+  rr.fixed <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma,
+                     ref.pvalue)
   f.bssr <- function(t) bssr_reject(setup, rr.list, t, t)
   f.trad <- function(t) {
     vapply(t, function(u) power_from_rr(rr.fixed, dbinom(0:N1, N1, u), dbinom(0:N2, N2, u)),
@@ -124,6 +127,7 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   attr(out, 'effect') <- effect
   attr(out, 'ss.method') <- ss.method
   attr(out, 'refine') <- refine
+  attr(out, 'ref.pvalue') <- ref.pvalue
   attr(out, 'reestimation') <- map
   class(out) <- c('bbssr_tie', 'data.frame')
   out

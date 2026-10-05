@@ -18,21 +18,24 @@
 #' @param tsmethod \code{'minlike'} or \code{'central'}
 #' @param n.grid Number of grid points over the nuisance parameter, an integer
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
+#' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the
+#'   unconditional tests is refined between the grid points
 #'
 #' @return A numeric matrix of dimension \code{(N1 + 1)} by \code{(N2 + 1)}
 #'
 #' @keywords internal
 #' @noRd
-get_pvalue <- function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma) {
+get_pvalue <- function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma,
+                       ref.pvalue) {
   if (!isTRUE(getOption('bbssr.cache', TRUE))) {
-    return(rr_pvalue(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma))
+    return(rr_pvalue(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue))
   }
   num <- function(x) sprintf('%.17g', as.double(x))
   key <- paste(num(N1), num(N2), Test, alternative, tsmethod, num(n.grid), num(bb.gamma),
-               sep = '|')
+               ref.pvalue, sep = '|')
   hit <- .bbssr_cache$pv[[key]]
   if (!is.null(hit)) return(hit)
-  pv <- rr_pvalue(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma)
+  pv <- rr_pvalue(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue)
   if (.bbssr_cache$cells + length(pv) > .bbssr_cache$max.cells) clear_rr_cache()
   assign(key, pv, envir = .bbssr_cache$pv)
   .bbssr_cache$cells <- .bbssr_cache$cells + length(pv)

@@ -49,7 +49,7 @@ opt <- tryCatch({
     environment(f) <- globalenv()
     c(system.time(f())[['elapsed']], system.time(f())[['elapsed']])
   }, args = list(lib = lib, f = timing_grid))
-}, error = function(e) conditionMessage(e))
+}, error = function(e) cli::ansi_strip(conditionMessage(e)))
 if (is.numeric(opt)) {
   note(sprintf('timing, optimized installed build: first run %.2f s, second run %.2f s',
                opt[1], opt[2]))
@@ -63,7 +63,7 @@ rep.res <- tryCatch({
   tab <- utils::read.csv(file.path('reproduce-output', 'published-comparison.csv'))
   counts <- table(factor(tab$verdict, levels = c('PASS', 'EXPLAINED', 'FAIL', 'INFO')))
   paste(names(counts), counts, collapse = ', ')
-}, error = function(e) paste('ERROR:', conditionMessage(e)))
+}, error = function(e) paste('ERROR:', cli::ansi_strip(conditionMessage(e))))
 note('reproduction: ', rep.res)
 
 # Unit tests
@@ -76,7 +76,7 @@ for (t in test.res) {
   for (e in t$results) {
     if (inherits(e, c('expectation_failure', 'expectation_error', 'expectation_warning'))) {
       note('  [', class(e)[1], '] ', t$file, ': ', t$test, ': ',
-           gsub('\n', ' | ', conditionMessage(e)))
+           gsub('\n', ' | ', cli::ansi_strip(conditionMessage(e))))
     }
   }
 }

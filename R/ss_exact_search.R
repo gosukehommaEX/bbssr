@@ -22,6 +22,8 @@
 #' @param tsmethod \code{'minlike'} or \code{'central'}
 #' @param n.grid Number of grid points over the nuisance parameter
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
+#' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the
+#'   unconditional tests is refined between the grid points
 #'
 #' @return An integer vector of sizes of group 2
 #'
@@ -30,7 +32,7 @@
 #' @import fpCompare
 #' @importFrom stats qnorm dbinom
 ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod,
-                            n.grid, bb.gamma) {
+                            n.grid, bb.gamma, ref.pvalue) {
   store <- new.env(parent = emptyenv())
   # Rejection region at a given size of group 2, obtained once per search
   rr_at <- function(N2) {
@@ -38,7 +40,7 @@ ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsme
     hit <- store[[key]]
     if (is.null(hit)) {
       hit <- get_rr(ceiling(r * N2), N2, alpha, Test, alternative, tsmethod, n.grid,
-                    bb.gamma)
+                    bb.gamma, ref.pvalue)
       assign(key, hit, envir = store)
     }
     hit

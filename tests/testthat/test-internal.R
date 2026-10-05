@@ -134,12 +134,14 @@ test_that("unconditional_pvalue reproduces a direct evaluation of the tail proba
   n.grid <- 25
   # Boschloo, ordered by the Fisher p-value with smaller values more extreme
   stat <- fisher_pvalue(N1, N2, 'greater', 'minlike', midp = FALSE)
-  got <- unconditional_pvalue(stat, N1, N2, n.grid, 0, decreasing = FALSE)
+  got <- unconditional_pvalue(stat, N1, N2, n.grid, 0, decreasing = FALSE,
+                              ref.pvalue = FALSE)
   want <- unconditional_ref(stat, N1, N2, n.grid, decreasing = FALSE)
   expect_equal(got, want, tolerance = 1e-12)
   # Z-pooled, ordered by the Z statistic with larger values more extreme
   stat <- zstat(N1, N2)
-  got <- unconditional_pvalue(stat, N1, N2, n.grid, 0, decreasing = TRUE)
+  got <- unconditional_pvalue(stat, N1, N2, n.grid, 0, decreasing = TRUE,
+                              ref.pvalue = FALSE)
   want <- unconditional_ref(stat, N1, N2, n.grid, decreasing = TRUE)
   expect_equal(got, want, tolerance = 1e-12)
 })
@@ -148,7 +150,7 @@ test_that("cells with a tied ordering statistic receive the same p-value", {
   N1 <- 7
   N2 <- 7
   stat <- fisher_pvalue(N1, N2, 'greater', 'minlike', midp = FALSE)
-  p <- unconditional_pvalue(stat, N1, N2, 100, 0, decreasing = FALSE)
+  p <- unconditional_pvalue(stat, N1, N2, 100, 0, decreasing = FALSE, ref.pvalue = FALSE)
   # x1 = 5, x2 = 1 and x1 = 6, x2 = 2 share the Fisher p-value 2 / 39
   expect_equal(stat[6, 2], stat[7, 3], tolerance = 1e-12)
   expect_equal(p[6, 2], p[7, 3], tolerance = 1e-12)

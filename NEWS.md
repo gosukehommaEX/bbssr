@@ -39,6 +39,15 @@
 
 * All functions accept `alternative = 'less'`, obtained by exchanging the two groups.
 
+* `ref.pvalue = TRUE` refines the maximization over the nuisance parameter of the
+  Z-pooled and Boschloo tests, in every function that computes a rejection region. The
+  maximum over the grid of `n.grid` points can understate the p-value, so a test can
+  exceed its level: with 32 patients per group, the one-sided Z-pooled test at the level
+  0.025 has a size slightly above 0.025 on the default grid and of about 0.0233 with the
+  refinement. The grid is extended by points equally spaced on the arcsine square-root
+  scale, and every local maximum on the extended grid is refined by a safeguarded Newton
+  iteration. The default is `FALSE`, which keeps the results of earlier versions.
+
 * `BinaryPowerBSSR()` returns the final sample size of every interim outcome as the
   attribute `reestimation` and the distribution of the final sample size as the
   attribute `N.dist`, and `summary()` reports its standard deviation and quantiles.

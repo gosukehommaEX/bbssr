@@ -49,6 +49,9 @@
 #' @param N.min Lower bound on the final total sample size, or \code{NULL} (default). It
 #'   can be used to keep the patients who are already enrolled but not yet evaluated
 #' @param N.max Upper bound on the final total sample size, or \code{NULL} (default)
+#' @param ref.pvalue Logical. If \code{TRUE}, the maximization over the nuisance parameter
+#'   of the unconditional tests is refined between the grid points, see
+#'   \code{\link{BinaryRR}}. Default is \code{FALSE}
 #'
 #' @return An object of class \code{bbssr_bssr}, a data frame with one row containing:
 #' \describe{
@@ -117,7 +120,7 @@ BinaryBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test,
                        ss.method = c('exact', 'standard', 'null.variance'),
                        ss.Test = Test, ss.alpha = alpha,
                        rounding = c('group', 'friede-kieser', 'total'),
-                       N.min = NULL, N.max = NULL) {
+                       N.min = NULL, N.max = NULL, ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
@@ -152,7 +155,7 @@ BinaryBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test,
   # approximation uses the untruncated probabilities, which keep the assumed effect
   ss.p <- if (ss.method == 'exact') list(p1 = hat.p1, p2 = hat.p2) else sp
   re <- reestimate(ss.p$p1, ss.p$p2, r, ss.alpha, tar.power, ss.Test, alternative,
-                   tsmethod, n.grid, bb.gamma, ss.method, rounding, N1, N2)
+                   tsmethod, n.grid, bb.gamma, ss.method, rounding, N1, N2, ref.pvalue)
   N1.re <- re$N1.re
   N2.re <- re$N2.re
   # Final sample sizes. Under the group rounding the final size of group 2 is fixed
@@ -164,7 +167,8 @@ BinaryBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test,
   n1.stage2 <- N1.final - n1
   n2.stage2 <- N2.final - n2
   Power <- BinaryPower(hat.p1, hat.p2, N1.final, N2.final, alpha, Test,
-                       alternative, tsmethod, n.grid, bb.gamma)$Power
+                       alternative, tsmethod, n.grid, bb.gamma,
+                       ref.pvalue = ref.pvalue)$Power
   out <- data.frame(
     n1 = n1, n2 = n2, n = n1 + n2, S = S,
     hat.p = hat.p, hat.p1 = hat.p1, hat.p2 = hat.p2,
@@ -188,6 +192,7 @@ BinaryBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test,
   attr(out, 'rounding') <- rounding
   attr(out, 'N.min') <- N.min
   attr(out, 'N.max') <- N.max
+  attr(out, 'ref.pvalue') <- ref.pvalue
   class(out) <- c('bbssr_bssr', 'data.frame')
   out
 }

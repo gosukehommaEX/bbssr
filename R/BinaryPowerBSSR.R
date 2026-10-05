@@ -52,6 +52,10 @@
 #'   none
 #' @param n.interim Interim sample sizes of group 1 and group 2, as a vector of length
 #'   two. An alternative to \code{omega}
+#' @param ref.pvalue Logical. If \code{TRUE}, the maximization over the nuisance parameter
+#'   of the unconditional tests is refined between the grid points, see
+#'   \code{\link{BinaryRR}}. Default is \code{FALSE}. It applies to the final analysis, to
+#'   the fixed-sample comparator and to the exact re-estimation
 #'
 #' @return An object of class \code{bbssr_powerbssr}, a data frame with one row per element
 #'   of \code{p} containing:
@@ -161,7 +165,8 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
                             ss.method = c('exact', 'standard', 'null.variance'),
                             ss.Test = Test, ss.alpha = alpha,
                             rounding = c('group', 'friede-kieser', 'total'),
-                            N.min = NULL, N.max = NULL, n.interim = NULL) {
+                            N.min = NULL, N.max = NULL, n.interim = NULL,
+                            ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
@@ -174,7 +179,7 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
   # Final sample size for every pooled number of interim responders
   map <- bssr_map(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Test,
                   restricted, alternative, tsmethod, n.grid, bb.gamma, effect,
-                  ss.method, ss.Test, ss.alpha, rounding, N.min, N.max)
+                  ss.method, ss.Test, ss.alpha, rounding, N.min, N.max, ref.pvalue)
   setup <- bssr_setup(map)
   N11 <- setup$n11
   N12 <- setup$n12
@@ -201,7 +206,8 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
   # The conditional power of the second stage is summed in compiled code over the runs of
   # rejected outcomes in each column of the rejection region
   rr.list <- lapply(seq_along(setup$N1), function(k) {
-    get_rr(setup$N1[k], setup$N2[k], alpha, Test, alternative, tsmethod, n.grid, bb.gamma)
+    get_rr(setup$N1[k], setup$N2[k], alpha, Test, alternative, tsmethod, n.grid, bb.gamma,
+           ref.pvalue)
   })
   power.BSSR <- bssr_reject(setup, rr.list, p1, p2)
   # Final total sample size of every interim outcome, in the order of the interim cells
@@ -223,7 +229,7 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
   rownames(N.dist) <- NULL
   # Power of the fixed-sample design
   power.TRAD <- BinaryPower(p1, p2, N1, N2, alpha, Test, alternative, tsmethod,
-                            n.grid, bb.gamma)$Power
+                            n.grid, bb.gamma, ref.pvalue = ref.pvalue)$Power
   out <- data.frame(p1, p2, p, power.BSSR, power.TRAD, E.N)
   attr(out, 'Test') <- Test
   attr(out, 'alternative') <- alternative
@@ -244,6 +250,7 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
   attr(out, 'rounding') <- rounding
   attr(out, 'N.min') <- N.min
   attr(out, 'N.max') <- N.max
+  attr(out, 'ref.pvalue') <- ref.pvalue
   attr(out, 'reestimation') <- map
   attr(out, 'N.dist') <- N.dist
   class(out) <- c('bbssr_powerbssr', 'data.frame')

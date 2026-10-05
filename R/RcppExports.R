@@ -13,3 +13,7 @@ bssr_power <- function(rr_list, rr_id, x11, x12, n21, n22, p1, p2, n11, n12) {
     .Call(`_bbssr_bssr_power`, rr_list, rr_id, x11, x12, n21, n22, p1, p2, n11, n12)
 }
 
+max_tail_prob_refined <- function(dbinom1, dbinom2, x1, x2, idx_last, g_lo, g_hi, theta) {
+    .Call(`_bbssr_max_tail_prob_refined`, dbinom1, dbinom2, x1, x2, idx_last, g_lo, g_hi, theta)
+}
+

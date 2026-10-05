@@ -12,7 +12,8 @@ BinaryRR(
   alternative = c("greater", "less", "two.sided"),
   tsmethod = c("minlike", "central"),
   n.grid = 100,
-  bb.gamma = 0
+  bb.gamma = 0,
+  ref.pvalue = FALSE
 )
 }
 \arguments{
@@ -44,6 +45,10 @@ unconditional tests. The default of 0 disables the procedure. A positive value
 restricts the search over the nuisance parameter to an exact
 \code{100 (1 - bb.gamma)} percent confidence interval and adds \code{bb.gamma} to the
 resulting p-value. A common choice is 0.0001}
+
+\item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
+of the unconditional tests is refined between the grid points, see Details. Default
+is \code{FALSE}. Ignored by the conditional tests}
 }
 \value{
 An object of class \code{bbssr_rr}, which is a logical matrix of dimension
@@ -76,6 +81,20 @@ The unconditional tests maximize the null tail probability of an ordering statis
 the common response probability, which is a nuisance parameter. Outcomes sharing the same
 value of the ordering statistic receive the same p-value.
 
+The tail probability of each outcome is a polynomial in the common response
+probability, and its maximum over the grid of \code{n.grid} points is a lower bound of
+the maximum over the unit interval. A p-value computed on the grid can therefore fall
+below the exact p-value, and the test can then exceed its nominal level. With
+\code{ref.pvalue = TRUE} the grid is extended by points equally spaced on the arcsine
+square-root scale, which resolve the narrow local maxima near 0 and 1, and every local
+maximum on the extended grid is refined by a safeguarded Newton iteration between its
+two neighbouring grid points. The grid maximum is kept when it is larger, so a refined
+p-value is never smaller than the p-value on the grid. In the designs examined during
+development the refined p-values agreed with a certified maximum over the unit interval
+to within 1e-12, but the refinement is a local search and does not guarantee the
+maximum. It takes longer than the grid alone, by roughly an order of magnitude with 500
+patients per group.
+
 The alternative \code{'less'} is handled by exchanging the two groups, testing the
 alternative \code{'greater'} and exchanging them back. Every test considered treats
 the groups symmetrically apart from the direction of the alternative, so this gives
@@ -95,6 +114,12 @@ RR <- BinaryRR(N1 = 20, N2 = 10, alpha = 0.05, Test = 'Boschloo',
                alternative = 'two.sided', bb.gamma = 0.0001)
 print(RR)
 plot(RR)
+
+# The grid maximum can understate the p-value. Refinement removes two outcomes from the
+# rejection region of the Z-pooled test with 32 patients per group
+RR.grid <- BinaryRR(N1 = 32, N2 = 32, alpha = 0.025, Test = 'Z-pool')
+RR.ref <- BinaryRR(N1 = 32, N2 = 32, alpha = 0.025, Test = 'Z-pool', ref.pvalue = TRUE)
+sum(RR.grid) - sum(RR.ref)
 }
 
 }

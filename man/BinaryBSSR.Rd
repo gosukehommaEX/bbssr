@@ -26,7 +26,8 @@ BinaryBSSR(
   ss.alpha = alpha,
   rounding = c("group", "friede-kieser", "total"),
   N.min = NULL,
-  N.max = NULL
+  N.max = NULL,
+  ref.pvalue = FALSE
 )
 }
 \arguments{
@@ -94,6 +95,10 @@ unconditional tests. Default is 100}
 can be used to keep the patients who are already enrolled but not yet evaluated}
 
 \item{N.max}{Upper bound on the final total sample size, or \code{NULL} (default)}
+
+\item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
+of the unconditional tests is refined between the grid points, see
+\code{\link{BinaryRR}}. Default is \code{FALSE}}
 }
 \value{
 An object of class \code{bbssr_bssr}, a data frame with one row containing:

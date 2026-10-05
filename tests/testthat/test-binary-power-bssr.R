@@ -282,3 +282,21 @@ test_that("scenarios outside the unit interval only by rounding error are evalua
   expect_true(all(res$p2 >= 0 & res$p1 <= 1))
   expect_true(all(is.finite(res$power.BSSR)))
 })
+
+test_that("BinaryPowerBSSR passes ref.pvalue to the analysis and the re-estimation", {
+  run <- function(...) {
+    BinaryPowerBSSR(p = c(0.3, 0.4), Delta.A = 0.3, Delta.T = 0.3, N1 = 14, N2 = 14,
+                    omega = 0.5, r = 1, alpha = 0.025, tar.power = 0.8, Test = 'Z-pool',
+                    ...)
+  }
+  seen <- ref_pvalue_calls(run(ref.pvalue = TRUE))
+  expect_gt(nrow(seen), 1)
+  expect_true(all(seen$ref.pvalue))
+  expect_true(attr(run(ref.pvalue = TRUE), 'ref.pvalue'))
+  # A conditional test used for the re-estimation has nothing to refine
+  seen <- ref_pvalue_calls(run(ss.Test = 'Chisq', ref.pvalue = TRUE))
+  expect_true(all(seen$ref.pvalue == (seen$Test == 'Z-pool')))
+  expect_true(any(seen$Test == 'Chisq'))
+  seen <- ref_pvalue_calls(run())
+  expect_false(any(seen$ref.pvalue))
+})

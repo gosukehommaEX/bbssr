@@ -39,3 +39,17 @@ test_that("the adjustment of both parts controls the type I error rate", {
   expect_lt(res$alpha.adj[1], 0.025)
   expect_equal(attr(res, 'adjust'), 'both')
 })
+
+test_that("BinaryAlphaAdjBSSR passes ref.pvalue to every p-value computation", {
+  run <- function(...) {
+    BinaryAlphaAdjBSSR(Delta.A = 0.3, N1 = 12, N2 = 12, omega = 0.5, r = 1,
+                       alpha = 0.025, tar.power = 0.8, Test = 'Z-pool',
+                       ss.method = 'standard', theta = seq(0.05, 0.95, by = 0.05), ...)
+  }
+  seen <- ref_pvalue_calls(res <- run(ref.pvalue = TRUE))
+  expect_gt(nrow(seen), 1)
+  expect_true(all(seen$ref.pvalue))
+  expect_true(attr(res, 'ref.pvalue'))
+  seen <- ref_pvalue_calls(run())
+  expect_false(any(seen$ref.pvalue))
+})

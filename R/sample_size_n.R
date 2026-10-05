@@ -31,13 +31,15 @@
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
 #' @param method \code{'exact'}, \code{'standard'} or \code{'null.variance'}
 #' @param rounding \code{'group'}, \code{'friede-kieser'} or \code{'total'}
+#' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the
+#'   unconditional tests is refined between the grid points
 #'
 #' @return An integer vector with elements \code{N1} and \code{N2}
 #'
 #' @keywords internal
 #' @noRd
 sample_size_n <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod,
-                          n.grid, bb.gamma, method, rounding) {
+                          n.grid, bb.gamma, method, rounding, ref.pvalue) {
   if (method != 'exact') {
     n2 <- ss_raw_n2(p1, p2, r, alpha, tar.power, alternative, method)
     if (rounding == 'group') {
@@ -54,6 +56,6 @@ sample_size_n <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsmeth
     return(c(N1 = as.integer(max(1, N1)), N2 = as.integer(max(1, N2))))
   }
   N2 <- ss_exact_search(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod, n.grid,
-                        bb.gamma)
+                        bb.gamma, ref.pvalue)
   c(N1 = as.integer(ceiling(r * N2)), N2 = as.integer(N2))
 }

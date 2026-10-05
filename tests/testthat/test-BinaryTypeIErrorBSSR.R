@@ -56,3 +56,20 @@ test_that("BinaryTypeIErrorBSSR validates theta", {
   expect_error(do.call(BinaryTypeIErrorBSSR, c(tie_args, list(theta = c(0.2, 1.2)))),
                'theta')
 })
+
+test_that("ref.pvalue reaches every rejection region and removes the grid excess", {
+  run <- function(...) {
+    BinaryTypeIErrorBSSR(Delta.A = 0.3, N1 = 32, N2 = 32, omega = 0.5, r = 1,
+                         alpha = 0.025, tar.power = 0.8, Test = 'Z-pool',
+                         ss.method = 'standard', ...)
+  }
+  seen <- ref_pvalue_calls(ref <- run(ref.pvalue = TRUE))
+  expect_gt(nrow(seen), 1)
+  expect_true(all(seen$ref.pvalue))
+  expect_true(attr(ref, 'ref.pvalue'))
+  grid <- run()
+  # Largest type I error rate of the fixed design with 32 patients per group, certified
+  # by tools/reference/reference_values.py
+  expect_equal(attr(grid, 'max')$TIE[2], 0.0250058337172828, tolerance = 1e-9)
+  expect_equal(attr(ref, 'max')$TIE[2], 0.023344357650963, tolerance = 1e-9)
+})

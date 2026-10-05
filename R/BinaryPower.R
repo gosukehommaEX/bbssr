@@ -20,6 +20,9 @@
 #'   unconditional tests. Default is 100
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure. The default of
 #'   0 disables the procedure
+#' @param ref.pvalue Logical. If \code{TRUE}, the maximization over the nuisance parameter
+#'   of the unconditional tests is refined between the grid points, see
+#'   \code{\link{BinaryRR}}. Default is \code{FALSE}
 #'
 #' @return An object of class \code{bbssr_power}, a data frame with one row per element of
 #'   \code{p1} containing:
@@ -60,13 +63,13 @@
 BinaryPower <- function(p1, p2, N1, N2, alpha, Test,
                         alternative = c('greater', 'less', 'two.sided'),
                         tsmethod = c('minlike', 'central'),
-                        n.grid = 100, bb.gamma = 0) {
+                        n.grid = 100, bb.gamma = 0, ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   if (length(p1) != length(p2)) stop('p1 and p2 should be the same length')
   if (any(p1 < 0 | p1 > 1 | p2 < 0 | p2 > 1)) stop('p1 and p2 must lie in [0, 1]')
   Test <- match.arg(Test, c('Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', 'Boschloo'))
-  rr <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma)
+  rr <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue)
   N1 <- nrow(rr) - 1L
   N2 <- ncol(rr) - 1L
   Power <- vapply(

@@ -24,6 +24,8 @@
 #' @param rounding \code{'group'}, \code{'friede-kieser'} or \code{'total'}
 #' @param N1.plan Planned sample size of group 1, or \code{NULL}
 #' @param N2.plan Planned sample size of group 2, or \code{NULL}
+#' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the
+#'   unconditional tests is refined between the grid points
 #'
 #' @return A data frame with columns \code{n.raw} (unrounded total, \code{NA} under
 #'   \code{method = 'exact'}), \code{N1.re} and \code{N2.re}
@@ -32,7 +34,7 @@
 #' @noRd
 #' @import fpCompare
 reestimate <- function(hat.p1, hat.p2, r, alpha, tar.power, Test, alternative, tsmethod,
-                       n.grid, bb.gamma, method, rounding, N1.plan, N2.plan) {
+                       n.grid, bb.gamma, method, rounding, N1.plan, N2.plan, ref.pvalue) {
   degenerate <- hat.p1 %==% hat.p2
   if (any(degenerate) && (is.null(N1.plan) || is.null(N2.plan))) {
     stop('the recovered response probabilities coincide, so no sample size can be ',
@@ -50,12 +52,12 @@ reestimate <- function(hat.p1, hat.p2, r, alpha, tar.power, Test, alternative, t
   if (method == 'exact') {
     # One search over all distinct pairs, sharing the power at every candidate size
     N2.u <- ss_exact_search(hat.p1[first], hat.p2[first], r, alpha, tar.power, Test,
-                            alternative, tsmethod, n.grid, bb.gamma)
+                            alternative, tsmethod, n.grid, bb.gamma, ref.pvalue)
     N1.u <- as.integer(ceiling(r * N2.u))
   } else if (length(first) > 0) {
     n.u <- vapply(first, function(u) {
       sample_size_n(hat.p1[u], hat.p2[u], r, alpha, tar.power, Test, alternative,
-                    tsmethod, n.grid, bb.gamma, method, rounding)
+                    tsmethod, n.grid, bb.gamma, method, rounding, ref.pvalue)
     }, integer(2))
     N1.u <- n.u['N1', ]
     N2.u <- n.u['N2', ]

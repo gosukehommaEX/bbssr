@@ -27,7 +27,8 @@ BinaryTypeIErrorBSSR(
   N.max = NULL,
   n.interim = NULL,
   theta = seq(0.005, 0.995, by = 0.005),
-  refine = TRUE
+  refine = TRUE,
+  ref.pvalue = FALSE
 )
 }
 \arguments{
@@ -101,6 +102,11 @@ evaluated. Default is \code{seq(0.005, 0.995, by = 0.005)}}
 
 \item{refine}{Logical. If \code{TRUE} (default), the largest local maxima on the grid
 are refined by a one-dimensional optimization between the neighbouring grid points}
+
+\item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
+of the unconditional tests is refined between the grid points, see
+\code{\link{BinaryRR}}. Default is \code{FALSE}. It applies to the final analysis, to
+the fixed-sample comparator and to the exact re-estimation}
 }
 \value{
 An object of class \code{bbssr_tie}, a data frame with one row per element of

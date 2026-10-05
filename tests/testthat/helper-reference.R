@@ -84,3 +84,19 @@ bssr_power_ref <- function(rr.list, rr.id, x11, x12, n21, n22, p1, p2, n11, n12)
 column_run_count <- function(rr) {
   apply(rr, 2, function(v) sum(diff(c(FALSE, v)) == 1))
 }
+
+# Test and refinement flag of every call of get_pvalue() made while code is evaluated,
+# which shows whether ref.pvalue reaches each p-value matrix used by a function
+ref_pvalue_calls <- function(code) {
+  seen <- data.frame(Test = character(0), ref.pvalue = logical(0))
+  real <- get_pvalue
+  testthat::local_mocked_bindings(
+    get_pvalue = function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma,
+                          ref.pvalue) {
+      seen[nrow(seen) + 1L, ] <<- list(Test, ref.pvalue)
+      real(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue)
+    }
+  )
+  force(code)
+  seen
+}

@@ -94,3 +94,14 @@ test_that("the direction of the effect must agree with the alternative", {
   expect_error(BinarySampleSize(0.5, 0.2, 1, 0.025, 0.8, 'Chisq', rounding = 'total'),
                'rounding')
 })
+
+test_that("BinarySampleSize passes ref.pvalue to every p-value computation", {
+  seen <- ref_pvalue_calls(BinarySampleSize(0.6, 0.25, 1, 0.025, 0.8, 'Z-pool',
+                                            ref.pvalue = TRUE))
+  expect_gt(nrow(seen), 1)
+  expect_true(all(seen$ref.pvalue))
+  ss <- BinarySampleSize(0.6, 0.25, 1, 0.025, 0.8, 'Z-pool', ref.pvalue = TRUE)
+  expect_true(attr(ss, 'ref.pvalue'))
+  seen <- ref_pvalue_calls(BinarySampleSize(0.6, 0.25, 1, 0.025, 0.8, 'Z-pool'))
+  expect_false(any(seen$ref.pvalue))
+})

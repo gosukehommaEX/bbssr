@@ -29,7 +29,8 @@ BinaryAlphaAdjBSSR(
   theta = seq(0.005, 0.995, by = 0.005),
   adjust = c("test", "both"),
   tol = 1e-08,
-  step = 1e-05
+  step = 1e-05,
+  ref.pvalue = FALSE
 )
 }
 \arguments{
@@ -110,6 +111,11 @@ evaluated. Default is \code{seq(0.005, 0.995, by = 0.005)}}
 
 \item{step}{Decrement of the level in the search used when \code{adjust = 'both'}.
 Default is \code{1e-5}}
+
+\item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
+of the unconditional tests is refined between the grid points, see
+\code{\link{BinaryRR}}. Default is \code{FALSE}. It applies to the final analysis, to
+the fixed-sample comparator and to the exact re-estimation}
 }
 \value{
 An object of class \code{bbssr_alphaadj}, a data frame with one row for the
