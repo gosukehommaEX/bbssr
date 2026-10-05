@@ -9,6 +9,10 @@ power_from_rr <- function(RR, dbinom1, dbinom2) {
     .Call(`_bbssr_power_from_rr`, RR, dbinom1, dbinom2)
 }
 
+bssr_cond_reject <- function(rr_list, rr_id, n21, n22, n11, n12) {
+    .Call(`_bbssr_bssr_cond_reject`, rr_list, rr_id, n21, n22, n11, n12)
+}
+
 bssr_power <- function(rr_list, rr_id, x11, x12, n21, n22, p1, p2, n11, n12) {
     .Call(`_bbssr_bssr_power`, rr_list, rr_id, x11, x12, n21, n22, p1, p2, n11, n12)
 }

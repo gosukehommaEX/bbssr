@@ -101,3 +101,39 @@ ref_pvalue_calls <- function(code) {
   force(code)
   seen
 }
+
+# Conditional rejection probabilities of a re-estimation design under equal response
+# probabilities, summed outcome by outcome over the responder counts of group 1 in the
+# two stages, together with the rejection probability given the total alone
+bssr_cond_reject_ref <- function(rr.list, rr.id, n21, n22, n11, n12) {
+  s.out <- integer(0)
+  s2.out <- integer(0)
+  crp <- numeric(0)
+  crp.total <- numeric(0)
+  for (s in 0:(n11 + n12)) {
+    k <- rr.id[s + 1L] + 1L
+    rr <- rr.list[[k]]
+    m1 <- n21[k]
+    m2 <- n22[k]
+    for (s2 in 0:(m1 + m2)) {
+      v <- 0
+      for (a in 0:n11) {
+        for (b in 0:m1) {
+          if (s - a < 0 || s - a > n12 || s2 - b < 0 || s2 - b > m2) next
+          if (rr[a + b + 1L, s - a + s2 - b + 1L]) {
+            v <- v + stats::dhyper(a, n11, n12, s) * stats::dhyper(b, m1, m2, s2)
+          }
+        }
+      }
+      t <- s + s2
+      x1 <- max(0, t - n12 - m2):min(n11 + m1, t)
+      vt <- sum(stats::dhyper(x1, n11 + m1, n12 + m2, t) *
+                  rr[cbind(x1 + 1L, t - x1 + 1L)])
+      s.out <- c(s.out, s)
+      s2.out <- c(s2.out, s2)
+      crp <- c(crp, v)
+      crp.total <- c(crp.total, vt)
+    }
+  }
+  list(s = s.out, s2 = s2.out, crp = crp, crp.total = crp.total)
+}

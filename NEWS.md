@@ -12,6 +12,20 @@
   2004). The adjusted level can be applied to the final analysis only, which allows a
   bisection, or to the re-estimation as well, which uses a stepwise search.
 
+* `BinaryCondRejectBSSR()` returns, under equal response probabilities, the rejection
+  probability of a re-estimation design given the pooled numbers of responders at the
+  interim analysis and in the second stage, together with the rejection probability
+  given only their total. The first does not depend on the common response probability
+  and the type I error rate is its binomial average, so the type I error rate is at most
+  the nominal level whenever the first is, and the rate can be decomposed by the pooled
+  number of interim responders to show the interim outcomes that raise it. Because the
+  allocation is fixed within each stage, the first can exceed the level even for
+  Fisher's exact test without re-estimation, whereas the conditional size of that test
+  given the total never does. `inst/validation/kieser-2020-section-21-3.R` uses both to
+  examine numerically the statement of Kieser (2020, Sect. 21.3) that the type I error
+  rate is controlled for any blinded re-estimation rule when the Fisher-Boschloo test is
+  applied in the analysis.
+
 * The sample size can be re-estimated from the normal approximation instead of the exact
   power, through `ss.method = 'standard'` (formula 21.3 of Kieser, 2020) or
   `ss.method = 'null.variance'` (formula 1 of Friede and Kieser, 2004). The same options

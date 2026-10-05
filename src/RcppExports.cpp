@@ -40,6 +40,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// bssr_cond_reject
+List bssr_cond_reject(List rr_list, IntegerVector rr_id, IntegerVector n21, IntegerVector n22, int n11, int n12);
+RcppExport SEXP _bbssr_bssr_cond_reject(SEXP rr_listSEXP, SEXP rr_idSEXP, SEXP n21SEXP, SEXP n22SEXP, SEXP n11SEXP, SEXP n12SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type rr_list(rr_listSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type rr_id(rr_idSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type n21(n21SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type n22(n22SEXP);
+    Rcpp::traits::input_parameter< int >::type n11(n11SEXP);
+    Rcpp::traits::input_parameter< int >::type n12(n12SEXP);
+    rcpp_result_gen = Rcpp::wrap(bssr_cond_reject(rr_list, rr_id, n21, n22, n11, n12));
+    return rcpp_result_gen;
+END_RCPP
+}
 // bssr_power
 NumericVector bssr_power(List rr_list, IntegerVector rr_id, IntegerVector x11, IntegerVector x12, IntegerVector n21, IntegerVector n22, NumericVector p1, NumericVector p2, int n11, int n12);
 RcppExport SEXP _bbssr_bssr_power(SEXP rr_listSEXP, SEXP rr_idSEXP, SEXP x11SEXP, SEXP x12SEXP, SEXP n21SEXP, SEXP n22SEXP, SEXP p1SEXP, SEXP p2SEXP, SEXP n11SEXP, SEXP n12SEXP) {
@@ -82,6 +98,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_bbssr_max_tail_prob", (DL_FUNC) &_bbssr_max_tail_prob, 7},
     {"_bbssr_power_from_rr", (DL_FUNC) &_bbssr_power_from_rr, 3},
+    {"_bbssr_bssr_cond_reject", (DL_FUNC) &_bbssr_bssr_cond_reject, 6},
     {"_bbssr_bssr_power", (DL_FUNC) &_bbssr_bssr_power, 10},
     {"_bbssr_max_tail_prob_refined", (DL_FUNC) &_bbssr_max_tail_prob_refined, 8},
     {NULL, NULL, 0}

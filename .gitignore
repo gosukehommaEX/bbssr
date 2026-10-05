@@ -16,6 +16,7 @@ vignettes/*_files/
 vignettes/*_cache/
 /doc/
 reproduce-output/
+validation-output/
 
 # Output of tools/run-checks.R
 tools/output/

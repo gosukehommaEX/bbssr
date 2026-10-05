@@ -582,6 +582,76 @@ def block_ni():
     emit(f, "non-inferiority type I error", tie)
 
 
+# ---------------------------------------------------------------------------------------
+# Conditional rejection probabilities given the pooled responder counts (B3)
+def hyper_exact(x, M, n, N):
+    """Hypergeometric probabilities from exact integer binomial coefficients."""
+    d = math.comb(M, N)
+    return np.array([math.comb(n, int(k)) * math.comb(M - n, N - int(k)) / d
+                     for k in np.atleast_1d(x)])
+
+
+def crp_tables(sizes, n11, n12, test, alt, alpha):
+    """Rows (s, s2, CRP, CRP.total) ordered by s and s2, by direct summation."""
+    rows = []
+    n1 = n11 + n12
+    for s in range(n1 + 1):
+        N1, N2 = sizes[s]
+        m1, m2 = N1 - n11, N2 - n12
+        R = reject(N1, N2, test, alt, alpha)
+        x11 = np.arange(max(0, s - n12), min(n11, s) + 1)
+        h1 = hyper_exact(x11, n1, n11, s)
+        for s2 in range(m1 + m2 + 1):
+            x21 = np.arange(max(0, s2 - m2), min(m1, s2) + 1)
+            h2 = hyper_exact(x21, m1 + m2, m1, s2)
+            X1 = x11[:, None] + x21[None, :]
+            c = float(np.sum(h1[:, None] * h2[None, :] * R[X1, s + s2 - X1]))
+            t = s + s2
+            x1 = np.arange(max(0, t - N2), min(N1, t) + 1)
+            ct = float(np.sum(hyper_exact(x1, N1 + N2, N1, t) * R[x1, t - x1]))
+            rows.append((s, s2, c, ct))
+    return rows
+
+
+def block_crp():
+    f = "test-BinaryCondRejectBSSR.R"
+    # Fisher's exact test, Delta.A = 0.3, N1 = N2 = 12, interim 6 + 6, standard formula
+    sizes = final_sizes_rd(0.3, 1, 6, 6, 0.025, 0.8, "Fisher", "greater", "standard")
+    rows = crp_tables(sizes, 6, 6, "Fisher", "greater", 0.025)
+    c = np.array([x[2] for x in rows]); ct = np.array([x[3] for x in rows])
+    above = [x for x in rows if x[2] > 0.025 + TOL]
+    emit(f, "Fisher 6 + 6 rows", len(rows), rtol=0)
+    emit(f, "Fisher 6 + 6 sums", [c.sum(), ct.sum()])
+    emit(f, "Fisher 6 + 6 cells above the level s", [x[0] for x in above], rtol=0)
+    emit(f, "Fisher 6 + 6 cells above the level s2", [x[1] for x in above], rtol=0)
+    emit(f, "Fisher 6 + 6 values above the level", [x[2] for x in above])
+    emit(f, "Fisher 6 + 6 maxima", [c.max(), ct.max()])
+    emit(f, "Fisher 6 + 6 counts above the level", [len(above), int((ct > 0.025 + TOL).sum())], rtol=0)
+
+    def tie(t):
+        tot = 0.0
+        for (s, s2, cc, _) in rows:
+            n2 = sum(sizes[s]) - 12
+            tot += binom.pmf(s, 12, t) * binom.pmf(s2, n2, t) * cc
+        return tot
+    emit(f, "Fisher 6 + 6 type I error at 0.2 and 0.5", [tie(0.2), tie(0.5)])
+    # The same design without re-estimation: CRP differs from CRP.total
+    fixed = crp_tables({s: (12, 12) for s in range(13)}, 6, 6, "Fisher", "greater", 0.025)
+    emit(f, "Fisher 12 + 12 fixed largest difference",
+         max(abs(x[2] - x[3]) for x in fixed), rtol=1e-8)
+    # Boschloo test, r = 2, Delta.A = 0.3, N2 = 10, interim 10 + 5, standard formula
+    sizes = final_sizes_rd(0.3, 2, 10, 5, 0.025, 0.8, "Boschloo", "greater", "standard")
+    rows = crp_tables(sizes, 10, 5, "Boschloo", "greater", 0.025)
+    c = np.array([x[2] for x in rows]); ct = np.array([x[3] for x in rows])
+    i, j = int(c.argmax()), int(ct.argmax())
+    emit(f, "Boschloo r = 2 rows and locations of the maxima",
+         [len(rows), rows[i][0], rows[i][1], rows[j][0], rows[j][1]], rtol=0)
+    emit(f, "Boschloo r = 2 sums", [c.sum(), ct.sum()])
+    emit(f, "Boschloo r = 2 maxima", [c.max(), ct.max()])
+    emit(f, "Boschloo r = 2 counts above the level",
+         [int((c > 0.025 + TOL).sum()), int((ct > 0.025 + TOL).sum())], rtol=0)
+
+
 if __name__ == "__main__":
     print("# test file\tkey\trelative tolerance\tvalues (15 significant digits)")
     block_split_pooled()
@@ -590,3 +660,4 @@ if __name__ == "__main__":
     block_bssr_exact()
     block_refined()
     block_ni()
+    block_crp()

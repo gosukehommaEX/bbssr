@@ -4,7 +4,7 @@
 #   source('tools/run-checks.R')
 # for the quick run (documentation, timing of the load_all() build and unit tests),
 #   reproduce <- TRUE; source('tools/run-checks.R')
-# to add the reproduction of published results, or
+# to add the reproduction of published results and the validation scripts, or
 #   full.check <- TRUE; source('tools/run-checks.R')
 # to run everything, including the timing of an optimized installed build and R CMD
 # check. The flags are removed when the script starts, so the next run is quick again.
@@ -84,6 +84,15 @@ rep.res <- if (!run.reproduce) 'skipped' else tryCatch({
   paste(names(counts), counts, collapse = ', ')
 }, error = function(e) paste('ERROR:', cli::ansi_strip(conditionMessage(e))))
 note('reproduction: ', rep.res)
+
+# Numerical examination of Kieser (2020, Sect. 21.3), written to validation-output/
+val.res <- if (!run.reproduce) 'skipped' else tryCatch({
+  source(file.path('inst', 'validation', 'kieser-2020-section-21-3.R'), local = new.env())
+  tab <- utils::read.csv(file.path('validation-output', 'kieser-2020-section-21-3.csv'))
+  counts <- table(factor(tab$verdict, levels = c('PASS', 'FAIL', 'INFO')))
+  paste(names(counts), counts, collapse = ', ')
+}, error = function(e) paste('ERROR:', cli::ansi_strip(conditionMessage(e))))
+note('validation: ', val.res)
 
 # Unit tests
 test.res <- devtools::test(reporter = 'silent', stop_on_failure = FALSE)

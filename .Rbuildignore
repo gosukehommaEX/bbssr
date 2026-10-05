@@ -13,3 +13,4 @@
 ^vignettes/.*_cache$
 ^tools$
 ^reproduce-output$
+^validation-output$

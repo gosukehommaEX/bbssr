@@ -65,3 +65,16 @@ test-binary-sample-size.R	exact Farrington-Manning N2	0	113 160
 test-binary-power-bssr.R	non-inferiority power and E.N	1e-10	0.792565321803051 181.159310064003
 test-binary-power-bssr.R	non-inferiority boundary	1e-10	0.0245342677114993 187.723544195855
 test-BinaryTypeIErrorBSSR.R	non-inferiority type I error	1e-10	0.0263276781009502 0.0258676571158215 0.0245342677114993 0.0229853663986697 0.0263276781009502 0.0258676571158216
+test-BinaryCondRejectBSSR.R	Fisher 6 + 6 rows	0	567
+test-BinaryCondRejectBSSR.R	Fisher 6 + 6 sums	1e-10	5.8675989615046 7.48650061067144
+test-BinaryCondRejectBSSR.R	Fisher 6 + 6 cells above the level s	0	2 2 3 4 8 9 10 10
+test-BinaryCondRejectBSSR.R	Fisher 6 + 6 cells above the level s2	0	3 6 15 21 43 37 30 33
+test-BinaryCondRejectBSSR.R	Fisher 6 + 6 values above the level	1e-10	0.025974025974026 0.0253599040255932 0.025881201141577 0.0257019420646433 0.0257019420646433 0.025881201141577 0.0253599040255932 0.025974025974026
+test-BinaryCondRejectBSSR.R	Fisher 6 + 6 maxima	1e-10	0.025974025974026 0.0249961144897897
+test-BinaryCondRejectBSSR.R	Fisher 6 + 6 counts above the level	0	8 0
+test-BinaryCondRejectBSSR.R	Fisher 6 + 6 type I error at 0.2 and 0.5	1e-10	0.0108006327232362 0.0158076801034762
+test-BinaryCondRejectBSSR.R	Fisher 12 + 12 fixed largest difference	1e-08	0.019562850663941
+test-BinaryCondRejectBSSR.R	Boschloo r = 2 rows and locations of the maxima	0	769 2 5 1 9
+test-BinaryCondRejectBSSR.R	Boschloo r = 2 sums	1e-10	12.4601516983984 16.136283680292
+test-BinaryCondRejectBSSR.R	Boschloo r = 2 maxima	1e-10	0.044042913608131 0.0507470722842913
+test-BinaryCondRejectBSSR.R	Boschloo r = 2 counts above the level	0	173 265
