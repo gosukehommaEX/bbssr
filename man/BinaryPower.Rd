@@ -12,7 +12,7 @@ BinaryPower(
   alpha,
   Test,
   alternative = c("greater", "less", "two.sided"),
-  tsmethod = c("minlike", "central"),
+  tsmethod = c("minlike", "central", "blaker"),
   n.grid = 100,
   bb.gamma = 0,
   margin = 0,
@@ -39,7 +39,8 @@ as \code{p1})}
 (default), \code{'less'} or \code{'two.sided'}}
 
 \item{tsmethod}{Convention used to construct the two-sided version of the conditional
-tests. Options: \code{'minlike'} (default) or \code{'central'}}
+tests, see \code{\link{BinaryRR}}. Options: \code{'minlike'} (default),
+\code{'central'} or \code{'blaker'}}
 
 \item{n.grid}{Number of grid points used to search over the nuisance parameter of the
 unconditional tests. Default is 100}

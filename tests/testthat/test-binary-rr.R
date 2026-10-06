@@ -49,7 +49,7 @@ test_that("the one-sided rejection region is monotone in the outcome grid", {
 test_that("the two-sided rejection region is symmetric when the groups are balanced", {
   N <- 8
   for (tst in all_tests) {
-    for (ts in c('minlike', 'central')) {
+    for (ts in c('minlike', 'central', 'blaker')) {
       RR <- as_plain(BinaryRR(N, N, 0.05, tst, alternative = 'two.sided',
                               tsmethod = ts, n.grid = 30))
       expect_equal(RR, t(RR), info = sprintf('%s, %s', tst, ts))
@@ -96,6 +96,42 @@ test_that("the Boschloo test is at least as powerful as the Fisher test", {
     expect_true(all(boschloo[fisher]), info = alt)
     expect_gte(sum(boschloo), sum(fisher))
   }
+})
+
+test_that("the Boschloo region contains the Fisher region under each two-sided rule", {
+  for (ts in c('minlike', 'central', 'blaker')) {
+    fisher <- as_plain(BinaryRR(12, 7, 0.05, 'Fisher', alternative = 'two.sided',
+                                tsmethod = ts))
+    boschloo <- as_plain(BinaryRR(12, 7, 0.05, 'Boschloo', alternative = 'two.sided',
+                                  tsmethod = ts))
+    expect_gt(sum(fisher), 0)
+    expect_true(all(boschloo[fisher]), info = ts)
+  }
+})
+
+test_that("the blaker Boschloo test orders the outcomes by the blaker Fisher p-value", {
+  N1 <- 5
+  N2 <- 4
+  p <- attr(BinaryRR(N1, N2, 0.05, 'Boschloo', alternative = 'two.sided',
+                     tsmethod = 'blaker', n.grid = 25), 'p.value')
+  ref <- unconditional_ref(fisher_blaker_ref(N1, N2), N1, N2, 25, decreasing = FALSE)
+  expect_equal(matrix(as.vector(p), nrow = N1 + 1), ref, tolerance = 1e-12)
+  # Sums of the p-values on the default grid and refined, and the numbers of outcomes
+  # rejected at the level 0.05 by the Fisher test and by the refined Boschloo test, for 14
+  # against 7 patients, from tools/reference/reference_values.py
+  grid <- attr(BinaryRR(14, 7, 0.05, 'Boschloo', alternative = 'two.sided',
+                        tsmethod = 'blaker'), 'p.value')
+  expect_equal(sum(grid), 37.7030207902254, tolerance = 1e-10)
+  ref <- BinaryRR(14, 7, 0.05, 'Boschloo', alternative = 'two.sided', tsmethod = 'blaker',
+                  ref.pvalue = TRUE)
+  expect_equal(sum(attr(ref, 'p.value')), 37.7046195635696, tolerance = 1e-10)
+  expect_equal(sum(BinaryRR(14, 7, 0.05, 'Fisher', alternative = 'two.sided',
+                            tsmethod = 'blaker')), 38)
+  expect_equal(sum(ref), 44)
+  seen <- ref_pvalue_calls(BinaryRR(14, 7, 0.05, 'Boschloo', alternative = 'two.sided',
+                                    tsmethod = 'blaker'))
+  expect_equal(seen$tsmethod, 'blaker')
+  expect_equal(attr(ref, 'tsmethod'), 'blaker')
 })
 
 test_that("the Berger-Boos p-value matches a direct evaluation", {

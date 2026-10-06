@@ -96,3 +96,25 @@ test_that("the sample size agrees with a direct search over the power function",
     expect_lt(powers[ss$N2 - 1], 0.8)
   }
 })
+
+test_that("the two-sided blaker Fisher p-value agrees with exact2x2", {
+  skip_on_cran()
+  skip_if_not_installed('exact2x2')
+  message('exact2x2 ', utils::packageVersion('exact2x2'), ' is available, comparison run')
+  N1 <- 9
+  N2 <- 6
+  p <- fisher_pvalue(N1, N2, 'two.sided', 'blaker', midp = FALSE)
+  checked <- 0
+  for (x1 in 0:N1) {
+    for (x2 in 0:N2) {
+      # A table without responders or without non-responders has p-value 1
+      if (x1 + x2 == 0 || x1 + x2 == N1 + N2) next
+      tab <- matrix(c(x1, x2, N1 - x1, N2 - x2), nrow = 2)
+      ref <- exact2x2::exact2x2(tab, tsmethod = 'blaker', conf.int = FALSE)$p.value
+      expect_equal(p[x1 + 1, x2 + 1], ref, tolerance = 1e-9,
+                   info = sprintf('x1 = %d, x2 = %d', x1, x2))
+      checked <- checked + 1
+    }
+  }
+  expect_equal(checked, (N1 + 1) * (N2 + 1) - 2)
+})

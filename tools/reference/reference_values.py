@@ -75,11 +75,44 @@ def unconditional(stat, N1, N2, decreasing, G=100):
     return out.reshape(stat.shape)
 
 
+def fisher_two_sided(N1, N2, ts, midp=False):
+    """Two-sided Fisher p-value from the hypergeometric tails of every total s.
+
+    minlike orders the tables by their probability, blaker by the smaller of their two
+    tail probabilities (formula (2) of Mehrotra, Chan and Berger, 2003), and central
+    doubles the smaller tail. With midp the tables tied with the observed one in the
+    ordering (the observed one included) contribute half of their probability."""
+    P = np.full((N1 + 1, N2 + 1), np.nan)
+    for s in range(N1 + N2 + 1):
+        k = np.arange(max(0, s - N2), min(N1, s) + 1)
+        f = hypergeom.pmf(k, N1 + N2, N1, s)
+        lo = hypergeom.cdf(k, N1 + N2, N1, s)
+        up = hypergeom.sf(k - 1, N1 + N2, N1, s)
+        if ts == "central":
+            if midp:
+                lo, up = lo - f / 2, up - f / 2
+            p = 2 * np.minimum(lo, up)
+        else:
+            key = f if ts == "minlike" else np.minimum(lo, up)
+            p = np.empty(len(k))
+            for i in range(len(k)):
+                tied = np.abs(key - key[i]) <= 1e-10 * np.maximum(key, key[i])
+                more = (key < key[i]) & ~tied
+                p[i] = f[more].sum() + (0.5 if midp else 1.0) * f[tied].sum()
+        P[k, s - k] = np.minimum(1, p)
+    return P
+
+
 @lru_cache(maxsize=None)
-def pvalues(N1, N2, test, alt):
+def pvalues(N1, N2, test, alt, ts=None):
     if alt == "two.sided":
-        assert test == "Chisq"
-        return np.minimum(2 * norm.sf(np.abs(zstat(N1, N2))), 1)
+        if test == "Chisq":
+            return np.minimum(2 * norm.sf(np.abs(zstat(N1, N2))), 1)
+        if test in ("Fisher", "Fisher-midP"):
+            return fisher_two_sided(N1, N2, ts, midp=(test == "Fisher-midP"))
+        if test == "Boschloo":
+            return unconditional(fisher_two_sided(N1, N2, ts), N1, N2, False)
+        raise ValueError(test)
     if test == "Chisq":
         return norm.sf(zstat(N1, N2))
     if test == "Fisher":
@@ -91,19 +124,19 @@ def pvalues(N1, N2, test, alt):
     raise ValueError(test)
 
 
-def reject(N1, N2, test, alt, alpha):
-    return pvalues(N1, N2, test, alt) < alpha - TOL
+def reject(N1, N2, test, alt, alpha, ts=None):
+    return pvalues(N1, N2, test, alt, ts) < alpha - TOL
 
 
-def power(p1, p2, N1, N2, test, alt, alpha):
-    R = reject(N1, N2, test, alt, alpha).astype(float)
+def power(p1, p2, N1, N2, test, alt, alpha, ts=None):
+    R = reject(N1, N2, test, alt, alpha, ts).astype(float)
     return binom.pmf(np.arange(N1 + 1), N1, p1) @ R @ binom.pmf(np.arange(N2 + 1), N2, p2)
 
 
 # ---------------------------------------------------------------------------------------
 # Sample size rules
-def exact_n2(p1, p2, r, alpha, tp, test, alt):
-    pa = lambda n2: power(p1, p2, math.ceil(r * n2), n2, test, alt, alpha)
+def exact_n2(p1, p2, r, alpha, tp, test, alt, ts=None):
+    pa = lambda n2: power(p1, p2, math.ceil(r * n2), n2, test, alt, alpha, ts)
     ae = alpha / 2 if alt == "two.sided" else alpha
     p = (r * p1 + p2) / (1 + r)
     init = (1 + 1 / r) / (p1 - p2) ** 2 * (
@@ -653,6 +686,33 @@ def block_crp():
 
 
 # ---------------------------------------------------------------------------------------
+# Two-sided conventions of the conditional tests, including Blaker's
+def block_blaker():
+    f = "test-internal.R"
+    vals = [fisher_two_sided(14, 7, ts, midp)[8, 1]
+            for ts, midp in [("blaker", False), ("minlike", False), ("central", False),
+                             ("blaker", True), ("minlike", True)]]
+    emit(f, "Fisher two-sided 14 x 7 at (8, 1)", vals)
+    f = "test-binary-rr.R"
+    stat = fisher_two_sided(14, 7, "blaker")
+    emit(f, "Boschloo blaker 14 x 7 grid sum", unconditional(stat, 14, 7, False).sum())
+    cert = certified_pvalues(stat, 14, 7, False)
+    emit(f, "Boschloo blaker 14 x 7 certified sum", cert.sum())
+    emit(f, "blaker 14 x 7 rejected at 0.05",
+         [(stat < 0.05 - TOL).sum(), (cert < 0.05 - TOL).sum()], rtol=0)
+    # A configuration of Table 3 of Mehrotra, Chan and Berger (2003) in which the three
+    # conventions give different powers
+    f = "test-binary-power.R"
+    emit(f, "Fisher two-sided 10 x 40 power at (0.5, 0.86)",
+         [power(0.5, 0.86, 10, 40, "Fisher", "two.sided", 0.05, ts)
+          for ts in ["blaker", "minlike", "central"]])
+    f = "test-binary-sample-size.R"
+    emit(f, "Fisher two-sided r = 4 N2 blaker minlike central",
+         [exact_n2(0.1, 0.5, 4, 0.05, 0.8, "Fisher", "two.sided", ts)
+          for ts in ["blaker", "minlike", "central"]], rtol=0)
+
+
+# ---------------------------------------------------------------------------------------
 # Grid of designs (B4)
 def block_grid():
     f = "test-BinaryGridBSSR.R"
@@ -691,3 +751,4 @@ if __name__ == "__main__":
     block_ni()
     block_crp()
     block_grid()
+    block_blaker()

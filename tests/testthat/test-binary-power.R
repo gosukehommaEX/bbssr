@@ -83,6 +83,20 @@ test_that("BinaryPower passes ref.pvalue to the p-value computation", {
   expect_lt(ref, grid)
 })
 
+test_that("BinaryPower distinguishes the three two-sided conventions", {
+  # A configuration of Table 3 of Mehrotra, Chan and Berger (2003), with values from
+  # tools/reference/reference_values.py
+  pw <- vapply(c('blaker', 'minlike', 'central'), function(ts) {
+    BinaryPower(0.5, 0.86, 10, 40, 0.05, 'Fisher', alternative = 'two.sided',
+                tsmethod = ts)$Power
+  }, numeric(1))
+  expect_equal(unname(pw), c(0.608054130818687, 0.641394819757925, 0.517056474695217),
+               tolerance = 1e-10)
+  seen <- ref_pvalue_calls(BinaryPower(0.5, 0.86, 10, 40, 0.05, 'Boschloo',
+                                       alternative = 'two.sided', tsmethod = 'blaker'))
+  expect_equal(seen$tsmethod, 'blaker')
+})
+
 test_that("the power of the Farrington-Manning test reproduces the article", {
   # Example of Farrington and Manning (1990): p1 = 0.4, p2 = 0.05, s0 = 0.2 and 80 patients
   # per group give a true power of 81.3 per cent (p. 1451)

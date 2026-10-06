@@ -84,7 +84,7 @@
 BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.power, Test,
                                  restricted = FALSE,
                                  alternative = c('greater', 'less', 'two.sided'),
-                                 tsmethod = c('minlike', 'central'),
+                                 tsmethod = c('minlike', 'central', 'blaker'),
                                  n.grid = 100, bb.gamma = 0,
                                  effect = c('RD', 'RR', 'OR'),
                                  ss.method = c('exact', 'standard', 'null.variance',

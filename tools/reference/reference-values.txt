@@ -87,3 +87,9 @@ test-BinaryGridBSSR.R	Fisher grid SD.N	1e-10	14.8447550877925 11.3993961793173
 test-BinaryGridBSSR.R	p.plan exact Chisq r = 1 N1 N2	0	40 40
 test-BinaryGridBSSR.R	p.plan exact Chisq r = 1 fixed power at p = 0.4	1e-10	0.801503911679796
 test-BinaryGridBSSR.R	p.plan standard r = 2 N1 N2	0	60 30
+test-internal.R	Fisher two-sided 14 x 7 at (8, 1)	1e-10	0.0873065015479876 0.158823529411765 0.156656346749226 0.0515479876160991 0.0873065015479876
+test-binary-rr.R	Boschloo blaker 14 x 7 grid sum	1e-10	37.7030207902254
+test-binary-rr.R	Boschloo blaker 14 x 7 certified sum	1e-10	37.7046195635696
+test-binary-rr.R	blaker 14 x 7 rejected at 0.05	0	38 44
+test-binary-power.R	Fisher two-sided 10 x 40 power at (0.5, 0.86)	1e-10	0.608054130818687 0.641394819757925 0.517056474695217
+test-binary-sample-size.R	Fisher two-sided r = 4 N2 blaker minlike central	0	12 11 14

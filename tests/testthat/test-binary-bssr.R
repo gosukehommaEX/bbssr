@@ -153,3 +153,11 @@ test_that("BinaryBSSR re-estimates under a non-inferiority margin", {
   expect_gt(nrow(seen), 1)
   expect_true(all(seen$margin == 0.2))
 })
+
+test_that("BinaryBSSR passes tsmethod to the re-estimation", {
+  seen <- ref_pvalue_calls(res <- BinaryBSSR(8, 4, 5, 0.3, 2, 0.05, 0.8, 'Fisher',
+                                             alternative = 'two.sided',
+                                             tsmethod = 'blaker'))
+  expect_gt(nrow(seen), 0)
+  expect_true(all(seen$tsmethod == 'blaker'))
+})

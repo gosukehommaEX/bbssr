@@ -158,3 +158,14 @@ test_that("verbose reports each design", {
     'design 1 of 1'
   )
 })
+
+test_that("BinaryGridBSSR passes tsmethod given as a column of the design", {
+  design <- data.frame(tsmethod = c('minlike', 'blaker'), stringsAsFactors = FALSE)
+  seen <- ref_pvalue_calls(g <- BinaryGridBSSR(design, p = 0.4, Delta.A = 0.3, N1 = 16,
+                                               N2 = 8, omega = 0.5, r = 2, alpha = 0.05,
+                                               tar.power = 0.8, Test = 'Fisher',
+                                               alternative = 'two.sided',
+                                               ss.method = 'standard'))
+  expect_setequal(unique(seen$tsmethod), c('minlike', 'blaker'))
+  expect_equal(g$tsmethod, c('minlike', 'blaker'))
+})

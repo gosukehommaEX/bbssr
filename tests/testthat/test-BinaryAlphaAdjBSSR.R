@@ -84,3 +84,13 @@ test_that("BinaryAlphaAdjBSSR evaluates the boundary of a non-inferiority hypoth
   expect_true(all(res$max.TIE.adj <= 0.025))
   expect_equal(attr(res, 'margin'), 0.2)
 })
+
+test_that("BinaryAlphaAdjBSSR passes tsmethod to every p-value computation", {
+  seen <- ref_pvalue_calls(BinaryAlphaAdjBSSR(
+    Delta.A = 0.3, N1 = 16, N2 = 8, omega = 0.5, r = 2, alpha = 0.05, tar.power = 0.8,
+    Test = 'Fisher', alternative = 'two.sided', tsmethod = 'blaker',
+    ss.method = 'standard', theta = seq(0.1, 0.9, by = 0.1)
+  ))
+  expect_gt(nrow(seen), 1)
+  expect_true(all(seen$tsmethod == 'blaker'))
+})

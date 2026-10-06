@@ -90,6 +90,62 @@ test_that("the central two-sided p-value doubles the smaller tail", {
   }
 })
 
+test_that("the blaker two-sided p-value follows formula (2) of Mehrotra et al. (2003)", {
+  for (n in list(c(6, 9), c(7, 7), c(10, 3))) {
+    for (midp in c(FALSE, TRUE)) {
+      expect_equal(fisher_pvalue(n[1], n[2], 'two.sided', 'blaker', midp = midp),
+                   fisher_blaker_ref(n[1], n[2], midp = midp), tolerance = 1e-12,
+                   info = sprintf('%d x %d, midp = %s', n[1], n[2], midp))
+    }
+  }
+})
+
+test_that("the blaker p-value never exceeds the central p-value", {
+  # With equal groups the conditional distribution is symmetric and the two coincide, so
+  # only unequal groups are used to check that the blaker p-value can be smaller
+  for (n in list(c(9, 5), c(14, 7), c(4, 11))) {
+    b <- fisher_pvalue(n[1], n[2], 'two.sided', 'blaker', midp = FALSE)
+    ce <- fisher_pvalue(n[1], n[2], 'two.sided', 'central', midp = FALSE)
+    expect_true(all(b <= ce + 1e-12), info = sprintf('%d x %d', n[1], n[2]))
+    expect_gt(sum(b < ce - 1e-6), 0)
+  }
+})
+
+test_that("the blaker and minlike p-values agree for equal groups only", {
+  # The conditional distribution is symmetric when the groups are of equal size, so the
+  # two orderings coincide
+  for (N in c(6, 11)) {
+    expect_equal(fisher_pvalue(N, N, 'two.sided', 'blaker', midp = FALSE),
+                 fisher_pvalue(N, N, 'two.sided', 'minlike', midp = FALSE),
+                 tolerance = 1e-12, info = N)
+  }
+  b <- fisher_pvalue(14, 7, 'two.sided', 'blaker', midp = FALSE)
+  m <- fisher_pvalue(14, 7, 'two.sided', 'minlike', midp = FALSE)
+  expect_gt(max(abs(b - m)), 0.05)
+})
+
+test_that("the two-sided Fisher p-values of two published examples are reproduced", {
+  # Fay and Hunsberger (2021, Section 8): 8 of 14 against 1 of 7 responders gives 0.087
+  # under blaker, 0.159 under minlike and 0.157 under central
+  pub <- c(blaker = 0.087, minlike = 0.159, central = 0.157)
+  for (ts in names(pub)) {
+    p <- fisher_pvalue(14, 7, 'two.sided', ts, midp = FALSE)[9, 2]
+    expect_equal(round(p, 3), pub[[ts]], info = ts)
+  }
+  # The same values to full precision, followed by the mid-p values under blaker and
+  # minlike, from tools/reference/reference_values.py
+  got <- c(fisher_pvalue(14, 7, 'two.sided', 'blaker', midp = FALSE)[9, 2],
+           fisher_pvalue(14, 7, 'two.sided', 'minlike', midp = FALSE)[9, 2],
+           fisher_pvalue(14, 7, 'two.sided', 'central', midp = FALSE)[9, 2],
+           fisher_pvalue(14, 7, 'two.sided', 'blaker', midp = TRUE)[9, 2],
+           fisher_pvalue(14, 7, 'two.sided', 'minlike', midp = TRUE)[9, 2])
+  expect_equal(got, c(0.0873065015479876, 0.158823529411765, 0.156656346749226,
+                      0.0515479876160991, 0.0873065015479876), tolerance = 1e-10)
+  # Mehrotra, Chan and Berger (2003, Section 3.1): 8 of 148 against 1 of 132 gives 0.0388
+  p <- fisher_pvalue(148, 132, 'two.sided', 'blaker', midp = FALSE)[9, 2]
+  expect_equal(round(p, 4), 0.0388)
+})
+
 test_that("the mid-p correction removes half of the observed cell probability", {
   N1 <- 5
   N2 <- 4
@@ -103,7 +159,7 @@ test_that("the mid-p correction removes half of the observed cell probability", 
 
 test_that("the mid-p p-value never exceeds the exact p-value", {
   for (alt in c('greater', 'two.sided')) {
-    for (ts in c('minlike', 'central')) {
+    for (ts in c('minlike', 'central', 'blaker')) {
       exact <- fisher_pvalue(6, 6, alt, ts, midp = FALSE)
       mid <- fisher_pvalue(6, 6, alt, ts, midp = TRUE)
       expect_true(all(mid <= exact + 1e-12))

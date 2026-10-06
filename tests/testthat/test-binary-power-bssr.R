@@ -328,3 +328,13 @@ test_that("BinaryPowerBSSR handles a non-inferiority margin", {
                                tar.power = 0.8, Test = 'Farrington-Manning',
                                ss.method = 'standard', margin = 0.2), 'exceed -margin')
 })
+
+test_that("BinaryPowerBSSR passes tsmethod to the analysis and the re-estimation", {
+  seen <- ref_pvalue_calls(BinaryPowerBSSR(p = 0.4, Delta.A = 0.3, Delta.T = 0.3, N1 = 16,
+                                           N2 = 8, omega = 0.5, r = 2, alpha = 0.05,
+                                           tar.power = 0.8, Test = 'Fisher',
+                                           alternative = 'two.sided',
+                                           tsmethod = 'blaker'))
+  expect_gt(nrow(seen), 1)
+  expect_true(all(seen$tsmethod == 'blaker'))
+})

@@ -107,6 +107,23 @@ test_that("BinarySampleSize passes ref.pvalue to every p-value computation", {
   expect_false(any(seen$ref.pvalue))
 })
 
+test_that("BinarySampleSize passes tsmethod to the exact search", {
+  # With four patients in group 1 for each in group 2, the two-sided Fisher test needs 12,
+  # 11 and 14 patients in group 2 under blaker, minlike and central, from
+  # tools/reference/reference_values.py
+  n <- vapply(c('blaker', 'minlike', 'central'), function(ts) {
+    as.numeric(BinarySampleSize(0.1, 0.5, 4, 0.05, 0.8, 'Fisher',
+                                alternative = 'two.sided', tsmethod = ts)$N2)
+  }, numeric(1))
+  expect_equal(unname(n), c(12, 11, 14))
+  seen <- ref_pvalue_calls(ss <- BinarySampleSize(0.1, 0.5, 4, 0.05, 0.8, 'Fisher',
+                                                  alternative = 'two.sided',
+                                                  tsmethod = 'blaker'))
+  expect_gt(nrow(seen), 1)
+  expect_true(all(seen$tsmethod == 'blaker'))
+  expect_equal(attr(ss, 'tsmethod'), 'blaker')
+})
+
 test_that("the sample sizes of Farrington and Manning (1990, Table I) are reproduced", {
   # One-sided level 0.05, power 0.9 and each group rounded to the nearest whole number.
   # The article writes theta = N2 / N1, so r = 1 / theta, and tests s <= s0, so the

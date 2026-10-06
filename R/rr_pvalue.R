@@ -14,7 +14,7 @@
 #' @param N2 Sample size for group 2
 #' @param Test Full name of the test
 #' @param alternative \code{'greater'}, \code{'less'} or \code{'two.sided'}
-#' @param tsmethod \code{'minlike'} or \code{'central'}
+#' @param tsmethod \code{'minlike'}, \code{'central'} or \code{'blaker'}
 #' @param n.grid Number of grid points over the nuisance parameter
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
 #' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the

@@ -97,3 +97,13 @@ test_that("BinaryTypeIErrorBSSR evaluates the boundary of a non-inferiority hypo
                tolerance = 1e-10)
   expect_equal(attr(tie, 'margin'), 0.2)
 })
+
+test_that("BinaryTypeIErrorBSSR passes tsmethod to every rejection region", {
+  seen <- ref_pvalue_calls(BinaryTypeIErrorBSSR(
+    Delta.A = 0.3, N1 = 16, N2 = 8, omega = 0.5, r = 2, alpha = 0.05, tar.power = 0.8,
+    Test = 'Fisher', alternative = 'two.sided', tsmethod = 'blaker',
+    ss.method = 'standard', theta = c(0.3, 0.5)
+  ))
+  expect_gt(nrow(seen), 1)
+  expect_true(all(seen$tsmethod == 'blaker'))
+})

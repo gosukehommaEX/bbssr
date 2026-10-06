@@ -30,7 +30,8 @@
 #' @param alternative Direction of the alternative hypothesis. Options: \code{'greater'}
 #'   (default), \code{'less'} or \code{'two.sided'}
 #' @param tsmethod Convention used to construct the two-sided version of the conditional
-#'   tests. Options: \code{'minlike'} (default) or \code{'central'}
+#'   tests, see \code{\link{BinaryRR}}. Options: \code{'minlike'} (default),
+#'   \code{'central'} or \code{'blaker'}
 #' @param n.grid Number of grid points used to search over the nuisance parameter of the
 #'   unconditional tests. Default is 100
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure. The default of
@@ -124,7 +125,7 @@
 BinaryBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test,
                        restricted = FALSE, N1 = NULL, N2 = NULL,
                        alternative = c('greater', 'less', 'two.sided'),
-                       tsmethod = c('minlike', 'central'),
+                       tsmethod = c('minlike', 'central', 'blaker'),
                        n.grid = 100, bb.gamma = 0,
                        effect = c('RD', 'RR', 'OR'),
                        ss.method = c('exact', 'standard', 'null.variance',

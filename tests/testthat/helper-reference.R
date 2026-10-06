@@ -7,6 +7,28 @@ fisher_greater_ref <- function(N1, N2) {
   outer(0:N1, 0:N2, function(i, j) stats::phyper(i - 1, N1, N2, i + j, lower.tail = FALSE))
 }
 
+# Two-sided Fisher p-value of the blaker convention, formula (2) of Mehrotra, Chan and
+# Berger (2003), computed table by table from the hypergeometric tails. With midp = TRUE
+# the tables tied with the observed one, the observed one included, contribute half of
+# their probability
+fisher_blaker_ref <- function(N1, N2, midp = FALSE) {
+  p <- matrix(NA_real_, nrow = N1 + 1, ncol = N2 + 1)
+  for (i in 0:N1) {
+    for (j in 0:N2) {
+      s <- i + j
+      k <- max(0, s - N2):min(N1, s)
+      f <- stats::dhyper(k, N1, N2, s)
+      g <- pmin(stats::phyper(k, N1, N2, s),
+                stats::phyper(k - 1, N1, N2, s, lower.tail = FALSE))
+      g0 <- g[k == i]
+      tied <- abs(g - g0) <= 1e-10 * pmax(g, g0)
+      more <- g < g0 & !tied
+      p[i + 1, j + 1] <- min(1, sum(f[more]) + (if (midp) 0.5 else 1) * sum(f[tied]))
+    }
+  }
+  p
+}
+
 # Null tail probability of an ordering statistic, maximized over the nuisance parameter,
 # obtained by forming the tail set of every cell explicitly
 unconditional_ref <- function(stat, N1, N2, n.grid, decreasing) {
@@ -85,16 +107,17 @@ column_run_count <- function(rr) {
   apply(rr, 2, function(v) sum(diff(c(FALSE, v)) == 1))
 }
 
-# Test, refinement flag and margin of every call of get_pvalue() made while code is
-# evaluated, which shows whether ref.pvalue and margin reach each p-value matrix used by a
-# function
+# Test, refinement flag, margin and two-sided convention of every call of get_pvalue()
+# made while code is evaluated, which shows whether ref.pvalue, margin and tsmethod reach
+# each p-value matrix used by a function
 ref_pvalue_calls <- function(code) {
-  seen <- data.frame(Test = character(0), ref.pvalue = logical(0), margin = numeric(0))
+  seen <- data.frame(Test = character(0), ref.pvalue = logical(0), margin = numeric(0),
+                     tsmethod = character(0))
   real <- get_pvalue
   testthat::local_mocked_bindings(
     get_pvalue = function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma,
                           ref.pvalue, margin) {
-      seen[nrow(seen) + 1L, ] <<- list(Test, ref.pvalue, margin)
+      seen[nrow(seen) + 1L, ] <<- list(Test, ref.pvalue, margin, tsmethod)
       real(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue, margin)
     }
   )

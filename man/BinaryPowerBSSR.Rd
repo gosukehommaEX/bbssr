@@ -17,7 +17,7 @@ BinaryPowerBSSR(
   Test,
   restricted = FALSE,
   alternative = c("greater", "less", "two.sided"),
-  tsmethod = c("minlike", "central"),
+  tsmethod = c("minlike", "central", "blaker"),
   n.grid = 100,
   bb.gamma = 0,
   effect = c("RD", "RR", "OR"),
@@ -67,7 +67,8 @@ to fall below the initial sample size. Default is \code{FALSE}}
 (default), \code{'less'} or \code{'two.sided'}}
 
 \item{tsmethod}{Convention used to construct the two-sided version of the conditional
-tests. Options: \code{'minlike'} (default) or \code{'central'}}
+tests, see \code{\link{BinaryRR}}. Options: \code{'minlike'} (default),
+\code{'central'} or \code{'blaker'}}
 
 \item{n.grid}{Number of grid points used to search over the nuisance parameter of the
 unconditional tests. Default is 100}

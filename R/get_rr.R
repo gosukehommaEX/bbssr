@@ -10,7 +10,7 @@
 #' @param alpha Level of significance
 #' @param Test Type of statistical test, possibly abbreviated
 #' @param alternative \code{'greater'}, \code{'less'} or \code{'two.sided'}
-#' @param tsmethod \code{'minlike'} or \code{'central'}
+#' @param tsmethod \code{'minlike'}, \code{'central'} or \code{'blaker'}
 #' @param n.grid Number of grid points over the nuisance parameter
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
 #' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the

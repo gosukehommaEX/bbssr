@@ -70,3 +70,16 @@ test_that("every exported function with a grid takes ref.pvalue last, FALSE by d
   }
   expect_gte(checked, 7)
 })
+
+test_that("every exported function with tsmethod offers the three conventions", {
+  ns <- asNamespace('bbssr')
+  checked <- 0
+  for (f in grep('^Binary', getNamespaceExports('bbssr'), value = TRUE)) {
+    fun <- get(f, envir = ns)
+    if (!is.function(fun) || !('tsmethod' %in% names(formals(fun)))) next
+    checked <- checked + 1
+    expect_identical(eval(formals(fun)$tsmethod), c('minlike', 'central', 'blaker'),
+                     info = f)
+  }
+  expect_equal(checked, 8)
+})

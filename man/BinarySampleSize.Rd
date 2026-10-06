@@ -12,7 +12,7 @@ BinarySampleSize(
   tar.power,
   Test,
   alternative = c("greater", "less", "two.sided"),
-  tsmethod = c("minlike", "central"),
+  tsmethod = c("minlike", "central", "blaker"),
   n.grid = 100,
   bb.gamma = 0,
   method = c("exact", "standard", "null.variance", "alternative.variance"),
@@ -42,7 +42,8 @@ r > 0)}
 \code{p1 - p2 < margin}, or \code{'two.sided'}, which requires \code{p1 != p2}}
 
 \item{tsmethod}{Convention used to construct the two-sided version of the conditional
-tests. Options: \code{'minlike'} (default) or \code{'central'}}
+tests, see \code{\link{BinaryRR}}. Options: \code{'minlike'} (default),
+\code{'central'} or \code{'blaker'}}
 
 \item{n.grid}{Number of grid points used to search over the nuisance parameter of the
 unconditional tests. Default is 100}

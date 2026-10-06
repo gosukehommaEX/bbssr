@@ -18,7 +18,7 @@
 #' @param tar.power Target power
 #' @param Test Test whose exact power is used when \code{method = 'exact'}
 #' @param alternative \code{'greater'}, \code{'less'} or \code{'two.sided'}
-#' @param tsmethod \code{'minlike'} or \code{'central'}
+#' @param tsmethod \code{'minlike'}, \code{'central'} or \code{'blaker'}
 #' @param n.grid Number of grid points over the nuisance parameter
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
 #' @param method \code{'exact'}, \code{'standard'} or \code{'null.variance'}

@@ -5,17 +5,23 @@
 #' hypergeometric distribution of the group 1 responder count conditional on the total
 #' number of responders.
 #'
-#' For a two-sided alternative two conventions are available. The \code{minlike}
+#' For a two-sided alternative three conventions are available. The \code{minlike}
 #' convention sums the null probabilities of all tables whose probability does not exceed
 #' the probability of the observed table, which is the convention of
 #' \code{stats::fisher.test}. The \code{central} convention doubles the smaller of the two
-#' one-sided tail probabilities and truncates the result at 1. Under the mid-p correction
-#' the observed table contributes half of its probability instead of its full probability.
+#' one-sided tail probabilities and truncates the result at 1. The \code{blaker}
+#' convention orders the tables by the smaller of their two one-sided tail probabilities
+#' and sums the null probabilities of all tables at which it does not exceed its value at
+#' the observed table, formula (2) of Mehrotra, Chan and Berger (2003). Under the mid-p
+#' correction the observed table contributes half of its probability instead of its full
+#' probability. Under \code{minlike} and \code{blaker} the same holds for every table
+#' tied with the observed table in the ordering, so that the tables strictly more extreme
+#' contribute in full and the tied tables, the observed one included, contribute half.
 #'
 #' @param N1 Sample size for group 1
 #' @param N2 Sample size for group 2
 #' @param alternative Either \code{'greater'} or \code{'two.sided'}
-#' @param tsmethod Either \code{'minlike'} or \code{'central'}, used only when
+#' @param tsmethod \code{'minlike'}, \code{'central'} or \code{'blaker'}, used only when
 #'   \code{alternative} is \code{'two.sided'}
 #' @param midp Logical. If \code{TRUE}, the mid-p correction is applied
 #'
@@ -42,11 +48,14 @@ fisher_pvalue <- function(N1, N2, alternative, tsmethod, midp) {
       }
       p.k <- 2 * pmin(lower, upper)
     } else {
-      # Sum the probabilities of all tables that are no more likely than the observed one
-      ord <- order(d)
+      # Order the tables from the most to the least extreme: by their probability under
+      # minlike, and by the smaller of their two tail probabilities under blaker. Sum the
+      # probabilities of all tables at least as extreme as the observed one
+      key <- if (tsmethod == 'blaker') pmin(cumsum(d), rev(cumsum(rev(d)))) else d
+      ord <- order(key)
       d.ord <- d[ord]
       cum.d <- cumsum(d.ord)
-      grp <- tie_groups(d.ord)
+      grp <- tie_groups(key[ord])
       cum.d0 <- c(0, cum.d)
       p.ord <- if (midp) {
         0.5 * (cum.d[grp[, 'last']] + cum.d0[grp[, 'first']])

@@ -121,3 +121,13 @@ test_that("BinaryCondRejectBSSR validates theta and accepts only a margin of 0",
   expect_identical(do.call(BinaryCondRejectBSSR, c(crp_args, list(margin = 0))),
                    do.call(BinaryCondRejectBSSR, crp_args))
 })
+
+test_that("BinaryCondRejectBSSR passes tsmethod to every rejection region", {
+  seen <- ref_pvalue_calls(BinaryCondRejectBSSR(
+    Delta.A = 0.3, N1 = 16, N2 = 8, omega = 0.5, r = 2, alpha = 0.05, tar.power = 0.8,
+    Test = 'Fisher', alternative = 'two.sided', tsmethod = 'blaker',
+    ss.method = 'standard'
+  ))
+  expect_gt(nrow(seen), 1)
+  expect_true(all(seen$tsmethod == 'blaker'))
+})
