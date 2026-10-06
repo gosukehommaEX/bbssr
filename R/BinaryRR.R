@@ -65,16 +65,17 @@
 #' the two one-sided tail probabilities. \code{'blaker'} orders the tables by the smaller
 #' of their two one-sided tail probabilities and sums the null probabilities of all tables
 #' at which this is no larger than at the observed table, formula (2) of Mehrotra, Chan
-#' and Berger (2003), which is the convention \code{'blaker'} of the \pkg{exact2x2}
-#' package.
-#' Its Fisher p-value never exceeds that of \code{'central'}, and it equals that of
-#' \code{'minlike'} when the two groups are of equal size, since the conditional
-#' distribution is then symmetric. Under the mid-p correction the tables tied with the
-#' observed table in the ordering of \code{'minlike'} or \code{'blaker'}, the observed
-#' table included, contribute half of their probability, following the definition of the
-#' mid-p value in Fay and Hunsberger (2021, Section 9). The two-sided versions of
-#' \code{'Chisq'} and \code{'Z-pool'} order the outcomes by the absolute value of the Z
-#' statistic.
+#' and Berger (2003). For the exact Fisher p-value this is the convention \code{'blaker'}
+#' of the \pkg{exact2x2} package. The exact Fisher p-value of \code{'blaker'} never
+#' exceeds that of \code{'central'}, but its mid-p value and its Boschloo p-value can.
+#' When the two groups are of equal size the conditional distribution is symmetric, so
+#' the three conventions give the same exact Fisher p-value and hence the same Boschloo
+#' p-value, and \code{'minlike'} and \code{'blaker'} also give the same mid-p value.
+#' Under the mid-p correction the tables tied with the observed table in the ordering of
+#' \code{'minlike'} or \code{'blaker'}, the observed table included, contribute half of
+#' their probability, following the definition of the mid-p value in Fay and Hunsberger
+#' (2021, Section 9). The two-sided versions of \code{'Chisq'} and \code{'Z-pool'} order
+#' the outcomes by the absolute value of the Z statistic.
 #'
 #' The unconditional tests maximize the null tail probability of an ordering statistic over
 #' the common response probability, which is a nuisance parameter. Outcomes sharing the same

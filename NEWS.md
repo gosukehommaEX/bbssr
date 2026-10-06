@@ -58,6 +58,16 @@
 
 * All functions accept `alternative = 'less'`, obtained by exchanging the two groups.
 
+* `tsmethod = 'blaker'` adds a third two-sided convention for the Fisher, Fisher mid-p and
+  Boschloo tests. The tables are ordered by the smaller of their two one-sided tail
+  probabilities, formula (2) of Mehrotra, Chan and Berger (2003). For the exact Fisher
+  p-value this is the convention `'blaker'` of `exact2x2`. The exact Fisher p-value never
+  exceeds that of `'central'` and equals that of `'minlike'` when the groups are of equal
+  size. The Boschloo test orders the outcomes by the exact Fisher p-value of the selected
+  convention. For `'Fisher-midP'`, the tables tied with the observed one in the ordering
+  of `'minlike'` or `'blaker'`, the observed one included, contribute half of their
+  probability (Fay and Hunsberger, 2021, Section 9).
+
 * Two tests of non-inferiority are added, `Test = 'Blackwelder'` (Blackwelder, 1982),
   whose standard error uses the observed proportions, and `Test = 'Farrington-Manning'`
   (Farrington and Manning, 1990), whose standard error uses the maximum likelihood
@@ -76,8 +86,10 @@
 * `inst/reproduce/reproduce-published.R` reproduces Table I and Section 5 of Friede and
   Kieser (2004), Example 21.1 of Kieser (2020), Tables I and II and the first example of
   Farrington and Manning (1990), Table 3 and the examples of Blackwelder (1982),
-  Tables 2 and 3 and Sections 5 and 6 of Friede, Mitchell and Mueller-Velten (2007), and
-  the table of power and the example of Boschloo (1970). A difference from a published
+  Tables 2 and 3 and Sections 5 and 6 of Friede, Mitchell and Mueller-Velten (2007), the
+  table of power and the example of Boschloo (1970), the example and Tables 1 and 3 of
+  Mehrotra, Chan and Berger (2003), Example 2 of Berger and Boos (1994), and the example
+  and Table 1 of Section 8 of Fay and Hunsberger (2021). A difference from a published
   value counts as explained only when it is within the tolerance recorded with its
   reason.
 

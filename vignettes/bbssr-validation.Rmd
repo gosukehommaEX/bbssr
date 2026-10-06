@@ -76,6 +76,21 @@ want <- outer(0:N1, 0:N2, function(i, j) {
 max(abs(got - want))
 ```
 
+The `blaker` convention is checked against formula (2) of Mehrotra, Chan and Berger (2003) in the same way, and against `exact2x2` further below.
+
+```{r blaker-vs-definition}
+got <- attr(BinaryRR(N1, N2, 0.05, 'Fisher', alternative = 'two.sided',
+                     tsmethod = 'blaker'), 'p.value')
+want <- outer(0:N1, 0:N2, Vectorize(function(i, j) {
+  s <- i + j
+  k <- max(0, s - N2):min(N1, s)
+  g <- pmin(stats::phyper(k, N1, N2, s),
+            stats::phyper(k - 1, N1, N2, s, lower.tail = FALSE))
+  min(1, sum(stats::dhyper(k, N1, N2, s)[g <= g[k == i] * (1 + 1e-10)]))
+}))
+max(abs(got - want))
+```
+
 ## Unconditional tests against a direct evaluation
 
 The unconditional p-value is the null tail probability maximized over the nuisance parameter. The reference below forms the tail set of each outcome explicitly and searches the same grid, which is slow but follows the definition. It shares with the package only the Fisher p-values that order the outcomes for the Boschloo test, and these are checked against `stats::fisher.test` above.
@@ -197,6 +212,23 @@ data.frame(
 Residual differences come from the search over the nuisance parameter, which the two packages carry out differently.
 
 ## Comparison with exact2x2
+
+`exact2x2::exact2x2()` computes the two-sided Fisher p-value of the `blaker` convention. It is compared with `tsmethod = 'blaker'` at every outcome with at least one responder and at least one non-responder in total; the two remaining outcomes have the p-value 1.
+
+```{r exact2x2-blaker, eval = has_exact2x2}
+N1 <- 9
+N2 <- 6
+ours <- attr(BinaryRR(N1, N2, 0.05, 'Fisher', alternative = 'two.sided',
+                      tsmethod = 'blaker'), 'p.value')
+theirs <- outer(0:N1, 0:N2, Vectorize(function(i, j) {
+  if (i + j == 0 || i + j == N1 + N2) return(1)
+  tab <- matrix(c(i, j, N1 - i, N2 - j), nrow = 2)
+  exact2x2::exact2x2(tab, tsmethod = 'blaker', conf.int = FALSE)$p.value
+}))
+max(abs(ours - theirs))
+```
+
+`exact2x2::boschloo()` offers the `central` and `minlike` conventions. The two-sided Boschloo p-values of the `central` convention are compared below.
 
 ```{r exact2x2-comparison, eval = has_exact2x2}
 N1 <- 10
@@ -332,7 +364,7 @@ data.frame(
 
 ## Reproduction of published results
 
-The script `reproduce-published.R`, installed with the package in the folder given by `system.file('reproduce', package = 'bbssr')`, recomputes the published numerical results of Blackwelder (1982), Boschloo (1970), Farrington and Manning (1990), Friede and Kieser (2004), Friede, Mitchell and Mueller-Velten (2007) and Kieser (2020), and lists every published value next to the recomputed one. It is run from the root of the package source after `devtools::load_all()`, writes its results to the folder `reproduce-output`, and runs for several minutes. The values below are a selection that can be recomputed quickly, each compared after rounding to the digits of the publication.
+The script `reproduce-published.R`, installed with the package in the folder given by `system.file('reproduce', package = 'bbssr')`, recomputes the published numerical results of Berger and Boos (1994), Blackwelder (1982), Boschloo (1970), Farrington and Manning (1990), Fay and Hunsberger (2021), Friede and Kieser (2004), Friede, Mitchell and Mueller-Velten (2007), Kieser (2020) and Mehrotra, Chan and Berger (2003), and lists every published value next to the recomputed one. It is run from the root of the package source after `devtools::load_all()`, writes its results to the folder `reproduce-output`, and runs for several minutes. The values below are a selection that can be recomputed quickly, each compared after rounding to the digits of the publication.
 
 ```{r published}
 # Kieser (2020), Example 21.1: initial sample size by formula (21.3), and the largest
@@ -399,11 +431,37 @@ published
 
 Of the `r nrow(published)` values above, `r sum(published$agrees)` agree with the publication after rounding. The script reports every value that it does not reproduce, together with the reason when one is known.
 
+The two-sided Fisher p-values of the conventions are compared with two published examples: 8 responders out of 14 against 1 out of 7 in Fay and Hunsberger (2021, Section 8), and 8 out of 148 against 1 out of 132 in Mehrotra, Chan and Berger (2003, Section 3.1).
+
+```{r published-two-sided}
+fisher_p <- function(N1, N2, x1, x2, tsmethod) {
+  attr(BinaryRR(N1, N2, 0.05, 'Fisher', alternative = 'two.sided', tsmethod = tsmethod),
+       'p.value')[x1 + 1, x2 + 1]
+}
+two.sided <- data.frame(
+  source = c(rep('Fay and Hunsberger (2021)', 3), rep('Mehrotra et al. (2003)', 2)),
+  outcome = c(rep('8 / 14 against 1 / 7', 3), rep('8 / 148 against 1 / 132', 2)),
+  tsmethod = c('minlike', 'central', 'blaker', 'minlike', 'blaker'),
+  published = c(0.159, 0.157, 0.087, 0.0388, 0.0388),
+  digits = c(3, 3, 3, 4, 4),
+  recomputed = c(fisher_p(14, 7, 8, 1, 'minlike'), fisher_p(14, 7, 8, 1, 'central'),
+                 fisher_p(14, 7, 8, 1, 'blaker'), fisher_p(148, 132, 8, 1, 'minlike'),
+                 fisher_p(148, 132, 8, 1, 'blaker'))
+)
+two.sided$agrees <- abs(round(two.sided$recomputed, two.sided$digits) -
+                          two.sided$published) < 1e-9
+two.sided
+```
+
+In the example of Mehrotra, Chan and Berger (2003) the `minlike` and `blaker` conventions give the same p-value, whereas the `central` convention gives `r round(fisher_p(148, 132, 8, 1, 'central'), 4)`. Their text defines the two-sided Fisher p-value by formula (2), the `blaker` convention. The reproduction script shows that their Tables 1 and 3 agree with the `minlike` convention instead. The two conventions coincide when the groups are of equal size, and wherever they give different rounded values in the configurations with groups of unequal size, the published type I error rates and powers of the Fisher and Boschloo tests are those of `minlike`. The script therefore compares these tables with `minlike`.
+
 ## Summary
 
-The Fisher exact test reproduces `stats::fisher.test` to machine precision. The unconditional tests reproduce a direct evaluation of their definition to machine precision, and agree with `Exact` and `exact2x2` up to the difference in the search over the nuisance parameter. In the configuration examined, the three exact tests hold the type I error rate below the nominal level for one-sided and two-sided alternatives alike. A re-estimation design without re-estimation reproduces the fixed-sample design, the two calculations of the type I error rate of a re-estimation design agree, and published values are recomputed.
+The Fisher exact test reproduces `stats::fisher.test` to machine precision, and its `blaker` convention reproduces `exact2x2`. The unconditional tests reproduce a direct evaluation of their definition to machine precision, and agree with `Exact` and `exact2x2` up to the difference in the search over the nuisance parameter. In the configuration examined, the three exact tests hold the type I error rate below the nominal level for one-sided and two-sided alternatives alike. A re-estimation design without re-estimation reproduces the fixed-sample design, the two calculations of the type I error rate of a re-estimation design agree, and published values are recomputed.
 
 ## References
+
+Berger, R. L. and Boos, D. D. (1994). P values maximized over a confidence set for the nuisance parameter. *Journal of the American Statistical Association*, 89, 1012-1016.
 
 Blackwelder, W. C. (1982). "Proving the null hypothesis" in clinical trials. *Controlled Clinical Trials*, 3, 345-353.
 
@@ -411,8 +469,12 @@ Boschloo, R. D. (1970). Raised conditional level of significance for the 2 &time
 
 Farrington, C. P. and Manning, G. (1990). Test statistics and sample size formulae for comparative binomial trials with null hypothesis of non-zero risk difference or non-unity relative risk. *Statistics in Medicine*, 9, 1447-1454.
 
+Fay, M. P. and Hunsberger, S. A. (2021). Practical valid inferences for the two-sample binomial problem. *Statistics Surveys*, 15, 72-110.
+
 Friede, T. and Kieser, M. (2004). Sample size recalculation for binary data in internal pilot study designs. *Pharmaceutical Statistics*, 3, 269-279.
 
 Friede, T., Mitchell, C. and Mueller-Velten, G. (2007). Blinded sample size reestimation in non-inferiority trials with binary endpoints. *Biometrical Journal*, 49, 903-916.
 
 Kieser, M. (2020). *Methods and Applications of Sample Size Calculation and Recalculation in Clinical Trials*. Springer.
+
+Mehrotra, D. V., Chan, I. S. F. and Berger, R. L. (2003). A cautionary note on exact unconditional inference for a difference between two independent binomial proportions. *Biometrics*, 59, 441-450.

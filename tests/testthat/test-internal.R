@@ -111,7 +111,15 @@ test_that("the blaker p-value never exceeds the central p-value", {
   }
 })
 
-test_that("the blaker and minlike p-values agree for equal groups only", {
+test_that("the central bound of the blaker p-value does not hold for the mid-p value", {
+  # 5 of 8 against 0 of 5 responders: the mid-p values are 69 / 1287 under blaker and
+  # 56 / 1287 under central, from exact fractions
+  b <- fisher_pvalue(8, 5, 'two.sided', 'blaker', midp = TRUE)[6, 1]
+  ce <- fisher_pvalue(8, 5, 'two.sided', 'central', midp = TRUE)[6, 1]
+  expect_equal(c(b, ce), c(69 / 1287, 56 / 1287), tolerance = 1e-12)
+})
+
+test_that("blaker and minlike agree for equal groups and can differ otherwise", {
   # The conditional distribution is symmetric when the groups are of equal size, so the
   # two orderings coincide
   for (N in c(6, 11)) {

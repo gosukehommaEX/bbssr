@@ -53,7 +53,7 @@ The mid-p variant replaces the contribution of the observed table by half of it,
 
 ### Two-sided conventions
 
-A two-sided version of a discrete conditional test is not unique. Two conventions are available through the `tsmethod` argument.
+A two-sided version of a discrete conditional test is not unique. Three conventions are available through the `tsmethod` argument.
 
 The `minlike` convention sums the null probabilities of all tables that are no more likely than the observed one,
 $$
@@ -66,7 +66,44 @@ $$
 p(x_{1}, x_{2}) = \min\bigl\{1, \; 2 \min(\Pr(X_{1} \le x_{1} \mid s), \Pr(X_{1} \ge x_{1} \mid s))\bigr\} .
 $$
 
-The central convention has a property the minimum-likelihood convention lacks. Its two-sided rejection region at level $2\alpha$ is exactly the union of the two one-sided rejection regions at level $\alpha$.
+The `blaker` convention orders the tables by the smaller of their two one-sided tail probabilities and sums the null probabilities of all tables that are at least as extreme as the observed one in this ordering,
+$$
+p(x_{1}, x_{2}) = \sum_{k \,:\, g(k) \le g(x_{1})} f(k), \qquad
+g(k) = \min\bigl\{\Pr(X_{1} \le k \mid s), \Pr(X_{1} \ge k \mid s)\bigr\} .
+$$
+This is formula (2) of Mehrotra, Chan and Berger (2003), and the convention `'blaker'` of `exact2x2::exact2x2()`. The tables of the other tail that it adds form a tail of their own, whose probability is no larger than the tail probability of the observed table. The p-value is therefore at most twice that tail probability and never exceeds the central one. When the two groups are of equal size the conditional distribution is symmetric, and the three conventions give the same p-value.
+
+Fay and Hunsberger (2021, Section 8) illustrate the differences with 8 responders out of 14 against 1 out of 7.
+
+```{r ts-example}
+ex <- vapply(c('minlike', 'central', 'blaker'), function(ts) {
+  attr(BinaryRR(14, 7, 0.05, 'Fisher', alternative = 'two.sided', tsmethod = ts),
+       'p.value')[9, 2]
+}, numeric(1))
+round(ex, 3)
+```
+
+The table with 4 responders out of 14 against 5 out of 7 is exactly as likely as the observed one, so the `minlike` convention counts it. Its lower tail probability, `r round(phyper(4, 14, 7, 9), 4)`, exceeds the upper tail probability of the observed table, `r round(phyper(7, 14, 7, 9, lower.tail = FALSE), 4)`, so the `blaker` convention leaves it out.
+
+Under the mid-p correction, the `minlike` and `blaker` conventions count the tables tied with the observed one in their ordering, the observed one included, with half of their probability, which is the definition of the mid-p value in Fay and Hunsberger (2021, Section 9). The `central` convention doubles the smaller of the two one-sided mid-p values.
+
+The bound by the central p-value holds for the exact Fisher p-value only. It fails for the mid-p value, and for the Boschloo test, whose ordering of the outcomes changes with the convention, as the two outcomes below show: 5 responders out of 8 against none out of 5 for the mid-p test, and 2 out of 4 against none out of 3 for the Boschloo test.
+
+```{r ts-bound}
+two_sided_p <- function(N1, N2, Test, x1, x2, ts) {
+  attr(BinaryRR(N1, N2, 0.05, Test, alternative = 'two.sided', tsmethod = ts),
+       'p.value')[x1 + 1, x2 + 1]
+}
+data.frame(
+  Test = c('Fisher-midP', 'Boschloo'),
+  blaker = c(two_sided_p(8, 5, 'Fisher-midP', 5, 0, 'blaker'),
+             two_sided_p(4, 3, 'Boschloo', 2, 0, 'blaker')),
+  central = c(two_sided_p(8, 5, 'Fisher-midP', 5, 0, 'central'),
+              two_sided_p(4, 3, 'Boschloo', 2, 0, 'central'))
+)
+```
+
+The `central` convention has a property that the `minlike` and `blaker` conventions lack. Its two-sided rejection region at level $2\alpha$ is exactly the union of the two one-sided rejection regions at level $\alpha$.
 
 ```{r central-identity}
 N1 <- 9
@@ -79,7 +116,7 @@ lower <- t(BinaryRR(N2, N1, alpha, 'Fisher'))
 identical(as.vector(two), as.vector(upper | lower))
 ```
 
-The two conventions give different regions of the same nominal size.
+The `minlike` and `central` conventions give different regions of the same nominal size.
 
 ```{r ts-compare}
 minlike <- BinaryRR(N1, N2, 0.05, 'Fisher', alternative = 'two.sided',
@@ -112,7 +149,7 @@ Z(x_{1}, x_{2}) = \frac{x_{1} / N_{1} - x_{2} / N_{2}}
 \hat{p} = \frac{x_{1} + x_{2}}{N_{1} + N_{2}} ,
 $$
 
-with larger values more extreme. The Boschloo test uses the Fisher p-value itself as the ordering statistic, with smaller values more extreme. Boschloo (1970) described this test as Fisher's test at a raised conditional level, the largest level at which the probability of rejection under the null hypothesis does not exceed $\alpha$ at any $\theta$. The probability $\Pr_{\theta}(p_{F} \le c)$ does not decrease as $c$ increases, so rejecting when $p_{F}$ is at most the raised level is the same as rejecting when the unconditional p-value above is at most $\alpha$. For a two-sided alternative the article gives each of the two parts of the rejection region half of the raised level, which is the `central` convention. The default `tsmethod = 'minlike'` orders the outcomes by the two-sided p-value of `stats::fisher.test` instead.
+with larger values more extreme. The Boschloo test uses the Fisher p-value itself as the ordering statistic, with smaller values more extreme. Boschloo (1970) described this test as Fisher's test at a raised conditional level, the largest level at which the probability of rejection under the null hypothesis does not exceed $\alpha$ at any $\theta$. The probability $\Pr_{\theta}(p_{F} \le c)$ does not decrease as $c$ increases, so rejecting when $p_{F}$ is at most the raised level is the same as rejecting when the unconditional p-value above is at most $\alpha$. For a two-sided alternative the article gives each of the two parts of the rejection region half of the raised level, which is the `central` convention. The default `tsmethod = 'minlike'` orders the outcomes by the two-sided p-value of `stats::fisher.test` instead, and `tsmethod = 'blaker'` by the p-value of formula (2) of Mehrotra, Chan and Berger (2003), which is how they define the two-sided Boschloo test.
 
 The supremum is approximated by a search over the grid of `n.grid` equally spaced values of $\theta$ from 0 to 1, where `n.grid` defaults to 100. A grid that contains a coarser grid can only find a maximum at least as large, so refining the grid in this way can only raise the p-values. The grids of 21 and 2001 points below are nested, since the spacing of the first is a multiple of that of the second.
 
@@ -285,6 +322,8 @@ Setting $p_{1} = p_{2} = \theta$ in this sum gives the type I error rate of the 
 Berger, R. L. and Boos, D. D. (1994). P values maximized over a confidence set for the nuisance parameter. *Journal of the American Statistical Association*, 89, 1012-1016.
 
 Boschloo, R. D. (1970). Raised conditional level of significance for the 2 &times; 2-table when testing the equality of two probabilities. *Statistica Neerlandica*, 24, 1-9.
+
+Fay, M. P. and Hunsberger, S. A. (2021). Practical valid inferences for the two-sample binomial problem. *Statistics Surveys*, 15, 72-110.
 
 Friede, T. and Kieser, M. (2004). Sample size recalculation for binary data in internal pilot study designs. *Pharmaceutical Statistics*, 3, 269-279.
 

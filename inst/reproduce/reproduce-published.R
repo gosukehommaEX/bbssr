@@ -1,8 +1,10 @@
 # Reproduces the published numerical results of Friede and Kieser (2004, Table I and
 # Section 5), Kieser (2020, Example 21.1), Farrington and Manning (1990, Tables I and II and
 # the first example), Blackwelder (1982, Table 3 and the examples), Friede, Mitchell and
-# Mueller-Velten (2007, Tables 2 and 3 and Sections 5 and 6) and Boschloo (1970, Sections
-# 2, 3, 4 and 6) with bbssr.
+# Mueller-Velten (2007, Tables 2 and 3 and Sections 5 and 6), Boschloo (1970, Sections
+# 2, 3, 4 and 6), Mehrotra, Chan and Berger (2003, Section 3.1 and Tables 1 and 3), Berger
+# and Boos (1994, Example 2) and Fay and Hunsberger (2021, Section 8 and Table 1) with
+# bbssr.
 # Run from the package root after devtools::load_all(). The results are written to
 # reproduce-output/: published-comparison.csv lists every published value next to the
 # recomputed value with a verdict (PASS, EXPLAINED, FAIL or INFO), and summary.md is
@@ -555,12 +557,345 @@ add(bo.src, paste('Boschloo1970 Section 6: outcomes on which the Fisher test at 
                   'raised level 0.114 and the Boschloo test differ, two-sided'),
     0, sum((bo.pf2 <= 0.114) != bo_cells(bo.b2)), 0, "tsmethod = 'central'")
 
+# Mehrotra, Chan and Berger (2003), Section 3 --------------------------------------------
+# Two-sided tests of equality at the level 0.05, with gamma = 0.001 in the Berger-Boos
+# versions (marked *). F is the Fisher test, B the Boschloo test and ZP the Z-pooled exact
+# unconditional test. D and ZU are the exact unconditional tests ordered by the difference
+# in proportions and by the Z statistic with the unpooled standard error. They are not
+# tests of the package, since the article does not recommend them, and their p-values are
+# computed here with the internal function unconditional_pvalue(). The asymptotic tests
+# are the chi-squared test and the Wald test, which is the Blackwelder test with no
+# margin. The p-values of the unconditional tests are refined between the grid points
+# (ref.pvalue = TRUE). The null hypothesis is rejected when the p-value is below the
+# level, as in BinaryRR(); the article rejects when it is at most the level, and an INFO
+# item counts the p-values within 1e-6 of 0.05, for which the two rules could differ.
+# The text gives the two-sided Fisher p-value as formula (2), the blaker convention. In
+# the example of Section 3.1 blaker and minlike give the same p-values, and central does
+# not reproduce them. The two conventions also coincide when the groups are of equal
+# size, and wherever they give different rounded values in the unbalanced configurations
+# of the tables, the published values of F, B and B* are those of minlike. The tables are
+# therefore compared with minlike, and the note of an item gives the value of blaker when
+# its rounded value differs. The percentages of Tables 1 and 3 agree with
+# rounding to two decimals followed by rounding to one decimal (rule 'round2'), so that,
+# for example, 2.847 is given as 2.9 and 4.945 as 5.0. An INFO item counts the items that
+# ordinary rounding would reproduce and the rule 'round2' does not.
+mcb.src <- 'Mehrotra, Chan and Berger (2003)'
+mcb.gam <- 0.001
+mcb.cols <- c('F', 'D', 'D*', 'B', 'B*', 'ZP', 'ZP*', 'ZU', 'ZU*', 'ZP asymptotic',
+              'ZU asymptotic')
+mcb_pv <- function(N1, N2, Test, ts, gam = 0) {
+  bbssr:::get_pvalue(N1, N2, Test, 'two.sided', ts, 100L, gam, TRUE, 0)
+}
+# p-values of F, B and B* under the two-sided convention ts
+mcb_fb <- function(N1, N2, ts) {
+  list(F = mcb_pv(N1, N2, 'Fisher', ts), B = mcb_pv(N1, N2, 'Boschloo', ts),
+       'B*' = mcb_pv(N1, N2, 'Boschloo', ts, mcb.gam))
+}
+# p-values of the eleven tests
+mcb_pvalues <- function(N1, N2, ts) {
+  uc <- function(stat, gam) {
+    bbssr:::unconditional_pvalue(stat, N1, N2, 100L, gam, decreasing = TRUE,
+                                 ref.pvalue = TRUE)
+  }
+  d <- abs(outer((0:N1) / N1, (0:N2) / N2, '-'))
+  zu <- abs(bbssr:::zstat_margin(N1, N2, 0, 'unpooled'))
+  # The outcomes with one proportion 0 and the other 1 have an infinite statistic. They
+  # are the most extreme outcomes, and a finite value keeps them apart in the tie groups
+  zu[is.infinite(zu)] <- max(zu[is.finite(zu)]) + 1
+  fb <- mcb_fb(N1, N2, ts)
+  out <- list(fb$F, uc(d, 0), uc(d, mcb.gam), fb$B, fb$`B*`,
+              mcb_pv(N1, N2, 'Z-pool', ts), mcb_pv(N1, N2, 'Z-pool', ts, mcb.gam),
+              uc(zu, 0), uc(zu, mcb.gam), mcb_pv(N1, N2, 'Chisq', ts),
+              mcb_pv(N1, N2, 'Blackwelder', ts))
+  names(out) <- mcb.cols
+  out
+}
+# Rejection rule of BinaryRR(): p %<<% alpha of fpCompare
+mcb_reject <- function(p) (0.05 - p) > sqrt(.Machine$double.eps)
+# Rejection probability of a region at the response probabilities th1 and th2
+mcb_rates <- function(rr, N1, N2, th1, th2 = th1) {
+  b1 <- outer(0:N1, th1, function(x, t) dbinom(x, N1, t))
+  b2 <- outer(0:N2, th2, function(x, t) dbinom(x, N2, t))
+  colSums(b1 * (rr %*% b2))
+}
+# Largest rejection probability under the null hypothesis, over a grid of 4001 points with
+# the three largest local maxima refined by optimize()
+mcb_size <- function(rr, N1, N2) {
+  g <- seq(0, 1, length.out = 4001)
+  v <- mcb_rates(rr, N1, N2, g)
+  peak <- which(diff(sign(diff(c(-Inf, v, -Inf)))) < 0)
+  top <- head(peak[order(v[peak], decreasing = TRUE)], 3)
+  ref <- vapply(top, function(k) {
+    optimize(function(t) mcb_rates(rr, N1, N2, t),
+             c(g[max(1, k - 1)], g[min(4001, k + 1)]), maximum = TRUE,
+             tol = 1e-10)$objective
+  }, numeric(1))
+  max(v, ref)
+}
+# Rounding to two decimals followed by rounding to one decimal
+mcb_round2 <- function(x) ((floor(x * 100 + 0.5 + 1e-9) + 5) %/% 10) / 10
+mcb_round1 <- function(x) floor(x * 10 + 0.5 + 1e-9) / 10
+# Published values of Tables 1 and 3. Table 1 lists, for each configuration (N1, N2), the
+# rows theta = 0.02, 0.10, 0.25, 0.50 and the size, each with the eleven columns of
+# mcb.cols. Table 3 lists theta1, theta2 and the powers of the nine exact tests
+mcb.t1 <- list(
+  '10, 10' = c(
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1,
+    0.1, 0.1, 0.1, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 5.0,
+    1.0, 1.8, 1.8, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 9.4,
+    1.3, 4.1, 4.1, 4.2, 4.2, 4.2, 4.2, 4.2, 4.2, 4.2, 8.8,
+    1.3, 4.1, 4.1, 4.2, 4.2, 4.2, 4.2, 4.2, 4.2, 4.2, 9.5),
+  '25, 25' = c(
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2,
+    0.1, 0.1, 0.1, 1.9, 1.9, 3.9, 3.9, 3.9, 3.9, 4.9, 4.9,
+    2.2, 1.4, 1.4, 4.1, 4.1, 4.2, 4.2, 4.2, 4.2, 5.4, 6.4,
+    3.3, 3.3, 3.3, 3.7, 3.7, 3.7, 3.7, 3.7, 3.7, 6.5, 6.5,
+    3.3, 3.3, 3.3, 4.6, 4.6, 4.6, 4.6, 4.6, 4.6, 6.5, 6.5),
+  '50, 50' = c(
+    0.0, 0.0, 0.0, 0.2, 0.2, 1.3, 1.3, 1.3, 1.3, 1.3, 1.3,
+    1.8, 0.1, 0.3, 3.2, 3.6, 3.8, 4.8, 3.8, 4.8, 5.1, 5.9,
+    3.0, 1.5, 1.6, 4.1, 4.1, 4.5, 4.7, 4.5, 4.7, 5.1, 5.7,
+    3.5, 3.5, 3.5, 4.2, 4.2, 4.2, 4.2, 4.2, 4.2, 5.7, 5.7,
+    3.5, 3.5, 3.5, 4.9, 4.9, 4.9, 4.9, 4.9, 4.9, 5.7, 6.1),
+  '150, 150' = c(
+    1.2, 0.0, 0.0, 2.3, 2.9, 4.6, 4.6, 4.6, 4.6, 4.6, 4.6,
+    3.3, 0.1, 1.0, 3.9, 4.5, 4.8, 4.8, 4.8, 4.8, 5.0, 5.2,
+    3.7, 2.0, 2.7, 4.6, 4.8, 4.8, 4.8, 4.8, 4.8, 5.0, 5.2,
+    4.3, 4.3, 4.3, 4.3, 4.3, 4.3, 4.3, 4.3, 4.3, 5.7, 5.7,
+    4.3, 4.3, 4.3, 5.0, 4.9, 5.0, 4.9, 5.0, 4.9, 5.7, 5.7),
+  '16, 4' = c(
+    0.2, 0.0, 0.0, 0.2, 0.2, 0.2, 0.2, 0.0, 0.0, 5.7, 0.2,
+    1.2, 0.3, 0.3, 2.9, 2.9, 2.9, 2.9, 0.0, 0.0, 8.3, 5.8,
+    1.5, 1.3, 1.3, 3.7, 3.7, 3.7, 3.7, 0.4, 0.4, 4.3, 22.4,
+    1.4, 3.0, 3.0, 3.4, 3.4, 3.4, 3.4, 2.8, 2.8, 5.6, 14.3,
+    1.5, 3.0, 3.0, 3.9, 3.9, 3.9, 3.9, 2.8, 2.8, 9.0, 22.8),
+  '40, 10' = c(
+    0.8, 0.0, 0.0, 0.8, 0.8, 1.3, 1.3, 0.0, 0.0, 8.8, 0.7,
+    2.4, 0.2, 0.4, 2.6, 2.6, 3.9, 3.9, 0.6, 0.6, 4.5, 20.8,
+    3.4, 1.6, 1.6, 4.3, 4.3, 4.1, 4.1, 4.1, 4.1, 4.7, 9.5,
+    2.9, 3.9, 3.9, 3.5, 3.5, 4.1, 4.6, 1.5, 1.5, 5.5, 8.9,
+    3.4, 3.9, 3.9, 4.8, 4.8, 4.3, 4.7, 4.5, 4.5, 9.1, 21.2),
+  '80, 20' = c(
+    1.5, 0.0, 0.0, 1.6, 1.6, 3.3, 3.3, 0.0, 0.0, 8.7, 5.2,
+    2.7, 3.4, 0.2, 3.7, 3.7, 3.2, 3.2, 3.4, 3.4, 3.7, 13.0,
+    3.3, 1.7, 2.1, 4.6, 4.3, 4.6, 4.8, 1.2, 2.0, 5.1, 6.9,
+    4.3, 4.0, 4.0, 4.3, 4.3, 4.1, 4.6, 0.6, 4.1, 5.1, 6.6,
+    4.3, 4.0, 4.0, 5.0, 4.7, 4.6, 4.9, 3.9, 4.1, 9.2, 21.3),
+  '240, 60' = c(
+    1.9, 0.0, 0.2, 2.4, 3.2, 4.0, 4.0, 0.7, 0.7, 4.3, 21.3,
+    3.5, 0.1, 1.2, 3.9, 4.9, 4.4, 4.7, 1.2, 2.5, 4.7, 7.0,
+    4.1, 2.1, 2.9, 4.6, 4.7, 4.4, 4.8, 0.5, 4.6, 4.9, 5.7,
+    4.3, 4.6, 4.6, 4.3, 4.3, 4.6, 4.6, 0.4, 4.9, 5.3, 5.5,
+    4.3, 4.6, 4.6, 4.9, 4.9, 4.6, 4.9, 4.3, 4.9, 9.2, 21.4)
+)
+mcb.t3 <- list(
+  '10, 10' = rbind(
+    c(0.02, 0.54, 62.8, 66.9, 66.9, 80.8, 80.8, 80.8, 80.8, 80.8, 80.8),
+    c(0.10, 0.68, 62.9, 77.7, 77.7, 79.4, 79.4, 79.4, 79.4, 79.4, 79.4),
+    c(0.25, 0.84, 61.9, 78.9, 78.9, 79.2, 79.2, 79.2, 79.2, 79.2, 79.2),
+    c(0.50, 0.99, 57.9, 59.9, 59.9, 78.4, 78.4, 78.4, 78.4, 78.4, 78.4)),
+  '25, 25' = rbind(
+    c(0.02, 0.29, 68.1, 36.8, 36.8, 76.4, 76.4, 80.4, 80.4, 80.4, 80.4),
+    c(0.10, 0.45, 72.3, 66.9, 66.9, 80.9, 80.9, 80.9, 80.9, 80.9, 80.9),
+    c(0.25, 0.65, 78.4, 78.4, 78.4, 80.4, 80.4, 80.4, 80.4, 80.4, 80.4),
+    c(0.50, 0.86, 70.8, 69.3, 69.3, 79.7, 79.7, 79.7, 79.7, 79.7, 79.7)),
+  '50, 50' = rbind(
+    c(0.02, 0.18, 68.6, 19.1, 39.6, 77.8, 78.6, 79.5, 82.2, 79.5, 82.2),
+    c(0.10, 0.33, 75.7, 60.0, 65.3, 80.1, 80.3, 80.7, 82.1, 80.7, 82.1),
+    c(0.25, 0.52, 74.5, 74.1, 74.1, 80.1, 80.1, 80.1, 80.1, 80.1, 80.1),
+    c(0.50, 0.77, 75.3, 74.3, 74.3, 80.7, 80.7, 80.8, 80.8, 80.8, 80.8)),
+  '150, 150' = rbind(
+    c(0.02, 0.09, 70.4, 4.0, 43.1, 75.0, 77.7, 79.4, 79.4, 79.4, 79.4),
+    c(0.10, 0.22, 77.6, 53.1, 69.0, 80.6, 81.5, 81.5, 81.5, 81.5, 81.5),
+    c(0.25, 0.40, 76.1, 73.4, 73.8, 78.9, 78.5, 78.9, 78.9, 78.9, 78.9),
+    c(0.50, 0.66, 78.0, 78.0, 78.0, 80.0, 79.7, 80.0, 79.7, 80.0, 79.7)),
+  '16, 4' = rbind(
+    c(0.02, 0.54, 64.2, 37.4, 37.4, 73.0, 73.0, 73.0, 73.0, 8.5, 8.5),
+    c(0.10, 0.68, 58.3, 53.1, 53.1, 73.5, 73.5, 73.5, 73.5, 21.4, 21.4),
+    c(0.25, 0.84, 47.9, 53.3, 53.3, 61.9, 61.9, 61.9, 61.9, 45.8, 45.8),
+    c(0.50, 0.99, 10.1, 21.8, 21.8, 21.9, 21.9, 21.9, 21.9, 21.8, 21.8)),
+  '4, 16' = rbind(
+    c(0.02, 0.54, 16.3, 31.0, 31.0, 31.2, 31.2, 31.2, 31.2, 31.0, 31.0),
+    c(0.10, 0.68, 41.0, 52.9, 52.9, 56.6, 56.6, 56.6, 56.6, 50.8, 50.8),
+    c(0.25, 0.84, 53.7, 53.2, 53.2, 68.4, 68.4, 68.4, 68.4, 31.4, 31.4),
+    c(0.50, 0.99, 63.2, 31.2, 31.2, 68.3, 68.3, 68.3, 68.3, 6.3, 6.3)),
+  '40, 10' = rbind(
+    c(0.02, 0.29, 68.7, 28.8, 31.5, 68.9, 68.9, 77.6, 77.6, 4.0, 4.0),
+    c(0.10, 0.45, 67.3, 46.6, 50.0, 71.3, 71.3, 71.8, 71.8, 16.6, 16.6),
+    c(0.25, 0.65, 60.0, 59.8, 59.8, 68.7, 68.7, 65.7, 66.9, 29.1, 29.1),
+    c(0.50, 0.86, 50.2, 51.7, 51.7, 54.0, 54.0, 56.1, 56.4, 42.9, 42.9)),
+  '10, 40' = rbind(
+    c(0.02, 0.29, 30.3, 12.9, 12.9, 30.5, 30.5, 30.5, 30.5, 70.4, 70.4),
+    c(0.10, 0.45, 51.2, 48.6, 48.6, 56.1, 56.1, 56.8, 56.8, 47.1, 47.1),
+    c(0.25, 0.65, 55.6, 60.9, 60.9, 60.9, 60.9, 61.9, 65.2, 36.8, 36.8),
+    c(0.50, 0.86, 64.1, 49.5, 50.1, 68.7, 68.7, 68.5, 68.5, 18.5, 18.5)),
+  '80, 20' = rbind(
+    c(0.02, 0.18, 64.6, 12.9, 38.5, 70.6, 70.6, 76.2, 76.2, 2.4, 2.4),
+    c(0.10, 0.33, 65.0, 39.9, 51.1, 68.1, 68.1, 68.4, 68.4, 10.6, 10.6),
+    c(0.25, 0.52, 57.4, 54.6, 55.7, 64.8, 63.3, 63.9, 63.9, 18.4, 41.8),
+    c(0.50, 0.77, 59.5, 56.2, 56.2, 59.7, 59.7, 57.7, 59.9, 32.1, 60.7)),
+  '20, 80' = rbind(
+    c(0.02, 0.18, 32.4, 2.9, 5.0, 40.6, 39.8, 40.7, 40.7, 62.7, 62.7),
+    c(0.10, 0.33, 49.4, 39.5, 42.1, 56.5, 55.7, 53.2, 56.9, 42.6, 57.1),
+    c(0.25, 0.52, 58.6, 56.0, 56.0, 58.6, 58.6, 56.9, 59.0, 30.1, 59.0),
+    c(0.50, 0.77, 59.3, 54.5, 56.3, 65.9, 64.8, 65.7, 65.7, 18.2, 37.8)),
+  '240, 60' = rbind(
+    c(0.02, 0.09, 64.1, 3.4, 38.2, 67.3, 68.5, 68.9, 69.2, 2.8, 2.8),
+    c(0.10, 0.22, 62.7, 33.2, 53.4, 65.1, 67.4, 67.8, 67.8, 13.4, 41.4),
+    c(0.25, 0.40, 59.8, 53.4, 56.2, 61.1, 61.2, 61.1, 62.3, 18.1, 54.5),
+    c(0.50, 0.66, 59.2, 59.6, 59.6, 59.2, 59.2, 59.7, 60.0, 25.3, 61.5)),
+  '60, 240' = rbind(
+    c(0.02, 0.09, 41.1, 0.1, 8.5, 41.1, 48.5, 43.2, 44.6, 45.0, 46.8),
+    c(0.10, 0.22, 54.1, 31.5, 43.5, 57.5, 57.8, 55.5, 58.3, 37.0, 66.2),
+    c(0.25, 0.40, 56.0, 54.5, 54.6, 58.6, 58.6, 57.5, 58.5, 27.1, 61.8),
+    c(0.50, 0.66, 58.7, 59.0, 59.0, 62.7, 62.0, 61.3, 62.2, 21.0, 59.0))
+)
+# Section 3.1: 8 of 148 against 1 of 132 responders. Two-sided p-values and the exact
+# 99.9 per cent Clopper-Pearson interval for the common response probability
+mcb.ex <- mcb_pvalues(148, 132, 'blaker')
+mcb.lab <- 'MCB2003 Section 3.1: 8 / 148 against 1 / 132'
+add(mcb.src, paste0(mcb.lab, ': 99.9% confidence interval, ', c('lower', 'upper')),
+    c(0.0080, 0.0826), unname(bbssr:::cp_bounds(280, mcb.gam)[10, ]), 4)
+# The p-values of F, B and B* under minlike, and of F under central, for the notes
+mcb.exm <- vapply(mcb_fb(148, 132, 'minlike'), function(p) p[9, 2], numeric(1))
+mcb.exc <- mcb_pv(148, 132, 'Fisher', 'central')[9, 2]
+mcb.exnote <- c(sprintf("tsmethod = 'blaker'; minlike gives %.6f and central %.6f",
+                        mcb.exm[['F']], mcb.exc), '', '',
+                sprintf("tsmethod = 'blaker'; minlike gives %.6f", mcb.exm[c('B', 'B*')]),
+                rep('', 4))
+add(mcb.src, paste0(mcb.lab, ': two-sided p-value, ', mcb.cols[1:9]),
+    c(0.0388, 0.4386, 0.1603, 0.0347, 0.0325, 0.0291, 0.0282, 0.0229, 0.0215),
+    vapply(mcb.ex[1:9], function(p) p[9, 2], numeric(1)), 4, mcb.exnote)
+# Tables 1 (type I error rates and sizes) and 3 (powers), in per cent
+mcb.rows1 <- c(sprintf('theta = %.2f', c(0.02, 0.10, 0.25, 0.50)), 'size')
+mcb.fbi <- match(c('F', 'B', 'B*'), mcb.cols)
+mcb.near <- 0
+mcb.tab <- list()
+for (key in union(names(mcb.t1), names(mcb.t3))) {
+  n <- as.integer(strsplit(key, ', ')[[1]])
+  N1 <- n[1]
+  N2 <- n[2]
+  P <- mcb_pvalues(N1, N2, 'minlike')
+  mcb.near <- mcb.near + sum(vapply(P, function(p) {
+    as.numeric(sum(abs(p - 0.05) < 1e-6))
+  }, numeric(1)))
+  RR <- lapply(P, mcb_reject)
+  # The blaker convention differs from minlike only when the groups are of unequal size
+  RRb <- if (N1 != N2) lapply(mcb_fb(N1, N2, 'blaker'), mcb_reject) else RR[mcb.fbi]
+  note_fb <- function(rec, recb) {
+    nt <- matrix('', nrow(rec), ncol(rec))
+    nt[, mcb.fbi] <- ifelse(mcb_round2(recb) != mcb_round2(rec[, mcb.fbi, drop = FALSE]),
+                            sprintf('blaker (formula (2)) gives %.3f', recb), '')
+    nt
+  }
+  if (!is.null(mcb.t1[[key]])) {
+    th <- c(0.02, 0.10, 0.25, 0.50)
+    rate <- function(rr) c(mcb_rates(rr, N1, N2, th), mcb_size(rr, N1, N2)) * 100
+    rec <- vapply(RR, rate, numeric(5))
+    recb <- vapply(RRb, rate, numeric(5))
+    mcb.tab[[length(mcb.tab) + 1L]] <- data.frame(
+      item = c(outer(mcb.rows1, mcb.cols, function(r, k) {
+        sprintf('MCB2003 Table 1: (%d, %d), %s: %s', N1, N2, r, k)
+      })),
+      published = c(matrix(mcb.t1[[key]], nrow = 5, byrow = TRUE)),
+      recomputed = c(rec), note = c(note_fb(rec, recb)), stringsAsFactors = FALSE)
+  }
+  if (!is.null(mcb.t3[[key]])) {
+    t3 <- mcb.t3[[key]]
+    pw <- function(rr) {
+      vapply(seq_len(nrow(t3)), function(i) {
+        mcb_rates(rr, N1, N2, t3[i, 1], t3[i, 2])
+      }, numeric(1)) * 100
+    }
+    rec <- matrix(vapply(RR[1:9], pw, numeric(nrow(t3))), nrow = nrow(t3))
+    recb <- matrix(vapply(RRb, pw, numeric(nrow(t3))), nrow = nrow(t3))
+    rows3 <- sprintf('(%.2f, %.2f)', t3[, 1], t3[, 2])
+    mcb.tab[[length(mcb.tab) + 1L]] <- data.frame(
+      item = c(outer(rows3, mcb.cols[1:9], function(r, k) {
+        sprintf('MCB2003 Table 3: (%d, %d), %s: %s', N1, N2, r, k)
+      })),
+      published = c(t3[, 3:11]), recomputed = c(rec), note = c(note_fb(rec, recb)),
+      stringsAsFactors = FALSE)
+  }
+}
+mcb.tab <- do.call(rbind, mcb.tab)
+mcb.miss <- abs(mcb_round2(mcb.tab$recomputed) - mcb.tab$published) > 1e-9
+mcb.tab$note[mcb.miss] <- trimws(paste(
+  'Not reproduced, cause not identified. The independent implementation in',
+  'tools/reference/check_mehrotra_2003.py gives the same value.', mcb.tab$note[mcb.miss]))
+add(mcb.src, mcb.tab$item, mcb.tab$published, mcb.tab$recomputed, 1, mcb.tab$note,
+    rule = 'round2')
+add(mcb.src, 'MCB2003 Tables 1 and 3: p-values within 1e-6 of the level 0.05', NA,
+    mcb.near, NA, paste('INFO: count over the p-values used for the tables, with minlike',
+                        'for F, B and B*'))
+add(mcb.src, paste('MCB2003 Tables 1 and 3: items that ordinary rounding reproduces and',
+                   'the rule round2 does not'), NA,
+    sum(abs(mcb_round1(mcb.tab$recomputed) - mcb.tab$published) < 1e-9 & mcb.miss), NA,
+    'INFO: check of the rounding rule')
+
+# Berger and Boos (1994), Example 2 ------------------------------------------------------
+# 14 of 47 against 48 of 283 responders. The p-value of the two-sided Z-pooled test, whose
+# ordering is that of the Pearson chi-squared statistic, maximized over [0, 1] and over
+# the .999 confidence interval, to which gamma = .001 is added. The statistic and the
+# interval agree with the article after rounding. The maximum over [0, 1] (.061), the
+# maximum over the interval (.036) and p_.001 (.037) are compared after truncation to
+# three decimals: rounding gives .037 and .038 for the last two, and the article also
+# writes the location 0.0039 of the maximum over [0, 1] as p(.003). The tail probability
+# is symmetric about 1/2, so the maximum is attained at that point and at its mirror
+# image; the location in [0, 1/2] is reported as INFO
+bb.src <- 'Berger and Boos (1994)'
+bb.lab <- 'BB1994 Example 2: 14 / 47 against 48 / 283'
+bb.z <- bbssr:::zstat(47, 283)
+bb.trunc <- 'Truncated to three decimals, as the article does for the maximized values'
+add(bb.src, paste0(bb.lab, ': chi-squared statistic'), 4.346, bb.z[15, 49] ^ 2, 3)
+add(bb.src, paste0(bb.lab, ': .999 confidence interval, ', c('lower', 'upper')),
+    c(0.123, 0.267), unname(bbssr:::cp_bounds(330, 0.001)[63, ]), 3)
+bb.sup <- bbssr:::get_pvalue(47, 283, 'Z-pool', 'two.sided', 'minlike', 100L, 0, TRUE,
+                             0)[15, 49]
+bb.p <- bbssr:::get_pvalue(47, 283, 'Z-pool', 'two.sided', 'minlike', 100L, 0.001, TRUE,
+                           0)[15, 49]
+add(bb.src, paste0(bb.lab, c(': p-value maximized over [0, 1]',
+                             ': maximum over the confidence interval',
+                             ': p-value p_.001')),
+    c(0.061, 0.036, 0.037), c(bb.sup, bb.p - 0.001, bb.p), 3, bb.trunc,
+    rule = 'truncate')
+bb.mask <- abs(bb.z) >= abs(bb.z[15, 49]) * (1 - 1e-10)
+bb.tail <- function(t) mcb_rates(bb.mask, 47, 283, t)
+bb.th <- seq(0, 0.5, by = 1e-4)
+bb.k <- which.max(bb.tail(bb.th))
+bb.loc <- optimize(bb.tail, c(bb.th[max(1, bb.k - 1)], bb.th[min(5001, bb.k + 1)]),
+                   maximum = TRUE, tol = 1e-10)$maximum
+add(bb.src, paste0(bb.lab, ': location of the maximum in [0, 1/2]'), 0.003, bb.loc, NA,
+    paste('INFO: grid of step 1e-4 refined by optimize(); the maximum is attained again',
+          'at the mirror image about 1/2, and the article gives p(.003) = .061'))
+
+# Fay and Hunsberger (2021), Section 8 and Table 1 ---------------------------------------
+# 8 of 14 against 1 of 7 responders. Two-sided Fisher p-values under the three
+# conventions, and the ordering function of Blaker's test, T_B(x, 1), which is the blaker
+# p-value of each outcome with 9 responders in total
+fh.src <- 'Fay and Hunsberger (2021)'
+fh.pub <- c(blaker = 0.087, minlike = 0.159, central = 0.157)
+fh.p <- lapply(names(fh.pub), function(ts) {
+  bbssr:::get_pvalue(14, 7, 'Fisher', 'two.sided', ts, 100L, 0, FALSE, 0)
+})
+add(fh.src, paste0('FH2021 Section 8: 8 / 14 against 1 / 7: two-sided p-value, ',
+                   names(fh.pub)), fh.pub, vapply(fh.p, function(p) p[9, 2], numeric(1)),
+    3)
+add(fh.src, sprintf('FH2021 Table 1: T_B(x, 1) at x2 = %d', 0:7),
+    c(0.007, 0.087, 0.642, 1.000, 0.397, 0.159, 0.016, 0.000),
+    fh.p[[1]][cbind(9 - 0:7 + 1, 0:7 + 1)], 3)
+
 # Verdicts and summary -------------------------------------------------------------------
 tab <- do.call(rbind, cmp)
 info <- is.na(tab$digits) | is.na(tab$published)
 d <- ifelse(info, 0, tab$digits)
+# The rule 'round2' rounds to one more decimal first and then to the digits of the
+# publication
 shown <- ifelse(tab$rule == 'truncate', floor(tab$recomputed * 10^d + 1e-9) / 10^d,
-                round(tab$recomputed, d))
+                ifelse(tab$rule == 'round2',
+                       ((floor(tab$recomputed * 10^(d + 1) + 0.5 + 1e-9) + 5) %/% 10) /
+                         10^d,
+                       round(tab$recomputed, d)))
 tab$verdict <- ifelse(info, 'INFO',
                       ifelse(abs(shown - tab$published) < 1e-9, 'PASS', 'FAIL'))
 tab$tolerance <- NA_real_
@@ -588,7 +923,8 @@ md <- c(
           counts[['EXPLAINED']], counts[['FAIL']], counts[['INFO']]),
   '',
   'A value passes when the recomputed value, rounded to the digits of the publication',
-  '(truncated where the publication truncates), equals the published value. A value that',
+  '(truncated where the publication truncates, and rounded first to one more digit where',
+  'the publication does so), equals the published value. A value that',
   'does not pass is EXPLAINED when a documented reason covers it and its difference from',
   'the published value is within the tolerance stated with the reason; otherwise it is a',
   'FAIL.',

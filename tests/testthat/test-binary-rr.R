@@ -109,6 +109,16 @@ test_that("the Boschloo region contains the Fisher region under each two-sided r
   }
 })
 
+test_that("the blaker Boschloo p-value can exceed the central Boschloo p-value", {
+  # The two conventions order the outcomes differently, so the bound of the exact Fisher
+  # p-value does not carry over: 2 of 4 against 0 of 3 gives about 0.305 and 0.219
+  p <- vapply(c('blaker', 'central'), function(ts) {
+    attr(BinaryRR(4, 3, 0.05, 'Boschloo', alternative = 'two.sided', tsmethod = ts),
+         'p.value')[3, 1]
+  }, numeric(1))
+  expect_gt(p[['blaker']], p[['central']] + 0.05)
+})
+
 test_that("the blaker Boschloo test orders the outcomes by the blaker Fisher p-value", {
   N1 <- 5
   N2 <- 4
