@@ -154,8 +154,8 @@ that conditioning introduces.</p>
 <div class="section level3">
 <h3 id="two-sided-conventions">Two-sided conventions<a class="anchor" aria-label="anchor" href="#two-sided-conventions"></a>
 </h3>
-<p>A two-sided version of a discrete conditional test is not unique. Two
-conventions are available through the <code>tsmethod</code>
+<p>A two-sided version of a discrete conditional test is not unique.
+Three conventions are available through the <code>tsmethod</code>
 argument.</p>
 <p>The <code>minlike</code> convention sums the null probabilities of
 all tables that are no more likely than the observed one,
@@ -168,12 +168,70 @@ one-sided tail probabilities and truncates at one,
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">{</mo><mn>1</mn><mo>,</mo><mspace width="0.278em"></mspace><mn>2</mn><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo>≤</mo><msub><mi>x</mi><mn>1</mn></msub><mo>∣</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo>≥</mo><msub><mi>x</mi><mn>1</mn></msub><mo>∣</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
 p(x_{1}, x_{2}) = \min\bigl\{1, \; 2 \min(\Pr(X_{1} \le x_{1} \mid s), \Pr(X_{1} \ge x_{1} \mid s))\bigr\} .
 </annotation></semantics></math></p>
-<p>The central convention has a property the minimum-likelihood
-convention lacks. Its two-sided rejection region at level
+<p>The <code>blaker</code> convention orders the tables by the smaller
+of their two one-sided tail probabilities and sums the null
+probabilities of all tables that are at least as extreme as the observed
+one in this ordering,
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munder><mo>∑</mo><mrow><mi>k</mi><mspace width="0.167em"></mspace><mo>:</mo><mspace width="0.167em"></mspace><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mi>g</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow></munder><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">{</mo><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo>≤</mo><mi>k</mi><mo>∣</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo>≥</mo><mi>k</mi><mo>∣</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+p(x_{1}, x_{2}) = \sum_{k \,:\, g(k) \le g(x_{1})} f(k), \qquad
+g(k) = \min\bigl\{\Pr(X_{1} \le k \mid s), \Pr(X_{1} \ge k \mid s)\bigr\} .
+</annotation></semantics></math> This is formula (2) of Mehrotra, Chan
+and Berger (2003), and the convention <code>'blaker'</code> of
+<code><a href="https://rdrr.io/pkg/exact2x2/man/exact2x2.html" class="external-link">exact2x2::exact2x2()</a></code>. The tables of the other tail that it
+adds form a tail of their own, whose probability is no larger than the
+tail probability of the observed table. The p-value is therefore at most
+twice that tail probability and never exceeds the central one. When the
+two groups are of equal size the conditional distribution is symmetric,
+and the three conventions give the same p-value.</p>
+<p>Fay and Hunsberger (2021, Section 8) illustrate the differences with
+8 responders out of 14 against 1 out of 7.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ex</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'minlike'</span>, <span class="st">'central'</span>, <span class="st">'blaker'</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ts</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="fl">14</span>, <span class="fl">7</span>, <span class="fl">0.05</span>, <span class="st">'Fisher'</span>, alternative <span class="op">=</span> <span class="st">'two.sided'</span>, tsmethod <span class="op">=</span> <span class="va">ts</span><span class="op">)</span>,</span>
+<span>       <span class="st">'p.value'</span><span class="op">)</span><span class="op">[</span><span class="fl">9</span>, <span class="fl">2</span><span class="op">]</span></span>
+<span><span class="op">}</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">ex</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="co">#&gt; minlike central  blaker </span></span>
+<span><span class="co">#&gt;   0.159   0.157   0.087</span></span></code></pre></div>
+<p>The table with 4 responders out of 14 against 5 out of 7 is exactly
+as likely as the observed one, so the <code>minlike</code> convention
+counts it. Its lower tail probability, 0.0805, exceeds the upper tail
+probability of the observed table, 0.0783, so the <code>blaker</code>
+convention leaves it out.</p>
+<p>Under the mid-p correction, the <code>minlike</code> and
+<code>blaker</code> conventions count the tables tied with the observed
+one in their ordering, the observed one included, with half of their
+probability, which is the definition of the mid-p value in Fay and
+Hunsberger (2021, Section 9). The <code>central</code> convention
+doubles the smaller of the two one-sided mid-p values.</p>
+<p>The bound by the central p-value holds for the exact Fisher p-value
+only. It fails for the mid-p value, and for the Boschloo test, whose
+ordering of the outcomes changes with the convention, as the two
+outcomes below show: 5 responders out of 8 against none out of 5 for the
+mid-p test, and 2 out of 4 against none out of 3 for the Boschloo
+test.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">two_sided_p</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">N1</span>, <span class="va">N2</span>, <span class="va">Test</span>, <span class="va">x1</span>, <span class="va">x2</span>, <span class="va">ts</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="va">N1</span>, <span class="va">N2</span>, <span class="fl">0.05</span>, <span class="va">Test</span>, alternative <span class="op">=</span> <span class="st">'two.sided'</span>, tsmethod <span class="op">=</span> <span class="va">ts</span><span class="op">)</span>,</span>
+<span>       <span class="st">'p.value'</span><span class="op">)</span><span class="op">[</span><span class="va">x1</span> <span class="op">+</span> <span class="fl">1</span>, <span class="va">x2</span> <span class="op">+</span> <span class="fl">1</span><span class="op">]</span></span>
+<span><span class="op">}</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  Test <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Fisher-midP'</span>, <span class="st">'Boschloo'</span><span class="op">)</span>,</span>
+<span>  blaker <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu">two_sided_p</span><span class="op">(</span><span class="fl">8</span>, <span class="fl">5</span>, <span class="st">'Fisher-midP'</span>, <span class="fl">5</span>, <span class="fl">0</span>, <span class="st">'blaker'</span><span class="op">)</span>,</span>
+<span>             <span class="fu">two_sided_p</span><span class="op">(</span><span class="fl">4</span>, <span class="fl">3</span>, <span class="st">'Boschloo'</span>, <span class="fl">2</span>, <span class="fl">0</span>, <span class="st">'blaker'</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  central <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu">two_sided_p</span><span class="op">(</span><span class="fl">8</span>, <span class="fl">5</span>, <span class="st">'Fisher-midP'</span>, <span class="fl">5</span>, <span class="fl">0</span>, <span class="st">'central'</span><span class="op">)</span>,</span>
+<span>              <span class="fu">two_sided_p</span><span class="op">(</span><span class="fl">4</span>, <span class="fl">3</span>, <span class="st">'Boschloo'</span>, <span class="fl">2</span>, <span class="fl">0</span>, <span class="st">'central'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;          Test     blaker    central</span></span>
+<span><span class="co">#&gt; 1 Fisher-midP 0.05361305 0.04351204</span></span>
+<span><span class="co">#&gt; 2    Boschloo 0.30541895 0.21874043</span></span></code></pre></div>
+<p>The <code>central</code> convention has a property that the
+<code>minlike</code> and <code>blaker</code> conventions lack. Its
+two-sided rejection region at level
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>α</mi></mrow><annotation encoding="application/x-tex">2\alpha</annotation></semantics></math>
 is exactly the union of the two one-sided rejection regions at level
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">N1</span> <span class="op">&lt;-</span> <span class="fl">9</span></span>
 <span><span class="va">N2</span> <span class="op">&lt;-</span> <span class="fl">7</span></span>
 <span><span class="va">alpha</span> <span class="op">&lt;-</span> <span class="fl">0.02</span></span>
@@ -183,9 +241,9 @@ is exactly the union of the two one-sided rejection regions at level
 <span><span class="va">lower</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="va">N2</span>, <span class="va">N1</span>, <span class="va">alpha</span>, <span class="st">'Fisher'</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">two</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">upper</span> <span class="op">|</span> <span class="va">lower</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
-<p>The two conventions give different regions of the same nominal
-size.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<p>The <code>minlike</code> and <code>central</code> conventions give
+different regions of the same nominal size.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">minlike</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="va">N1</span>, <span class="va">N2</span>, <span class="fl">0.05</span>, <span class="st">'Fisher'</span>, alternative <span class="op">=</span> <span class="st">'two.sided'</span>,</span>
 <span>                    tsmethod <span class="op">=</span> <span class="st">'minlike'</span><span class="op">)</span></span>
 <span><span class="va">central</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="va">N1</span>, <span class="va">N2</span>, <span class="fl">0.05</span>, <span class="st">'Fisher'</span>, alternative <span class="op">=</span> <span class="st">'two.sided'</span>,</span>
@@ -245,7 +303,10 @@ For a two-sided alternative the article gives each of the two parts of
 the rejection region half of the raised level, which is the
 <code>central</code> convention. The default
 <code>tsmethod = 'minlike'</code> orders the outcomes by the two-sided
-p-value of <code><a href="https://rdrr.io/r/stats/fisher.test.html" class="external-link">stats::fisher.test</a></code> instead.</p>
+p-value of <code><a href="https://rdrr.io/r/stats/fisher.test.html" class="external-link">stats::fisher.test</a></code> instead, and
+<code>tsmethod = 'blaker'</code> by the p-value of formula (2) of
+Mehrotra, Chan and Berger (2003), which is how they define the two-sided
+Boschloo test.</p>
 <p>The supremum is approximated by a search over the grid of
 <code>n.grid</code> equally spaced values of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
@@ -254,7 +315,7 @@ contains a coarser grid can only find a maximum at least as large, so
 refining the grid in this way can only raise the p-values. The grids of
 21 and 2001 points below are nested, since the spacing of the first is a
 multiple of that of the second.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">coarse</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">12</span>, <span class="fl">0.025</span>, <span class="st">'Boschloo'</span>, n.grid <span class="op">=</span> <span class="fl">21</span><span class="op">)</span>, <span class="st">'p.value'</span><span class="op">)</span></span>
 <span><span class="va">fine</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">12</span>, <span class="fl">0.025</span>, <span class="st">'Boschloo'</span>, n.grid <span class="op">=</span> <span class="fl">2001</span><span class="op">)</span>, <span class="st">'p.value'</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>all.p.values.increased <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">fine</span> <span class="op">&gt;=</span> <span class="va">coarse</span> <span class="op">-</span> <span class="fl">1e-12</span><span class="op">)</span>,</span>
@@ -280,7 +341,7 @@ probability over
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>,
 which the function below evaluates on a fine grid and refines with
 <code><a href="https://rdrr.io/r/stats/optimize.html" class="external-link">optimize()</a></code> around the largest grid value.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">size_fixed</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">RR</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">N1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">RR</span>, <span class="st">'N1'</span><span class="op">)</span></span>
 <span>  <span class="va">N2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">RR</span>, <span class="st">'N2'</span><span class="op">)</span></span>
@@ -322,7 +383,7 @@ and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>6</mn><mo>,</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(6, 2)</annotation></semantics></math>
 both have a Fisher p-value of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>/</mi><mn>39</mn></mrow><annotation encoding="application/x-tex">2/39</annotation></semantics></math>.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">stat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">7</span>, <span class="fl">0.025</span>, <span class="st">'Fisher'</span><span class="op">)</span>, <span class="st">'p.value'</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>cell_5_1 <span class="op">=</span> <span class="va">stat</span><span class="op">[</span><span class="fl">6</span>, <span class="fl">2</span><span class="op">]</span>, cell_6_2 <span class="op">=</span> <span class="va">stat</span><span class="op">[</span><span class="fl">7</span>, <span class="fl">3</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   cell_5_1   cell_6_2 </span></span>
@@ -334,7 +395,7 @@ within a tie group would give them different values, and the decision at
 those outcomes would depend on how the sorting routine happens to break
 the tie. The package groups tied values explicitly and assigns each
 group the tail probability accumulated up to its last member.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">7</span>, <span class="fl">0.025</span>, <span class="st">'Boschloo'</span><span class="op">)</span>, <span class="st">'p.value'</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>cell_5_1 <span class="op">=</span> <span class="va">p</span><span class="op">[</span><span class="fl">6</span>, <span class="fl">2</span><span class="op">]</span>, cell_6_2 <span class="op">=</span> <span class="va">p</span><span class="op">[</span><span class="fl">7</span>, <span class="fl">3</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   cell_5_1   cell_6_2 </span></span>
@@ -372,7 +433,7 @@ for
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
 and suggest a small value such as 0.001 or 0.0001. The resulting test
 still controls the type I error rate at the nominal level.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plain</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">15</span>, <span class="fl">0.025</span>, <span class="st">'Boschloo'</span>, n.grid <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
 <span><span class="va">bb</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">15</span>, <span class="fl">0.025</span>, <span class="st">'Boschloo'</span>, n.grid <span class="op">=</span> <span class="fl">200</span>, bb.gamma <span class="op">=</span> <span class="fl">1e-4</span><span class="op">)</span></span>
 <span><span class="va">p.plain</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">plain</span>, <span class="st">'p.value'</span><span class="op">)</span></span>
@@ -410,7 +471,7 @@ so the Boschloo p-value never exceeds the Fisher p-value at the same
 outcome. The Boschloo rejection region therefore contains the Fisher
 rejection region, which is the sense in which Boschloo’s test is
 uniformly more powerful.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fisher</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">15</span>, <span class="fl">0.025</span>, <span class="st">'Fisher'</span><span class="op">)</span></span>
 <span><span class="va">boschloo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">15</span>, <span class="fl">0.025</span>, <span class="st">'Boschloo'</span>, n.grid <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>rejected.fisher <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">fisher</span><span class="op">)</span>, rejected.boschloo <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">boschloo</span><span class="op">)</span>,</span>
@@ -419,7 +480,7 @@ uniformly more powerful.</p>
 <span><span class="co">#&gt; 1              51                61                    TRUE</span></span></code></pre></div>
 <p>The type I error rates show how much of the nominal level each test
 actually spends.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">max_type1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">RR</span>, <span class="va">n.grid</span> <span class="op">=</span> <span class="fl">401</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">N1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">RR</span>, <span class="st">'N1'</span><span class="op">)</span></span>
 <span>  <span class="va">N2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">RR</span>, <span class="st">'N2'</span><span class="op">)</span></span>
@@ -520,7 +581,7 @@ smaller than planned. The restricted rule raises it to the planned
 sample size first, so the trial can only grow. The table below applies
 both to a trial planned at 24 patients per group with an interim
 analysis at 12, with the default exact search.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">interim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">6</span>, <span class="fl">8</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">interim</span><span class="op">$</span><span class="va">pooled</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">interim</span><span class="op">$</span><span class="va">S</span> <span class="op">/</span> <span class="fl">24</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">interim</span><span class="op">$</span><span class="va">unrestricted</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">interim</span><span class="op">$</span><span class="va">S</span>, <span class="kw">function</span><span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="op">{</span></span>
@@ -603,6 +664,9 @@ Statistical Association</em>, 89, 1012-1016.</p>
 <p>Boschloo, R. D. (1970). Raised conditional level of significance for
 the 2 × 2-table when testing the equality of two probabilities.
 <em>Statistica Neerlandica</em>, 24, 1-9.</p>
+<p>Fay, M. P. and Hunsberger, S. A. (2021). Practical valid inferences
+for the two-sample binomial problem. <em>Statistics Surveys</em>, 15,
+72-110.</p>
 <p>Friede, T. and Kieser, M. (2004). Sample size recalculation for
 binary data in internal pilot study designs. <em>Pharmaceutical
 Statistics</em>, 3, 269-279.</p>

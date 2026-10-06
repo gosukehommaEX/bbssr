@@ -66,6 +66,24 @@ max(abs(got - want))
 #> [1] 6.661338e-16
 ```
 
+The `blaker` convention is checked against formula (2) of Mehrotra, Chan
+and Berger (2003) in the same way, and against `exact2x2` further below.
+
+``` r
+
+got <- attr(BinaryRR(N1, N2, 0.05, 'Fisher', alternative = 'two.sided',
+                     tsmethod = 'blaker'), 'p.value')
+want <- outer(0:N1, 0:N2, Vectorize(function(i, j) {
+  s <- i + j
+  k <- max(0, s - N2):min(N1, s)
+  g <- pmin(stats::phyper(k, N1, N2, s),
+            stats::phyper(k - 1, N1, N2, s, lower.tail = FALSE))
+  min(1, sum(stats::dhyper(k, N1, N2, s)[g <= g[k == i] * (1 + 1e-10)]))
+}))
+max(abs(got - want))
+#> [1] 0
+```
+
 ## Unconditional tests against a direct evaluation
 
 The unconditional p-value is the null tail probability maximized over
@@ -223,6 +241,31 @@ which the two packages carry out differently.
 
 ## Comparison with exact2x2
 
+[`exact2x2::exact2x2()`](https://rdrr.io/pkg/exact2x2/man/exact2x2.html)
+computes the two-sided Fisher p-value of the `blaker` convention. It is
+compared with `tsmethod = 'blaker'` at every outcome with at least one
+responder and at least one non-responder in total; the two remaining
+outcomes have the p-value 1.
+
+``` r
+
+N1 <- 9
+N2 <- 6
+ours <- attr(BinaryRR(N1, N2, 0.05, 'Fisher', alternative = 'two.sided',
+                      tsmethod = 'blaker'), 'p.value')
+theirs <- outer(0:N1, 0:N2, Vectorize(function(i, j) {
+  if (i + j == 0 || i + j == N1 + N2) return(1)
+  tab <- matrix(c(i, j, N1 - i, N2 - j), nrow = 2)
+  exact2x2::exact2x2(tab, tsmethod = 'blaker', conf.int = FALSE)$p.value
+}))
+max(abs(ours - theirs))
+#> [1] 4.440892e-16
+```
+
+[`exact2x2::boschloo()`](https://rdrr.io/pkg/exact2x2/man/boschloo.html)
+offers the `central` and `minlike` conventions. The two-sided Boschloo
+p-values of the `central` convention are compared below.
+
 ``` r
 
 N1 <- 10
@@ -306,18 +349,18 @@ microbenchmark::microbenchmark(
   unit = 'ms'
 )
 #> Unit: milliseconds
-#>                   expr       min        lq       mean     median        uq
-#>                  Chisq  0.284481  0.293267  0.3095907  0.3096025  0.328643
-#>                 Fisher  2.484146  2.519963  2.5652109  2.5443490  2.612086
-#>                 Z-pool  3.647068  3.685780  3.7413786  3.7170330  3.787220
-#>               Boschloo  6.057636  6.083986  6.1146822  6.1049205  6.164937
-#>  Boschloo, Berger-Boos 12.660552 12.665511 12.7750536 12.7170525 12.786527
-#>        max neval
-#>   0.333873    10
-#>   2.691964    10
-#>   3.966493    10
-#>   6.179865    10
-#>  13.255622    10
+#>                   expr      min       lq      mean   median       uq      max
+#>                  Chisq 0.153789 0.165056 0.1720847 0.174390 0.179508 0.182592
+#>                 Fisher 1.437023 1.451694 1.4817981 1.475600 1.487247 1.591352
+#>                 Z-pool 2.244005 2.262813 2.3030411 2.282853 2.347510 2.420378
+#>               Boschloo 3.624283 3.657091 3.6998855 3.710271 3.732785 3.755889
+#>  Boschloo, Berger-Boos 7.859537 7.942560 8.0275239 7.968684 8.014007 8.505950
+#>  neval
+#>     10
+#>     10
+#>     10
+#>     10
+#>     10
 options(old)
 ```
 
@@ -348,11 +391,11 @@ microbenchmark::microbenchmark(
 )
 #> Unit: milliseconds
 #>              expr        min         lq       mean     median         uq
-#>  bbssr.whole.grid   2.038595   2.081725   2.799509   2.111631   2.520375
-#>     Exact.one.row 289.185619 289.266871 291.160048 291.554020 292.645607
-#>        max neval
-#>    5.24522     5
-#>  293.14812     5
+#>  bbssr.whole.grid   1.102513   1.317464   1.841525   1.329622   1.845241
+#>     Exact.one.row 149.962481 151.246536 160.333876 152.445312 155.718953
+#>         max neval
+#>    3.612786     5
+#>  192.296099     5
 options(old)
 ```
 
@@ -444,13 +487,14 @@ data.frame(
 
 The script `reproduce-published.R`, installed with the package in the
 folder given by `system.file('reproduce', package = 'bbssr')`,
-recomputes the published numerical results of Blackwelder (1982),
-Boschloo (1970), Farrington and Manning (1990), Friede and Kieser
-(2004), Friede, Mitchell and Mueller-Velten (2007) and Kieser (2020),
-and lists every published value next to the recomputed one. It is run
-from the root of the package source after `devtools::load_all()`, writes
-its results to the folder `reproduce-output`, and runs for several
-minutes. The values below are a selection that can be recomputed
+recomputes the published numerical results of Berger and Boos (1994),
+Blackwelder (1982), Boschloo (1970), Farrington and Manning (1990), Fay
+and Hunsberger (2021), Friede and Kieser (2004), Friede, Mitchell and
+Mueller-Velten (2007), Kieser (2020) and Mehrotra, Chan and Berger
+(2003), and lists every published value next to the recomputed one. It
+is run from the root of the package source after `devtools::load_all()`,
+writes its results to the folder `reproduce-output`, and runs for
+several minutes. The values below are a selection that can be recomputed
 quickly, each compared after rounding to the digits of the publication.
 
 ``` r
@@ -560,21 +604,74 @@ Of the 12 values above, 12 agree with the publication after rounding.
 The script reports every value that it does not reproduce, together with
 the reason when one is known.
 
+The two-sided Fisher p-values of the conventions are compared with two
+published examples: 8 responders out of 14 against 1 out of 7 in Fay and
+Hunsberger (2021, Section 8), and 8 out of 148 against 1 out of 132 in
+Mehrotra, Chan and Berger (2003, Section 3.1).
+
+``` r
+
+fisher_p <- function(N1, N2, x1, x2, tsmethod) {
+  attr(BinaryRR(N1, N2, 0.05, 'Fisher', alternative = 'two.sided', tsmethod = tsmethod),
+       'p.value')[x1 + 1, x2 + 1]
+}
+two.sided <- data.frame(
+  source = c(rep('Fay and Hunsberger (2021)', 3), rep('Mehrotra et al. (2003)', 2)),
+  outcome = c(rep('8 / 14 against 1 / 7', 3), rep('8 / 148 against 1 / 132', 2)),
+  tsmethod = c('minlike', 'central', 'blaker', 'minlike', 'blaker'),
+  published = c(0.159, 0.157, 0.087, 0.0388, 0.0388),
+  digits = c(3, 3, 3, 4, 4),
+  recomputed = c(fisher_p(14, 7, 8, 1, 'minlike'), fisher_p(14, 7, 8, 1, 'central'),
+                 fisher_p(14, 7, 8, 1, 'blaker'), fisher_p(148, 132, 8, 1, 'minlike'),
+                 fisher_p(148, 132, 8, 1, 'blaker'))
+)
+two.sided$agrees <- abs(round(two.sided$recomputed, two.sided$digits) -
+                          two.sided$published) < 1e-9
+two.sided
+#>                      source                 outcome tsmethod published digits
+#> 1 Fay and Hunsberger (2021)    8 / 14 against 1 / 7  minlike    0.1590      3
+#> 2 Fay and Hunsberger (2021)    8 / 14 against 1 / 7  central    0.1570      3
+#> 3 Fay and Hunsberger (2021)    8 / 14 against 1 / 7   blaker    0.0870      3
+#> 4    Mehrotra et al. (2003) 8 / 148 against 1 / 132  minlike    0.0388      4
+#> 5    Mehrotra et al. (2003) 8 / 148 against 1 / 132   blaker    0.0388      4
+#>   recomputed agrees
+#> 1 0.15882353   TRUE
+#> 2 0.15665635   TRUE
+#> 3 0.08730650   TRUE
+#> 4 0.03878174   TRUE
+#> 5 0.03878174   TRUE
+```
+
+In the example of Mehrotra, Chan and Berger (2003) the `minlike` and
+`blaker` conventions give the same p-value, whereas the `central`
+convention gives 0.0543. Their text defines the two-sided Fisher p-value
+by formula (2), the `blaker` convention. The reproduction script shows
+that their Tables 1 and 3 agree with the `minlike` convention instead.
+The two conventions coincide when the groups are of equal size, and
+wherever they give different rounded values in the configurations with
+groups of unequal size, the published type I error rates and powers of
+the Fisher and Boschloo tests are those of `minlike`. The script
+therefore compares these tables with `minlike`.
+
 ## Summary
 
 The Fisher exact test reproduces
 [`stats::fisher.test`](https://rdrr.io/r/stats/fisher.test.html) to
-machine precision. The unconditional tests reproduce a direct evaluation
-of their definition to machine precision, and agree with `Exact` and
-`exact2x2` up to the difference in the search over the nuisance
-parameter. In the configuration examined, the three exact tests hold the
-type I error rate below the nominal level for one-sided and two-sided
-alternatives alike. A re-estimation design without re-estimation
-reproduces the fixed-sample design, the two calculations of the type I
-error rate of a re-estimation design agree, and published values are
-recomputed.
+machine precision, and its `blaker` convention reproduces `exact2x2`.
+The unconditional tests reproduce a direct evaluation of their
+definition to machine precision, and agree with `Exact` and `exact2x2`
+up to the difference in the search over the nuisance parameter. In the
+configuration examined, the three exact tests hold the type I error rate
+below the nominal level for one-sided and two-sided alternatives alike.
+A re-estimation design without re-estimation reproduces the fixed-sample
+design, the two calculations of the type I error rate of a re-estimation
+design agree, and published values are recomputed.
 
 ## References
+
+Berger, R. L. and Boos, D. D. (1994). P values maximized over a
+confidence set for the nuisance parameter. *Journal of the American
+Statistical Association*, 89, 1012-1016.
 
 Blackwelder, W. C. (1982). “Proving the null hypothesis” in clinical
 trials. *Controlled Clinical Trials*, 3, 345-353.
@@ -588,6 +685,9 @@ size formulae for comparative binomial trials with null hypothesis of
 non-zero risk difference or non-unity relative risk. *Statistics in
 Medicine*, 9, 1447-1454.
 
+Fay, M. P. and Hunsberger, S. A. (2021). Practical valid inferences for
+the two-sample binomial problem. *Statistics Surveys*, 15, 72-110.
+
 Friede, T. and Kieser, M. (2004). Sample size recalculation for binary
 data in internal pilot study designs. *Pharmaceutical Statistics*, 3,
 269-279.
@@ -598,3 +698,7 @@ size reestimation in non-inferiority trials with binary endpoints.
 
 Kieser, M. (2020). *Methods and Applications of Sample Size Calculation
 and Recalculation in Clinical Trials*. Springer.
+
+Mehrotra, D. V., Chan, I. S. F. and Berger, R. L. (2003). A cautionary
+note on exact unconditional inference for a difference between two
+independent binomial proportions. *Biometrics*, 59, 441-450.

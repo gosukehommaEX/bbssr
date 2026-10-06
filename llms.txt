@@ -40,6 +40,9 @@ exactly rather than by simulation.
 - Every function accepts `alternative = 'less'`, and `ref.pvalue = TRUE`
   refines the maximization over the nuisance parameter of the
   unconditional tests.
+- `tsmethod = 'blaker'` adds a third two-sided convention for the
+  Fisher, Fisher mid-p and Boschloo tests, formula (2) of Mehrotra, Chan
+  and Berger (2003).
 - [`summary()`](https://rdrr.io/r/base/summary.html) of
   [`BinaryPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryPowerBSSR.md)
   reports the distribution of the final sample size.
@@ -85,11 +88,12 @@ and sample sizes of all seven tests are computed exactly.
 
 Every test accepts `alternative = 'greater'`, `'less'` or `'two.sided'`.
 For the conditional tests and the Boschloo test, `tsmethod` selects
-between the `'minlike'` convention of
-[`stats::fisher.test`](https://rdrr.io/r/stats/fisher.test.html) and the
-`'central'` convention that doubles the smaller tail. A margin other
-than 0 requires `'Blackwelder'` or `'Farrington-Manning'` and a
-one-sided alternative.
+among the `'minlike'` convention of
+[`stats::fisher.test`](https://rdrr.io/r/stats/fisher.test.html), the
+`'central'` convention that doubles the smaller tail, and the `'blaker'`
+convention that orders the tables by the smaller of their two tail
+probabilities. A margin other than 0 requires `'Blackwelder'` or
+`'Farrington-Manning'` and a one-sided alternative.
 
 ## Quick start
 
@@ -356,14 +360,17 @@ the [package website](https://gosukehommaex.github.io/bbssr/).
 
 The Fisher exact test reproduces
 [`stats::fisher.test`](https://rdrr.io/r/stats/fisher.test.html) to
-machine precision. The unconditional tests reproduce a direct evaluation
-of their definition, and agree with `Exact` and `exact2x2` up to the
-difference in the search over the nuisance parameter. The script
+machine precision, and its `'blaker'` convention reproduces `exact2x2`.
+The unconditional tests reproduce a direct evaluation of their
+definition, and agree with `Exact` and `exact2x2` up to the difference
+in the search over the nuisance parameter. The script
 `inst/reproduce/reproduce-published.R` recomputes the published results
-of Blackwelder (1982), Boschloo (1970), Farrington and Manning (1990),
-Friede and Kieser (2004), Friede, Mitchell and Mueller-Velten (2007) and
-Kieser (2020), and the unit tests compare the package with independent
-implementations. Details are in the validation vignette.
+of Berger and Boos (1994), Blackwelder (1982), Boschloo (1970),
+Farrington and Manning (1990), Fay and Hunsberger (2021), Friede and
+Kieser (2004), Friede, Mitchell and Mueller-Velten (2007), Kieser (2020)
+and Mehrotra, Chan and Berger (2003), and the unit tests compare the
+package with independent implementations. Details are in the validation
+vignette.
 
 ## References
 
@@ -385,6 +392,9 @@ Farrington, C. P. and Manning, G. (1990). Test statistics and sample
 size formulae for comparative binomial trials with null hypothesis of
 non-zero risk difference or non-unity relative risk. *Statistics in
 Medicine*, 9, 1447-1454.
+
+Fay, M. P. and Hunsberger, S. A. (2021). Practical valid inferences for
+the two-sample binomial problem. *Statistics Surveys*, 15, 72-110.
 
 Friede, T. and Kieser, M. (2004). Sample size recalculation for binary
 data in internal pilot study designs. *Pharmaceutical Statistics*, 3,
