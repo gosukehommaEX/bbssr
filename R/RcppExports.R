@@ -9,6 +9,14 @@ power_from_rr <- function(RR, dbinom1, dbinom2) {
     .Call(`_bbssr_power_from_rr`, RR, dbinom1, dbinom2)
 }
 
+bernstein_max <- function(coef, tol, max_pieces) {
+    .Call(`_bbssr_bernstein_max`, coef, tol, max_pieces)
+}
+
+binom_conv_matrix <- function(N, a, c) {
+    .Call(`_bbssr_binom_conv_matrix`, N, a, c)
+}
+
 bssr_cond_reject <- function(rr_list, rr_id, n21, n22, n11, n12) {
     .Call(`_bbssr_bssr_cond_reject`, rr_list, rr_id, n21, n22, n11, n12)
 }

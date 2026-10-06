@@ -187,12 +187,11 @@ test_that("the exact search handles a non-inferiority margin", {
   # the formula of Farrington and Manning and moves one patient at a time
   seen <- ref_pvalue_calls(ss <- BinarySampleSize(0.8, 0.8, 1, 0.025, 0.8,
                                                   'Farrington-Manning', margin = 0.15))
-  expect_equal(ss$N2, 113)
   expect_gt(nrow(seen), 0)
   expect_true(all(seen$margin == 0.15))
   expect_equal(attr(ss, 'margin'), 0.15)
-  expect_equal(BinarySampleSize(0.6, 0.65, 2, 0.025, 0.9, 'Blackwelder', margin = 0.2)$N2,
-               160)
+  bw <- BinarySampleSize(0.6, 0.65, 2, 0.025, 0.9, 'Blackwelder', margin = 0.2)
+  expect_equal(c(ss$N2, bw$N2), c(113, 160))
 })
 
 test_that("BinarySampleSize checks the direction of the effect against the margin", {

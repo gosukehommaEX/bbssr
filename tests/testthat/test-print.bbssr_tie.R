@@ -6,4 +6,5 @@ test_that("print.bbssr_tie reports the largest type I error rates", {
   expect_identical(ret, res)
   expect_true(any(grepl('Largest type I error rate', out)))
   expect_true(any(grepl('Fixed sample', out)))
+  expect_true(any(grepl('certified over theta in [0.1, 0.9]', out, fixed = TRUE)))
 })

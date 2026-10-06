@@ -7,4 +7,5 @@ test_that("print.bbssr_alphaadj reports the adjusted levels", {
   expect_identical(ret, res)
   expect_true(any(grepl('alpha.adj', out)))
   expect_true(any(grepl('final analysis only', out)))
+  expect_true(any(grepl('certified over theta in [0.1, 0.9]', out, fixed = TRUE)))
 })

@@ -22,7 +22,7 @@
 #' @param type1 Logical. If \code{TRUE}, the largest type I error rate of each design and
 #'   of the corresponding fixed-sample design is added, as computed by
 #'   \code{\link{BinaryTypeIErrorBSSR}} with its default grid of \code{theta} and the
-#'   refinement of the maxima. It is taken over the common response probability, or over
+#'   certified maximum. It is taken over the common response probability, or over
 #'   the boundary of the null hypothesis for a design with a non-inferiority margin.
 #'   Default is \code{FALSE}
 #' @param verbose Logical. If \code{TRUE}, a message is issued as each design is

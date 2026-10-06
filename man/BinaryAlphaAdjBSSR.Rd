@@ -26,7 +26,8 @@ BinaryAlphaAdjBSSR(
   N.min = NULL,
   N.max = NULL,
   n.interim = NULL,
-  theta = seq(0.005, 0.995, by = 0.005),
+  theta = seq(0, 1, by = 0.005),
+  maximize = c("certified", "refined", "grid"),
   adjust = c("test", "both"),
   tol = 1e-08,
   step = 1e-05,
@@ -104,9 +105,14 @@ none}
 two. An alternative to \code{omega}}
 
 \item{theta}{Grid of common response probabilities at which the type I error rate is
-evaluated. Default is \code{seq(0.005, 0.995, by = 0.005)}. With a non-zero
+evaluated. Default is \code{seq(0, 1, by = 0.005)}. With a non-zero
 \code{margin}, \code{theta} is the pooled response probability
 \code{(r p1 + p2) / (1 + r)} on the boundary of the null hypothesis, see Details}
+
+\item{maximize}{How the largest type I error rate at a level is located, as in
+\code{\link{BinaryTypeIErrorBSSR}}. With \code{'certified'} (default) the adjusted
+level controls the type I error rate over the whole interval from the smallest to the
+largest value of \code{theta}, see Details}
 
 \item{adjust}{Which part of the design uses the adjusted level. \code{'test'}
 (default) applies it to the final analysis only, so the re-estimation keeps using
@@ -144,6 +150,10 @@ BSSR design and one for the fixed-sample design containing:
 \item{max.TIE.adj}{Largest type I error rate at the adjusted level}
 \item{theta.adj}{Common response probability, or pooled response probability on the
 null boundary, at which \code{max.TIE.adj} occurs}
+\item{max.TIE.bound}{Upper bound of the type I error rate at the nominal level with
+\code{maximize = 'certified'}, otherwise \code{NA}}
+\item{max.TIE.adj.bound}{Upper bound of the type I error rate at the adjusted level
+with \code{maximize = 'certified'}, otherwise \code{NA}}
 }
 }
 \description{
@@ -171,11 +181,22 @@ controlled. This search re-estimates the sample
 size at every step and can take much longer than the bisection. The fixed-sample design
 always uses the bisection, since its sample size does not depend on the level.
 
+With \code{maximize = 'certified'} the levels are assessed on the grid with the
+refinement of \code{maximize = 'refined'}, and the level found is then certified as in
+\code{\link{BinaryTypeIErrorBSSR}}: it is accepted only if the upper bound of the type I
+error rate over the interval from the smallest to the largest value of \code{theta}
+does not exceed \code{alpha}. If the bound exceeds \code{alpha}, the grid has missed
+the value of \code{theta} at which the level fails, and the search continues below
+that level. The bisection then certifies every level that passes the assessment on the
+grid, and the search of \code{adjust = 'both'} certifies every such level from the
+start. The adjusted level therefore controls the type I error rate over the whole
+interval.
+
 In both searches the type I error rate at a new level is first evaluated at the single
-grid point where the largest rate of the last level that failed was found. If it
-exceeds \code{alpha} there, the level fails without the evaluation over the whole grid
-and the refinement. The largest rate over \code{theta} is never below the rate at a
-grid point, so every decision, and hence the result, is that of the full evaluation.
+value of \code{theta} where the largest rate of the last level that failed was found.
+If it exceeds \code{alpha} there, the level fails without the evaluation over the whole
+grid. The largest rate over \code{theta} is never below the rate at any one value, so
+every decision, and hence the result, is that of the full evaluation.
 }
 \examples{
 \donttest{

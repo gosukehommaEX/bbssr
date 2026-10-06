@@ -36,9 +36,9 @@ print.bbssr_tie <- function(x, digits = 4, ...) {
     cat(sprintf('  Margin          : %s\n', format(margin)))
   }
   cat(sprintf('  Nominal level   : %s\n', format(attr(x, 'alpha'))))
-  cat(sprintf('  Grid            : %d values of theta in [%s, %s]%s\n\n', nrow(x),
-              format(min(x$theta)), format(max(x$theta)),
-              if (isTRUE(attr(x, 'refine'))) ', maxima refined' else ''))
+  cat(sprintf('  Grid            : %d values of theta in [%s, %s]\n', nrow(x),
+              format(min(x$theta)), format(max(x$theta))))
+  cat(sprintf('  Maximum         : %s\n\n', maximize_label(x)))
   cat('Largest type I error rate\n')
   tab <- data.frame(Design = c('BSSR', 'Fixed sample'),
                     theta = signif(m$theta, 6), TIE = signif(m$TIE, digits))

@@ -34,6 +34,7 @@ print.bbssr_alphaadj <- function(x, digits = 6, ...) {
   if (!is.null(margin) && margin != 0) {
     cat(sprintf('  Margin          : %s\n', format(margin)))
   }
+  cat(sprintf('  Maximum         : %s\n', maximize_label(x)))
   cat(sprintf('  Target level    : %s\n\n', format(x$alpha[1])))
   tab <- data.frame(
     Design = ifelse(x$Design == 'BSSR', 'BSSR', 'Fixed sample'),

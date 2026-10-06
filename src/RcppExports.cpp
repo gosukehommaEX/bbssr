@@ -40,6 +40,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// bernstein_max
+List bernstein_max(NumericVector coef, double tol, int max_pieces);
+RcppExport SEXP _bbssr_bernstein_max(SEXP coefSEXP, SEXP tolSEXP, SEXP max_piecesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type coef(coefSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< int >::type max_pieces(max_piecesSEXP);
+    rcpp_result_gen = Rcpp::wrap(bernstein_max(coef, tol, max_pieces));
+    return rcpp_result_gen;
+END_RCPP
+}
+// binom_conv_matrix
+NumericMatrix binom_conv_matrix(int N, double a, double c);
+RcppExport SEXP _bbssr_binom_conv_matrix(SEXP NSEXP, SEXP aSEXP, SEXP cSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type N(NSEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type c(cSEXP);
+    rcpp_result_gen = Rcpp::wrap(binom_conv_matrix(N, a, c));
+    return rcpp_result_gen;
+END_RCPP
+}
 // bssr_cond_reject
 List bssr_cond_reject(List rr_list, IntegerVector rr_id, IntegerVector n21, IntegerVector n22, int n11, int n12);
 RcppExport SEXP _bbssr_bssr_cond_reject(SEXP rr_listSEXP, SEXP rr_idSEXP, SEXP n21SEXP, SEXP n22SEXP, SEXP n11SEXP, SEXP n12SEXP) {
@@ -98,6 +124,8 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_bbssr_max_tail_prob", (DL_FUNC) &_bbssr_max_tail_prob, 7},
     {"_bbssr_power_from_rr", (DL_FUNC) &_bbssr_power_from_rr, 3},
+    {"_bbssr_bernstein_max", (DL_FUNC) &_bbssr_bernstein_max, 3},
+    {"_bbssr_binom_conv_matrix", (DL_FUNC) &_bbssr_binom_conv_matrix, 3},
     {"_bbssr_bssr_cond_reject", (DL_FUNC) &_bbssr_bssr_cond_reject, 6},
     {"_bbssr_bssr_power", (DL_FUNC) &_bbssr_bssr_power, 10},
     {"_bbssr_max_tail_prob_refined", (DL_FUNC) &_bbssr_max_tail_prob_refined, 8},

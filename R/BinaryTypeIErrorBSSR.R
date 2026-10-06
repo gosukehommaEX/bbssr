@@ -8,11 +8,14 @@
 #'
 #' @inheritParams BinaryPowerBSSR
 #' @param theta Grid of common response probabilities at which the type I error rate is
-#'   evaluated. Default is \code{seq(0.005, 0.995, by = 0.005)}. With a non-zero
+#'   evaluated. Default is \code{seq(0, 1, by = 0.005)}. With a non-zero
 #'   \code{margin}, \code{theta} is the pooled response probability
 #'   \code{(r p1 + p2) / (1 + r)} on the boundary of the null hypothesis, see Details
-#' @param refine Logical. If \code{TRUE} (default), the largest local maxima on the grid
-#'   are refined by a one-dimensional optimization between the neighbouring grid points
+#' @param maximize How the largest type I error rate is located. \code{'certified'}
+#'   (default) finds it over the whole interval from the smallest to the largest value of
+#'   \code{theta}, together with an upper bound, see Details. \code{'refined'} refines the
+#'   largest local maxima on the grid by a one-dimensional optimization between the
+#'   neighbouring grid points, and \code{'grid'} takes the largest value on the grid
 #'
 #' @return An object of class \code{bbssr_tie}, a data frame with one row per element of
 #'   \code{theta} containing:
@@ -25,10 +28,12 @@
 #'   \item{TIE.TRAD}{Type I error rate of the fixed-sample design with sample sizes
 #'     \code{N1} and \code{N2}}
 #' }
-#' The attribute \code{max} is a data frame with the largest type I error rate of each
-#' design and the common response probability at which it occurs, and the attribute
-#' \code{reestimation} holds the final sample size for every pooled number of interim
-#' responders.
+#' The attribute \code{max} is a data frame with the largest type I error rate \code{TIE}
+#' of each design, the common response probability \code{theta} at which it occurs and,
+#' with \code{maximize = 'certified'}, the upper bound \code{bound} of the type I error
+#' rate over the interval given by the attribute \code{interval} (otherwise \code{NA}).
+#' The attribute \code{reestimation} holds the final sample size for every pooled number
+#' of interim responders.
 #'
 #' @details
 #' Under the null hypothesis both groups share the response probability \code{theta}. The
@@ -39,9 +44,21 @@
 #' which the final sample size depends on the interim data, so the rate is worth checking
 #' for every design.
 #'
-#' The type I error rate is a polynomial in \code{theta}. With \code{refine = TRUE} the
-#' three largest local maxima on the grid are refined, so the reported maximum does not
-#' depend on the spacing of the grid as long as the grid separates the local maxima.
+#' The type I error rate is a polynomial in \code{theta}, since both response
+#' probabilities are linear in \code{theta}. With \code{maximize = 'certified'} the
+#' polynomial is expressed in the Bernstein basis over the interval from the smallest to
+#' the largest value of \code{theta}, restricted with a margin to the values at which both
+#' response probabilities lie in the unit interval. The basis polynomials are
+#' non-negative and sum to one, so on any subinterval the polynomial does not exceed its
+#' largest Bernstein coefficient there, and its first and last coefficients are its values
+#' at the two ends. The interval is halved repeatedly by the algorithm of de Casteljau, and
+#' a subinterval is set aside once its largest coefficient exceeds the largest value found
+#' by at most 1e-12. The largest coefficient of the subintervals set aside, reported as
+#' \code{bound}, is an upper bound of the type I error rate at every value of \code{theta}
+#' in the interval, up to rounding error. With \code{maximize = 'refined'} the three
+#' largest local maxima on the grid are refined, which finds the maximum when the grid
+#' separates the local maxima, and with \code{maximize = 'grid'} the largest value on the
+#' grid is reported.
 #'
 #' With a non-inferiority \code{margin} the null hypothesis is \code{p1 - p2 <= -margin},
 #' or \code{p1 - p2 >= margin} for \code{alternative = 'less'}, and the type I error rate
@@ -93,13 +110,15 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
                                  rounding = c('group', 'friede-kieser', 'total',
                                               'nearest'),
                                  N.min = NULL, N.max = NULL, n.interim = NULL,
-                                 theta = seq(0.005, 0.995, by = 0.005), refine = TRUE,
+                                 theta = seq(0, 1, by = 0.005),
+                                 maximize = c('certified', 'refined', 'grid'),
                                  margin = 0, ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
   ss.method <- match.arg(ss.method)
   rounding <- match.arg(rounding)
+  maximize <- match.arg(maximize)
   if (length(theta) < 1 || anyNA(theta) || any(theta < 0 | theta > 1)) {
     stop('theta must be a vector of values in [0, 1]')
   }
@@ -113,6 +132,8 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   if (!any(null_boundary(theta, r, alternative, margin)$ok)) {
     stop('no value of theta gives response probabilities in [0, 1] on the null boundary')
   }
+  # Interval over which the largest rate is certified
+  interval <- null_range(theta, r, alternative, margin)
   theta <- theta[null_boundary(theta, r, alternative, margin)$ok]
   setup <- bssr_setup(map)
   rr.list <- lapply(seq_along(setup$N1), function(k) {
@@ -133,19 +154,34 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   }
   tie.bssr <- f.bssr(theta)
   tie.trad <- f.trad(theta)
-  if (refine) {
-    m.bssr <- refine_max(f.bssr, theta, tie.bssr)
-    m.trad <- refine_max(f.trad, theta, tie.trad)
-  } else {
-    m.bssr <- list(x = theta[which.max(tie.bssr)], y = max(tie.bssr))
-    m.trad <- list(x = theta[which.max(tie.trad)], y = max(tie.trad))
+  # Largest rate on the grid, refined between the grid points or certified over the
+  # interval. The fixed-sample design is certified as a design without an interim stage
+  locate <- function(f, y, setup, rr.list) {
+    m <- if (maximize == 'refined') {
+      refine_max(f, theta, y)
+    } else {
+      list(x = theta[which.max(y)], y = max(y))
+    }
+    m$bound <- NA_real_
+    if (maximize == 'certified') {
+      cm <- tie_certify(tie_weights(setup, rr.list), interval, r, alternative, margin)
+      if (cm$y > m$y) {
+        m$x <- cm$x
+        m$y <- cm$y
+      }
+      m$bound <- max(cm$bound, m$y)
+    }
+    m
   }
+  m.bssr <- locate(f.bssr, tie.bssr, setup, rr.list)
+  m.trad <- locate(f.trad, tie.trad, fixed_setup(N1, N2), list(rr.fixed))
   b <- null_boundary(theta, r, alternative, margin)
   out <- data.frame(theta = theta, p1 = b$p1, p2 = b$p2, TIE.BSSR = tie.bssr,
                     TIE.TRAD = tie.trad)
   attr(out, 'max') <- data.frame(Design = c('BSSR', 'TRAD'),
                                  theta = c(m.bssr$x, m.trad$x),
                                  TIE = c(m.bssr$y, m.trad$y),
+                                 bound = c(m.bssr$bound, m.trad$bound),
                                  stringsAsFactors = FALSE)
   attr(out, 'Test') <- Test
   attr(out, 'alternative') <- alternative
@@ -159,7 +195,8 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   attr(out, 'Delta.A') <- Delta.A
   attr(out, 'effect') <- effect
   attr(out, 'ss.method') <- ss.method
-  attr(out, 'refine') <- refine
+  attr(out, 'maximize') <- maximize
+  if (maximize == 'certified') attr(out, 'interval') <- interval
   attr(out, 'margin') <- margin
   attr(out, 'ref.pvalue') <- ref.pvalue
   attr(out, 'reestimation') <- map

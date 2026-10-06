@@ -26,8 +26,8 @@ BinaryTypeIErrorBSSR(
   N.min = NULL,
   N.max = NULL,
   n.interim = NULL,
-  theta = seq(0.005, 0.995, by = 0.005),
-  refine = TRUE,
+  theta = seq(0, 1, by = 0.005),
+  maximize = c("certified", "refined", "grid"),
   margin = 0,
   ref.pvalue = FALSE
 )
@@ -102,12 +102,15 @@ none}
 two. An alternative to \code{omega}}
 
 \item{theta}{Grid of common response probabilities at which the type I error rate is
-evaluated. Default is \code{seq(0.005, 0.995, by = 0.005)}. With a non-zero
+evaluated. Default is \code{seq(0, 1, by = 0.005)}. With a non-zero
 \code{margin}, \code{theta} is the pooled response probability
 \code{(r p1 + p2) / (1 + r)} on the boundary of the null hypothesis, see Details}
 
-\item{refine}{Logical. If \code{TRUE} (default), the largest local maxima on the grid
-are refined by a one-dimensional optimization between the neighbouring grid points}
+\item{maximize}{How the largest type I error rate is located. \code{'certified'}
+(default) finds it over the whole interval from the smallest to the largest value of
+\code{theta}, together with an upper bound, see Details. \code{'refined'} refines the
+largest local maxima on the grid by a one-dimensional optimization between the
+neighbouring grid points, and \code{'grid'} takes the largest value on the grid}
 
 \item{margin}{Non-inferiority margin on the scale of the risk difference. The
 default of 0 gives a test of superiority. A value other than 0 tests the null
@@ -136,10 +139,12 @@ probability on the null boundary}
 \item{TIE.TRAD}{Type I error rate of the fixed-sample design with sample sizes
 \code{N1} and \code{N2}}
 }
-The attribute \code{max} is a data frame with the largest type I error rate of each
-design and the common response probability at which it occurs, and the attribute
-\code{reestimation} holds the final sample size for every pooled number of interim
-responders.
+The attribute \code{max} is a data frame with the largest type I error rate \code{TIE}
+of each design, the common response probability \code{theta} at which it occurs and,
+with \code{maximize = 'certified'}, the upper bound \code{bound} of the type I error
+rate over the interval given by the attribute \code{interval} (otherwise \code{NA}).
+The attribute \code{reestimation} holds the final sample size for every pooled number
+of interim responders.
 }
 \description{
 Evaluates the type I error rate of a two-arm trial with a binary endpoint and blinded
@@ -157,9 +162,21 @@ error rate of a fixed-sample design, but this property is not inherited by a des
 which the final sample size depends on the interim data, so the rate is worth checking
 for every design.
 
-The type I error rate is a polynomial in \code{theta}. With \code{refine = TRUE} the
-three largest local maxima on the grid are refined, so the reported maximum does not
-depend on the spacing of the grid as long as the grid separates the local maxima.
+The type I error rate is a polynomial in \code{theta}, since both response
+probabilities are linear in \code{theta}. With \code{maximize = 'certified'} the
+polynomial is expressed in the Bernstein basis over the interval from the smallest to
+the largest value of \code{theta}, restricted with a margin to the values at which both
+response probabilities lie in the unit interval. The basis polynomials are
+non-negative and sum to one, so on any subinterval the polynomial does not exceed its
+largest Bernstein coefficient there, and its first and last coefficients are its values
+at the two ends. The interval is halved repeatedly by the algorithm of de Casteljau, and
+a subinterval is set aside once its largest coefficient exceeds the largest value found
+by at most 1e-12. The largest coefficient of the subintervals set aside, reported as
+\code{bound}, is an upper bound of the type I error rate at every value of \code{theta}
+in the interval, up to rounding error. With \code{maximize = 'refined'} the three
+largest local maxima on the grid are refined, which finds the maximum when the grid
+separates the local maxima, and with \code{maximize = 'grid'} the largest value on the
+grid is reported.
 
 With a non-inferiority \code{margin} the null hypothesis is \code{p1 - p2 <= -margin},
 or \code{p1 - p2 >= margin} for \code{alternative = 'less'}, and the type I error rate

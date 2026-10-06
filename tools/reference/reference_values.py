@@ -741,6 +741,129 @@ def block_grid():
     emit(f, "p.plan standard r = 2 N1 N2", [math.ceil(2 * n2s), n2s], rtol=0)
 
 
+# ---------------------------------------------------------------------------------------
+# Certified maxima of the type I error rate over an interval of theta (item C)
+def interim_hyper(sizes, n11, n12):
+    """For each pair of final sizes (N1, N2), the matrix H with H[X1, X2] the sum, over the
+    interim cells (x11, x12) leading to (N1, N2), of P(x11 | X1) P(x12 | X2). Given the
+    final responder count X1 of N1 patients, the count among the first n11 is
+    hypergeometric, so the rejection probability of the design is
+    sum over (N1, N2) of sum_{X1, X2} R[X1, X2] H[X1, X2] b(X1; N1, p1) b(X2; N2, p2)."""
+    groups = {}
+    for s, NN in sizes.items():
+        groups.setdefault(NN, []).append(s)
+    out = []
+    for (N1, N2), ss in sorted(groups.items()):
+        H = np.zeros((N1 + 1, N2 + 1))
+        X1, X2 = np.arange(N1 + 1), np.arange(N2 + 1)
+        for s in ss:
+            for x11 in range(max(0, s - n12), min(n11, s) + 1):
+                H += np.outer(hypergeom.pmf(x11, N1, n11, X1), hypergeom.pmf(s - x11, N2, n12, X2))
+        out.append((N1, N2, H))
+    return out
+
+
+def tie_coefficients(hyper, rej, a1=0.0, c1=1.0, a2=0.0, c2=1.0):
+    """Bernstein coefficients in t of the rejection probability when p1 = a1 (1 - t) + c1 t
+    and p2 = a2 (1 - t) + c2 t. b(X; N, a (1 - t) + c t) = sum_j M[X, j] B_{j,N}(t), where
+    column j of M is the distribution of Bin(N - j, a) + Bin(j, c); the product of the
+    bases of degrees N1 and N2 is a basis of degree N1 + N2 with the factor
+    hyper(j; N1 + N2, N1, j + l); every degree is raised to the largest by the matrix of
+    hypergeometric probabilities."""
+    def conv(N, a, c):
+        M = np.zeros((N + 1, N + 1))
+        for j in range(N + 1):
+            M[:, j] = np.convolve(binom.pmf(np.arange(N - j + 1), N - j, a),
+                                  binom.pmf(np.arange(j + 1), j, c))
+        return M
+    Nmax = max(N1 + N2 for N1, N2, _ in hyper)
+    b = np.zeros(Nmax + 1)
+    for N1, N2, H in hyper:
+        D = conv(N1, a1, c1).T @ (rej(N1, N2) * H) @ conv(N2, a2, c2)
+        N = N1 + N2
+        h = np.zeros(N + 1)
+        for j in range(N1 + 1):
+            h[j:j + N2 + 1] += D[j] * hypergeom.pmf(j, N, N1, j + np.arange(N2 + 1))
+        E = hypergeom.pmf(np.arange(N + 1)[None, :], Nmax, N, np.arange(Nmax + 1)[:, None])
+        b += E @ h
+    return b
+
+
+def bernstein_value(b, t):
+    return float(binom.pmf(np.arange(len(b)), len(b) - 1, t) @ b)
+
+
+def checked_max(b, a=0.0, c=1.0):
+    """Certified maximum over [a, c], compared with a grid of 2001 points refined by a
+    bounded optimization around its three largest local maxima."""
+    best, bound = certified_max(b, a, c)
+    assert 0 <= bound - best < 1e-12, (best, bound)
+    g = np.linspace(a, c, 2001)
+    v = np.array([bernstein_value(b, t) for t in g])
+    pk = [i for i in range(len(g)) if (i == 0 or v[i] >= v[i - 1]) and (i == len(g) - 1 or v[i] >= v[i + 1])]
+    ref = v.max()
+    for i in sorted(pk, key=lambda i: -v[i])[:3]:
+        o = minimize_scalar(lambda t: -bernstein_value(b, t), method="bounded",
+                            bounds=(g[max(0, i - 1)], g[min(len(g) - 1, i + 1)]),
+                            options={"xatol": 1e-12})
+        ref = max(ref, -o.fun)
+    assert abs(best - ref) < 1e-12, (best, ref)
+    return best
+
+
+def block_certified():
+    f = "test-BinaryTypeIErrorBSSR.R"
+    # Design of block_type1: Delta.A = 0.3, N1 = N2 = 39, interim 20 + 20, chi-squared
+    sizes = final_sizes_rd(0.3, 1, 20, 20, 0.025, 0.8, "Chisq", "greater", "standard")
+    hyp = {"BSSR": interim_hyper(sizes, 20, 20), "TRAD": interim_hyper({0: (39, 39)}, 0, 0)}
+    chisq = lambda a: (lambda N1, N2: reject(N1, N2, "Chisq", "greater", a))
+    coef = {d: tie_coefficients(hyp[d], chisq(0.025)) for d in hyp}
+    # The coefficients reproduce the direct sums at two values of theta
+    for t in (0.2, 0.47):
+        assert abs(bernstein_value(coef["BSSR"], t)
+                   - bssr_reject_prob(sizes, 20, 20, t, t, "Chisq", "greater", 0.025)) < 1e-14
+        assert abs(bernstein_value(coef["TRAD"], t) - power(t, t, 39, 39, "Chisq", "greater", 0.025)) < 1e-14
+    emit(f, "certified max", [checked_max(coef[d]) for d in ("BSSR", "TRAD")])
+    # On a sub-interval, by de Casteljau subdivision of the coefficients on [0, 1]
+    emit(f, "certified max on [0.15, 0.85]", [checked_max(coef[d], 0.15, 0.85) for d in ("BSSR", "TRAD")])
+    # Boundary p1 = theta - 0.1, p2 = theta + 0.1 of the non-inferiority design of block_ni,
+    # over its whole range [0.1, 0.9]: t = (theta - 0.1) / 0.8, p1 from 0 to 0.8 and p2
+    # from 0.2 to 1
+    _, _, ni_sizes = ni_bssr(30, 30, 1, 0, 0.2, 0.025, 0.8, "FM", "standard", 0.4, 0.4)
+    fm = lambda N1, N2: ni_reject(N1, N2, "FM", 0.2, 0.025)
+    ni = {"BSSR": tie_coefficients(interim_hyper(ni_sizes, 30, 30), fm, 0.0, 0.8, 0.2, 1.0),
+          "TRAD": tie_coefficients(interim_hyper({0: (54, 54)}, 0, 0), fm, 0.0, 0.8, 0.2, 1.0)}
+    for th in (0.3, 0.5, 0.7):
+        t = (th - 0.1) / 0.8
+        a, b = th - 0.1, th + 0.1
+        assert abs(bernstein_value(ni["BSSR"], t)
+                   - ni_bssr(30, 30, 1, 0, 0.2, 0.025, 0.8, "FM", "standard", a, b)[0]) < 1e-14
+        assert abs(bernstein_value(ni["TRAD"], t) - ni_power(a, b, 54, 54, "FM", 0.2, 0.025)) < 1e-14
+    emit(f, "non-inferiority certified max", [checked_max(ni[d]) for d in ("BSSR", "TRAD")])
+
+    # Adjusted levels with every decision certified over [0.1, 0.9]
+    f = "test-BinaryAlphaAdjBSSR.R"
+    lev, mx = [], []
+    for d in ("BSSR", "TRAD"):
+        cert = lambda a: certified_max(tie_coefficients(hyp[d], chisq(a)), 0.1, 0.9)
+        lo, hi = 0.0, 0.025
+        m = cert(0.025)
+        if m[1] > 0.025:
+            while hi - lo > 1e-10 * 0.025:
+                mid = (lo + hi) / 2
+                if cert(mid)[1] <= 0.025:
+                    lo = mid
+                else:
+                    hi = mid
+            m = cert(lo)
+        else:
+            lo = 0.025
+        lev.append(lo)
+        mx.append(m[0])
+    emit(f, "adjusted level on [0.1, 0.9]", lev, rtol=1e-7)
+    emit(f, "max at adjusted level on [0.1, 0.9]", mx, rtol=1e-7)
+
+
 if __name__ == "__main__":
     print("# test file\tkey\trelative tolerance\tvalues (15 significant digits)")
     block_split_pooled()
@@ -752,3 +875,4 @@ if __name__ == "__main__":
     block_crp()
     block_grid()
     block_blaker()
+    block_certified()

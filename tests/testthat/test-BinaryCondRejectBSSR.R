@@ -64,7 +64,7 @@ test_that("the type I error rate from CRP equals that of BinaryTypeIErrorBSSR", 
   for (cs in cases) {
     args <- c(cs, list(alpha = 0.025, tar.power = 0.8, ss.method = 'standard'))
     crp <- do.call(BinaryCondRejectBSSR, c(args, list(theta = theta)))
-    tie <- do.call(BinaryTypeIErrorBSSR, c(args, list(theta = theta, refine = FALSE)))
+    tie <- do.call(BinaryTypeIErrorBSSR, c(args, list(theta = theta, maximize = 'grid')))
     expect_equal(attr(crp, 'TIE')$TIE, tie$TIE.BSSR, tolerance = 1e-12)
     expect_identical(attr(crp, 'reestimation'), attr(tie, 'reestimation'))
   }

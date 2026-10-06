@@ -349,7 +349,7 @@ routes <- function(Test, alternative, Delta.A) {
                alpha = 0.025, tar.power = 0.8, Test = Test, alternative = alternative,
                ss.method = 'standard', theta = theta)
   crp <- do.call(BinaryCondRejectBSSR, args)
-  tie <- do.call(BinaryTypeIErrorBSSR, c(args, list(refine = FALSE)))
+  tie <- do.call(BinaryTypeIErrorBSSR, c(args, list(maximize = 'grid')))
   max(abs(attr(crp, 'TIE')$TIE - tie$TIE.BSSR))
 }
 data.frame(
@@ -375,7 +375,7 @@ k.grid <- seq(0.01, 0.99, by = 0.005)
 k.tie <- BinaryTypeIErrorBSSR(
   Delta.A = -0.30, N1 = 39, N2 = 39, n.interim = c(20, 20), r = 1, alpha = 0.025,
   tar.power = 0.8, Test = 'Chisq', alternative = 'less', ss.method = 'standard',
-  theta = k.grid[k.grid >= 0.15 - 1e-9 & k.grid <= 0.85 + 1e-9], refine = FALSE
+  theta = k.grid[k.grid >= 0.15 - 1e-9 & k.grid <= 0.85 + 1e-9], maximize = 'grid'
 )
 # Friede and Kieser (2004), Table I: control rate 0.2, alternative 0.2, equal groups and
 # an internal pilot study of 40 patients

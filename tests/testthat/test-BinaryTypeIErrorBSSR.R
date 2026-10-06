@@ -7,7 +7,7 @@ tie_args <- list(Delta.A = 0.3, N1 = 39, N2 = 39, n.interim = c(20, 20), r = 1,
 
 test_that("BinaryTypeIErrorBSSR agrees with an independent implementation on a grid", {
   theta <- seq(0.05, 0.95, by = 0.05)
-  res <- do.call(BinaryTypeIErrorBSSR, c(tie_args, list(theta = theta, refine = FALSE)))
+  res <- do.call(BinaryTypeIErrorBSSR, c(tie_args, list(theta = theta, maximize = 'grid')))
   expect_s3_class(res, 'bbssr_tie')
   expect_named(res, c('theta', 'p1', 'p2', 'TIE.BSSR', 'TIE.TRAD'))
   # Without a margin both groups share the response probability theta
@@ -31,17 +31,39 @@ test_that("BinaryTypeIErrorBSSR agrees with an independent implementation on a g
   expect_equal(res$TIE.TRAD, trad, tolerance = 1e-10)
   m <- attr(res, 'max')
   expect_equal(m$TIE, c(max(bssr), max(trad)), tolerance = 1e-10)
+  expect_true(all(is.na(m$bound)))
+  expect_equal(attr(res, 'maximize'), 'grid')
+  expect_null(attr(res, 'interval'))
 })
 
-test_that("the refined maxima agree with an independent implementation", {
+test_that("the certified maxima agree with an independent implementation", {
   res <- do.call(BinaryTypeIErrorBSSR, tie_args)
   m <- attr(res, 'max')
-  expect_equal(m$TIE, c(0.0272864324696431, 0.0293761105282989), tolerance = 1e-8)
+  expect_equal(attr(res, 'maximize'), 'certified')
+  expect_equal(attr(res, 'interval'), c(0, 1))
+  expect_equal(m$TIE, c(0.0272864324696176, 0.0293761105282982), tolerance = 1e-10)
+  expect_true(all(m$bound >= m$TIE & m$bound - m$TIE <= 1e-12))
   # Both curves are symmetric about 0.5, so the maximum may be reported at either twin
   expect_equal(pmin(m$theta, 1 - m$theta), c(0.4376846, 0.0935671), tolerance = 1e-4)
-  # The refined maximum is at least the largest grid value
+  # The certified maximum is at least the largest grid value
   expect_gte(m$TIE[1], max(res$TIE.BSSR))
   expect_gte(m$TIE[2], max(res$TIE.TRAD))
+  # The refinement of the largest local maxima on the grid finds the same values here
+  ref <- attr(do.call(BinaryTypeIErrorBSSR, c(tie_args, list(maximize = 'refined'))), 'max')
+  expect_equal(ref$TIE, c(0.0272864324696431, 0.0293761105282989), tolerance = 1e-8)
+  expect_true(all(is.na(ref$bound)))
+})
+
+test_that("the certified maximum covers the interval between the grid points", {
+  res <- do.call(BinaryTypeIErrorBSSR, c(tie_args, list(theta = c(0.15, 0.85))))
+  m <- attr(res, 'max')
+  expect_equal(attr(res, 'interval'), c(0.15, 0.85))
+  expect_equal(m$TIE, c(0.0272864324696353, 0.0267904681779775), tolerance = 1e-10)
+  expect_true(all(m$bound >= m$TIE & m$bound - m$TIE <= 1e-12))
+  # Both maxima lie between the two grid points, where the grid cannot see them
+  expect_true(all(m$theta > 0.15 & m$theta < 0.85))
+  expect_gt(m$TIE[1], max(res$TIE.BSSR))
+  expect_gt(m$TIE[2], max(res$TIE.TRAD))
 })
 
 test_that("the type I error rate equals the rejection probability of BinaryPowerBSSR", {
@@ -82,7 +104,7 @@ test_that("BinaryTypeIErrorBSSR evaluates the boundary of a non-inferiority hypo
     Delta.A = 0, N1 = 54, N2 = 54, n.interim = c(30, 30), r = 1, alpha = 0.025,
     tar.power = 0.8, Test = 'Farrington-Manning', ss.method = 'standard',
     rounding = 'nearest', margin = 0.2, theta = c(0.05, 0.3, 0.5, 0.7, 0.95),
-    refine = FALSE
+    maximize = 'grid'
   ))
   expect_gt(nrow(seen), 0)
   expect_true(all(seen$margin == 0.2))
@@ -96,6 +118,21 @@ test_that("BinaryTypeIErrorBSSR evaluates the boundary of a non-inferiority hypo
                  0.0229853663986697, 0.0263276781009502, 0.0258676571158216),
                tolerance = 1e-10)
   expect_equal(attr(tie, 'margin'), 0.2)
+})
+
+test_that("the largest type I error rate on a non-inferiority boundary is certified", {
+  tie <- BinaryTypeIErrorBSSR(
+    Delta.A = 0, N1 = 54, N2 = 54, n.interim = c(30, 30), r = 1, alpha = 0.025,
+    tar.power = 0.8, Test = 'Farrington-Manning', ss.method = 'standard',
+    rounding = 'nearest', margin = 0.2
+  )
+  # The default grid spans [0, 1], and the boundary p1 - p2 = -0.2 has theta in [0.1, 0.9]
+  expect_equal(attr(tie, 'interval'), c(0.1, 0.9))
+  expect_equal(range(tie$theta), c(0.1, 0.9))
+  m <- attr(tie, 'max')
+  # Reference values from tools/reference/reference_values.py
+  expect_equal(m$TIE, c(0.0263983576247002, 0.0281499487826859), tolerance = 1e-10)
+  expect_true(all(m$bound >= m$TIE & m$bound - m$TIE <= 1e-12))
 })
 
 test_that("BinaryTypeIErrorBSSR passes tsmethod to every rejection region", {

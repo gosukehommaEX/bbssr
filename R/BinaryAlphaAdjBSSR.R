@@ -17,6 +17,10 @@
 #'   \code{alpha}. Default is \code{1e-8}
 #' @param step Decrement of the level in the search used when \code{adjust = 'both'}.
 #'   Default is \code{1e-5}
+#' @param maximize How the largest type I error rate at a level is located, as in
+#'   \code{\link{BinaryTypeIErrorBSSR}}. With \code{'certified'} (default) the adjusted
+#'   level controls the type I error rate over the whole interval from the smallest to the
+#'   largest value of \code{theta}, see Details
 #'
 #' @return An object of class \code{bbssr_alphaadj}, a data frame with one row for the
 #'   BSSR design and one for the fixed-sample design containing:
@@ -28,6 +32,10 @@
 #'   \item{max.TIE.adj}{Largest type I error rate at the adjusted level}
 #'   \item{theta.adj}{Common response probability, or pooled response probability on the
 #'     null boundary, at which \code{max.TIE.adj} occurs}
+#'   \item{max.TIE.bound}{Upper bound of the type I error rate at the nominal level with
+#'     \code{maximize = 'certified'}, otherwise \code{NA}}
+#'   \item{max.TIE.adj.bound}{Upper bound of the type I error rate at the adjusted level
+#'     with \code{maximize = 'certified'}, otherwise \code{NA}}
 #' }
 #'
 #' @details
@@ -49,11 +57,22 @@
 #' size at every step and can take much longer than the bisection. The fixed-sample design
 #' always uses the bisection, since its sample size does not depend on the level.
 #'
+#' With \code{maximize = 'certified'} the levels are assessed on the grid with the
+#' refinement of \code{maximize = 'refined'}, and the level found is then certified as in
+#' \code{\link{BinaryTypeIErrorBSSR}}: it is accepted only if the upper bound of the type I
+#' error rate over the interval from the smallest to the largest value of \code{theta}
+#' does not exceed \code{alpha}. If the bound exceeds \code{alpha}, the grid has missed
+#' the value of \code{theta} at which the level fails, and the search continues below
+#' that level. The bisection then certifies every level that passes the assessment on the
+#' grid, and the search of \code{adjust = 'both'} certifies every such level from the
+#' start. The adjusted level therefore controls the type I error rate over the whole
+#' interval.
+#'
 #' In both searches the type I error rate at a new level is first evaluated at the single
-#' grid point where the largest rate of the last level that failed was found. If it
-#' exceeds \code{alpha} there, the level fails without the evaluation over the whole grid
-#' and the refinement. The largest rate over \code{theta} is never below the rate at a
-#' grid point, so every decision, and hence the result, is that of the full evaluation.
+#' value of \code{theta} where the largest rate of the last level that failed was found.
+#' If it exceeds \code{alpha} there, the level fails without the evaluation over the whole
+#' grid. The largest rate over \code{theta} is never below the rate at any one value, so
+#' every decision, and hence the result, is that of the full evaluation.
 #'
 #' @references
 #' Kieser M, Friede T (2000). Re-calculating the sample size in internal pilot study
@@ -88,7 +107,8 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
                                ss.Test = Test, ss.alpha = alpha,
                                rounding = c('group', 'friede-kieser', 'total', 'nearest'),
                                N.min = NULL, N.max = NULL, n.interim = NULL,
-                               theta = seq(0.005, 0.995, by = 0.005),
+                               theta = seq(0, 1, by = 0.005),
+                               maximize = c('certified', 'refined', 'grid'),
                                adjust = c('test', 'both'), tol = 1e-8, step = 1e-5,
                                margin = 0, ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
@@ -97,6 +117,7 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   ss.method <- match.arg(ss.method)
   rounding <- match.arg(rounding)
   adjust <- match.arg(adjust)
+  maximize <- match.arg(maximize)
   if (length(theta) < 1 || anyNA(theta) || any(theta < 0 | theta > 1)) {
     stop('theta must be a vector of values in [0, 1]')
   }
@@ -113,6 +134,8 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   if (!any(ok)) {
     stop('no value of theta gives response probabilities in [0, 1] on the null boundary')
   }
+  # Interval over which the largest rate is certified
+  interval <- null_range(theta, r, alternative, margin)
   theta <- theta[ok]
   # p-values of a rejection region, from which the region at any level follows
   pvalues <- function(n1, n2) {
@@ -121,55 +144,54 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
     get_pvalue(a$N1, a$N2, a$Test, alternative, tsmethod, a$n.grid, bb.gamma,
                a$ref.pvalue, a$margin)
   }
-  # Largest type I error rate over theta of a design whose rejection regions are given.
-  # With a probe, the index of a grid point, the rate is first evaluated there, and a
-  # value above alpha is returned at once: the largest rate is at least this value, so the
-  # level fails either way. Otherwise the grid is evaluated in full, and the grid point of
-  # the largest rate is returned as the next probe
-  max_tie <- function(f, probe = NULL) {
+  # A design at a given level is a list with its type I error rate f as a function of
+  # theta, its interim setup and its rejection regions. max_tie returns the largest rate
+  # over the grid, refined between the grid points unless maximize = 'grid'. With a probe,
+  # a value of theta, the rate is first evaluated there, and a value above alpha is
+  # returned at once: the largest rate is at least this value, so the level fails either
+  # way
+  max_tie <- function(des, probe = NULL) {
     if (!is.null(probe)) {
-      v <- f(theta[probe])
-      if (isTRUE(v > alpha)) return(list(x = theta[probe], y = v, probe = probe))
+      v <- des$f(probe)
+      if (isTRUE(v > alpha)) return(list(x = probe, y = v, bound = NA_real_))
     }
-    y <- f(theta)
-    m <- refine_max(f, theta, y)
-    m$probe <- which.max(y)
+    y <- des$f(theta)
+    m <- if (maximize == 'grid') {
+      list(x = theta[which.max(y)], y = max(y))
+    } else {
+      refine_max(des$f, theta, y)
+    }
+    m$bound <- NA_real_
     m
   }
-  # Bisection over the level for designs whose sample sizes do not depend on the level
-  bisect <- function(make_f) {
-    m <- max_tie(make_f(alpha))
-    m0 <- m
-    if (m$y <= alpha) return(list(level = alpha, m0 = m0, m = m))
-    probe <- m$probe
-    lo <- 0
-    hi <- alpha
-    m.lo <- list(x = NA_real_, y = 0)
-    while (hi - lo > tol * alpha) {
-      mid <- (lo + hi) / 2
-      m <- max_tie(make_f(mid), probe)
-      if (m$y <= alpha) {
-        lo <- mid
-        m.lo <- m
-      } else {
-        hi <- mid
-        probe <- m$probe
+  # Certified maximum over the interval, combined with the result m of max_tie
+  certify <- if (maximize == 'certified') {
+    function(des, m) {
+      cm <- tie_certify(tie_weights(des$setup, des$rr.list), interval, r, alternative,
+                        margin)
+      if (cm$y > m$y) {
+        m$x <- cm$x
+        m$y <- cm$y
       }
+      m$bound <- max(cm$bound, m$y)
+      m
     }
-    list(level = lo, m0 = m0, m = m.lo)
   }
-  # Fixed-sample design
+  passes <- function(m) m$y <= alpha && (is.na(m$bound) || m$bound <= alpha)
+  # Fixed-sample design, a design without an interim stage
   pv.fixed <- pvalues(N1, N2)
+  setup.fixed <- fixed_setup(N1, N2)
   make_trad <- function(level) {
     rr <- pv.fixed %<<% level
-    function(t) {
+    f <- function(t) {
       b <- null_boundary(t, r, alternative, margin)
       vapply(seq_along(t), function(i) {
         power_from_rr(rr, dbinom(0:N1, N1, b$p1[i]), dbinom(0:N2, N2, b$p2[i]))
       }, numeric(1))
     }
+    list(f = f, setup = setup.fixed, rr.list = list(rr))
   }
-  res.trad <- bisect(make_trad)
+  res.trad <- bisect_level(make_trad, max_tie, certify, alpha, tol)
   # BSSR design
   design_at <- function(level.ss) {
     map <- bssr_map(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Test,
@@ -182,22 +204,30 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   }
   make_bssr <- function(d, level) {
     rr.list <- lapply(d$pv.list, function(m) m %<<% level)
-    function(t) {
+    f <- function(t) {
       b <- null_boundary(t, r, alternative, margin)
       bssr_reject(d$setup, rr.list, b$p1, b$p2)
     }
+    list(f = f, setup = d$setup, rr.list = rr.list)
   }
   if (adjust == 'test') {
     d <- design_at(ss.alpha)
-    res.bssr <- bisect(function(level) make_bssr(d, level))
+    res.bssr <- bisect_level(function(level) make_bssr(d, level), max_tie, certify, alpha,
+                             tol)
   } else {
+    # The nominal level is certified, and so is every lower level that passes the
+    # assessment on the grid
+    des <- make_bssr(design_at(alpha), alpha)
+    m0 <- max_tie(des)
+    if (!is.null(certify)) m0 <- certify(des, m0)
     level <- alpha
-    m0 <- max_tie(make_bssr(design_at(alpha), alpha))
     m <- m0
-    while (m$y > alpha) {
+    while (!passes(m)) {
       level <- level - step
       if (level <= 0) stop('no level above zero controls the type I error rate')
-      m <- max_tie(make_bssr(design_at(level), level), m$probe)
+      des <- make_bssr(design_at(level), level)
+      m <- max_tie(des, m$x)
+      if (!is.null(certify) && m$y <= alpha) m <- certify(des, m)
     }
     res.bssr <- list(level = level, m0 = m0, m = m)
   }
@@ -208,11 +238,15 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
     alpha.adj = c(res.bssr$level, res.trad$level),
     max.TIE.adj = c(res.bssr$m$y, res.trad$m$y),
     theta.adj = c(res.bssr$m$x, res.trad$m$x),
+    max.TIE.bound = c(res.bssr$m0$bound, res.trad$m0$bound),
+    max.TIE.adj.bound = c(res.bssr$m$bound, res.trad$m$bound),
     stringsAsFactors = FALSE
   )
   attr(out, 'Test') <- Test
   attr(out, 'alternative') <- alternative
   attr(out, 'adjust') <- adjust
+  attr(out, 'maximize') <- maximize
+  if (maximize == 'certified') attr(out, 'interval') <- interval
   attr(out, 'N1') <- N1
   attr(out, 'N2') <- N2
   attr(out, 'Delta.A') <- Delta.A

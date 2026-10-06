@@ -7,11 +7,34 @@ adj_args <- list(Delta.A = 0.3, N1 = 39, N2 = 39, n.interim = c(20, 20), r = 1,
 test_that("BinaryAlphaAdjBSSR agrees with an independent implementation", {
   res <- do.call(BinaryAlphaAdjBSSR, adj_args)
   expect_s3_class(res, 'bbssr_alphaadj')
+  expect_named(res, c('Design', 'alpha', 'max.TIE', 'alpha.adj', 'max.TIE.adj', 'theta.adj',
+                      'max.TIE.bound', 'max.TIE.adj.bound'))
   expect_equal(res$Design, c('BSSR', 'TRAD'))
   expect_equal(res$max.TIE, c(0.0272864324696431, 0.0293761105282989), tolerance = 1e-8)
   expect_equal(res$alpha.adj, c(0.0204375745496, 0.0207700483967), tolerance = 1e-7)
   expect_equal(res$max.TIE.adj, c(0.0237418455148, 0.0247660131242), tolerance = 1e-7)
   expect_true(all(res$max.TIE.adj <= 0.025))
+  # The maxima are certified over [0, 1], and the adjusted levels control their bounds
+  expect_equal(attr(res, 'interval'), c(0, 1))
+  expect_true(all(res$max.TIE.bound >= res$max.TIE &
+                    res$max.TIE.bound - res$max.TIE <= 1e-12))
+  expect_true(all(res$max.TIE.adj.bound <= 0.025))
+})
+
+test_that("the adjusted level is certified between the grid points", {
+  # With the grid points 0.1 and 0.9 alone the grid misses the largest rates, which the
+  # certification over [0.1, 0.9] finds. Reference values from
+  # tools/reference/reference_values.py, where every decision is certified
+  res <- do.call(BinaryAlphaAdjBSSR, c(adj_args, list(theta = c(0.1, 0.9))))
+  expect_equal(attr(res, 'interval'), c(0.1, 0.9))
+  expect_equal(res$alpha.adj, c(0.0204375745495781, 0.020770048405393), tolerance = 1e-7)
+  expect_equal(res$max.TIE.adj, c(0.0237418455147891, 0.0247660131242263), tolerance = 1e-7)
+  expect_true(all(res$max.TIE.adj.bound <= 0.025))
+  # On the grid alone the BSSR design appears to control the type I error rate
+  grid <- do.call(BinaryAlphaAdjBSSR,
+                  c(adj_args, list(theta = c(0.1, 0.9), maximize = 'grid')))
+  expect_equal(grid$alpha.adj[1], 0.025)
+  expect_true(all(is.na(grid$max.TIE.bound)))
 })
 
 test_that("a failing level is recognised at one grid point without the full evaluation", {

@@ -67,7 +67,8 @@ test_that("the initial sample sizes follow from p.plan", {
                         tar.power = 0.8, Test = 'Chisq')
   d <- attr(res, 'designs')
   # 40 per group from the exact search, and 60 and 30 from the normal approximation
-  expect_equal(c(d$N1, d$N2), c(40, 60, 40, 30))
+  expect_equal(c(d$N1[1], d$N2[1]), c(40, 40))
+  expect_equal(c(d$N1[2], d$N2[2]), c(60, 30))
   ss <- BinarySampleSize(0.55, 0.25, 1, 0.025, 0.8, 'Chisq')
   expect_identical(c(d$N1[1], d$N2[1]), c(ss$N1, ss$N2))
   ss <- BinarySampleSize(0.5, 0.2, 2, 0.025, 0.8, 'Chisq', method = 'standard')

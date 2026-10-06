@@ -147,7 +147,7 @@ k.grid <- seq(0.01, 0.99, by = 0.005)
 k.args <- list(Delta.A = -0.15, N1 = 157, N2 = 157, n.interim = c(79, 79), r = 1,
                alpha = 0.025, tar.power = 0.8, Test = 'Chisq', alternative = 'less',
                ss.method = 'standard', theta = k.grid)
-tie <- do.call(BinaryTypeIErrorBSSR, c(k.args, list(refine = FALSE)))
+tie <- do.call(BinaryTypeIErrorBSSR, c(k.args, list(maximize = 'grid')))
 write.csv(tie, file.path(out.dir, 'kieser-2020-level-delta015.csv'), row.names = FALSE)
 add('Kieser (2020)', 'Kieser 2020: fixed design, Delta = 0.15, maximum level', 0.0256,
     max(tie$TIE.TRAD), 4)
@@ -189,7 +189,7 @@ for (adj in c('test', 'both')) {
 # Same design with Delta = 0.30, n0 = 2 x 39 and a pilot of 40 patients
 k3 <- do.call(BinaryTypeIErrorBSSR,
               modifyList(k.args, list(Delta.A = -0.30, N1 = 39, N2 = 39,
-                                      n.interim = c(20, 20), refine = FALSE)))
+                                      n.interim = c(20, 20), maximize = 'grid')))
 write.csv(k3, file.path(out.dir, 'kieser-2020-level-delta030.csv'), row.names = FALSE)
 mid <- k.grid >= 0.15 - 1e-9 & k.grid <= 0.85 + 1e-9
 range.note <- 'Range of the overall rate not stated; recomputed over [0.15, 0.85]'

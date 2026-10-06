@@ -93,3 +93,8 @@ test-binary-rr.R	Boschloo blaker 14 x 7 certified sum	1e-10	37.7046195635696
 test-binary-rr.R	blaker 14 x 7 rejected at 0.05	0	38 44
 test-binary-power.R	Fisher two-sided 10 x 40 power at (0.5, 0.86)	1e-10	0.608054130818687 0.641394819757925 0.517056474695217
 test-binary-sample-size.R	Fisher two-sided r = 4 N2 blaker minlike central	0	12 11 14
+test-BinaryTypeIErrorBSSR.R	certified max	1e-10	0.0272864324696176 0.0293761105282982
+test-BinaryTypeIErrorBSSR.R	certified max on [0.15, 0.85]	1e-10	0.0272864324696353 0.0267904681779775
+test-BinaryTypeIErrorBSSR.R	non-inferiority certified max	1e-10	0.0263983576247002 0.0281499487826859
+test-BinaryAlphaAdjBSSR.R	adjusted level on [0.1, 0.9]	1e-07	0.0204375745495781 0.020770048405393
+test-BinaryAlphaAdjBSSR.R	max at adjusted level on [0.1, 0.9]	1e-07	0.0237418455147891 0.0247660131242263
