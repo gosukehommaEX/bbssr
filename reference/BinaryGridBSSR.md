@@ -45,8 +45,8 @@ BinaryGridBSSR(design, p, Delta.T = NULL, type1 = FALSE, verbose = FALSE, ...)
   Logical. If `TRUE`, the largest type I error rate of each design and
   of the corresponding fixed-sample design is added, as computed by
   [`BinaryTypeIErrorBSSR`](https://gosukehommaex.github.io/bbssr/reference/BinaryTypeIErrorBSSR.md)
-  with its default grid of `theta` and the refinement of the maxima. It
-  is taken over the common response probability, or over the boundary of
+  with its default grid of `theta` and the certified maximum. It is
+  taken over the common response probability, or over the boundary of
   the null hypothesis for a design with a non-inferiority margin.
   Default is `FALSE`
 
@@ -171,7 +171,7 @@ attr(grid, 'designs')
 #> 1      1     0.2    0.4 93 93         47         47     0.2 0.03034393
 #> 2      2     0.3    0.4 41 41         21         21     0.3 0.02633609
 #>   theta.BSSR   TIE.TRAD theta.TRAD
-#> 1 0.07944803 0.02614329  0.3513475
-#> 2 0.60019988 0.02990483  0.5000000
+#> 1 0.07944775 0.02614329   0.351347
+#> 2 0.39979935 0.02990483   0.500000
 # }
 ```

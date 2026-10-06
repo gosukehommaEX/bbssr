@@ -329,9 +329,9 @@ null <- BinaryTypeIErrorBSSR(
   alpha = 0.025, tar.power = 0.8, Test = 'Chisq', restricted = TRUE
 )
 attr(null, 'max')
-#>   Design     theta        TIE
-#> 1   BSSR 0.5000000 0.02712595
-#> 2   TRAD 0.3551553 0.02593481
+#>   Design     theta        TIE      bound
+#> 1   BSSR 0.5000000 0.02712595 0.02712595
+#> 2   TRAD 0.3551559 0.02593481 0.02593481
 ```
 
 The largest type I error rate is 0.02713 for the re-estimation design

@@ -436,12 +436,13 @@ tie
 #>   Interim size    : n1 = 12, n2 = 12
 #>   Assumed effect  : 0.36 (RD)
 #>   Nominal level   : 0.025
-#>   Grid            : 199 values of theta in [0.005, 0.995], maxima refined
+#>   Grid            : 201 values of theta in [0, 1]
+#>   Maximum         : certified over theta in [0, 1]
 #> 
 #> Largest type I error rate
 #>        Design    theta     TIE
-#>          BSSR 0.145957 0.02499
-#>  Fixed sample 0.646879 0.02203
+#>          BSSR 0.145958 0.02499
+#>  Fixed sample 0.646877 0.02203
 ```
 
 The `bbssr-type1-error` vignette explains this output and shows how

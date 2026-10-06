@@ -46,7 +46,8 @@ print(tie)
 #>   Interim size    : n1 = 10, n2 = 10
 #>   Assumed effect  : 0.3 (RD)
 #>   Nominal level   : 0.025
-#>   Grid            : 19 values of theta in [0.05, 0.95], maxima refined
+#>   Grid            : 19 values of theta in [0.05, 0.95]
+#>   Maximum         : certified over theta in [0.05, 0.95]
 #> 
 #> Largest type I error rate
 #>        Design    theta     TIE

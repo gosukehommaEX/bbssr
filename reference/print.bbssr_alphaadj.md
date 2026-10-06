@@ -43,6 +43,7 @@ print(adj)
 #>   Test            : Chisq
 #>   Alternative     : greater
 #>   Adjusted part   : final analysis only
+#>   Maximum         : certified over theta in [0.01, 0.99]
 #>   Target level    : 0.025
 #> 
 #>        Design   max.TIE alpha.adj max.TIE.adj

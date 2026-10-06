@@ -380,9 +380,9 @@ does not have to be read off a grid.</p>
 <span>  alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Chisq'</span>, restricted <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">null</span>, <span class="st">'max'</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   Design     theta        TIE</span></span>
-<span><span class="co">#&gt; 1   BSSR 0.5000000 0.02712595</span></span>
-<span><span class="co">#&gt; 2   TRAD 0.3551553 0.02593481</span></span></code></pre></div>
+<span><span class="co">#&gt;   Design     theta        TIE      bound</span></span>
+<span><span class="co">#&gt; 1   BSSR 0.5000000 0.02712595 0.02712595</span></span>
+<span><span class="co">#&gt; 2   TRAD 0.3551559 0.02593481 0.02593481</span></span></code></pre></div>
 <p>The largest type I error rate is 0.02713 for the re-estimation design
 and 0.02593 for the fixed-sample design, against the nominal 0.025. Two
 separate sources contribute. The chi-squared test is not exact, so the

@@ -349,18 +349,18 @@ microbenchmark::microbenchmark(
   unit = 'ms'
 )
 #> Unit: milliseconds
-#>                   expr      min       lq      mean   median       uq      max
-#>                  Chisq 0.153789 0.165056 0.1720847 0.174390 0.179508 0.182592
-#>                 Fisher 1.437023 1.451694 1.4817981 1.475600 1.487247 1.591352
-#>                 Z-pool 2.244005 2.262813 2.3030411 2.282853 2.347510 2.420378
-#>               Boschloo 3.624283 3.657091 3.6998855 3.710271 3.732785 3.755889
-#>  Boschloo, Berger-Boos 7.859537 7.942560 8.0275239 7.968684 8.014007 8.505950
-#>  neval
-#>     10
-#>     10
-#>     10
-#>     10
-#>     10
+#>                   expr      min        lq       mean    median        uq
+#>                  Chisq 0.221039  0.232667  0.2420672  0.245580  0.252276
+#>                 Fisher 1.823163  1.856483  1.8876039  1.887844  1.916752
+#>                 Z-pool 2.979714  2.996399  3.0170215  3.012838  3.028046
+#>               Boschloo 4.746333  4.766523  4.8284642  4.799197  4.832211
+#>  Boschloo, Berger-Boos 9.972070 10.031208 10.0979407 10.046886 10.079529
+#>        max neval
+#>   0.258685    10
+#>   1.981609    10
+#>   3.084400    10
+#>   5.092168    10
+#>  10.556479    10
 options(old)
 ```
 
@@ -391,11 +391,11 @@ microbenchmark::microbenchmark(
 )
 #> Unit: milliseconds
 #>              expr        min         lq       mean     median         uq
-#>  bbssr.whole.grid   1.102513   1.317464   1.841525   1.329622   1.845241
-#>     Exact.one.row 149.962481 151.246536 160.333876 152.445312 155.718953
+#>  bbssr.whole.grid   1.609876   1.642905   2.284762   1.709544   2.092814
+#>     Exact.one.row 199.909924 201.677093 201.633805 201.960315 202.249936
 #>         max neval
-#>    3.612786     5
-#>  192.296099     5
+#>    4.368671     5
+#>  202.371758     5
 options(old)
 ```
 
@@ -465,7 +465,7 @@ routes <- function(Test, alternative, Delta.A) {
                alpha = 0.025, tar.power = 0.8, Test = Test, alternative = alternative,
                ss.method = 'standard', theta = theta)
   crp <- do.call(BinaryCondRejectBSSR, args)
-  tie <- do.call(BinaryTypeIErrorBSSR, c(args, list(refine = FALSE)))
+  tie <- do.call(BinaryTypeIErrorBSSR, c(args, list(maximize = 'grid')))
   max(abs(attr(crp, 'TIE')$TIE - tie$TIE.BSSR))
 }
 data.frame(
@@ -507,7 +507,7 @@ k.grid <- seq(0.01, 0.99, by = 0.005)
 k.tie <- BinaryTypeIErrorBSSR(
   Delta.A = -0.30, N1 = 39, N2 = 39, n.interim = c(20, 20), r = 1, alpha = 0.025,
   tar.power = 0.8, Test = 'Chisq', alternative = 'less', ss.method = 'standard',
-  theta = k.grid[k.grid >= 0.15 - 1e-9 & k.grid <= 0.85 + 1e-9], refine = FALSE
+  theta = k.grid[k.grid >= 0.15 - 1e-9 & k.grid <= 0.85 + 1e-9], maximize = 'grid'
 )
 # Friede and Kieser (2004), Table I: control rate 0.2, alternative 0.2, equal groups and
 # an internal pilot study of 40 patients

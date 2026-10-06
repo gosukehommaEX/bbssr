@@ -32,8 +32,8 @@ BinaryTypeIErrorBSSR(
   N.min = NULL,
   N.max = NULL,
   n.interim = NULL,
-  theta = seq(0.005, 0.995, by = 0.005),
-  refine = TRUE,
+  theta = seq(0, 1, by = 0.005),
+  maximize = c("certified", "refined", "grid"),
   margin = 0,
   ref.pvalue = FALSE
 )
@@ -155,16 +155,19 @@ BinaryTypeIErrorBSSR(
 - theta:
 
   Grid of common response probabilities at which the type I error rate
-  is evaluated. Default is `seq(0.005, 0.995, by = 0.005)`. With a
-  non-zero `margin`, `theta` is the pooled response probability
+  is evaluated. Default is `seq(0, 1, by = 0.005)`. With a non-zero
+  `margin`, `theta` is the pooled response probability
   `(r p1 + p2) / (1 + r)` on the boundary of the null hypothesis, see
   Details
 
-- refine:
+- maximize:
 
-  Logical. If `TRUE` (default), the largest local maxima on the grid are
-  refined by a one-dimensional optimization between the neighbouring
-  grid points
+  How the largest type I error rate is located. `'certified'` (default)
+  finds it over the whole interval from the smallest to the largest
+  value of `theta`, together with an upper bound, see Details.
+  `'refined'` refines the largest local maxima on the grid by a
+  one-dimensional optimization between the neighbouring grid points, and
+  `'grid'` takes the largest value on the grid
 
 - margin:
 
@@ -215,9 +218,11 @@ An object of class `bbssr_tie`, a data frame with one row per element of
   and `N2`
 
 The attribute `max` is a data frame with the largest type I error rate
-of each design and the common response probability at which it occurs,
-and the attribute `reestimation` holds the final sample size for every
-pooled number of interim responders.
+`TIE` of each design, the common response probability `theta` at which
+it occurs and, with `maximize = 'certified'`, the upper bound `bound` of
+the type I error rate over the interval given by the attribute
+`interval` (otherwise `NA`). The attribute `reestimation` holds the
+final sample size for every pooled number of interim responders.
 
 ## Details
 
@@ -231,10 +236,23 @@ this property is not inherited by a design in which the final sample
 size depends on the interim data, so the rate is worth checking for
 every design.
 
-The type I error rate is a polynomial in `theta`. With `refine = TRUE`
-the three largest local maxima on the grid are refined, so the reported
-maximum does not depend on the spacing of the grid as long as the grid
-separates the local maxima.
+The type I error rate is a polynomial in `theta`, since both response
+probabilities are linear in `theta`. With `maximize = 'certified'` the
+polynomial is expressed in the Bernstein basis over the interval from
+the smallest to the largest value of `theta`, restricted with a margin
+to the values at which both response probabilities lie in the unit
+interval. The basis polynomials are non-negative and sum to one, so on
+any subinterval the polynomial does not exceed its largest Bernstein
+coefficient there, and its first and last coefficients are its values at
+the two ends. The interval is halved repeatedly by the algorithm of de
+Casteljau, and a subinterval is set aside once its largest coefficient
+exceeds the largest value found by at most 1e-12. The largest
+coefficient of the subintervals set aside, reported as `bound`, is an
+upper bound of the type I error rate at every value of `theta` in the
+interval, up to rounding error. With `maximize = 'refined'` the three
+largest local maxima on the grid are refined, which finds the maximum
+when the grid separates the local maxima, and with `maximize = 'grid'`
+the largest value on the grid is reported.
 
 With a non-inferiority `margin` the null hypothesis is
 `p1 - p2 <= -margin`, or `p1 - p2 >= margin` for `alternative = 'less'`,
@@ -282,7 +300,8 @@ print(tie)
 #>   Interim size    : n1 = 10, n2 = 10
 #>   Assumed effect  : 0.3 (RD)
 #>   Nominal level   : 0.025
-#>   Grid            : 19 values of theta in [0.05, 0.95], maxima refined
+#>   Grid            : 19 values of theta in [0.05, 0.95]
+#>   Maximum         : certified over theta in [0.05, 0.95]
 #> 
 #> Largest type I error rate
 #>        Design    theta     TIE
@@ -295,9 +314,9 @@ tie <- BinaryTypeIErrorBSSR(
   alpha = 0.025, tar.power = 0.8, Test = 'Boschloo'
 )
 attr(tie, 'max')
-#>   Design     theta        TIE
-#> 1   BSSR 0.6261275 0.02345985
-#> 2   TRAD 0.5456665 0.02476601
+#>   Design     theta        TIE      bound
+#> 1   BSSR 0.6261292 0.02345985 0.02345985
+#> 2   TRAD 0.4543343 0.02476601 0.02476601
 plot(tie)
 
 # }

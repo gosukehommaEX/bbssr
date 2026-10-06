@@ -89,8 +89,8 @@ each.</p>
 <span>  N.min <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N.max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n.interim <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.005</span>, <span class="fl">0.995</span>, by <span class="op">=</span> <span class="fl">0.005</span><span class="op">)</span>,</span>
-<span>  refine <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, by <span class="op">=</span> <span class="fl">0.005</span><span class="op">)</span>,</span>
+<span>  maximize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"certified"</span>, <span class="st">"refined"</span>, <span class="st">"grid"</span><span class="op">)</span>,</span>
 <span>  margin <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  ref.pvalue <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -212,14 +212,17 @@ two. An alternative to <code>omega</code></p></dd>
 
 <dt id="arg-theta">theta<a class="anchor" aria-label="anchor" href="#arg-theta"></a></dt>
 <dd><p>Grid of common response probabilities at which the type I error rate is
-evaluated. Default is <code>seq(0.005, 0.995, by = 0.005)</code>. With a non-zero
+evaluated. Default is <code>seq(0, 1, by = 0.005)</code>. With a non-zero
 <code>margin</code>, <code>theta</code> is the pooled response probability
 <code>(r p1 + p2) / (1 + r)</code> on the boundary of the null hypothesis, see Details</p></dd>
 
 
-<dt id="arg-refine">refine<a class="anchor" aria-label="anchor" href="#arg-refine"></a></dt>
-<dd><p>Logical. If <code>TRUE</code> (default), the largest local maxima on the grid
-are refined by a one-dimensional optimization between the neighbouring grid points</p></dd>
+<dt id="arg-maximize">maximize<a class="anchor" aria-label="anchor" href="#arg-maximize"></a></dt>
+<dd><p>How the largest type I error rate is located. <code>'certified'</code>
+(default) finds it over the whole interval from the smallest to the largest value of
+<code>theta</code>, together with an upper bound, see Details. <code>'refined'</code> refines the
+largest local maxima on the grid by a one-dimensional optimization between the
+neighbouring grid points, and <code>'grid'</code> takes the largest value on the grid</p></dd>
 
 
 <dt id="arg-margin">margin<a class="anchor" aria-label="anchor" href="#arg-margin"></a></dt>
@@ -262,10 +265,12 @@ probability on the null boundary</p></dd>
 <code>N1</code> and <code>N2</code></p></dd>
 
 
-</dl><p>The attribute <code>max</code> is a data frame with the largest type I error rate of each
-design and the common response probability at which it occurs, and the attribute
-<code>reestimation</code> holds the final sample size for every pooled number of interim
-responders.</p>
+</dl><p>The attribute <code>max</code> is a data frame with the largest type I error rate <code>TIE</code>
+of each design, the common response probability <code>theta</code> at which it occurs and,
+with <code>maximize = 'certified'</code>, the upper bound <code>bound</code> of the type I error
+rate over the interval given by the attribute <code>interval</code> (otherwise <code>NA</code>).
+The attribute <code>reestimation</code> holds the final sample size for every pooled number
+of interim responders.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -276,9 +281,21 @@ interim outcome and every outcome of the second stage. Exact tests control the t
 error rate of a fixed-sample design, but this property is not inherited by a design in
 which the final sample size depends on the interim data, so the rate is worth checking
 for every design.</p>
-<p>The type I error rate is a polynomial in <code>theta</code>. With <code>refine = TRUE</code> the
-three largest local maxima on the grid are refined, so the reported maximum does not
-depend on the spacing of the grid as long as the grid separates the local maxima.</p>
+<p>The type I error rate is a polynomial in <code>theta</code>, since both response
+probabilities are linear in <code>theta</code>. With <code>maximize = 'certified'</code> the
+polynomial is expressed in the Bernstein basis over the interval from the smallest to
+the largest value of <code>theta</code>, restricted with a margin to the values at which both
+response probabilities lie in the unit interval. The basis polynomials are
+non-negative and sum to one, so on any subinterval the polynomial does not exceed its
+largest Bernstein coefficient there, and its first and last coefficients are its values
+at the two ends. The interval is halved repeatedly by the algorithm of de Casteljau, and
+a subinterval is set aside once its largest coefficient exceeds the largest value found
+by at most 1e-12. The largest coefficient of the subintervals set aside, reported as
+<code>bound</code>, is an upper bound of the type I error rate at every value of <code>theta</code>
+in the interval, up to rounding error. With <code>maximize = 'refined'</code> the three
+largest local maxima on the grid are refined, which finds the maximum when the grid
+separates the local maxima, and with <code>maximize = 'grid'</code> the largest value on the
+grid is reported.</p>
 <p>With a non-inferiority <code>margin</code> the null hypothesis is <code>p1 - p2 &lt;= -margin</code>,
 or <code>p1 - p2 &gt;= margin</code> for <code>alternative = 'less'</code>, and the type I error rate
 is evaluated on its boundary, as in Friede et al. (2007). The boundary is parametrized
@@ -320,7 +337,8 @@ non-inferiority trials with binary endpoints. <em>Biometrical Journal</em>, 49(6
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Interim size    : n1 = 10, n2 = 10</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Assumed effect  : 0.3 (RD)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Nominal level   : 0.025</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Grid            : 19 values of theta in [0.05, 0.95], maxima refined</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Grid            : 19 values of theta in [0.05, 0.95]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Maximum         : certified over theta in [0.05, 0.95]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Largest type I error rate</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        Design    theta     TIE</span>
@@ -333,9 +351,9 @@ non-inferiority trials with binary endpoints. <em>Biometrical Journal</em>, 49(6
 <span class="r-in"><span>  alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Boschloo'</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">tie</span>, <span class="st">'max'</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Design     theta        TIE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1   BSSR 0.6261275 0.02345985</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2   TRAD 0.5456665 0.02476601</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Design     theta        TIE      bound</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   BSSR 0.6261292 0.02345985 0.02345985</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   TRAD 0.4543343 0.02476601 0.02476601</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tie</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="BinaryTypeIErrorBSSR-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>

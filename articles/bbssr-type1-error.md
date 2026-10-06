@@ -55,18 +55,19 @@ tie
 #>   Interim size    : n1 = 20, n2 = 20
 #>   Assumed effect  : 0.3 (RD)
 #>   Nominal level   : 0.025
-#>   Grid            : 199 values of theta in [0.005, 0.995], maxima refined
+#>   Grid            : 201 values of theta in [0, 1]
+#>   Maximum         : certified over theta in [0, 1]
 #> 
 #> Largest type I error rate
 #>        Design     theta     TIE
-#>          BSSR 0.5623150 0.02729
-#>  Fixed sample 0.0935671 0.02938
+#>          BSSR 0.4376830 0.02729
+#>  Fixed sample 0.0935669 0.02938
 plot(tie)
 ```
 
 ![](bbssr-type1-error_files/figure-html/tie-1.png)
 
-The largest type I error rate is 0.02729 at $`\theta =`$ 0.5623 for the
+The largest type I error rate is 0.02729 at $`\theta =`$ 0.4377 for the
 re-estimation design and 0.02938 at $`\theta =`$ 0.09357 for the
 fixed-sample design. The chi-squared test is not exact, so the
 fixed-sample design can already exceed the nominal level, and the
@@ -86,10 +87,10 @@ exact.max <- do.call(rbind, lapply(c('Fisher', 'Boschloo'), function(tst) {
 }))
 exact.max
 #>       Test Design  theta     TIE
-#> 1   Fisher   BSSR 0.5259 0.01573
+#> 1   Fisher   BSSR 0.4741 0.01573
 #> 2   Fisher   TRAD 0.5000 0.01540
 #> 3 Boschloo   BSSR 0.3726 0.02312
-#> 4 Boschloo   TRAD 0.5457 0.02477
+#> 4 Boschloo   TRAD 0.4543 0.02477
 ```
 
 For this rule the largest rate of the re-estimation design is 0.01573
@@ -124,6 +125,7 @@ adj
 #>   Test            : Chisq
 #>   Alternative     : greater
 #>   Adjusted part   : final analysis only
+#>   Maximum         : certified over theta in [0.01, 0.99]
 #>   Target level    : 0.025
 #> 
 #>        Design   max.TIE alpha.adj max.TIE.adj
@@ -147,6 +149,7 @@ adj.both
 #>   Test            : Chisq
 #>   Alternative     : greater
 #>   Adjusted part   : final analysis and re-estimation
+#>   Maximum         : certified over theta in [0.01, 0.99]
 #>   Target level    : 0.025
 #> 
 #>        Design   max.TIE alpha.adj max.TIE.adj

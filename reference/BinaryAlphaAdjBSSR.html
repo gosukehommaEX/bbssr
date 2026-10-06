@@ -86,7 +86,8 @@ with the corresponding level of the fixed-sample design.</p>
 <span>  N.min <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N.max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n.interim <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.005</span>, <span class="fl">0.995</span>, by <span class="op">=</span> <span class="fl">0.005</span><span class="op">)</span>,</span>
+<span>  theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, by <span class="op">=</span> <span class="fl">0.005</span><span class="op">)</span>,</span>
+<span>  maximize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"certified"</span>, <span class="st">"refined"</span>, <span class="st">"grid"</span><span class="op">)</span>,</span>
 <span>  adjust <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"test"</span>, <span class="st">"both"</span><span class="op">)</span>,</span>
 <span>  tol <span class="op">=</span> <span class="fl">1e-08</span>,</span>
 <span>  step <span class="op">=</span> <span class="fl">1e-05</span>,</span>
@@ -211,9 +212,16 @@ two. An alternative to <code>omega</code></p></dd>
 
 <dt id="arg-theta">theta<a class="anchor" aria-label="anchor" href="#arg-theta"></a></dt>
 <dd><p>Grid of common response probabilities at which the type I error rate is
-evaluated. Default is <code>seq(0.005, 0.995, by = 0.005)</code>. With a non-zero
+evaluated. Default is <code>seq(0, 1, by = 0.005)</code>. With a non-zero
 <code>margin</code>, <code>theta</code> is the pooled response probability
 <code>(r p1 + p2) / (1 + r)</code> on the boundary of the null hypothesis, see Details</p></dd>
+
+
+<dt id="arg-maximize">maximize<a class="anchor" aria-label="anchor" href="#arg-maximize"></a></dt>
+<dd><p>How the largest type I error rate at a level is located, as in
+<code><a href="BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR</a></code>. With <code>'certified'</code> (default) the adjusted
+level controls the type I error rate over the whole interval from the smallest to the
+largest value of <code>theta</code>, see Details</p></dd>
 
 
 <dt id="arg-adjust">adjust<a class="anchor" aria-label="anchor" href="#arg-adjust"></a></dt>
@@ -273,6 +281,14 @@ BSSR design and one for the fixed-sample design containing:</p><dl><dt>Design</d
 <dd><p>Common response probability, or pooled response probability on the
 null boundary, at which <code>max.TIE.adj</code> occurs</p></dd>
 
+<dt>max.TIE.bound</dt>
+<dd><p>Upper bound of the type I error rate at the nominal level with
+<code>maximize = 'certified'</code>, otherwise <code>NA</code></p></dd>
+
+<dt>max.TIE.adj.bound</dt>
+<dd><p>Upper bound of the type I error rate at the adjusted level
+with <code>maximize = 'certified'</code>, otherwise <code>NA</code></p></dd>
+
 
 </dl></div>
     <div class="section level2">
@@ -292,11 +308,21 @@ lowered from <code>alpha</code> in steps of <code>step</code> until the type I e
 controlled. This search re-estimates the sample
 size at every step and can take much longer than the bisection. The fixed-sample design
 always uses the bisection, since its sample size does not depend on the level.</p>
+<p>With <code>maximize = 'certified'</code> the levels are assessed on the grid with the
+refinement of <code>maximize = 'refined'</code>, and the level found is then certified as in
+<code><a href="BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR</a></code>: it is accepted only if the upper bound of the type I
+error rate over the interval from the smallest to the largest value of <code>theta</code>
+does not exceed <code>alpha</code>. If the bound exceeds <code>alpha</code>, the grid has missed
+the value of <code>theta</code> at which the level fails, and the search continues below
+that level. The bisection then certifies every level that passes the assessment on the
+grid, and the search of <code>adjust = 'both'</code> certifies every such level from the
+start. The adjusted level therefore controls the type I error rate over the whole
+interval.</p>
 <p>In both searches the type I error rate at a new level is first evaluated at the single
-grid point where the largest rate of the last level that failed was found. If it
-exceeds <code>alpha</code> there, the level fails without the evaluation over the whole grid
-and the refinement. The largest rate over <code>theta</code> is never below the rate at a
-grid point, so every decision, and hence the result, is that of the full evaluation.</p>
+value of <code>theta</code> where the largest rate of the last level that failed was found.
+If it exceeds <code>alpha</code> there, the level fails without the evaluation over the whole
+grid. The largest rate over <code>theta</code> is never below the rate at any one value, so
+every decision, and hence the result, is that of the full evaluation.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -328,6 +354,7 @@ study designs. <em>Pharmaceutical Statistics</em>, 3(4), 269-279.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Test            : Chisq</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Alternative     : greater</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Adjusted part   : final analysis only</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Maximum         : certified over theta in [0.01, 0.99]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Target level    : 0.025</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        Design   max.TIE alpha.adj max.TIE.adj</span>

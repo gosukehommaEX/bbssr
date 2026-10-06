@@ -219,12 +219,13 @@ ni.tie
 #>   Assumed effect  : 0 (RD)
 #>   Margin          : 0.15
 #>   Nominal level   : 0.025
-#>   Grid            : 81 values of theta in [0.1, 0.9], maxima refined
+#>   Grid            : 81 values of theta in [0.1, 0.9]
+#>   Maximum         : certified over theta in [0.1, 0.9]
 #> 
 #> Largest type I error rate
-#>        Design   theta     TIE
-#>          BSSR 0.73835 0.02579
-#>  Fixed sample 0.50000 0.02650
+#>        Design    theta     TIE
+#>          BSSR 0.261652 0.02579
+#>  Fixed sample 0.500000 0.02650
 plot(ni.tie)
 ```
 

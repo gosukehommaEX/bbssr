@@ -404,18 +404,18 @@ computation itself.</p>
 <span>  unit <span class="op">=</span> <span class="st">'ms'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
-<span><span class="co">#&gt;                   expr      min       lq      mean   median       uq      max</span></span>
-<span><span class="co">#&gt;                  Chisq 0.153789 0.165056 0.1720847 0.174390 0.179508 0.182592</span></span>
-<span><span class="co">#&gt;                 Fisher 1.437023 1.451694 1.4817981 1.475600 1.487247 1.591352</span></span>
-<span><span class="co">#&gt;                 Z-pool 2.244005 2.262813 2.3030411 2.282853 2.347510 2.420378</span></span>
-<span><span class="co">#&gt;               Boschloo 3.624283 3.657091 3.6998855 3.710271 3.732785 3.755889</span></span>
-<span><span class="co">#&gt;  Boschloo, Berger-Boos 7.859537 7.942560 8.0275239 7.968684 8.014007 8.505950</span></span>
-<span><span class="co">#&gt;  neval</span></span>
-<span><span class="co">#&gt;     10</span></span>
-<span><span class="co">#&gt;     10</span></span>
-<span><span class="co">#&gt;     10</span></span>
-<span><span class="co">#&gt;     10</span></span>
-<span><span class="co">#&gt;     10</span></span>
+<span><span class="co">#&gt;                   expr      min        lq       mean    median        uq</span></span>
+<span><span class="co">#&gt;                  Chisq 0.221039  0.232667  0.2420672  0.245580  0.252276</span></span>
+<span><span class="co">#&gt;                 Fisher 1.823163  1.856483  1.8876039  1.887844  1.916752</span></span>
+<span><span class="co">#&gt;                 Z-pool 2.979714  2.996399  3.0170215  3.012838  3.028046</span></span>
+<span><span class="co">#&gt;               Boschloo 4.746333  4.766523  4.8284642  4.799197  4.832211</span></span>
+<span><span class="co">#&gt;  Boschloo, Berger-Boos 9.972070 10.031208 10.0979407 10.046886 10.079529</span></span>
+<span><span class="co">#&gt;        max neval</span></span>
+<span><span class="co">#&gt;   0.258685    10</span></span>
+<span><span class="co">#&gt;   1.981609    10</span></span>
+<span><span class="co">#&gt;   3.084400    10</span></span>
+<span><span class="co">#&gt;   5.092168    10</span></span>
+<span><span class="co">#&gt;  10.556479    10</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 <p>The Berger-Boos variant costs more than the plain Boschloo test,
 because the confidence bounds of every possible responder total are
@@ -441,11 +441,11 @@ row.</p>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
 <span><span class="co">#&gt;              expr        min         lq       mean     median         uq</span></span>
-<span><span class="co">#&gt;  bbssr.whole.grid   1.102513   1.317464   1.841525   1.329622   1.845241</span></span>
-<span><span class="co">#&gt;     Exact.one.row 149.962481 151.246536 160.333876 152.445312 155.718953</span></span>
+<span><span class="co">#&gt;  bbssr.whole.grid   1.609876   1.642905   2.284762   1.709544   2.092814</span></span>
+<span><span class="co">#&gt;     Exact.one.row 199.909924 201.677093 201.633805 201.960315 202.249936</span></span>
 <span><span class="co">#&gt;         max neval</span></span>
-<span><span class="co">#&gt;    3.612786     5</span></span>
-<span><span class="co">#&gt;  192.296099     5</span></span>
+<span><span class="co">#&gt;    4.368671     5</span></span>
+<span><span class="co">#&gt;  202.371758     5</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -504,7 +504,7 @@ test and alternative below.</p>
 <span>               alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="va">Test</span>, alternative <span class="op">=</span> <span class="va">alternative</span>,</span>
 <span>               ss.method <span class="op">=</span> <span class="st">'standard'</span>, theta <span class="op">=</span> <span class="va">theta</span><span class="op">)</span></span>
 <span>  <span class="va">crp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">BinaryCondRejectBSSR</span>, <span class="va">args</span><span class="op">)</span></span>
-<span>  <span class="va">tie</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">BinaryTypeIErrorBSSR</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">args</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>refine <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">tie</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">BinaryTypeIErrorBSSR</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">args</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>maximize <span class="op">=</span> <span class="st">'grid'</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">crp</span>, <span class="st">'TIE'</span><span class="op">)</span><span class="op">$</span><span class="va">TIE</span> <span class="op">-</span> <span class="va">tie</span><span class="op">$</span><span class="va">TIE.BSSR</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -546,7 +546,7 @@ after rounding to the digits of the publication.</p>
 <span><span class="va">k.tie</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR</a></span><span class="op">(</span></span>
 <span>  Delta.A <span class="op">=</span> <span class="op">-</span><span class="fl">0.30</span>, N1 <span class="op">=</span> <span class="fl">39</span>, N2 <span class="op">=</span> <span class="fl">39</span>, n.interim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">20</span><span class="op">)</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>,</span>
 <span>  tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Chisq'</span>, alternative <span class="op">=</span> <span class="st">'less'</span>, ss.method <span class="op">=</span> <span class="st">'standard'</span>,</span>
-<span>  theta <span class="op">=</span> <span class="va">k.grid</span><span class="op">[</span><span class="va">k.grid</span> <span class="op">&gt;=</span> <span class="fl">0.15</span> <span class="op">-</span> <span class="fl">1e-9</span> <span class="op">&amp;</span> <span class="va">k.grid</span> <span class="op">&lt;=</span> <span class="fl">0.85</span> <span class="op">+</span> <span class="fl">1e-9</span><span class="op">]</span>, refine <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  theta <span class="op">=</span> <span class="va">k.grid</span><span class="op">[</span><span class="va">k.grid</span> <span class="op">&gt;=</span> <span class="fl">0.15</span> <span class="op">-</span> <span class="fl">1e-9</span> <span class="op">&amp;</span> <span class="va">k.grid</span> <span class="op">&lt;=</span> <span class="fl">0.85</span> <span class="op">+</span> <span class="fl">1e-9</span><span class="op">]</span>, maximize <span class="op">=</span> <span class="st">'grid'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co"># Friede and Kieser (2004), Table I: control rate 0.2, alternative 0.2, equal groups and</span></span>
 <span><span class="co"># an internal pilot study of 40 patients</span></span>
