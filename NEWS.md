@@ -154,6 +154,12 @@
   and the `bbssr-statistical-methods` vignette explains why this is the same test as the
   one defined in the package.
 
+* The help page of `BinarySampleSize()` described the exact search as returning the
+  smallest sample size that attains the target power. It now describes what the search
+  returns: starting from the normal approximation, a size of group 2 whose exact power
+  attains the target while the size one unit smaller does not. Since the exact power is
+  not monotone in the sample size, this need not be the smallest such size.
+
 # bbssr 2.0.0
 
 This is a major release. It corrects the p-value of the exact unconditional tests, adds

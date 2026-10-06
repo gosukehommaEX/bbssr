@@ -4,12 +4,15 @@
 #' group 2 found by the search of \code{\link{BinarySampleSize}} with
 #' \code{method = 'exact'}. Group 1 receives \code{ceiling(r N2)} patients.
 #'
-#' The search for each pair starts from the normal approximation and moves the size of
-#' group 2 one unit at a time until the smallest size attaining the target power is
-#' reached. The rejection region of each size visited is obtained once and reused by every
-#' pair whose search visits that size, and the power of a pair is computed by
-#' \code{power_from_rr}, so each pair receives the same sample size as a separate call of
-#' \code{\link{BinarySampleSize}} would give.
+#' The search for each pair starts from the normal approximation, lowers the size of
+#' group 2 one unit at a time as long as the exact power attains the target power, or
+#' otherwise raises it one unit at a time until the power attains it. The returned size
+#' attains the target power while the size one unit smaller does not, unless the returned
+#' size is 1, and need not be the smallest size attaining the target power, since the
+#' exact power is not monotone in the sample size. The rejection region of each size
+#' visited is obtained once and reused by every pair whose search visits that size, and
+#' the power of a pair is computed by \code{power_from_rr}, so each pair receives the
+#' same sample size as a separate call of \code{\link{BinarySampleSize}} would give.
 #'
 #' @param p1 Response probabilities of group 1
 #' @param p2 Response probabilities of group 2, of the same length as \code{p1}, with no

@@ -64,6 +64,6 @@ design <- expand.grid(Test = c('Chisq', 'Fisher'), omega = c(0.3, 0.5),
 grid <- BinaryGridBSSR(design, p = c(0.3, 0.4, 0.5), Delta.A = 0.3, N1 = 30, N2 = 30,
                        r = 1, alpha = 0.025, tar.power = 0.8, ss.method = 'standard')
 plot(grid, colour.by = 'Test', facet.by = 'omega')
-plot(grid, what = 'E.N', colour.by = 'Test', facet.by = 'omega')
+plot(grid, what = 'E.N', colour.by = 'omega', facet.by = 'Test')
 
 }

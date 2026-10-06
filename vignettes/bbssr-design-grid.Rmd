@@ -61,8 +61,16 @@ With Fisher's exact test in the final analysis the power of the re-estimation de
 plot(grid, colour.by = 'Test', facet.by = 'omega')
 ```
 
+The re-estimation of `ss.method = 'standard'` does not depend on the test, so the expected total sample size is the same for the two tests, and the panels below, one per test, show the same curves.
+
+```{r check-size, include = FALSE}
+size.chisq <- grid$E.N[grid$Test == 'Chisq']
+size.fisher <- grid$E.N[grid$Test == 'Fisher']
+stopifnot(length(size.chisq) > 0, isTRUE(all.equal(size.chisq, size.fisher)))
+```
+
 ```{r plot-size}
-plot(grid, what = 'E.N', colour.by = 'Test', facet.by = 'omega')
+plot(grid, what = 'E.N', colour.by = 'omega', facet.by = 'Test')
 ```
 
 ## Initial sample sizes from a planning proportion

@@ -73,17 +73,20 @@
 #'   \item Calculate an initial sample size from the normal approximation to the
 #'     chi-squared test
 #'   \item Evaluate the exact power at the initial sample size
-#'   \item Move the sample size up or down one unit at a time until the smallest sample
-#'     size attaining the target power is found
+#'   \item If the exact power attains the target power, lower the size of group 2 one
+#'     unit at a time as long as the power still attains it; otherwise raise it one
+#'     unit at a time until the power attains it
 #' }
 #'
 #' The normal approximation of the first step uses \code{alpha} for a one-sided
 #' alternative and \code{alpha / 2} for a two-sided alternative. Only the starting value of
 #' the search is affected, so the returned sample size is exact in either case.
 #'
-#' The exact power is not monotone in the sample size, so the search returns the first
-#' sample size attaining the target power in the neighbourhood of the normal
-#' approximation.
+#' The search stops where the exact power crosses the target: the returned size of
+#' group 2 attains the target power and the size one unit smaller does not, unless the
+#' returned size is 1. The exact power is not monotone in the sample size, so a smaller
+#' size further from the normal approximation may also attain the target power, and a
+#' larger size may fall short of it.
 #'
 #' Under \code{method = 'standard'}, \code{'null.variance'} or
 #' \code{'alternative.variance'} the steps above are replaced by the closed-form normal

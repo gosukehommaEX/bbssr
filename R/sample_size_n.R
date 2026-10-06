@@ -6,8 +6,10 @@
 #' assumed to have been validated by the caller.
 #'
 #' Under \code{method = 'exact'} the search of \code{ss_exact_search} is used: it starts
-#' from the normal approximation and moves the size of group 2 one unit at a time until
-#' the smallest size attaining the target power is reached, with group 1 receiving
+#' from the normal approximation, lowers the size of group 2 one unit at a time as long
+#' as the exact power attains the target power, or otherwise raises it one unit at a time
+#' until the power attains it, and so returns a size that attains the target power while
+#' the size one unit smaller does not (unless the returned size is 1). Group 1 receives
 #' \code{ceiling(r N2)} patients. Under the two normal methods, the unrounded size
 #' \code{n2} of group 2 is converted as follows, where \code{round} rounds halves up.
 #' \describe{
