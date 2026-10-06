@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Validation of bbssr • bbssr</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -68,12 +73,11 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Validation of bbssr</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Validation of bbssr</h1>
                         <h4 data-toc-skip class="author">Gosuke
 Homma</h4>
             
-            <h4 data-toc-skip class="date">2026-10-05</h4>
+            <h4 data-toc-skip class="date">2026-10-06</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/gosukehommaEX/bbssr/blob/main/vignettes/bbssr-validation.Rmd" class="external-link"><code>vignettes/bbssr-validation.Rmd</code></a></small>
       <div class="d-none name"><code>bbssr-validation.Rmd</code></div>
@@ -365,18 +369,18 @@ computation itself.</p>
 <span>  unit <span class="op">=</span> <span class="st">'ms'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
-<span><span class="co">#&gt;                   expr       min        lq       mean     median        uq</span></span>
-<span><span class="co">#&gt;                  Chisq  0.280837  0.287267  0.3075558  0.3104205  0.318963</span></span>
-<span><span class="co">#&gt;                 Fisher  2.331703  2.350000  2.3784122  2.3684025  2.392503</span></span>
-<span><span class="co">#&gt;                 Z-pool  3.811390  3.820834  3.8527934  3.8493710  3.858069</span></span>
-<span><span class="co">#&gt;               Boschloo  6.033079  6.076433  6.1252780  6.0935540  6.182321</span></span>
-<span><span class="co">#&gt;  Boschloo, Berger-Boos 12.730515 12.809772 12.9034566 12.8629410 12.929030</span></span>
+<span><span class="co">#&gt;                   expr       min        lq       mean    median        uq</span></span>
+<span><span class="co">#&gt;                  Chisq  0.266896  0.277558  0.3027056  0.306447  0.321811</span></span>
+<span><span class="co">#&gt;                 Fisher  2.219036  2.236481  2.2696630  2.260571  2.290151</span></span>
+<span><span class="co">#&gt;                 Z-pool  3.312700  3.356266  3.3734401  3.370534  3.380757</span></span>
+<span><span class="co">#&gt;               Boschloo  5.449958  5.463341  5.4988407  5.504866  5.517855</span></span>
+<span><span class="co">#&gt;  Boschloo, Berger-Boos 11.536570 11.600335 11.7213402 11.628309 11.687574</span></span>
 <span><span class="co">#&gt;        max neval</span></span>
-<span><span class="co">#&gt;   0.341187    10</span></span>
-<span><span class="co">#&gt;   2.453814    10</span></span>
-<span><span class="co">#&gt;   3.934643    10</span></span>
-<span><span class="co">#&gt;   6.276411    10</span></span>
-<span><span class="co">#&gt;  13.359058    10</span></span>
+<span><span class="co">#&gt;   0.338202    10</span></span>
+<span><span class="co">#&gt;   2.384870    10</span></span>
+<span><span class="co">#&gt;   3.454139    10</span></span>
+<span><span class="co">#&gt;   5.572615    10</span></span>
+<span><span class="co">#&gt;  12.215153    10</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 <p>The Berger-Boos variant costs more than the plain Boschloo test,
 because the confidence bounds of every possible responder total are
@@ -401,12 +405,12 @@ row.</p>
 <span>  unit <span class="op">=</span> <span class="st">'ms'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
-<span><span class="co">#&gt;              expr       min         lq       mean     median         uq</span></span>
-<span><span class="co">#&gt;  bbssr.whole.grid   1.83814   2.037876   2.082316   2.057836   2.092347</span></span>
-<span><span class="co">#&gt;     Exact.one.row 248.47283 249.430334 251.019644 250.612479 252.361366</span></span>
+<span><span class="co">#&gt;              expr        min         lq       mean     median         uq</span></span>
+<span><span class="co">#&gt;  bbssr.whole.grid   1.719064   1.908038   1.936877   1.908773   1.930042</span></span>
+<span><span class="co">#&gt;     Exact.one.row 246.772494 246.818940 247.936246 247.081925 249.388851</span></span>
 <span><span class="co">#&gt;         max neval</span></span>
-<span><span class="co">#&gt;    2.385382     5</span></span>
-<span><span class="co">#&gt;  254.221208     5</span></span>
+<span><span class="co">#&gt;    2.218466     5</span></span>
+<span><span class="co">#&gt;  249.619021     5</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">

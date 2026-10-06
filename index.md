@@ -1,4 +1,4 @@
-# bbssr: Blinded Sample Size Re-Estimation for Binary Endpoints ![bbssr logo](reference/figures/bbssr_sticker.png)
+# bbssr: Blinded Sample Size Re-Estimation for Binary Endpoints
 
 ## Overview
 
