@@ -18,7 +18,7 @@ BinarySampleSize(
   tar.power,
   Test,
   alternative = c("greater", "less", "two.sided"),
-  tsmethod = c("minlike", "central"),
+  tsmethod = c("minlike", "central", "blaker"),
   n.grid = 100,
   bb.gamma = 0,
   method = c("exact", "standard", "null.variance", "alternative.variance"),
@@ -67,7 +67,9 @@ BinarySampleSize(
 - tsmethod:
 
   Convention used to construct the two-sided version of the conditional
-  tests. Options: `'minlike'` (default) or `'central'`
+  tests, see
+  [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
+  Options: `'minlike'` (default), `'central'` or `'blaker'`
 
 - n.grid:
 

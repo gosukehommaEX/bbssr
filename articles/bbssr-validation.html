@@ -369,18 +369,18 @@ computation itself.</p>
 <span>  unit <span class="op">=</span> <span class="st">'ms'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
-<span><span class="co">#&gt;                   expr       min        lq      mean    median        uq</span></span>
-<span><span class="co">#&gt;                  Chisq  0.264467  0.271031  0.301643  0.312730  0.316318</span></span>
-<span><span class="co">#&gt;                 Fisher  2.225905  2.251071  2.317928  2.290100  2.330370</span></span>
-<span><span class="co">#&gt;                 Z-pool  3.311343  3.321341  3.378249  3.360813  3.424717</span></span>
-<span><span class="co">#&gt;               Boschloo  5.449735  5.472281  5.506916  5.493193  5.561320</span></span>
-<span><span class="co">#&gt;  Boschloo, Berger-Boos 11.609290 11.649212 11.734674 11.691362 11.767815</span></span>
+<span><span class="co">#&gt;                   expr       min        lq       mean     median        uq</span></span>
+<span><span class="co">#&gt;                  Chisq  0.284481  0.293267  0.3095907  0.3096025  0.328643</span></span>
+<span><span class="co">#&gt;                 Fisher  2.484146  2.519963  2.5652109  2.5443490  2.612086</span></span>
+<span><span class="co">#&gt;                 Z-pool  3.647068  3.685780  3.7413786  3.7170330  3.787220</span></span>
+<span><span class="co">#&gt;               Boschloo  6.057636  6.083986  6.1146822  6.1049205  6.164937</span></span>
+<span><span class="co">#&gt;  Boschloo, Berger-Boos 12.660552 12.665511 12.7750536 12.7170525 12.786527</span></span>
 <span><span class="co">#&gt;        max neval</span></span>
-<span><span class="co">#&gt;   0.323618    10</span></span>
-<span><span class="co">#&gt;   2.498339    10</span></span>
-<span><span class="co">#&gt;   3.509852    10</span></span>
-<span><span class="co">#&gt;   5.587089    10</span></span>
-<span><span class="co">#&gt;  12.104429    10</span></span>
+<span><span class="co">#&gt;   0.333873    10</span></span>
+<span><span class="co">#&gt;   2.691964    10</span></span>
+<span><span class="co">#&gt;   3.966493    10</span></span>
+<span><span class="co">#&gt;   6.179865    10</span></span>
+<span><span class="co">#&gt;  13.255622    10</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 <p>The Berger-Boos variant costs more than the plain Boschloo test,
 because the confidence bounds of every possible responder total are
@@ -405,12 +405,12 @@ row.</p>
 <span>  unit <span class="op">=</span> <span class="st">'ms'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
-<span><span class="co">#&gt;              expr       min         lq       mean     median         uq</span></span>
-<span><span class="co">#&gt;  bbssr.whole.grid   1.78029   1.873677   1.938031   1.902218   1.912438</span></span>
-<span><span class="co">#&gt;     Exact.one.row 245.57278 246.324148 247.112114 246.635609 248.026666</span></span>
-<span><span class="co">#&gt;         max neval</span></span>
-<span><span class="co">#&gt;    2.221532     5</span></span>
-<span><span class="co">#&gt;  249.001369     5</span></span>
+<span><span class="co">#&gt;              expr        min         lq       mean     median         uq</span></span>
+<span><span class="co">#&gt;  bbssr.whole.grid   2.038595   2.081725   2.799509   2.111631   2.520375</span></span>
+<span><span class="co">#&gt;     Exact.one.row 289.185619 289.266871 291.160048 291.554020 292.645607</span></span>
+<span><span class="co">#&gt;        max neval</span></span>
+<span><span class="co">#&gt;    5.24522     5</span></span>
+<span><span class="co">#&gt;  293.14812     5</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">

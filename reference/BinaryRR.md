@@ -14,7 +14,7 @@ BinaryRR(
   alpha,
   Test,
   alternative = c("greater", "less", "two.sided"),
-  tsmethod = c("minlike", "central"),
+  tsmethod = c("minlike", "central", "blaker"),
   n.grid = 100,
   bb.gamma = 0,
   margin = 0,
@@ -52,10 +52,12 @@ BinaryRR(
 - tsmethod:
 
   Convention used to construct the two-sided version of the conditional
-  tests. Options: `'minlike'` (default) or `'central'`. Ignored when
-  `alternative` is `'greater'`, and ignored by `'Chisq'` and `'Z-pool'`,
-  whose two-sided versions are based on the absolute value of the Z
-  statistic
+  tests, see Details. Options: `'minlike'` (default), `'central'` or
+  `'blaker'`. The Boschloo test orders the outcomes by the two-sided
+  Fisher p-value of the selected convention. Ignored for a one-sided
+  alternative, and ignored by `'Chisq'`, `'Z-pool'`, `'Blackwelder'` and
+  `'Farrington-Manning'`, whose two-sided versions are based on the
+  absolute value of the Z statistic
 
 - n.grid:
 
@@ -118,10 +120,21 @@ The function supports the following seven tests:
 For the two-sided versions of the conditional tests, `'minlike'` sums
 the null probabilities of all tables that are no more likely than the
 observed table, which is the convention of
-[`stats::fisher.test`](https://rdrr.io/r/stats/fisher.test.html),
-whereas `'central'` doubles the smaller of the two one-sided tail
-probabilities. The two-sided versions of `'Chisq'` and `'Z-pool'` order
-the outcomes by the absolute value of the Z statistic.
+[`stats::fisher.test`](https://rdrr.io/r/stats/fisher.test.html), and
+`'central'` doubles the smaller of the two one-sided tail probabilities.
+`'blaker'` orders the tables by the smaller of their two one-sided tail
+probabilities and sums the null probabilities of all tables at which
+this is no larger than at the observed table, formula (2) of Mehrotra,
+Chan and Berger (2003), which is the convention `'blaker'` of the
+exact2x2 package. Its Fisher p-value never exceeds that of `'central'`,
+and it equals that of `'minlike'` when the two groups are of equal size,
+since the conditional distribution is then symmetric. Under the mid-p
+correction the tables tied with the observed table in the ordering of
+`'minlike'` or `'blaker'`, the observed table included, contribute half
+of their probability, following the definition of the mid-p value in Fay
+and Hunsberger (2021, Section 9). The two-sided versions of `'Chisq'`
+and `'Z-pool'` order the outcomes by the absolute value of the Z
+statistic.
 
 The unconditional tests maximize the null tail probability of an
 ordering statistic over the common response probability, which is a
@@ -188,6 +201,13 @@ Farrington CP, Manning G (1990). Test statistics and sample size
 formulae for comparative binomial trials with null hypothesis of
 non-zero risk difference or non-unity relative risk. *Statistics in
 Medicine*, 9(12), 1447-1454.
+
+Fay MP, Hunsberger SA (2021). Practical valid inferences for the
+two-sample binomial problem. *Statistics Surveys*, 15, 72-110.
+
+Mehrotra DV, Chan ISF, Berger RL (2003). A cautionary note on exact
+unconditional inference for a difference between two independent
+binomial proportions. *Biometrics*, 59(2), 441-450.
 
 ## Author
 
