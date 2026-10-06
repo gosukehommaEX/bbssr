@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# bbssr: Blinded Sample Size Re-Estimation for Binary Endpoints <img src="man/figures/bbssr_sticker.png" align="right" height="139" alt="bbssr logo" />
+# bbssr: Blinded Sample Size Re-Estimation for Binary Endpoints <img src="man/figures/logo.png" align="right" height="139" alt="bbssr logo" />
 
 <!-- badges: start -->
 
