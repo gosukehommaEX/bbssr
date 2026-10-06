@@ -216,14 +216,17 @@ containing:</p><dl><dt>p1</dt>
     <p>The calculation uses a three-step approach:</p><ol><li><p>Calculate an initial sample size from the normal approximation to the
 chi-squared test</p></li>
 <li><p>Evaluate the exact power at the initial sample size</p></li>
-<li><p>Move the sample size up or down one unit at a time until the smallest sample
-size attaining the target power is found</p></li>
+<li><p>If the exact power attains the target power, lower the size of group 2 one
+unit at a time as long as the power still attains it; otherwise raise it one
+unit at a time until the power attains it</p></li>
 </ol><p>The normal approximation of the first step uses <code>alpha</code> for a one-sided
 alternative and <code>alpha / 2</code> for a two-sided alternative. Only the starting value of
 the search is affected, so the returned sample size is exact in either case.</p>
-<p>The exact power is not monotone in the sample size, so the search returns the first
-sample size attaining the target power in the neighbourhood of the normal
-approximation.</p>
+<p>The search stops where the exact power crosses the target: the returned size of
+group 2 attains the target power and the size one unit smaller does not, unless the
+returned size is 1. The exact power is not monotone in the sample size, so a smaller
+size further from the normal approximation may also attain the target power, and a
+larger size may fall short of it.</p>
 <p>Under <code>method = 'standard'</code>, <code>'null.variance'</code> or
 <code>'alternative.variance'</code> the steps above are replaced by the closed-form normal
 approximation and the rounding rule selected by <code>rounding</code>. The <code>Power</code>

@@ -102,9 +102,13 @@ plot(grid, colour.by = 'Test', facet.by = 'omega')
 
 ![](bbssr-design-grid_files/figure-html/plot-power-1.png)
 
+The re-estimation of `ss.method = 'standard'` does not depend on the
+test, so the expected total sample size is the same for the two tests,
+and the panels below, one per test, show the same curves.
+
 ``` r
 
-plot(grid, what = 'E.N', colour.by = 'Test', facet.by = 'omega')
+plot(grid, what = 'E.N', colour.by = 'omega', facet.by = 'Test')
 ```
 
 ![](bbssr-design-grid_files/figure-html/plot-size-1.png)

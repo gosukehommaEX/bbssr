@@ -169,8 +169,12 @@ of a column and, optionally, one panel per value of another.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid</span>, colour.by <span class="op">=</span> <span class="st">'Test'</span>, facet.by <span class="op">=</span> <span class="st">'omega'</span><span class="op">)</span></span></code></pre></div>
 <p><img src="bbssr-design-grid_files/figure-html/plot-power-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
+<p>The re-estimation of <code>ss.method = 'standard'</code> does not
+depend on the test, so the expected total sample size is the same for
+the two tests, and the panels below, one per test, show the same
+curves.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid</span>, what <span class="op">=</span> <span class="st">'E.N'</span>, colour.by <span class="op">=</span> <span class="st">'Test'</span>, facet.by <span class="op">=</span> <span class="st">'omega'</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid</span>, what <span class="op">=</span> <span class="st">'E.N'</span>, colour.by <span class="op">=</span> <span class="st">'omega'</span>, facet.by <span class="op">=</span> <span class="st">'Test'</span><span class="op">)</span></span></code></pre></div>
 <p><img src="bbssr-design-grid_files/figure-html/plot-size-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
