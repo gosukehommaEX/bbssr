@@ -301,6 +301,27 @@ for (i in seq_len(nrow(fm2))) {
 fm2.lab <- sprintf('FM1990 Table II: p1 = p2 = %g, s0 = %g, Method 3', fm2$p, fm2$s0)
 add(fm.src, paste0(fm2.lab, ': N1'), fm2$N.pub, fm2$N1, 0)
 add(fm.src, paste0(fm2.lab, ': N2'), fm2$N.pub, fm2$N2, 0)
+# Table II, Method 1 for the difference (p. 1450): the null variance is also evaluated at
+# the true values p1 and p2, which is the formula of method = 'alternative.variance', with
+# equal groups and each group rounded to the nearest whole number. Method 2 (fixed
+# marginal totals) is not implemented: the article does not recommend it, and it fails
+# for three of the nine settings of the table
+fm3 <- data.frame(p1 = c(0.1, 0.2, 0.5, 0.05, 0.1, 0.25, 0.01, 0.02, 0.05),
+                  p2 = c(0.1, 0.1, 0.1, 0.05, 0.05, 0.05, 0.01, 0.01, 0.01),
+                  s0 = c(-0.2, -0.1, 0.2, -0.1, -0.05, 0.1, -0.02, -0.01, 0.02),
+                  N.pub = c(39, 54, 73, 81, 118, 201, 424, 632, 1229))
+fm3[c('N1', 'N2')] <- NA_real_
+for (i in seq_len(nrow(fm3))) {
+  ss <- BinarySampleSize(fm3$p1[i], fm3$p2[i], 1, 0.05, 0.9, 'Blackwelder',
+                         method = 'alternative.variance', rounding = 'nearest',
+                         margin = -fm3$s0[i])
+  fm3$N1[i] <- ss$N1
+  fm3$N2[i] <- ss$N2
+}
+fm3.lab <- sprintf('FM1990 Table II: p1 = %g, p2 = %g, s0 = %g, Method 1', fm3$p1, fm3$p2,
+                   fm3$s0)
+add(fm.src, paste0(fm3.lab, ': N1'), fm3$N.pub, fm3$N1, 0)
+add(fm.src, paste0(fm3.lab, ': N2'), fm3$N.pub, fm3$N2, 0)
 
 # Blackwelder (1982), Table 3 and the examples ------------------------------------------
 # The statistics use the unpooled standard error. In the examples with 30 patients per
