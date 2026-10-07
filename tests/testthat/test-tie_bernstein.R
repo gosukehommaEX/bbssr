@@ -43,3 +43,20 @@ test_that("tie_bernstein follows response probabilities that are linear on an in
                bssr_reject(d$st, d$rr.list, 0.05 + 0.55 * t, 0.25 + 0.55 * t),
                tolerance = 1e-13)
 })
+
+test_that("tie_bernstein keeps the two groups apart when their sizes differ", {
+  # A fixed design with 12 and 9 patients and the rejection region of the
+  # Farrington-Manning test with a margin of 0.1, which is not symmetric in the two groups.
+  # With the roles of the two groups exchanged in the product of the basis polynomials
+  # the values below would be off by up to 0.76
+  rr <- get_rr(12, 9, 0.025, 'Farrington-Manning', 'greater', 'minlike', 100, 0, FALSE,
+               0.1)
+  w <- tie_weights(fixed_setup(12, 9), list(rr))
+  coef <- tie_bernstein(w, c(0.3, 0.9), c(0.1, 0.5))
+  t <- c(0, 0.3, 0.71, 1)
+  want <- vapply(t, function(s) {
+    power_from_rr(rr, dbinom(0:12, 12, 0.3 + 0.6 * s), dbinom(0:9, 9, 0.1 + 0.4 * s))
+  }, numeric(1))
+  expect_gt(min(want), 0.1)
+  expect_equal(vapply(t, bernstein_value, numeric(1), coef = coef), want, tolerance = 1e-13)
+})

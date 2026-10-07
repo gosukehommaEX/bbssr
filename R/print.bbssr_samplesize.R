@@ -26,7 +26,18 @@ print.bbssr_samplesize <- function(x, digits = 4, ...) {
     cat(sprintf('  Margin           : %s\n', format(margin)))
   }
   cat(sprintf('  Alpha            : %s\n', format(x$alpha[1])))
-  cat(sprintf('  Target power     : %s\n\n', format(x$tar.power[1])))
+  cat(sprintf('  Target power     : %s\n', format(x$tar.power[1])))
+  search <- attr(x, 'search')
+  if (identical(attr(x, 'method'), 'exact') && !is.null(search)) {
+    limit <- attr(x, 'search.limit')
+    cat(sprintf('  Exact search     : %s\n',
+                if (search == 'stable' && !is.null(limit) && !is.na(limit)) {
+                  sprintf('stable up to N2 = %d', as.integer(limit))
+                } else {
+                  search
+                }))
+  }
+  cat('\n')
   cat(sprintf('  Required sample size: N1 = %d, N2 = %d, total N = %d\n',
               x$N1[1], x$N2[1], x$N[1]))
   cat(sprintf('  Attained power      : %s\n', format(round(x$Power[1], digits))))

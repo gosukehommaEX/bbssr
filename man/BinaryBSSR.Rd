@@ -25,6 +25,8 @@ BinaryBSSR(
   ss.Test = Test,
   ss.alpha = alpha,
   rounding = c("group", "friede-kieser", "total", "nearest"),
+  search = c("crossing", "smallest", "stable"),
+  search.limit = c(2, 50),
   N.min = NULL,
   N.max = NULL,
   margin = 0,
@@ -94,6 +96,13 @@ unconditional tests. Default is 100}
 \code{'group'} (default), \code{'friede-kieser'}, \code{'total'} or \code{'nearest'},
 as in \code{\link{BinaryPowerBSSR}}}
 
+\item{search}{How the exact re-estimation chooses the sample size when
+\code{ss.method = 'exact'}: \code{'crossing'} (default), \code{'smallest'} or
+\code{'stable'}, as in \code{\link{BinarySampleSize}}. Ignored by the other methods}
+
+\item{search.limit}{Limit of the size of group 2 examined by \code{search = 'stable'},
+as in \code{\link{BinarySampleSize}}. Default is \code{c(2, 50)}}
+
 \item{N.min}{Lower bound on the final total sample size, or \code{NULL} (default). It
 can be used to keep the patients who are already enrolled but not yet evaluated}
 
@@ -134,6 +143,9 @@ An object of class \code{bbssr_bssr}, a data frame with one row containing:
 \item{N.final}{Final total sample size}
 \item{Power}{Exact power at the final sample size under the recovered proportions}
 }
+The attribute \code{search} holds the search, and the attribute \code{search.limit}
+the limit of the size of group 2 examined by \code{search = 'stable'} (otherwise
+\code{NA}).
 }
 \description{
 Re-estimates the sample size of an ongoing two-arm trial with a binary endpoint from the

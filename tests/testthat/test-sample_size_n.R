@@ -3,8 +3,17 @@ test_that("the exact method reproduces BinarySampleSize", {
     n <- sample_size_n(0.6, 0.25, 1, 0.025, 0.8, tst, 'greater', 'minlike', 100L, 0,
                        'exact', 'group', FALSE, 0)
     ss <- BinarySampleSize(0.6, 0.25, 1, 0.025, 0.8, tst)
-    expect_identical(unname(n), c(ss$N1, ss$N2), info = tst)
+    expect_identical(as.vector(n), c(ss$N1, ss$N2), info = tst)
+    expect_true(is.na(attr(n, 'limit')))
   }
+})
+
+test_that("sample_size_n passes the search and returns the limit of the stable search", {
+  # Reference values from tools/reference/reference_values.py, see test-ss_exact_search.R
+  n <- sample_size_n(0.6, 0.3, 1, 0.025, 0.85, 'Fisher', 'greater', 'minlike', 100L, 0,
+                     'exact', 'group', FALSE, 0, 'stable')
+  expect_equal(as.vector(n), c(56, 56))
+  expect_equal(attr(n, 'limit'), 98)
 })
 
 test_that("the three rounding rules follow their definitions", {

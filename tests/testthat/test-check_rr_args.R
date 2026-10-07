@@ -83,3 +83,19 @@ test_that("every exported function with tsmethod offers the three conventions", 
   }
   expect_equal(checked, 8)
 })
+
+test_that("every exported function with search offers the three searches", {
+  ns <- asNamespace('bbssr')
+  checked <- 0
+  for (f in grep('^Binary', getNamespaceExports('bbssr'), value = TRUE)) {
+    fun <- get(f, envir = ns)
+    if (!is.function(fun) || !('search' %in% names(formals(fun)))) next
+    checked <- checked + 1
+    expect_identical(eval(formals(fun)$search), c('crossing', 'smallest', 'stable'),
+                     info = f)
+    expect_identical(eval(formals(fun)$search.limit), c(2, 50), info = f)
+  }
+  # BinarySampleSize, BinaryPowerBSSR, BinaryBSSR, BinaryTypeIErrorBSSR,
+  # BinaryAlphaAdjBSSR and BinaryCondRejectBSSR
+  expect_equal(checked, 6)
+})

@@ -161,3 +161,17 @@ test_that("BinaryBSSR passes tsmethod to the re-estimation", {
   expect_gt(nrow(seen), 0)
   expect_true(all(seen$tsmethod == 'blaker'))
 })
+
+test_that("BinaryBSSR passes search and search.limit to the re-estimation", {
+  seen <- search_calls(res <- BinaryBSSR(10, 10, 9, 0.3, 1, 0.025, 0.8, 'Chisq',
+                                         search = 'stable', search.limit = c(3, 10)))
+  expect_gt(nrow(seen), 0)
+  expect_true(all(seen$search == 'stable' & seen$a == 3 & seen$b == 10))
+  expect_equal(attr(res, 'search'), 'stable')
+  # 9 responders among 20 give p1 = 0.6 and p2 = 0.3, for which the normal approximation
+  # gives 42 patients in group 2 and the limit is 3 x 42. Reference value from
+  # tools/reference/reference_values.py
+  expect_equal(attr(res, 'search.limit'), 126)
+  expect_true(is.na(attr(BinaryBSSR(10, 10, 9, 0.3, 1, 0.025, 0.8, 'Chisq'),
+                         'search.limit')))
+})

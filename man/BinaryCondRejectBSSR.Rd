@@ -23,6 +23,8 @@ BinaryCondRejectBSSR(
   ss.Test = Test,
   ss.alpha = alpha,
   rounding = c("group", "friede-kieser", "total", "nearest"),
+  search = c("crossing", "smallest", "stable"),
+  search.limit = c(2, 50),
   N.min = NULL,
   N.max = NULL,
   n.interim = NULL,
@@ -89,6 +91,13 @@ Options: \code{'exact'} (default), \code{'standard'}, \code{'null.variance'} or
 Options: \code{'group'} (default), \code{'friede-kieser'}, \code{'total'} or
 \code{'nearest'}. Only \code{'group'} is available with \code{ss.method = 'exact'}.
 See Details}
+
+\item{search}{How the exact re-estimation chooses the sample size when
+\code{ss.method = 'exact'}: \code{'crossing'} (default), \code{'smallest'} or
+\code{'stable'}, as in \code{\link{BinarySampleSize}}. Ignored by the other methods}
+
+\item{search.limit}{Limit of the size of group 2 examined by \code{search = 'stable'},
+as in \code{\link{BinarySampleSize}}. Default is \code{c(2, 50)}}
 
 \item{N.min}{Lower bound on the final total sample size, or \code{NULL} (default) for
 none beyond the interim total. It can be used to keep the patients who are already

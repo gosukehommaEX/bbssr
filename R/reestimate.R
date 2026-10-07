@@ -29,16 +29,20 @@
 #'   unconditional tests is refined between the grid points
 #' @param margin Non-inferiority margin on the scale of the risk difference, 0 for a test
 #'   of superiority
+#' @param search Search of \code{ss_exact_search} used under \code{method = 'exact'}
+#' @param search.limit Limit of \code{search = 'stable'}, see \code{ss_exact_search}
 #'
 #' @return A data frame with columns \code{n.raw} (unrounded total, \code{NA} under
-#'   \code{method = 'exact'}), \code{N1.re} and \code{N2.re}
+#'   \code{method = 'exact'}), \code{N1.re}, \code{N2.re} and \code{N2.limit}, the
+#'   limit of the size of group 2 examined by \code{search = 'stable'} (otherwise
+#'   \code{NA})
 #'
 #' @keywords internal
 #' @noRd
 #' @import fpCompare
 reestimate <- function(hat.p1, hat.p2, r, alpha, tar.power, Test, alternative, tsmethod,
                        n.grid, bb.gamma, method, rounding, N1.plan, N2.plan, ref.pvalue,
-                       margin) {
+                       margin, search = 'crossing', search.limit = c(2, 50)) {
   degenerate <- if (margin == 0) {
     hat.p1 %==% hat.p2
   } else if (alternative == 'less') {
@@ -56,6 +60,8 @@ reestimate <- function(hat.p1, hat.p2, r, alpha, tar.power, Test, alternative, t
   n.raw <- rep(NA_real_, n)
   N1.re <- integer(n)
   N2.re <- integer(n)
+  N2.limit <- rep(NA_integer_, n)
+  L.u <- integer(0)
   if (method != 'exact') {
     n.raw <- '*'(1 + r, ss_raw_n2(hat.p1, hat.p2, r, alpha, tar.power, alternative, method,
                                   margin))
@@ -64,8 +70,11 @@ reestimate <- function(hat.p1, hat.p2, r, alpha, tar.power, Test, alternative, t
   first <- which(!duplicated(key) & !degenerate)
   if (method == 'exact') {
     # One search over all distinct pairs, sharing the power at every candidate size
-    N2.u <- ss_exact_search(hat.p1[first], hat.p2[first], r, alpha, tar.power, Test,
-                            alternative, tsmethod, n.grid, bb.gamma, ref.pvalue, margin)
+    s <- ss_exact_search(hat.p1[first], hat.p2[first], r, alpha, tar.power, Test,
+                         alternative, tsmethod, n.grid, bb.gamma, ref.pvalue, margin,
+                         search, search.limit)
+    N2.u <- s$N2
+    L.u <- s$limit
     N1.u <- as.integer(ceiling(r * N2.u))
   } else if (length(first) > 0) {
     n.u <- vapply(first, function(u) {
@@ -82,10 +91,11 @@ reestimate <- function(hat.p1, hat.p2, r, alpha, tar.power, Test, alternative, t
   ok <- !is.na(idx)
   N1.re[ok] <- N1.u[idx[ok]]
   N2.re[ok] <- N2.u[idx[ok]]
+  if (length(L.u) > 0) N2.limit[ok] <- L.u[idx[ok]]
   if (any(degenerate)) {
     N1.re[degenerate] <- as.integer(N1.plan)
     N2.re[degenerate] <- as.integer(N2.plan)
     if (method != 'exact') n.raw[degenerate] <- N1.plan + N2.plan
   }
-  data.frame(n.raw = n.raw, N1.re = N1.re, N2.re = N2.re)
+  data.frame(n.raw = n.raw, N1.re = N1.re, N2.re = N2.re, N2.limit = N2.limit)
 }

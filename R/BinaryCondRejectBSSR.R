@@ -111,6 +111,8 @@ BinaryCondRejectBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
                                  ss.Test = Test, ss.alpha = alpha,
                                  rounding = c('group', 'friede-kieser', 'total',
                                               'nearest'),
+                                 search = c('crossing', 'smallest', 'stable'),
+                                 search.limit = c(2, 50),
                                  N.min = NULL, N.max = NULL, n.interim = NULL,
                                  theta = NULL, margin = 0, ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
@@ -118,6 +120,7 @@ BinaryCondRejectBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   effect <- match.arg(effect)
   ss.method <- match.arg(ss.method)
   rounding <- match.arg(rounding)
+  search <- match.arg(search)
   if (length(margin) != 1 || !is.numeric(margin) || is.na(margin) || margin != 0) {
     stop('only tests of superiority are covered, so margin must be 0')
   }
@@ -129,7 +132,8 @@ BinaryCondRejectBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   }
   map <- bssr_map(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Test,
                   restricted, alternative, tsmethod, n.grid, bb.gamma, effect,
-                  ss.method, ss.Test, ss.alpha, rounding, N.min, N.max, ref.pvalue, 0)
+                  ss.method, ss.Test, ss.alpha, rounding, N.min, N.max, ref.pvalue, 0,
+                  search = search, search.limit = search.limit)
   setup <- bssr_setup(map)
   rr.list <- lapply(seq_along(setup$N1), function(k) {
     get_rr(setup$N1[k], setup$N2[k], alpha, Test, alternative, tsmethod, n.grid, bb.gamma,
@@ -184,6 +188,7 @@ BinaryCondRejectBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   attr(out, 'Delta.A') <- Delta.A
   attr(out, 'effect') <- effect
   attr(out, 'ss.method') <- ss.method
+  attr(out, 'search') <- search
   attr(out, 'ref.pvalue') <- ref.pvalue
   attr(out, 'reestimation') <- map
   class(out) <- c('bbssr_crp', 'data.frame')

@@ -166,7 +166,7 @@ The interim total of responders is the only quantity that leaves the database, s
 
 Fix the timing of the interim analysis, the value of $\Delta_{A}$, the test and the choice between the restricted and unrestricted rules in the protocol before the trial starts. Report the operating characteristics from `BinaryPowerBSSR()` alongside them, since the type I error rate of the procedure is a property of the whole rule rather than of the final test alone.
 
-Setting `Delta.T` to zero in `BinaryPowerBSSR()` makes the two groups identical, so `power.BSSR` and `power.TRAD` become rejection probabilities under the null hypothesis at the values passed through `p`. `BinaryTypeIErrorBSSR()` evaluates the same rejection probabilities over a grid of the common response probability and refines the largest local maxima, so the largest type I error rate does not have to be read off a grid.
+Setting `Delta.T` to zero in `BinaryPowerBSSR()` makes the two groups identical, so `power.BSSR` and `power.TRAD` become rejection probabilities under the null hypothesis at the values passed through `p`. `BinaryTypeIErrorBSSR()` evaluates the same rejection probabilities over a grid of the common response probability and finds their largest value over the whole range of the grid, together with an upper bound, so the largest type I error rate does not have to be read off a grid.
 
 ```{r type1-check}
 null <- BinaryTypeIErrorBSSR(

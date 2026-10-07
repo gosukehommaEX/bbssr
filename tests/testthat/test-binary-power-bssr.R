@@ -338,3 +338,34 @@ test_that("BinaryPowerBSSR passes tsmethod to the analysis and the re-estimation
   expect_gt(nrow(seen), 1)
   expect_true(all(seen$tsmethod == 'blaker'))
 })
+
+test_that("the exact re-estimation uses the search of BinarySampleSize", {
+  args <- list(p = 0.4, Delta.A = 0.3, Delta.T = 0.3, N1 = 20, N2 = 20,
+               n.interim = c(10, 10), r = 1, alpha = 0.025, tar.power = 0.8, Test = 'Chisq')
+  map <- lapply(c('crossing', 'smallest', 'stable'), function(s) {
+    attr(do.call(BinaryPowerBSSR, c(args, list(search = s))), 'reestimation')
+  })
+  # Reference values from tools/reference/reference_values.py: the re-estimated size of
+  # group 2 for every pooled interim count s = 0, ..., 20. The searches 'crossing' and
+  # 'smallest' differ at s = 10, and 'stable' agrees with 'crossing' here
+  expect_equal(map[[1]]$N2.re, c(36, 27, 21, 18, 24, 31, 34, 39, 40, 41, 44, 41, 40, 39, 34,
+                                 31, 24, 18, 21, 27, 36))
+  expect_equal(map[[2]]$N2.re, c(36, 27, 21, 18, 24, 31, 34, 39, 40, 41, 41, 41, 40, 39, 34,
+                                 31, 24, 18, 21, 27, 36))
+  expect_equal(map[[3]]$N2.re, map[[1]]$N2.re)
+  expect_equal(map[[3]]$N2.limit, c(98, 85, 77, 72, 77, 82, 86, 89, 91, 92, 93, 92, 91, 89,
+                                    86, 82, 77, 72, 77, 85, 98))
+  expect_true(all(is.na(map[[1]]$N2.limit) & is.na(map[[2]]$N2.limit)))
+})
+
+test_that("BinaryPowerBSSR passes search and search.limit to the exact re-estimation", {
+  seen <- search_calls(res <- BinaryPowerBSSR(
+    p = 0.4, Delta.A = 0.3, Delta.T = 0.3, N1 = 8, N2 = 8, n.interim = c(4, 4), r = 1,
+    alpha = 0.025, tar.power = 0.8, Test = 'Chisq', search = 'stable',
+    search.limit = c(3, 10)
+  ))
+  expect_gt(nrow(seen), 0)
+  expect_true(all(seen$search == 'stable' & seen$a == 3 & seen$b == 10))
+  expect_equal(attr(res, 'search'), 'stable')
+  expect_false(anyNA(attr(res, 'reestimation')$N2.limit))
+})

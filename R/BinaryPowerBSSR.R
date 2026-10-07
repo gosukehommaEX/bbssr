@@ -49,6 +49,11 @@
 #'   Options: \code{'group'} (default), \code{'friede-kieser'}, \code{'total'} or
 #'   \code{'nearest'}. Only \code{'group'} is available with \code{ss.method = 'exact'}.
 #'   See Details
+#' @param search How the exact re-estimation chooses the sample size when
+#'   \code{ss.method = 'exact'}: \code{'crossing'} (default), \code{'smallest'} or
+#'   \code{'stable'}, as in \code{\link{BinarySampleSize}}. Ignored by the other methods
+#' @param search.limit Limit of the size of group 2 examined by \code{search = 'stable'},
+#'   as in \code{\link{BinarySampleSize}}. Default is \code{c(2, 50)}
 #' @param N.min Lower bound on the final total sample size, or \code{NULL} (default) for
 #'   none beyond the interim total. It can be used to keep the patients who are already
 #'   enrolled but not yet evaluated at the interim analysis
@@ -82,10 +87,12 @@
 #' }
 #' The interim sample sizes are stored as the attributes \code{n1.interim} and
 #' \code{n2.interim}. The attribute \code{reestimation} holds, for every pooled number of
-#' interim responders \code{s}, the recovered proportions and the final sample sizes, and
-#' the attribute \code{N.dist} holds the distribution of the final sample size for every
-#' row of the result, identified by the column \code{scenario}. \code{summary()} reports the standard deviation and quantiles of
-#' the final sample size.
+#' interim responders \code{s}, the recovered proportions, the final sample sizes and, in
+#' the column \code{N2.limit}, the limit of \code{search = 'stable'} (otherwise
+#' \code{NA}). The attribute \code{N.dist} holds the distribution of the final sample
+#' size for every row of the result, identified by the column \code{scenario}, and the
+#' attribute \code{search} the search. \code{summary()} reports the standard deviation
+#' and quantiles of the final sample size.
 #'
 #' @details
 #' At the interim analysis the pooled number of responders is observed without unblinding.
@@ -205,6 +212,8 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
                                           'alternative.variance'),
                             ss.Test = Test, ss.alpha = alpha,
                             rounding = c('group', 'friede-kieser', 'total', 'nearest'),
+                            search = c('crossing', 'smallest', 'stable'),
+                            search.limit = c(2, 50),
                             N.min = NULL, N.max = NULL, n.interim = NULL, margin = 0,
                             ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
@@ -212,6 +221,7 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
   effect <- match.arg(effect)
   ss.method <- match.arg(ss.method)
   rounding <- match.arg(rounding)
+  search <- match.arg(search)
   if (rounding == 'group' && N1 != ceiling(r * N2)) {
     warning('N1 differs from ceiling(r * N2), the fixed-sample comparator is not ',
             'allocated in the ratio r to 1')
@@ -220,7 +230,7 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
   map <- bssr_map(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Test,
                   restricted, alternative, tsmethod, n.grid, bb.gamma, effect,
                   ss.method, ss.Test, ss.alpha, rounding, N.min, N.max, ref.pvalue,
-                  margin)
+                  margin, search = search, search.limit = search.limit)
   setup <- bssr_setup(map)
   N11 <- setup$n11
   N12 <- setup$n12
@@ -290,6 +300,7 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
   attr(out, 'ss.Test') <- ss.Test
   attr(out, 'ss.alpha') <- ss.alpha
   attr(out, 'rounding') <- rounding
+  attr(out, 'search') <- search
   attr(out, 'N.min') <- N.min
   attr(out, 'N.max') <- N.max
   attr(out, 'margin') <- margin

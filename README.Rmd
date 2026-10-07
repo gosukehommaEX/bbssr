@@ -34,11 +34,12 @@ A trial with a binary endpoint needs an assumed response probability in each gro
 ## What is new since version 2.0.0
 
 - Two tests of non-inferiority with a margin on the scale of the risk difference, `Test = 'Blackwelder'` and `Test = 'Farrington-Manning'`, and the blinded re-estimation of Friede, Mitchell and Mueller-Velten (2007).
-- `BinaryTypeIErrorBSSR()` evaluates the type I error rate of a re-estimation design over the nuisance parameter, `BinaryAlphaAdjBSSR()` finds the adjusted significance level that controls it, and `BinaryCondRejectBSSR()` decomposes it by the interim outcome.
+- `BinaryTypeIErrorBSSR()` evaluates the type I error rate of a re-estimation design over the nuisance parameter and finds its largest value over the whole range together with an upper bound, `BinaryAlphaAdjBSSR()` finds the adjusted significance level that controls it, and `BinaryCondRejectBSSR()` decomposes it by the interim outcome.
 - `BinaryGridBSSR()` evaluates several designs, given as the rows of a data frame, over common scenarios.
 - The sample size can be re-estimated by the normal approximation (`ss.method`), with another test or level (`ss.Test`, `ss.alpha`), with one of several rounding rules (`rounding`), within bounds on the final sample size (`N.min`, `N.max`), from given interim sample sizes (`n.interim`) and with an effect on the scale of the risk ratio or the odds ratio (`effect`).
 - Every function accepts `alternative = 'less'`, and `ref.pvalue = TRUE` refines the maximization over the nuisance parameter of the unconditional tests.
 - `tsmethod = 'blaker'` adds a third two-sided convention for the Fisher, Fisher mid-p and Boschloo tests, formula (2) of Mehrotra, Chan and Berger (2003).
+- `search` chooses among three exact sample size searches: the default, which stops where the power crosses the target, the smallest size that attains the target, and the smallest size from which every size up to a limit attains it.
 - `summary()` of `BinaryPowerBSSR()` reports the distribution of the final sample size.
 
 See [NEWS.md](https://github.com/gosukehommaEX/bbssr/blob/main/NEWS.md) for the full list.
@@ -127,7 +128,7 @@ BinaryAlphaAdjBSSR(
 )
 ```
 
-The type I error rate is computed exactly over the common response probability, and the adjusted level is the largest nominal level at which its maximum does not exceed the target level.
+The type I error rate is computed exactly over the common response probability. Its largest value over the whole interval spanned by `theta`, by default from 0 to 1, is found together with an upper bound, so it does not depend on the spacing of the grid. The adjusted level is found by lowering the nominal level until this bound does not exceed the target level. It is reported with at most six significant digits where the rejection regions allow, so the printed value can be used as it is.
 
 ### Comparing designs
 

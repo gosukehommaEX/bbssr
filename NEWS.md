@@ -3,14 +3,34 @@
 ## New features
 
 * `BinaryTypeIErrorBSSR()` evaluates the type I error rate of a re-estimation design and
-  of the corresponding fixed-sample design over the common response probability, and
-  locates the largest value. The rate is a polynomial in the response probability, so the
-  largest local maxima on the grid are refined by a one-dimensional optimization.
+  of the corresponding fixed-sample design over a grid of the common response
+  probability, by default `seq(0, 1, by = 0.005)`, and locates the largest value. The
+  rate is a polynomial in the response probability. With the default
+  `maximize = 'certified'` the polynomial is written in the Bernstein basis over the
+  interval spanned by the grid, restricted with a margin to the part of the null boundary
+  on which both response probabilities lie in the unit interval. There it does not exceed
+  its largest coefficient, and the interval is halved by the algorithm of de Casteljau
+  until the bound on each piece exceeds the largest value found by at most 1e-12. The
+  largest value over the whole interval is therefore found whether or not the grid comes
+  close to it, and the bound is returned in the column `bound` of the attribute `max`. If
+  1e5 subdivisions do not suffice, a warning is given and the bound remains valid.
+  `maximize = 'refined'` refines the three largest local maxima on the grid by a
+  one-dimensional optimization, which usually but not always finds the maximum, and
+  `maximize = 'grid'` takes the largest value on the grid.
 
-* `BinaryAlphaAdjBSSR()` finds the adjusted nominal level that keeps the largest type I
-  error rate at or below the target level (Kieser and Friede, 2000; Friede and Kieser,
-  2004). The adjusted level can be applied to the final analysis only, which allows a
-  bisection, or to the re-estimation as well, which uses a stepwise search.
+* `BinaryAlphaAdjBSSR()` lowers the nominal level until the largest type I error rate
+  does not exceed the target level (Kieser and Friede, 2000; Friede and Kieser, 2004).
+  The adjusted level can be applied to the final analysis only, which allows a
+  bisection, or to the re-estimation as well, which uses a stepwise search. With the
+  default `maximize = 'certified'` a level is accepted only when the upper bound of the
+  type I error rate over the interval spanned by `theta` does not exceed the target
+  level, and the columns `max.TIE.bound` and `max.TIE.adj.bound` hold the bounds at the
+  nominal and at the adjusted level. The reported level found by the bisection lies
+  between the largest p-value rejected and the smallest p-value not rejected at the
+  level where the search ends, and has at most six significant digits where possible.
+  It therefore gives the same rejection regions whether a p-value is rejected when it is
+  below the level by more than the tolerance used throughout the package, below the
+  level, or at most equal to it, and it can be used as printed.
 
 * `BinaryCondRejectBSSR()` returns, under equal response probabilities, the rejection
   probability of a re-estimation design given the pooled numbers of responders at the
@@ -39,6 +59,19 @@
   interval, with each Bernoulli variance truncated at zero, so that the assumed effect is
   kept as in formula (2) of Friede and Kieser (2004). Truncating the proportions instead
   shrinks the assumed difference near the boundary and inflates the re-estimated size.
+
+* `search` selects how the exact sample size search of `BinarySampleSize()` and of the
+  exact re-estimation chooses the size of group 2. `'crossing'` (the default, and the
+  search of earlier versions) steps from the normal approximation to a size that attains
+  the target power while the size one unit smaller does not. `'smallest'` returns the
+  smallest size that attains the target power, and `'stable'` the smallest size from
+  which every size up to a limit attains it. The exact power is not monotone in the
+  sample size, so the three can differ: for Fisher's exact test with response
+  probabilities 0.6 and 0.3, a one-sided level of 0.025 and a target power of 0.85 they
+  give 52, 52 and 56 patients per group. The limit is set by `search.limit`, by default
+  the larger of twice the normal approximation and the normal approximation plus 50, and
+  is returned as the attribute `search.limit` of `BinarySampleSize()` and
+  `BinaryBSSR()` and as the column `N2.limit` of the attribute `reestimation`.
 
 * `rounding` selects how an unrounded sample size becomes whole numbers: by group
   (`'group'`, the rule of earlier versions), by the rule of Friede and Kieser (2004)
@@ -120,12 +153,17 @@
 
 ## Performance
 
-* `BinaryAlphaAdjBSSR()` evaluates the type I error rate at a new level first at the grid
-  point where the largest rate of the last failing level was found, and rejects the
-  level at once if the rate exceeds the target level there. The largest rate over the
-  grid is at least this value, so the adjusted levels are unchanged, and the evaluation
-  over the whole grid and its refinement are spared for most failing levels, which
-  matters most with `adjust = 'both'`.
+* `BinaryAlphaAdjBSSR()` evaluates the type I error rate at a new level first at the
+  common response probability where the largest rate of the last failing level was
+  found, and rejects the level at once if the rate exceeds the target level there. The
+  largest rate is at least this value, so such a level also fails on the largest rate,
+  and the evaluation over the whole grid and the search for the maximum are spared for
+  most failing levels, which matters most with `adjust = 'both'`. With
+  `maximize = 'grid'` the adjusted levels are unchanged. With the other methods this
+  value can lie between the grid points, so a level can fail that the grid would
+  accept, which can only lower the adjusted level. With `maximize = 'certified'` the
+  bisection of `adjust = 'test'` certifies only the level it finds, and searches again
+  below that level, certifying every level that passes, if the certification fails.
 
 * The exact sample size search of the re-estimation runs once for all recovered pairs of
   proportions and obtains the rejection region of each candidate sample size only once,

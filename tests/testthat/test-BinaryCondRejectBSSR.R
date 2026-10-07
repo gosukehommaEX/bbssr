@@ -131,3 +131,15 @@ test_that("BinaryCondRejectBSSR passes tsmethod to every rejection region", {
   expect_gt(nrow(seen), 1)
   expect_true(all(seen$tsmethod == 'blaker'))
 })
+
+test_that("BinaryCondRejectBSSR passes search and search.limit to the re-estimation", {
+  seen <- search_calls(res <- BinaryCondRejectBSSR(
+    Delta.A = 0.3, N1 = 8, N2 = 8, n.interim = c(4, 4), r = 1, alpha = 0.025,
+    tar.power = 0.8, Test = 'Chisq', search = 'stable', search.limit = c(3, 10),
+    theta = c(0.3, 0.5)
+  ))
+  expect_gt(nrow(seen), 0)
+  expect_true(all(seen$search == 'stable' & seen$a == 3 & seen$b == 10))
+  expect_equal(attr(res, 'search'), 'stable')
+  expect_false(anyNA(attr(res, 'reestimation')$N2.limit))
+})

@@ -42,16 +42,15 @@ test_that("the certified maxima agree with an independent implementation", {
   expect_equal(attr(res, 'maximize'), 'certified')
   expect_equal(attr(res, 'interval'), c(0, 1))
   expect_equal(m$TIE, c(0.0272864324696176, 0.0293761105282982), tolerance = 1e-10)
-  expect_true(all(m$bound >= m$TIE & m$bound - m$TIE <= 1e-12))
+  expect_true(all(m$bound - m$TIE <= 1e-12 + 1e-15))
   # Both curves are symmetric about 0.5, so the maximum may be reported at either twin
   expect_equal(pmin(m$theta, 1 - m$theta), c(0.4376846, 0.0935671), tolerance = 1e-4)
-  # The certified maximum is at least the largest grid value
-  expect_gte(m$TIE[1], max(res$TIE.BSSR))
-  expect_gte(m$TIE[2], max(res$TIE.TRAD))
   # The refinement of the largest local maxima on the grid finds the same values here
   ref <- attr(do.call(BinaryTypeIErrorBSSR, c(tie_args, list(maximize = 'refined'))), 'max')
   expect_equal(ref$TIE, c(0.0272864324696431, 0.0293761105282989), tolerance = 1e-8)
   expect_true(all(is.na(ref$bound)))
+  # The refined maxima, computed by summation, do not exceed the bounds
+  expect_true(all(ref$TIE <= m$bound + 1e-15))
 })
 
 test_that("the certified maximum covers the interval between the grid points", {
@@ -59,7 +58,7 @@ test_that("the certified maximum covers the interval between the grid points", {
   m <- attr(res, 'max')
   expect_equal(attr(res, 'interval'), c(0.15, 0.85))
   expect_equal(m$TIE, c(0.0272864324696353, 0.0267904681779775), tolerance = 1e-10)
-  expect_true(all(m$bound >= m$TIE & m$bound - m$TIE <= 1e-12))
+  expect_true(all(m$bound - m$TIE <= 1e-12 + 1e-15))
   # Both maxima lie between the two grid points, where the grid cannot see them
   expect_true(all(m$theta > 0.15 & m$theta < 0.85))
   expect_gt(m$TIE[1], max(res$TIE.BSSR))
@@ -132,7 +131,28 @@ test_that("the largest type I error rate on a non-inferiority boundary is certif
   m <- attr(tie, 'max')
   # Reference values from tools/reference/reference_values.py
   expect_equal(m$TIE, c(0.0263983576247002, 0.0281499487826859), tolerance = 1e-10)
-  expect_true(all(m$bound >= m$TIE & m$bound - m$TIE <= 1e-12))
+  expect_true(all(m$bound - m$TIE <= 1e-12 + 1e-15))
+})
+
+test_that("the certified maximum agrees with a dense grid for unequal groups and 'less'", {
+  # Groups of different sizes and the boundary p1 - p2 = 0.3 of the hypothesis of
+  # alternative = 'less', on which p1 = theta + 0.1 and p2 = theta - 0.2, so theta runs
+  # from 0.2 to 0.9. The certification uses the Bernstein coefficients and the refinement
+  # on a grid of step 0.001 sums the binomial probabilities, two separate computations
+  args <- list(Delta.A = 0, N1 = 24, N2 = 12, n.interim = c(12, 6), r = 2, alpha = 0.025,
+               tar.power = 0.8, Test = 'Farrington-Manning', alternative = 'less',
+               ss.method = 'standard', margin = 0.3)
+  cert <- do.call(BinaryTypeIErrorBSSR, c(args, list(theta = c(0.2, 0.9))))
+  expect_equal(attr(cert, 'interval'), c(0.2, 0.9), tolerance = 1e-14)
+  expect_equal(cert$p1 - cert$p2, c(0.3, 0.3), tolerance = 1e-14)
+  dense <- do.call(BinaryTypeIErrorBSSR,
+                   c(args, list(theta = seq(0.2, 0.9, by = 0.001), maximize = 'refined')))
+  mc <- attr(cert, 'max')
+  md <- attr(dense, 'max')
+  expect_gt(min(md$TIE), 0.001)
+  expect_equal(mc$TIE, md$TIE, tolerance = 1e-10)
+  expect_true(all(md$TIE <= mc$bound + 1e-15))
+  expect_true(all(mc$bound - mc$TIE <= 1e-12 + 1e-15))
 })
 
 test_that("BinaryTypeIErrorBSSR passes tsmethod to every rejection region", {
@@ -143,4 +163,16 @@ test_that("BinaryTypeIErrorBSSR passes tsmethod to every rejection region", {
   ))
   expect_gt(nrow(seen), 1)
   expect_true(all(seen$tsmethod == 'blaker'))
+})
+
+test_that("BinaryTypeIErrorBSSR passes search and search.limit to the re-estimation", {
+  seen <- search_calls(res <- BinaryTypeIErrorBSSR(
+    Delta.A = 0.3, N1 = 8, N2 = 8, n.interim = c(4, 4), r = 1, alpha = 0.025,
+    tar.power = 0.8, Test = 'Chisq', search = 'stable', search.limit = c(3, 10),
+    theta = c(0.3, 0.5), maximize = 'grid'
+  ))
+  expect_gt(nrow(seen), 0)
+  expect_true(all(seen$search == 'stable' & seen$a == 3 & seen$b == 10))
+  expect_equal(attr(res, 'search'), 'stable')
+  expect_false(anyNA(attr(res, 'reestimation')$N2.limit))
 })

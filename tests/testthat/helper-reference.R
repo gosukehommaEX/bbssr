@@ -160,3 +160,21 @@ bssr_cond_reject_ref <- function(rr.list, rr.id, n21, n22, n11, n12) {
   }
   list(s = s.out, s2 = s2.out, crp = crp, crp.total = crp.total)
 }
+
+# Search and limit of every call of ss_exact_search() made while code is evaluated, which
+# shows whether search and search.limit reach the exact sample size search
+search_calls <- function(code) {
+  seen <- data.frame(search = character(0), a = numeric(0), b = numeric(0))
+  real <- ss_exact_search
+  testthat::local_mocked_bindings(
+    ss_exact_search = function(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod,
+                               n.grid, bb.gamma, ref.pvalue, margin, search = 'crossing',
+                               search.limit = c(2, 50)) {
+      seen[nrow(seen) + 1L, ] <<- list(search, search.limit[1], search.limit[2])
+      real(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod, n.grid, bb.gamma,
+           ref.pvalue, margin, search, search.limit)
+    }
+  )
+  force(code)
+  seen
+}

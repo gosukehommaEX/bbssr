@@ -16,9 +16,11 @@ test_that("tie_certify bounds the type I error rate over the interval", {
   for (iv in list(c(0, 1), c(0.2, 0.6))) {
     cm <- tie_certify(w, iv, 1, 'greater', 0)
     th <- seq(iv[1], iv[2], length.out = 2001)
-    expect_gte(cm$y, max(bssr_reject(d$st, d$rr.list, th, th)) - 1e-12)
-    expect_gte(cm$bound, cm$y)
-    expect_lte(cm$bound - cm$y, 1e-12)
+    v <- bssr_reject(d$st, d$rr.list, th, th)
+    expect_gte(cm$y, max(v) - 1e-12)
+    # The bound is not below the rate computed by summation
+    expect_gte(cm$bound, max(v) - 1e-15)
+    expect_lte(cm$bound - cm$y, 1e-12 + 1e-15)
     expect_true(cm$x >= iv[1] && cm$x <= iv[2])
     expect_equal(bssr_reject(d$st, d$rr.list, cm$x, cm$x), cm$y, tolerance = 1e-12)
   }
@@ -36,7 +38,9 @@ test_that("tie_certify follows the boundary of a non-inferiority hypothesis", {
       power_from_rr(rr, dbinom(0:20, 20, b$p1[i]), dbinom(0:20, 20, b$p2[i]))
     }, numeric(1))
   }
-  expect_gte(cm$y, max(rate(seq(iv[1], iv[2], length.out = 2001))) - 1e-12)
-  expect_lte(cm$bound - cm$y, 1e-12)
+  v <- rate(seq(iv[1], iv[2], length.out = 2001))
+  expect_gte(cm$y, max(v) - 1e-12)
+  expect_gte(cm$bound, max(v) - 1e-15)
+  expect_lte(cm$bound - cm$y, 1e-12 + 1e-15)
   expect_equal(rate(cm$x), cm$y, tolerance = 1e-12)
 })

@@ -13,9 +13,11 @@
 #'   \code{(r p1 + p2) / (1 + r)} on the boundary of the null hypothesis, see Details
 #' @param maximize How the largest type I error rate is located. \code{'certified'}
 #'   (default) finds it over the whole interval from the smallest to the largest value of
-#'   \code{theta}, together with an upper bound, see Details. \code{'refined'} refines the
-#'   largest local maxima on the grid by a one-dimensional optimization between the
-#'   neighbouring grid points, and \code{'grid'} takes the largest value on the grid
+#'   \code{theta}, restricted with a margin to the values at which both response
+#'   probabilities on the null boundary lie in the unit interval, together with an upper
+#'   bound, see Details. \code{'refined'} refines the largest local maxima on the grid
+#'   by a one-dimensional optimization between the neighbouring grid points, and
+#'   \code{'grid'} takes the largest value on the grid
 #'
 #' @return An object of class \code{bbssr_tie}, a data frame with one row per element of
 #'   \code{theta} containing:
@@ -28,10 +30,12 @@
 #'   \item{TIE.TRAD}{Type I error rate of the fixed-sample design with sample sizes
 #'     \code{N1} and \code{N2}}
 #' }
-#' The attribute \code{max} is a data frame with the largest type I error rate \code{TIE}
-#' of each design, the common response probability \code{theta} at which it occurs and,
-#' with \code{maximize = 'certified'}, the upper bound \code{bound} of the type I error
-#' rate over the interval given by the attribute \code{interval} (otherwise \code{NA}).
+#' The attribute \code{max} is a data frame with one row for each design, \code{'BSSR'}
+#' and \code{'TRAD'} in the column \code{Design}, holding the largest type I error rate
+#' \code{TIE}, the common response probability, or pooled response probability on the
+#' null boundary, \code{theta} at which it occurs and, with
+#' \code{maximize = 'certified'}, the upper bound \code{bound} of the type I error rate
+#' over the interval given by the attribute \code{interval} (otherwise \code{NA}).
 #' The attribute \code{reestimation} holds the final sample size for every pooled number
 #' of interim responders.
 #'
@@ -55,10 +59,13 @@
 #' a subinterval is set aside once its largest coefficient exceeds the largest value found
 #' by at most 1e-12. The largest coefficient of the subintervals set aside, reported as
 #' \code{bound}, is an upper bound of the type I error rate at every value of \code{theta}
-#' in the interval, up to rounding error. With \code{maximize = 'refined'} the three
-#' largest local maxima on the grid are refined, which finds the maximum when the grid
-#' separates the local maxima, and with \code{maximize = 'grid'} the largest value on the
-#' grid is reported.
+#' in the interval, up to rounding error, and \code{TIE} is within 1e-12 of it. If 1e5
+#' subdivisions do not suffice, a warning is given; \code{bound} remains an upper bound,
+#' but \code{TIE} can then be more than 1e-12 below it. With \code{maximize = 'refined'}
+#' the three largest local maxima on the grid are refined, which usually finds the maximum
+#' when the grid is fine compared with the spacing of the local maxima but does not
+#' guarantee it, and with \code{maximize = 'grid'} the largest value on the grid is
+#' reported.
 #'
 #' With a non-inferiority \code{margin} the null hypothesis is \code{p1 - p2 <= -margin},
 #' or \code{p1 - p2 >= margin} for \code{alternative = 'less'}, and the type I error rate
@@ -109,6 +116,8 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
                                  ss.Test = Test, ss.alpha = alpha,
                                  rounding = c('group', 'friede-kieser', 'total',
                                               'nearest'),
+                                 search = c('crossing', 'smallest', 'stable'),
+                                 search.limit = c(2, 50),
                                  N.min = NULL, N.max = NULL, n.interim = NULL,
                                  theta = seq(0, 1, by = 0.005),
                                  maximize = c('certified', 'refined', 'grid'),
@@ -118,6 +127,7 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   effect <- match.arg(effect)
   ss.method <- match.arg(ss.method)
   rounding <- match.arg(rounding)
+  search <- match.arg(search)
   maximize <- match.arg(maximize)
   if (length(theta) < 1 || anyNA(theta) || any(theta < 0 | theta > 1)) {
     stop('theta must be a vector of values in [0, 1]')
@@ -126,7 +136,7 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   map <- bssr_map(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Test,
                   restricted, alternative, tsmethod, n.grid, bb.gamma, effect,
                   ss.method, ss.Test, ss.alpha, rounding, N.min, N.max, ref.pvalue,
-                  margin)
+                  margin, search = search, search.limit = search.limit)
   # Response probabilities on the boundary of the null hypothesis, which are both theta
   # when the margin is 0
   if (!any(null_boundary(theta, r, alternative, margin)$ok)) {
@@ -195,6 +205,7 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   attr(out, 'Delta.A') <- Delta.A
   attr(out, 'effect') <- effect
   attr(out, 'ss.method') <- ss.method
+  attr(out, 'search') <- search
   attr(out, 'maximize') <- maximize
   if (maximize == 'certified') attr(out, 'interval') <- interval
   attr(out, 'margin') <- margin

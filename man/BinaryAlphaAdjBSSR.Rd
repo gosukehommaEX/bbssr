@@ -23,6 +23,8 @@ BinaryAlphaAdjBSSR(
   ss.Test = Test,
   ss.alpha = alpha,
   rounding = c("group", "friede-kieser", "total", "nearest"),
+  search = c("crossing", "smallest", "stable"),
+  search.limit = c(2, 50),
   N.min = NULL,
   N.max = NULL,
   n.interim = NULL,
@@ -94,6 +96,13 @@ Options: \code{'group'} (default), \code{'friede-kieser'}, \code{'total'} or
 \code{'nearest'}. Only \code{'group'} is available with \code{ss.method = 'exact'}.
 See Details}
 
+\item{search}{How the exact re-estimation chooses the sample size when
+\code{ss.method = 'exact'}: \code{'crossing'} (default), \code{'smallest'} or
+\code{'stable'}, as in \code{\link{BinarySampleSize}}. Ignored by the other methods}
+
+\item{search.limit}{Limit of the size of group 2 examined by \code{search = 'stable'},
+as in \code{\link{BinarySampleSize}}. Default is \code{c(2, 50)}}
+
 \item{N.min}{Lower bound on the final total sample size, or \code{NULL} (default) for
 none beyond the interim total. It can be used to keep the patients who are already
 enrolled but not yet evaluated at the interim analysis}
@@ -112,14 +121,17 @@ evaluated. Default is \code{seq(0, 1, by = 0.005)}. With a non-zero
 \item{maximize}{How the largest type I error rate at a level is located, as in
 \code{\link{BinaryTypeIErrorBSSR}}. With \code{'certified'} (default) the adjusted
 level controls the type I error rate over the whole interval from the smallest to the
-largest value of \code{theta}, see Details}
+largest value of \code{theta}, restricted with a margin to the values at which both
+response probabilities on the null boundary lie in the unit interval, see Details.
+With \code{'refined'} and \code{'grid'} the control is assessed on the grid}
 
 \item{adjust}{Which part of the design uses the adjusted level. \code{'test'}
 (default) applies it to the final analysis only, so the re-estimation keeps using
 \code{ss.alpha}. \code{'both'} applies it to the re-estimation as well}
 
-\item{tol}{Tolerance of the bisection used when \code{adjust = 'test'}, relative to
-\code{alpha}. Default is \code{1e-8}}
+\item{tol}{Tolerance of the bisection, relative to \code{alpha}, a single value in
+(0, 1). The bisection is used when \code{adjust = 'test'} and, whatever
+\code{adjust}, for the fixed-sample design. Default is \code{1e-8}}
 
 \item{step}{Decrement of the level in the search used when \code{adjust = 'both'}.
 Default is \code{1e-5}}
@@ -146,10 +158,14 @@ BSSR design and one for the fixed-sample design containing:
 \item{Design}{\code{'BSSR'} or \code{'TRAD'}}
 \item{alpha}{Target level}
 \item{max.TIE}{Largest type I error rate at the nominal level \code{alpha}}
-\item{alpha.adj}{Adjusted nominal level}
-\item{max.TIE.adj}{Largest type I error rate at the adjusted level}
+\item{alpha.adj}{Adjusted nominal level, see Details. It is \code{alpha} when the
+nominal level already controls the type I error rate, and 0, with a warning, when
+no level examined does}
+\item{max.TIE.adj}{Largest type I error rate at the adjusted level, 0 when
+\code{alpha.adj} is 0}
 \item{theta.adj}{Common response probability, or pooled response probability on the
-null boundary, at which \code{max.TIE.adj} occurs}
+null boundary, at which \code{max.TIE.adj} occurs, \code{NA} when
+\code{alpha.adj} is 0}
 \item{max.TIE.bound}{Upper bound of the type I error rate at the nominal level with
 \code{maximize = 'certified'}, otherwise \code{NA}}
 \item{max.TIE.adj.bound}{Upper bound of the type I error rate at the adjusted level
@@ -157,10 +173,11 @@ with \code{maximize = 'certified'}, otherwise \code{NA}}
 }
 }
 \description{
-Finds the largest nominal significance level at which a two-arm trial with a binary
-endpoint and blinded sample size re-estimation (BSSR) keeps its type I error rate at or
-below the target level \code{alpha} for every common response probability, together
-with the corresponding level of the fixed-sample design.
+Lowers the nominal significance level of a two-arm trial with a binary endpoint and
+blinded sample size re-estimation (BSSR) until the largest type I error rate over the
+common response probability, or over the pooled response probability on the boundary
+of a non-inferiority hypothesis, does not exceed the target level \code{alpha}, and
+returns the adjusted level together with that of the fixed-sample design.
 }
 \details{
 Following Kieser and Friede (2000) and Friede and Kieser (2004), the nominal level of
@@ -170,33 +187,54 @@ exceed \code{alpha}.
 
 With \code{adjust = 'test'} the final sample sizes do not depend on the nominal level,
 and the rejection regions shrink as the level decreases, so the largest type I error
-rate is a non-decreasing step function of the level. The adjusted level is then found
-by bisection to within \code{tol * alpha}, and the reported value is the largest level
-examined that controls the type I error rate.
+rate is a non-decreasing step function of the level. The bisection locates, to within
+\code{tol * alpha}, the level above which the largest rate exceeds \code{alpha}. The
+package rejects a p-value at a level when it is below the level by more than a
+tolerance of about 1.49e-8, so every level between the largest p-value rejected at the
+level found plus this tolerance and the smallest p-value not rejected gives the same
+rejection regions, also when a p-value is rejected if it is below the level or at most
+equal to it. The reported \code{alpha.adj} is the largest value with at most six
+significant digits in this range, or with more digits if there is none, so the printed
+value can be used as it is. The same applies to the fixed-sample design.
 
 With \code{adjust = 'both'} the re-estimated sample sizes change with the level as
 well, so the type I error rate need not be monotone in the level. The level is then
 lowered from \code{alpha} in steps of \code{step} until the type I error rate is
-controlled. This search re-estimates the sample
-size at every step and can take much longer than the bisection. The fixed-sample design
-always uses the bisection, since its sample size does not depend on the level.
+controlled. The result is the first level among \code{alpha - step},
+\code{alpha - 2 * step}, and so on, at which the type I error rate is controlled, and
+it can change with \code{step}. The levels that control the type I error rate need not
+form an interval, so a level below the result can fail, and a level above it that is
+not on this grid can pass. This search re-estimates the sample size at every step and
+can take much longer than the bisection. The fixed-sample design always uses the
+bisection, since its sample size does not depend on the level. The script
+\code{reproduce-published.R} in the folder
+\code{system.file('reproduce', package = 'bbssr')} reproduces the published values of
+Section 5 of Friede and Kieser (2004) and of Example 21.1 of Kieser (2020) only when the
+re-estimation also uses the adjusted level, as with \code{adjust = 'both'}.
 
 With \code{maximize = 'certified'} the levels are assessed on the grid with the
 refinement of \code{maximize = 'refined'}, and the level found is then certified as in
 \code{\link{BinaryTypeIErrorBSSR}}: it is accepted only if the upper bound of the type I
 error rate over the interval from the smallest to the largest value of \code{theta}
-does not exceed \code{alpha}. If the bound exceeds \code{alpha}, the grid has missed
-the value of \code{theta} at which the level fails, and the search continues below
-that level. The bisection then certifies every level that passes the assessment on the
-grid, and the search of \code{adjust = 'both'} certifies every such level from the
-start. The adjusted level therefore controls the type I error rate over the whole
-interval.
+does not exceed \code{alpha}. If the bound exceeds \code{alpha}, the grid has missed a
+value of \code{theta} at which the level fails, or the largest rate lies within 1e-12
+below \code{alpha}, and the search continues below that level. The bisection then
+certifies every level that passes the assessment on the grid, and the search of
+\code{adjust = 'both'} certifies every such level from the start. The adjusted level
+therefore controls the type I error rate over the whole interval. If a certification
+stops at its limit of 1e5 subdivisions, with a warning, the bound can exceed the
+largest rate by more than 1e-12, and the level found can be lower than necessary.
 
 In both searches the type I error rate at a new level is first evaluated at the single
 value of \code{theta} where the largest rate of the last level that failed was found.
 If it exceeds \code{alpha} there, the level fails without the evaluation over the whole
 grid. The largest rate over \code{theta} is never below the rate at any one value, so
-every decision, and hence the result, is that of the full evaluation.
+such a level also fails on the largest rate. With \code{maximize = 'grid'} this value
+is a grid point, and every decision is that of the evaluation on the grid. With
+\code{'refined'} and \code{'certified'} it can lie between the grid points, where the
+grid can miss a rate above \code{alpha}, so a level can fail that the evaluation on the
+grid would accept. This can only lower the level found, and with \code{'certified'}
+the level found is certified in either case.
 }
 \examples{
 \donttest{
@@ -215,6 +253,9 @@ designs with control of the type I error rate. \emph{Statistics in Medicine}, 19
 
 Friede T, Kieser M (2004). Sample size recalculation for binary data in internal pilot
 study designs. \emph{Pharmaceutical Statistics}, 3(4), 269-279.
+
+Kieser M (2020). \emph{Methods and Applications of Sample Size Calculation and
+Recalculation in Clinical Trials}. Springer, Cham.
 }
 \seealso{
 \code{\link{BinaryTypeIErrorBSSR}}

@@ -17,6 +17,8 @@ BinarySampleSize(
   bb.gamma = 0,
   method = c("exact", "standard", "null.variance", "alternative.variance"),
   rounding = c("group", "friede-kieser", "total", "nearest"),
+  search = c("crossing", "smallest", "stable"),
+  search.limit = c(2, 50),
   margin = 0,
   ref.pvalue = FALSE
 )
@@ -69,6 +71,19 @@ total and gives group 2 \code{floor(N / (1 + r))} patients. \code{'nearest'} rou
 the two group sizes separately to the nearest whole number, as in Farrington and
 Manning (1990). Only \code{'group'} is available with \code{method = 'exact'}}
 
+\item{search}{How the search of \code{method = 'exact'} chooses the size of group 2.
+\code{'crossing'} (default) steps from the normal approximation to a size that
+attains the target power while the size one unit smaller does not.
+\code{'smallest'} returns the smallest size that attains the target power.
+\code{'stable'} returns the smallest size from which every size up to a limit attains
+it. See Details. Ignored by the other methods}
+
+\item{search.limit}{Two numbers \code{a} and \code{b} giving the limit
+\code{max(ceiling(a n0), ceiling(n0 + b))} of the size of group 2 examined by
+\code{search = 'stable'}, where \code{n0} is the size of group 2 from the normal
+approximation, rounded up. \code{a} must be at least 1 and \code{b} non-negative.
+Default is \code{c(2, 50)}}
+
 \item{margin}{Non-inferiority margin on the scale of the risk difference. The
 default of 0 gives a test of superiority. A value other than 0 tests the null
 hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
@@ -98,6 +113,9 @@ containing:
 \item{N2}{Required sample size of group 2}
 \item{N}{Total required sample size}
 }
+The attribute \code{search} holds the search, and the attribute \code{search.limit}
+the limit of the size of group 2 examined by \code{search = 'stable'} (otherwise
+\code{NA}).
 }
 \description{
 Calculates the required sample size for two-arm trials with binary endpoints. Seven
@@ -106,7 +124,7 @@ one-sided or a two-sided alternative. The sample size can be obtained from the e
 power of the selected test or from the normal approximation.
 }
 \details{
-The calculation uses a three-step approach:
+With the default \code{search = 'crossing'} the calculation uses a three-step approach:
 \enumerate{
 \item Calculate an initial sample size from the normal approximation to the
 chi-squared test
@@ -125,6 +143,16 @@ group 2 attains the target power and the size one unit smaller does not, unless 
 returned size is 1. The exact power is not monotone in the sample size, so a smaller
 size further from the normal approximation may also attain the target power, and a
 larger size may fall short of it.
+
+The two other searches do not depend on where the normal approximation starts.
+\code{search = 'smallest'} scans the size of group 2 upwards from 1 and returns the
+first size that attains the target power. It visits every smaller size, which takes
+longer for the unconditional tests. \code{search = 'stable'} scans downwards from the
+limit given by \code{search.limit} and returns the smallest size from which every size
+up to the limit attains the target power, so that adding patients within this range
+does not take the power below the target. The search stops with an error if the limit
+itself falls short of the target power. The three searches can return different sizes
+because the exact power is not monotone in the sample size.
 
 Under \code{method = 'standard'}, \code{'null.variance'} or
 \code{'alternative.variance'} the steps above are replaced by the closed-form normal

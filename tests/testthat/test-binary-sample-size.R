@@ -204,3 +204,24 @@ test_that("BinarySampleSize checks the direction of the effect against the margi
   expect_no_error(BinarySampleSize(0.6, 0.6, 1, 0.025, 0.8, 'Blackwelder',
                                    method = 'alternative.variance', margin = 0.1))
 })
+
+test_that("BinarySampleSize offers three exact searches", {
+  # Reference values from tools/reference/reference_values.py, see test-ss_exact_search.R
+  ss <- lapply(c('crossing', 'smallest', 'stable'), function(s) {
+    BinarySampleSize(0.6, 0.2, 2, 0.025, 0.9, 'Chisq', search = s)
+  })
+  expect_equal(vapply(ss, function(x) x$N2, numeric(1)), c(23, 21, 23))
+  expect_equal(vapply(ss, function(x) x$N1, numeric(1)), c(46, 42, 46))
+  expect_equal(vapply(ss, attr, character(1), 'search'), c('crossing', 'smallest', 'stable'))
+  expect_equal(attr(ss[[3]], 'search.limit'), 72)
+  expect_true(is.na(attr(ss[[1]], 'search.limit')))
+  expect_gte(ss[[2]]$Power, 0.9)
+  # The normal approximation ignores the search
+  nm <- BinarySampleSize(0.6, 0.2, 2, 0.025, 0.9, 'Chisq', method = 'standard',
+                         search = 'stable')
+  expect_true(is.na(attr(nm, 'search.limit')))
+  expect_equal(nm$N2, BinarySampleSize(0.6, 0.2, 2, 0.025, 0.9, 'Chisq',
+                                       method = 'standard')$N2)
+  expect_error(BinarySampleSize(0.6, 0.2, 2, 0.025, 0.9, 'Chisq', search = 'first'),
+               'should be one of')
+})

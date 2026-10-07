@@ -7,6 +7,10 @@
 #' @param digits Number of significant digits. Default is 6
 #' @param ... Further arguments, ignored
 #'
+#' @details
+#' The adjusted levels are rounded down to \code{digits} significant digits, so that a
+#' printed level does not reject more outcomes than the level it stands for.
+#'
 #' @return \code{x}, invisibly
 #'
 #' @examples
@@ -36,10 +40,16 @@ print.bbssr_alphaadj <- function(x, digits = 6, ...) {
   }
   cat(sprintf('  Maximum         : %s\n', maximize_label(x)))
   cat(sprintf('  Target level    : %s\n\n', format(x$alpha[1])))
+  # Adjusted levels rounded down. The factor 1 + 1e-12 keeps a level that is already a
+  # decimal of digits significant digits from dropping by one unit through rounding error
+  floor_digits <- function(v) {
+    u <- 10^(floor(log10(v)) - digits + 1)
+    ifelse(v > 0, pmin(v, signif(floor(v / u * (1 + 1e-12)) * u, digits)), v)
+  }
   tab <- data.frame(
     Design = ifelse(x$Design == 'BSSR', 'BSSR', 'Fixed sample'),
     max.TIE = signif(x$max.TIE, digits),
-    alpha.adj = signif(x$alpha.adj, digits),
+    alpha.adj = floor_digits(x$alpha.adj),
     max.TIE.adj = signif(x$max.TIE.adj, digits)
   )
   print(tab, row.names = FALSE)

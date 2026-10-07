@@ -12,10 +12,11 @@
 #' \code{tol * alpha}, with each level assessed by \code{assess}. The value of the
 #' response probability at which the last failing level exceeded \code{alpha} is passed
 #' to \code{assess} as a probe. With \code{certify}, the level found is then certified.
-#' If the certified maximum exceeds \code{alpha}, the assessment has missed a value of
-#' the response probability, and the bisection is repeated between 0 and that level with
-#' every level that passes the assessment also certified, so the result is certified in
-#' either case.
+#' If the certified maximum or its upper bound exceeds \code{alpha}, the assessment has
+#' missed a value of the response probability at which the level fails, or the maximum
+#' lies within the tolerance of the bound below \code{alpha}, and the bisection is
+#' repeated between 0 and that level with every level that passes the assessment also
+#' certified, so the result is certified in either case.
 #'
 #' @param make Function of the level returning a design, which is passed to
 #'   \code{assess} and \code{certify}

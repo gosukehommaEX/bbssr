@@ -4,15 +4,22 @@
 #' group 2 found by the search of \code{\link{BinarySampleSize}} with
 #' \code{method = 'exact'}. Group 1 receives \code{ceiling(r N2)} patients.
 #'
-#' The search for each pair starts from the normal approximation, lowers the size of
-#' group 2 one unit at a time as long as the exact power attains the target power, or
-#' otherwise raises it one unit at a time until the power attains it. The returned size
-#' attains the target power while the size one unit smaller does not, unless the returned
-#' size is 1, and need not be the smallest size attaining the target power, since the
-#' exact power is not monotone in the sample size. The rejection region of each size
-#' visited is obtained once and reused by every pair whose search visits that size, and
-#' the power of a pair is computed by \code{power_from_rr}, so each pair receives the
-#' same sample size as a separate call of \code{\link{BinarySampleSize}} would give.
+#' With \code{search = 'crossing'} the search for each pair starts from the normal
+#' approximation, lowers the size of group 2 one unit at a time as long as the exact power
+#' attains the target power, or otherwise raises it one unit at a time until the power
+#' attains it. The returned size attains the target power while the size one unit smaller
+#' does not, unless the returned size is 1, and need not be the smallest size attaining
+#' the target power, since the exact power is not monotone in the sample size. With
+#' \code{search = 'smallest'} the sizes are scanned upwards from 1 and the first size
+#' attaining the target power is returned. With \code{search = 'stable'} the sizes are
+#' scanned downwards from the limit \code{max(ceiling(a n0), ceiling(n0 + b))}, where
+#' \code{n0} is the starting size of \code{'crossing'} and \code{a} and \code{b} are the
+#' two elements of \code{search.limit}, and the returned size is the smallest from which
+#' every size up to the limit attains the target power. The search stops with an error if
+#' the limit itself does not attain it. The rejection region of each size visited is
+#' obtained once and reused by every pair whose search visits that size, and the power of
+#' a pair is computed by \code{power_from_rr}, so each pair receives the same sample size
+#' as a separate call of \code{\link{BinarySampleSize}} would give.
 #'
 #' @param p1 Response probabilities of group 1
 #' @param p2 Response probabilities of group 2, of the same length as \code{p1}, with no
@@ -30,15 +37,26 @@
 #' @param margin Non-inferiority margin on the scale of the risk difference, 0 for a test
 #'   of superiority. With a margin other than 0 the search starts from
 #'   the formula of Farrington and Manning (1990)
+#' @param search \code{'crossing'} (default), \code{'smallest'} or \code{'stable'}
+#' @param search.limit The factor \code{a} and the increment \code{b} of the limit of
+#'   \code{search = 'stable'}. Default is \code{c(2, 50)}
 #'
-#' @return An integer vector of sizes of group 2
+#' @return A list with the integer vectors \code{N2}, the sizes of group 2, and
+#'   \code{limit}, the limits of \code{search = 'stable'} (otherwise \code{NA})
 #'
 #' @keywords internal
 #' @noRd
 #' @import fpCompare
 #' @importFrom stats qnorm dbinom
 ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod,
-                            n.grid, bb.gamma, ref.pvalue, margin) {
+                            n.grid, bb.gamma, ref.pvalue, margin, search = 'crossing',
+                            search.limit = c(2, 50)) {
+  if (search == 'stable' &&
+      (!is.numeric(search.limit) || length(search.limit) != 2 || anyNA(search.limit) ||
+         any(!is.finite(search.limit)) || search.limit[1] < 1 || search.limit[2] < 0)) {
+    stop('search.limit must be two numbers, a factor of at least 1 and a non-negative ',
+         'increment')
+  }
   store <- new.env(parent = emptyenv())
   # Rejection region at a given size of group 2, obtained once per search
   rr_at <- function(N2) {
@@ -68,9 +86,31 @@ ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsme
     init.N2 <- ss_raw_n2(p1, p2, r, alpha, tar.power, alternative, 'standard', margin)
   }
   out <- integer(length(p1))
+  limit <- rep(NA_integer_, length(p1))
   for (k in seq_along(p1)) {
-    # Step 1 (power calculation given the initial sample size)
     N2 <- max(1, ceiling(init.N2[k]))
+    if (search == 'smallest') {
+      # Smallest size attaining the target power, by a scan upwards from 1
+      N2 <- 1
+      while (power_at(N2, k) %<<% tar.power) N2 <- N2 + 1
+      out[k] <- as.integer(N2)
+      next
+    }
+    if (search == 'stable') {
+      # Smallest size from which every size up to the limit attains the target power, by a
+      # scan downwards from the limit
+      L <- max(ceiling(search.limit[1] * N2), ceiling(N2 + search.limit[2]))
+      if (power_at(L, k) %<<% tar.power) {
+        stop('the size ', L, ' of group 2, the limit of the stable search, does not ',
+             'attain the target power; raise search.limit')
+      }
+      N2 <- L
+      while (N2 > 1 && (power_at(N2 - 1, k) %>=% tar.power)) N2 <- N2 - 1
+      out[k] <- as.integer(N2)
+      limit[k] <- as.integer(L)
+      next
+    }
+    # Step 1 (power calculation given the initial sample size)
     Power <- power_at(N2, k)
     # Step 2 (sample size calculation via a grid search algorithm)
     if (Power %>=% tar.power) {
@@ -87,5 +127,5 @@ ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsme
     }
     out[k] <- as.integer(N2)
   }
-  out
+  list(N2 = out, limit = limit)
 }

@@ -3,7 +3,8 @@ test_that("reestimate evaluates each distinct pair once and reproduces BinarySam
   hat.p2 <- c(0.2, 0.3, 0.2)
   re <- reestimate(hat.p1, hat.p2, 1, 0.025, 0.8, 'Fisher', 'greater', 'minlike', 100L,
                    0, 'exact', 'group', NULL, NULL, FALSE, 0)
-  expect_named(re, c('n.raw', 'N1.re', 'N2.re'))
+  expect_named(re, c('n.raw', 'N1.re', 'N2.re', 'N2.limit'))
+  expect_true(all(is.na(re$N2.limit)))
   expect_true(all(is.na(re$n.raw)))
   for (i in 1:2) {
     ss <- BinarySampleSize(hat.p1[i], hat.p2[i], 1, 0.025, 0.8, 'Fisher')
@@ -43,4 +44,17 @@ test_that("reestimate keeps the planned size for pairs on the null boundary", {
   expect_error(reestimate(0.3, 0.4, 1, 0.025, 0.8, 'Farrington-Manning', 'greater',
                           'minlike', 100L, 0, 'standard', 'nearest', NULL, NULL, FALSE,
                           0.1), 'null boundary')
+})
+
+test_that("reestimate passes the search to the exact search", {
+  # Reference values from tools/reference/reference_values.py, see test-ss_exact_search.R
+  re <- reestimate(c(0.6, 0.6), c(0.3, 0.3), 1, 0.025, 0.85, 'Fisher', 'greater',
+                   'minlike', 100L, 0, 'exact', 'group', NULL, NULL, FALSE, 0, 'stable')
+  expect_equal(c(re$N2.re, re$N2.limit), c(56, 56, 98, 98))
+  # The normal approximation ignores the search
+  re <- reestimate(0.4, 0.2, 2, 0.025, 0.8, 'Chisq', 'greater', 'minlike', 100L, 0,
+                   'standard', 'group', NULL, NULL, FALSE, 0, 'stable')
+  expect_true(is.na(re$N2.limit))
+  expect_equal(re$N2.re, ceil_tol(ss_raw_n2(0.4, 0.2, 2, 0.025, 0.8, 'greater', 'standard',
+                                            0)))
 })

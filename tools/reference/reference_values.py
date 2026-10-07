@@ -11,6 +11,7 @@ the test file whose expected values it produces.
 """
 import math
 import sys
+from decimal import ROUND_FLOOR, Decimal
 from functools import lru_cache
 
 import numpy as np
@@ -32,6 +33,30 @@ def emit(test_file, key, values, rtol=1e-10):
 
 def ceil_tol(x):
     return math.ceil(x - 1e-9)
+
+
+def reported_level(pv_list, level, digits=6):
+    """Adjusted level reported by BinaryAlphaAdjBSSR for the level found by a bisection.
+    The p-values rejected at the level are those below level - TOL. Every value strictly
+    between the largest rejected p-value plus TOL and the smallest p-value not rejected
+    gives the same rejected p-values, also when a p-value is rejected if it is below the
+    value or at most the value. The result is the largest such value with at most
+    `digits` significant digits, with up to 15 digits if there is none, computed in exact
+    decimal arithmetic; the level itself if there is still none."""
+    p = sorted(float(x) for a in pv_list for x in np.ravel(a) if math.isfinite(x))
+    rej = [x for x in p if x < level - TOL]
+    non = [x for x in p if not x < level - TOL]
+    if not rej or not non:
+        return level
+    lo, hi = Decimal(rej[-1]) + Decimal(TOL), Decimal(non[0])
+    for d in range(digits, 16):
+        q = Decimal(1).scaleb(hi.adjusted() - d + 1)
+        c = (hi / q).to_integral_value(rounding=ROUND_FLOOR) * q
+        if c >= hi:
+            c -= q
+        if lo < Decimal(float(c)) < hi:
+            return float(c)
+    return level
 
 
 # ---------------------------------------------------------------------------------------
@@ -313,9 +338,13 @@ def block_type1():
         return lo
 
     ab, af = adjusted(tie), adjusted(tfix)
+    # Level reported from the level found by the bisection; the rejection regions, and
+    # hence the rates below, are those of the level found
+    ab = reported_level([pvalues(N1, N2, "Chisq", "greater") for N1, N2 in set(sizes.values())], ab)
+    af = reported_level([pvalues(39, 39, "Chisq", "greater")], af)
     f = "test-BinaryAlphaAdjBSSR.R"
     emit(f, "max at nominal", [mb[0], mf[0]])
-    emit(f, "adjusted level", [ab, af])
+    emit(f, "adjusted level", [ab, af], rtol=1e-12)
     emit(f, "max at adjusted level",
          [refined_max(lambda t: tie(t, ab), G)[0], refined_max(lambda t: tfix(t, af), G)[0]])
 
@@ -841,27 +870,98 @@ def block_certified():
         assert abs(bernstein_value(ni["TRAD"], t) - ni_power(a, b, 54, 54, "FM", 0.2, 0.025)) < 1e-14
     emit(f, "non-inferiority certified max", [checked_max(ni[d]) for d in ("BSSR", "TRAD")])
 
-    # Adjusted levels with every decision certified over [0.1, 0.9]
+    # Adjusted levels with every decision certified over [a, c]
     f = "test-BinaryAlphaAdjBSSR.R"
-    lev, mx = [], []
-    for d in ("BSSR", "TRAD"):
-        cert = lambda a: certified_max(tie_coefficients(hyp[d], chisq(a)), 0.1, 0.9)
+    pv = {"BSSR": [pvalues(N1, N2, "Chisq", "greater") for N1, N2 in set(sizes.values())],
+          "TRAD": [pvalues(39, 39, "Chisq", "greater")]}
+
+    def adjusted_certified(d, a, c):
+        cert = lambda lev: certified_max(tie_coefficients(hyp[d], chisq(lev)), a, c)
         lo, hi = 0.0, 0.025
         m = cert(0.025)
-        if m[1] > 0.025:
-            while hi - lo > 1e-10 * 0.025:
-                mid = (lo + hi) / 2
-                if cert(mid)[1] <= 0.025:
-                    lo = mid
-                else:
-                    hi = mid
-            m = cert(lo)
-        else:
-            lo = 0.025
-        lev.append(lo)
-        mx.append(m[0])
-    emit(f, "adjusted level on [0.1, 0.9]", lev, rtol=1e-7)
-    emit(f, "max at adjusted level on [0.1, 0.9]", mx, rtol=1e-7)
+        if m[1] <= 0.025:
+            return 0.025, m[0]
+        while hi - lo > 1e-10 * 0.025:
+            mid = (lo + hi) / 2
+            if cert(mid)[1] <= 0.025:
+                lo = mid
+            else:
+                hi = mid
+        return reported_level(pv[d], lo), cert(lo)[0]
+
+    res = [adjusted_certified(d, 0.1, 0.9) for d in ("BSSR", "TRAD")]
+    emit(f, "adjusted level on [0.1, 0.9]", [r[0] for r in res], rtol=1e-12)
+    emit(f, "max at adjusted level on [0.1, 0.9]", [r[1] for r in res], rtol=1e-7)
+    # adjust = 'both': the re-estimation also uses the level, which is lowered from 0.025
+    # in steps of 0.0005 until the certified largest rate over [0, 1] passes. The
+    # fixed-sample design uses the bisection
+    k = 0
+    while True:
+        lev = 0.025 - k * 0.0005
+        sz = final_sizes_rd(0.3, 1, 20, 20, lev, 0.8, "Chisq", "greater", "standard")
+        best, bound = certified_max(tie_coefficients(interim_hyper(sz, 20, 20), chisq(lev)))
+        if bound <= 0.025:
+            break
+        k += 1
+    emit(f, "adjust both: adjusted levels", [lev, adjusted_certified("TRAD", 0.0, 1.0)[0]],
+         rtol=1e-12)
+    emit(f, "adjust both: largest rate at the adjusted level", best)
+
+    # Reported level of report_level() for the fixed design with 39 patients per group at
+    # the level found by the bisection, and for p-values closer than six digits allow
+    f = "test-report_level.R"
+    emit(f, "39 x 39", reported_level(pv["TRAD"], 0.020770048405393), rtol=1e-12)
+    emit(f, "narrow gap", reported_level([np.array([0.001, 0.01234567, 0.01234569, 0.05])],
+                                         0.01234569 + TOL - 1e-10), rtol=1e-12)
+
+
+# ---------------------------------------------------------------------------------------
+# The three searches of the exact sample size (item D)
+def searched_n2(p1, p2, r, alpha, tp, test, alt="greater", a=2, b=50):
+    """Sizes of group 2 of the three searches, from their definitions. 'crossing' is the
+    search of exact_n2. 'smallest' is the first size from 1 upwards whose power attains the
+    target. 'stable' is the smallest size n such that every size from n to the limit
+    L = max(ceil(a n0), ceil(n0 + b)) attains it, where n0 is the normal approximation
+    rounded up, found here by evaluating the power at every size up to L."""
+    attains = lambda n2: power(p1, p2, math.ceil(r * n2), n2, test, alt, alpha) - tp > -TOL
+    ae = alpha / 2 if alt == "two.sided" else alpha
+    p = (r * p1 + p2) / (1 + r)
+    n0 = max(1, math.ceil((1 + 1 / r) / (p1 - p2) ** 2 * (
+        norm.ppf(ae) * math.sqrt(p * (1 - p))
+        + norm.ppf(1 - tp) * math.sqrt((p1 * (1 - p1) / r + p2 * (1 - p2)) / (1 + 1 / r))) ** 2))
+    L = max(math.ceil(a * n0), math.ceil(n0 + b))
+    ok = [attains(n) for n in range(1, L + 1)]
+    assert ok[-1]
+    smallest = ok.index(True) + 1
+    stable = L
+    while stable > 1 and ok[stable - 2]:
+        stable -= 1
+    return exact_n2(p1, p2, r, alpha, tp, test, alt), smallest, stable, L
+
+
+def block_search():
+    f = "test-ss_exact_search.R"
+    emit(f, "Chisq r = 2: crossing, smallest, stable, limit",
+         searched_n2(0.6, 0.2, 2, 0.025, 0.9, "Chisq"), rtol=0)
+    emit(f, "Fisher r = 1: crossing, smallest, stable, limit",
+         searched_n2(0.6, 0.3, 1, 0.025, 0.85, "Fisher"), rtol=0)
+    # Exact re-estimation with Delta.A = 0.3, interim 10 + 10, the chi-squared test and
+    # target power 0.8: re-estimated size of group 2 for every pooled interim count s
+    res = []
+    for s_ in range(21):
+        ph = s_ / 20
+        res.append(searched_n2(min(1, ph + 0.15), max(0, ph - 0.15), 1, 0.025, 0.8, "Chisq"))
+    f = "test-binary-power-bssr.R"
+    emit(f, "re-estimated N2, crossing", [x[0] for x in res], rtol=0)
+    emit(f, "re-estimated N2, smallest", [x[1] for x in res], rtol=0)
+    emit(f, "re-estimated N2, stable", [x[2] for x in res], rtol=0)
+    emit(f, "limit of the stable search", [x[3] for x in res], rtol=0)
+    # BinaryBSSR with 9 responders among 10 + 10 patients: p1 = 0.6, p2 = 0.3, and the
+    # limit of the stable search with search.limit = c(3, 10)
+    f = "test-binary-bssr.R"
+    emit(f, "limit of the stable search with search.limit c(3, 10)",
+         searched_n2(9 / 20 + 0.15, 9 / 20 - 0.15, 1, 0.025, 0.8, "Chisq", a=3, b=10)[3],
+         rtol=0)
 
 
 if __name__ == "__main__":
@@ -876,3 +976,4 @@ if __name__ == "__main__":
     block_grid()
     block_blaker()
     block_certified()
+    block_search()

@@ -45,7 +45,7 @@ plan
 
 `ss.method` selects how the sample size is re-estimated from the recovered probabilities.
 
-- `'exact'` (the default) steps from the normal approximation, one patient at a time, to the sample size at which the exact power of the test first attains the target, as `BinarySampleSize()` does.
+- `'exact'` (the default) steps from the normal approximation, one patient at a time, to the sample size at which the exact power of the test first attains the target, as `BinarySampleSize()` does. The argument `search` replaces this search by the smallest size that attains the target power or by the smallest size from which every size up to a limit attains it, see the `bbssr-introduction` vignette.
 - `'standard'` uses the normal approximation with the variance under the null hypothesis in the term of the significance level and the variance under the alternative in the term of the power, formula (21.3) of Kieser (2020).
 - `'null.variance'` uses the variance under the null hypothesis in both terms, formula (1) of Friede and Kieser (2004).
 - `'alternative.variance'` uses the variance under the alternative in both terms. With a non-inferiority margin this is the formula of Blackwelder (1982), see the `bbssr-non-inferiority` vignette.

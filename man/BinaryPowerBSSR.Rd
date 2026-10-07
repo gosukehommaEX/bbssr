@@ -25,6 +25,8 @@ BinaryPowerBSSR(
   ss.Test = Test,
   ss.alpha = alpha,
   rounding = c("group", "friede-kieser", "total", "nearest"),
+  search = c("crossing", "smallest", "stable"),
+  search.limit = c(2, 50),
   N.min = NULL,
   N.max = NULL,
   n.interim = NULL,
@@ -95,6 +97,13 @@ Options: \code{'group'} (default), \code{'friede-kieser'}, \code{'total'} or
 \code{'nearest'}. Only \code{'group'} is available with \code{ss.method = 'exact'}.
 See Details}
 
+\item{search}{How the exact re-estimation chooses the sample size when
+\code{ss.method = 'exact'}: \code{'crossing'} (default), \code{'smallest'} or
+\code{'stable'}, as in \code{\link{BinarySampleSize}}. Ignored by the other methods}
+
+\item{search.limit}{Limit of the size of group 2 examined by \code{search = 'stable'},
+as in \code{\link{BinarySampleSize}}. Default is \code{c(2, 50)}}
+
 \item{N.min}{Lower bound on the final total sample size, or \code{NULL} (default) for
 none beyond the interim total. It can be used to keep the patients who are already
 enrolled but not yet evaluated at the interim analysis}
@@ -133,10 +142,12 @@ of \code{p} containing:
 }
 The interim sample sizes are stored as the attributes \code{n1.interim} and
 \code{n2.interim}. The attribute \code{reestimation} holds, for every pooled number of
-interim responders \code{s}, the recovered proportions and the final sample sizes, and
-the attribute \code{N.dist} holds the distribution of the final sample size for every
-row of the result, identified by the column \code{scenario}. \code{summary()} reports the standard deviation and quantiles of
-the final sample size.
+interim responders \code{s}, the recovered proportions, the final sample sizes and, in
+the column \code{N2.limit}, the limit of \code{search = 'stable'} (otherwise
+\code{NA}). The attribute \code{N.dist} holds the distribution of the final sample
+size for every row of the result, identified by the column \code{scenario}, and the
+attribute \code{search} the search. \code{summary()} reports the standard deviation
+and quantiles of the final sample size.
 }
 \description{
 Calculates the power of a two-arm trial with a binary endpoint when blinded sample size

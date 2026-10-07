@@ -11,7 +11,7 @@ test-BinaryTypeIErrorBSSR.R	grid TRAD	1e-10	0.021054107257618 0.0292884788109491
 test-BinaryTypeIErrorBSSR.R	refined max	1e-10	0.0272864324696431 0.0293761105282989
 test-BinaryTypeIErrorBSSR.R	refined location folded	1e-06	0.437684575915883 0.0935671159139482
 test-BinaryAlphaAdjBSSR.R	max at nominal	1e-10	0.0272864324696431 0.0293761105282989
-test-BinaryAlphaAdjBSSR.R	adjusted level	1e-10	0.0204375745495781 0.0207700483966619
+test-BinaryAlphaAdjBSSR.R	adjusted level	1e-12	0.0204375 0.02077
 test-BinaryAlphaAdjBSSR.R	max at adjusted level	1e-10	0.0237418455147917 0.0247660131242264
 test-summary.bbssr_powerbssr.R	E.N	1e-10	80.3764079043752
 test-summary.bbssr_powerbssr.R	SD.N	1e-10	5.59614424051928
@@ -96,5 +96,16 @@ test-binary-sample-size.R	Fisher two-sided r = 4 N2 blaker minlike central	0	12 
 test-BinaryTypeIErrorBSSR.R	certified max	1e-10	0.0272864324696176 0.0293761105282982
 test-BinaryTypeIErrorBSSR.R	certified max on [0.15, 0.85]	1e-10	0.0272864324696353 0.0267904681779775
 test-BinaryTypeIErrorBSSR.R	non-inferiority certified max	1e-10	0.0263983576247002 0.0281499487826859
-test-BinaryAlphaAdjBSSR.R	adjusted level on [0.1, 0.9]	1e-07	0.0204375745495781 0.020770048405393
+test-BinaryAlphaAdjBSSR.R	adjusted level on [0.1, 0.9]	1e-12	0.0204375 0.02077
 test-BinaryAlphaAdjBSSR.R	max at adjusted level on [0.1, 0.9]	1e-07	0.0237418455147891 0.0247660131242263
+test-BinaryAlphaAdjBSSR.R	adjust both: adjusted levels	1e-12	0.021 0.02077
+test-BinaryAlphaAdjBSSR.R	adjust both: largest rate at the adjusted level	1e-10	0.024604289001873
+test-report_level.R	39 x 39	1e-12	0.02077
+test-report_level.R	narrow gap	1e-12	0.012345689
+test-ss_exact_search.R	Chisq r = 2: crossing, smallest, stable, limit	0	23 21 23 72
+test-ss_exact_search.R	Fisher r = 1: crossing, smallest, stable, limit	0	52 52 56 98
+test-binary-power-bssr.R	re-estimated N2, crossing	0	36 27 21 18 24 31 34 39 40 41 44 41 40 39 34 31 24 18 21 27 36
+test-binary-power-bssr.R	re-estimated N2, smallest	0	36 27 21 18 24 31 34 39 40 41 41 41 40 39 34 31 24 18 21 27 36
+test-binary-power-bssr.R	re-estimated N2, stable	0	36 27 21 18 24 31 34 39 40 41 44 41 40 39 34 31 24 18 21 27 36
+test-binary-power-bssr.R	limit of the stable search	0	98 85 77 72 77 82 86 89 91 92 93 92 91 89 86 82 77 72 77 85 98
+test-binary-bssr.R	limit of the stable search with search.limit c(3, 10)	0	126

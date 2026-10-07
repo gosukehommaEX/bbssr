@@ -275,7 +275,7 @@ $$
 
 and these enter the sample size calculation in place of the original assumptions. Nothing in this chain requires knowledge of which patient received which treatment. With `effect = 'RR'` or `effect = 'OR'` the assumed effect is a risk ratio or an odds ratio, and the recovered probabilities are those with the pooled value $\hat{p}$ and that ratio.
 
-The sample size is re-estimated in one of two ways, chosen by `ss.method`. The default `'exact'` steps from the normal approximation, one patient at a time, to the sample size at which the exact power of the test first attains the target, as `BinarySampleSize()` does, and this search needs probabilities inside the unit interval, so the recovered probabilities are truncated to it. The other three methods use the normal approximation, which gives the size of group 2 as
+The sample size is re-estimated in one of two ways, chosen by `ss.method`. The default `'exact'` steps from the normal approximation, one patient at a time, to the sample size at which the exact power of the test first attains the target, as `BinarySampleSize()` does, and this search needs probabilities inside the unit interval, so the recovered probabilities are truncated to it. The argument `search` selects instead the smallest size that attains the target power, or the smallest size from which every size up to a limit attains it, as in `BinarySampleSize()`, and the limit is returned in the column `N2.limit` of the attribute `reestimation`. The other three methods use the normal approximation, which gives the size of group 2 as
 $$
 n_{2} = \frac{\bigl(z_{1 - \alpha} \sqrt{v_{0}} + z_{1 - \beta} \sqrt{v_{1}}\bigr)^{2}}{(\hat{p}_{1} - \hat{p}_{2})^{2}}, \qquad
 v_{0} = \hat{p}(1 - \hat{p}) \Bigl(1 + \frac{1}{r}\Bigr) ,
@@ -312,6 +312,58 @@ $$
 where the conditional power $\mathrm{CP}$ is computed from the rejection region of the final sample size that the interim outcome leads to. The sum runs over every possible interim outcome, so the same rejection region is required many times and is cached.
 
 Setting $p_{1} = p_{2} = \theta$ in this sum gives the type I error rate of the design at $\theta$. The final sample size depends on the interim data, so the rate is not bounded by the size of the test at any one sample size, and `BinaryTypeIErrorBSSR()` evaluates it over $\theta$. The `bbssr-type1-error` vignette covers this calculation, the adjusted nominal level and the decomposition of the rate by the interim outcome.
+
+### The largest type I error rate
+
+The largest type I error rate is the largest rejection probability on the boundary of the null hypothesis. Without a margin the boundary is $p_{1} = p_{2} = \theta$. With a margin both response probabilities on the boundary are linear functions $p_{1}(\theta)$ and $p_{2}(\theta)$ of the pooled response probability $\theta$, see the `bbssr-non-inferiority` vignette. `BinaryTypeIErrorBSSR()` and `BinaryAlphaAdjBSSR()` find the largest value over an interval of $\theta$ together with an upper bound, as described in this section.
+
+Let $x_{1}$ and $x_{2}$ be the interim numbers of responders, as in the sum above, $s = x_{1} + x_{2}$ their total, and $N_{1}(s)$ and $N_{2}(s)$ the final sample sizes that $s$ leads to. Given that $X_{1}$ of the $N_{1}(s)$ patients of group 1 respond, the number of responders among the first $n_{1}$ is hypergeometric whatever the response probability,
+$$
+b(x_{1}; n_{1}, p_{1}) \, b\bigl(X_{1} - x_{1}; N_{1}(s) - n_{1}, p_{1}\bigr) =
+b\bigl(X_{1}; N_{1}(s), p_{1}\bigr) \, h\bigl(x_{1}; n_{1}, N_{1}(s) - n_{1}, X_{1}\bigr) ,
+$$
+where $b(x; n, p)$ is the binomial probability and $h(x; m_{1}, m_{2}, k) = \binom{m_{1}}{x} \binom{m_{2}}{k - x} / \binom{m_{1} + m_{2}}{k}$, and likewise for group 2. Let $K$ index the distinct pairs $(N_{1K}, N_{2K})$ of final sample sizes and $\mathcal{R}_{K}$ be the rejection region at these sizes. Summing over the interim outcomes and the final responder counts, the type I error rate is
+$$
+\mathrm{TIE}(\theta) = \sum_{K} \sum_{X_{1} = 0}^{N_{1K}} \sum_{X_{2} = 0}^{N_{2K}}
+C_{K}(X_{1}, X_{2}) \, b\bigl(X_{1}; N_{1K}, p_{1}(\theta)\bigr) \, b\bigl(X_{2}; N_{2K}, p_{2}(\theta)\bigr) ,
+$$
+$$
+C_{K}(X_{1}, X_{2}) = \mathbf{1}\bigl\{(X_{1}, X_{2}) \in \mathcal{R}_{K}\bigr\}
+\sum_{(x_{1}, x_{2}) \to K} h(x_{1}; n_{1}, N_{1K} - n_{1}, X_{1}) \, h(x_{2}; n_{2}, N_{2K} - n_{2}, X_{2}) ,
+$$
+where the inner sum runs over the interim outcomes that lead to $(N_{1K}, N_{2K})$. The weights $C_{K}$ do not depend on $\theta$. The fixed-sample design is the case of a single $K$ without interim patients, with $C_{1}(X_{1}, X_{2}) = \mathbf{1}\{(X_{1}, X_{2}) \in \mathcal{R}\}$.
+
+On an interval $\theta_{0} \le \theta \le \theta_{1}$ write $\theta = (1 - t) \theta_{0} + t \theta_{1}$ with $0 \le t \le 1$. Then $p_{j}(\theta) = (1 - t) p_{j}(\theta_{0}) + t p_{j}(\theta_{1})$, and the type I error rate is a polynomial in $t$, which the package writes in the Bernstein basis
+$$
+B_{k,n}(t) = \binom{n}{k} t^{k} (1 - t)^{n - k} , \qquad k = 0, \ldots, n .
+$$
+Three identities give its coefficients without subtraction. First, a response probability $(1 - t) q_{0} + t q_{1}$ is that of a patient who responds with probability $q_{1}$ with probability $t$ and with probability $q_{0}$ otherwise. The number $J$ of the $N$ patients of the first kind is binomial with parameters $N$ and $t$, so
+$$
+b\bigl(X; N, (1 - t) q_{0} + t q_{1}\bigr) = \sum_{j = 0}^{N} M_{N}(X, j) \, B_{j,N}(t) , \qquad
+M_{N}(X, j) = \Pr(Y_{j} + Z_{j} = X) ,
+$$
+where $Y_{j} \sim \mathrm{Bin}(N - j, q_{0})$ and $Z_{j} \sim \mathrm{Bin}(j, q_{1})$ are independent, with $q_{0} = p_{1}(\theta_{0})$ and $q_{1} = p_{1}(\theta_{1})$ for group 1 and likewise for group 2. Second, the product of two basis polynomials is a multiple of a basis polynomial,
+$$
+B_{j,N_{1}}(t) \, B_{l,N_{2}}(t) = h(j; N_{1}, N_{2}, j + l) \, B_{j + l, N_{1} + N_{2}}(t) ,
+$$
+so the term of $K$ is a polynomial of degree $N_{1K} + N_{2K}$ with the coefficients
+$$
+d_{K,m} = \sum_{j + l = m} h(j; N_{1K}, N_{2K}, m) \sum_{X_{1}, X_{2}}
+M_{N_{1K}}(X_{1}, j) \, C_{K}(X_{1}, X_{2}) \, M_{N_{2K}}(X_{2}, l) .
+$$
+Third, a polynomial of degree $n$ with the coefficients $d_{0}, \ldots, d_{n}$ is one of degree $n + 1$ with the coefficients
+$$
+d'_{i} = \frac{i}{n + 1} \, d_{i - 1} + \Bigl(1 - \frac{i}{n + 1}\Bigr) d_{i} , \qquad i = 0, \ldots, n + 1 ,
+$$
+where $d_{-1} = d_{n + 1} = 0$. The terms of the different final sample sizes are raised to the largest degree in this way and added. Every quantity in these steps is non-negative.
+
+The basis polynomials are non-negative and sum to one, so on $0 \le t \le 1$ the rate lies between the smallest and the largest of its coefficients $d_{0}, \ldots, d_{n}$, and $d_{0}$ and $d_{n}$ are its values at $t = 0$ and $t = 1$. The coefficients on the two halves of the interval follow from the algorithm of de Casteljau. With $d^{(0)}_{i} = d_{i}$ and $d^{(q)}_{i} = \bigl(d^{(q - 1)}_{i} + d^{(q - 1)}_{i + 1}\bigr) / 2$ for $i = 0, \ldots, n - q$, the coefficients on the first half are $d^{(0)}_{0}, d^{(1)}_{0}, \ldots, d^{(n)}_{0}$ and those on the second half are $d^{(n)}_{0}, d^{(n - 1)}_{1}, \ldots, d^{(0)}_{n}$. The package halves the interval repeatedly and keeps the largest value $m$ found at the ends of the pieces. A piece is set aside once its largest coefficient is at most $m + 10^{-12}$, and the largest coefficient $\bar{m}$ of the pieces set aside is an upper bound of the rate on the whole interval. If fewer than $10^{5}$ subdivisions suffice,
+$$
+m \le \max_{\theta_{0} \le \theta \le \theta_{1}} \mathrm{TIE}(\theta) \le \bar{m} \le m + 10^{-12}
+$$
+up to rounding error. After $10^{5}$ subdivisions the remaining pieces are set aside with their largest coefficients. The bound $\bar{m}$ is then still valid, and a warning reports that it can exceed $m$ by more than $10^{-12}$.
+
+The interval runs from the smallest to the largest value of `theta`, restricted with a margin to the values at which both response probabilities lie in the unit interval. `BinaryTypeIErrorBSSR()` with the default `maximize = 'certified'` reports $m$, or the largest value on the grid if that is larger, as `TIE`, and $\bar{m}$, or `TIE` if that is larger by rounding error, as `bound`. `BinaryAlphaAdjBSSR()` accepts a level only when $\bar{m}$ does not exceed the target level. The `bbssr-validation` vignette compares the result with a dense grid.
 
 ## Choosing a test
 

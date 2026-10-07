@@ -5,11 +5,12 @@
 #' the normal approximation followed by the selected rounding rule. The arguments are
 #' assumed to have been validated by the caller.
 #'
-#' Under \code{method = 'exact'} the search of \code{ss_exact_search} is used: it starts
-#' from the normal approximation, lowers the size of group 2 one unit at a time as long
-#' as the exact power attains the target power, or otherwise raises it one unit at a time
-#' until the power attains it, and so returns a size that attains the target power while
-#' the size one unit smaller does not (unless the returned size is 1). Group 1 receives
+#' Under \code{method = 'exact'} the search of \code{ss_exact_search} selected by
+#' \code{search} is used. With the default \code{'crossing'} it starts from the normal
+#' approximation, lowers the size of group 2 one unit at a time as long as the exact power
+#' attains the target power, or otherwise raises it one unit at a time until the power
+#' attains it, and so returns a size that attains the target power while the size one unit
+#' smaller does not (unless the returned size is 1). Group 1 receives
 #' \code{ceiling(r N2)} patients. Under the two normal methods, the unrounded size
 #' \code{n2} of group 2 is converted as follows, where \code{round} rounds halves up.
 #' \describe{
@@ -40,13 +41,18 @@
 #'   unconditional tests is refined between the grid points
 #' @param margin Non-inferiority margin on the scale of the risk difference, 0 for a test
 #'   of superiority
+#' @param search Search of \code{ss_exact_search} used under \code{method = 'exact'}
+#' @param search.limit Limit of \code{search = 'stable'}, see \code{ss_exact_search}
 #'
-#' @return An integer vector with elements \code{N1} and \code{N2}
+#' @return An integer vector with elements \code{N1} and \code{N2}. Under
+#'   \code{method = 'exact'} its attribute \code{limit} is the limit of
+#'   \code{search = 'stable'} (otherwise \code{NA})
 #'
 #' @keywords internal
 #' @noRd
 sample_size_n <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod,
-                          n.grid, bb.gamma, method, rounding, ref.pvalue, margin) {
+                          n.grid, bb.gamma, method, rounding, ref.pvalue, margin,
+                          search = 'crossing', search.limit = c(2, 50)) {
   if (method != 'exact') {
     n2 <- ss_raw_n2(p1, p2, r, alpha, tar.power, alternative, method, margin)
     if (rounding == 'group') {
@@ -65,7 +71,9 @@ sample_size_n <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsmeth
     }
     return(c(N1 = as.integer(max(1, N1)), N2 = as.integer(max(1, N2))))
   }
-  N2 <- ss_exact_search(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod, n.grid,
-                        bb.gamma, ref.pvalue, margin)
-  c(N1 = as.integer(ceiling(r * N2)), N2 = as.integer(N2))
+  s <- ss_exact_search(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod, n.grid,
+                       bb.gamma, ref.pvalue, margin, search, search.limit)
+  out <- c(N1 = as.integer(ceiling(r * s$N2)), N2 = as.integer(s$N2))
+  attr(out, 'limit') <- s$limit
+  out
 }

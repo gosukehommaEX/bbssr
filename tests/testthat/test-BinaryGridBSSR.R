@@ -170,3 +170,13 @@ test_that("BinaryGridBSSR passes tsmethod given as a column of the design", {
   expect_setequal(unique(seen$tsmethod), c('minlike', 'blaker'))
   expect_equal(g$tsmethod, c('minlike', 'blaker'))
 })
+
+test_that("BinaryGridBSSR passes search and search.limit to the planning and the re-estimation", {
+  seen <- search_calls(BinaryGridBSSR(data.frame(p.plan = 0.4), p = 0.4, Delta.A = 0.3,
+                                      omega = 0.25, r = 1, alpha = 0.025, tar.power = 0.8,
+                                      Test = 'Chisq', search = 'stable',
+                                      search.limit = c(3, 10)))
+  # One call plans the initial sample size and one re-estimates it
+  expect_gt(nrow(seen), 1)
+  expect_true(all(seen$search == 'stable' & seen$a == 3 & seen$b == 10))
+})

@@ -20,6 +20,10 @@
 Prints the adjusted nominal significance levels of a design with blinded sample size
 re-estimation and of the corresponding fixed-sample design.
 }
+\details{
+The adjusted levels are rounded down to \code{digits} significant digits, so that a
+printed level does not reject more outcomes than the level it stands for.
+}
 \examples{
 \donttest{
 adj <- BinaryAlphaAdjBSSR(

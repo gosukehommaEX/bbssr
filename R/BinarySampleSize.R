@@ -40,6 +40,17 @@
 #'   total and gives group 2 \code{floor(N / (1 + r))} patients. \code{'nearest'} rounds
 #'   the two group sizes separately to the nearest whole number, as in Farrington and
 #'   Manning (1990). Only \code{'group'} is available with \code{method = 'exact'}
+#' @param search How the search of \code{method = 'exact'} chooses the size of group 2.
+#'   \code{'crossing'} (default) steps from the normal approximation to a size that
+#'   attains the target power while the size one unit smaller does not.
+#'   \code{'smallest'} returns the smallest size that attains the target power.
+#'   \code{'stable'} returns the smallest size from which every size up to a limit attains
+#'   it. See Details. Ignored by the other methods
+#' @param search.limit Two numbers \code{a} and \code{b} giving the limit
+#'   \code{max(ceiling(a n0), ceiling(n0 + b))} of the size of group 2 examined by
+#'   \code{search = 'stable'}, where \code{n0} is the size of group 2 from the normal
+#'   approximation, rounded up. \code{a} must be at least 1 and \code{b} non-negative.
+#'   Default is \code{c(2, 50)}
 #' @param margin Non-inferiority margin on the scale of the risk difference. The
 #'   default of 0 gives a test of superiority. A value other than 0 tests the null
 #'   hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
@@ -67,9 +78,12 @@
 #'   \item{N2}{Required sample size of group 2}
 #'   \item{N}{Total required sample size}
 #' }
+#' The attribute \code{search} holds the search, and the attribute \code{search.limit}
+#' the limit of the size of group 2 examined by \code{search = 'stable'} (otherwise
+#' \code{NA}).
 #'
 #' @details
-#' The calculation uses a three-step approach:
+#' With the default \code{search = 'crossing'} the calculation uses a three-step approach:
 #' \enumerate{
 #'   \item Calculate an initial sample size from the normal approximation to the
 #'     chi-squared test
@@ -88,6 +102,16 @@
 #' returned size is 1. The exact power is not monotone in the sample size, so a smaller
 #' size further from the normal approximation may also attain the target power, and a
 #' larger size may fall short of it.
+#'
+#' The two other searches do not depend on where the normal approximation starts.
+#' \code{search = 'smallest'} scans the size of group 2 upwards from 1 and returns the
+#' first size that attains the target power. It visits every smaller size, which takes
+#' longer for the unconditional tests. \code{search = 'stable'} scans downwards from the
+#' limit given by \code{search.limit} and returns the smallest size from which every size
+#' up to the limit attains the target power, so that adding patients within this range
+#' does not take the power below the target. The search stops with an error if the limit
+#' itself falls short of the target power. The three searches can return different sizes
+#' because the exact power is not monotone in the sample size.
 #'
 #' Under \code{method = 'standard'}, \code{'null.variance'} or
 #' \code{'alternative.variance'} the steps above are replaced by the closed-form normal
@@ -155,11 +179,13 @@ BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
                              method = c('exact', 'standard', 'null.variance',
                                         'alternative.variance'),
                              rounding = c('group', 'friede-kieser', 'total', 'nearest'),
-                             margin = 0, ref.pvalue = FALSE) {
+                             search = c('crossing', 'smallest', 'stable'),
+                             search.limit = c(2, 50), margin = 0, ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   method <- match.arg(method)
   rounding <- match.arg(rounding)
+  search <- match.arg(search)
   if (length(p1) != 1 || length(p2) != 1) stop('p1 and p2 must each be a single value')
   if (length(r) != 1 || is.na(r) || r <= 0) stop('r must be a single positive value')
   if (length(tar.power) != 1 || tar.power <= 0 || tar.power >= 1) {
@@ -190,7 +216,7 @@ BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
     stop("rounding must be 'group' when method is 'exact'")
   }
   n <- sample_size_n(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod, n.grid,
-                     bb.gamma, method, rounding, ref.pvalue, margin)
+                     bb.gamma, method, rounding, ref.pvalue, margin, search, search.limit)
   N1 <- n[['N1']]
   N2 <- n[['N2']]
   N <- N1 + N2
@@ -208,6 +234,9 @@ BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
   attr(out, 'bb.gamma') <- bb.gamma
   attr(out, 'method') <- method
   attr(out, 'rounding') <- rounding
+  attr(out, 'search') <- search
+  limit <- attr(n, 'limit')
+  attr(out, 'search.limit') <- if (is.null(limit)) NA_integer_ else limit
   attr(out, 'margin') <- margin
   attr(out, 'ref.pvalue') <- ref.pvalue
   class(out) <- c('bbssr_samplesize', 'data.frame')

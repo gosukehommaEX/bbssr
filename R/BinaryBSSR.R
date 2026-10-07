@@ -8,6 +8,7 @@
 #'
 #' @param n1 Number of patients of group 1 observed at the interim analysis
 #' @param n2 Number of patients of group 2 observed at the interim analysis
+#' @inheritParams BinaryPowerBSSR
 #' @param S Total number of responders observed at the interim analysis, pooled over both
 #'   groups
 #' @param Delta.A Assumed treatment effect, on the scale given by \code{effect}, used to
@@ -84,6 +85,9 @@
 #'   \item{N.final}{Final total sample size}
 #'   \item{Power}{Exact power at the final sample size under the recovered proportions}
 #' }
+#' The attribute \code{search} holds the search, and the attribute \code{search.limit}
+#' the limit of the size of group 2 examined by \code{search = 'stable'} (otherwise
+#' \code{NA}).
 #'
 #' @details
 #' The blinded estimate of the pooled response probability is \code{hat.p = S / (n1 + n2)}.
@@ -132,12 +136,15 @@ BinaryBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test,
                                      'alternative.variance'),
                        ss.Test = Test, ss.alpha = alpha,
                        rounding = c('group', 'friede-kieser', 'total', 'nearest'),
+                       search = c('crossing', 'smallest', 'stable'),
+                       search.limit = c(2, 50),
                        N.min = NULL, N.max = NULL, margin = 0, ref.pvalue = FALSE) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
   ss.method <- match.arg(ss.method)
   rounding <- match.arg(rounding)
+  search <- match.arg(search)
   if (length(n1) != 1 || length(n2) != 1 || length(S) != 1) {
     stop('n1, n2 and S must each be a single value')
   }
@@ -168,7 +175,7 @@ BinaryBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test,
   ss.p <- if (ss.method == 'exact') list(p1 = hat.p1, p2 = hat.p2) else sp
   re <- reestimate(ss.p$p1, ss.p$p2, r, ss.alpha, tar.power, ss.Test, alternative,
                    tsmethod, n.grid, bb.gamma, ss.method, rounding, N1, N2, ref.pvalue,
-                   margin)
+                   margin, search, search.limit)
   N1.re <- re$N1.re
   N2.re <- re$N2.re
   # Final sample sizes. Under the group rounding the final size of group 2 is fixed
@@ -203,6 +210,8 @@ BinaryBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test,
   attr(out, 'ss.Test') <- ss.Test
   attr(out, 'ss.alpha') <- ss.alpha
   attr(out, 'rounding') <- rounding
+  attr(out, 'search') <- search
+  attr(out, 'search.limit') <- re$N2.limit
   attr(out, 'N.min') <- N.min
   attr(out, 'N.max') <- N.max
   attr(out, 'margin') <- margin

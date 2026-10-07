@@ -34,7 +34,8 @@ exactly rather than by simulation.
   and the blinded re-estimation of Friede, Mitchell and Mueller-Velten
   (2007).
 - `BinaryTypeIErrorBSSR()` evaluates the type I error rate of a
-  re-estimation design over the nuisance parameter,
+  re-estimation design over the nuisance parameter and finds its largest
+  value over the whole range together with an upper bound,
   `BinaryAlphaAdjBSSR()` finds the adjusted significance level that
   controls it, and `BinaryCondRejectBSSR()` decomposes it by the interim
   outcome.
@@ -52,6 +53,10 @@ exactly rather than by simulation.
 - `tsmethod = 'blaker'` adds a third two-sided convention for the
   Fisher, Fisher mid-p and Boschloo tests, formula (2) of Mehrotra, Chan
   and Berger (2003).
+- `search` chooses among three exact sample size searches: the default,
+  which stops where the power crosses the target, the smallest size that
+  attains the target, and the smallest size from which every size up to
+  a limit attains it.
 - `summary()` of `BinaryPowerBSSR()` reports the distribution of the
   final sample size.
 
@@ -128,6 +133,7 @@ BinarySampleSize(p1 = 0.6, p2 = 0.3, r = 1, alpha = 0.025, tar.power = 0.8,
 #>   Allocation ratio : 1 to 1
 #>   Alpha            : 0.025
 #>   Target power     : 0.8
+#>   Exact search     : crossing
 #> 
 #>   Required sample size: N1 = 48, N2 = 48, total N = 96
 #>   Attained power      : 0.8005
@@ -233,12 +239,13 @@ tie
 #>   Interim size    : n1 = 20, n2 = 20
 #>   Assumed effect  : 0.3 (RD)
 #>   Nominal level   : 0.025
-#>   Grid            : 199 values of theta in [0.005, 0.995], maxima refined
+#>   Grid            : 201 values of theta in [0, 1]
+#>   Maximum         : certified over theta in [0, 1]
 #> 
 #> Largest type I error rate
 #>        Design     theta     TIE
-#>          BSSR 0.5623150 0.02729
-#>  Fixed sample 0.0935671 0.02938
+#>          BSSR 0.4376830 0.02729
+#>  Fixed sample 0.0935669 0.02938
 
 BinaryAlphaAdjBSSR(
   Delta.A = 0.3, N1 = 39, N2 = 39, n.interim = c(20, 20), r = 1,
@@ -249,16 +256,21 @@ BinaryAlphaAdjBSSR(
 #>   Test            : Chisq
 #>   Alternative     : greater
 #>   Adjusted part   : final analysis only
+#>   Maximum         : certified over theta in [0, 1]
 #>   Target level    : 0.025
 #> 
 #>        Design   max.TIE alpha.adj max.TIE.adj
-#>          BSSR 0.0272864 0.0204376   0.0237418
+#>          BSSR 0.0272864 0.0204375   0.0237418
 #>  Fixed sample 0.0293761 0.0207700   0.0247660
 ```
 
 The type I error rate is computed exactly over the common response
-probability, and the adjusted level is the largest nominal level at
-which its maximum does not exceed the target level.
+probability. Its largest value over the whole interval spanned by
+`theta`, by default from 0 to 1, is found together with an upper bound,
+so it does not depend on the spacing of the grid. The adjusted level is
+found by lowering the nominal level until this bound does not exceed the
+target level. It is reported with at most six significant digits where
+the rejection regions allow, so the printed value can be used as it is.
 
 ### Comparing designs
 

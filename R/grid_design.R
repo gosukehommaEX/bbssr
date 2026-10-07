@@ -48,8 +48,8 @@ grid_design <- function(a, p, Delta.T, type1) {
     sp <- split_pooled(a[['p.plan']], a[['Delta.A']], a[['r']], effect)
     ss.args <- list(p1 = sp$p1, p2 = sp$p2, r = a[['r']], alpha = a[['alpha']],
                     tar.power = a[['tar.power']], Test = a[['Test']])
-    for (nm in c('alternative', 'tsmethod', 'n.grid', 'bb.gamma', 'rounding', 'margin',
-                 'ref.pvalue')) {
+    for (nm in c('alternative', 'tsmethod', 'n.grid', 'bb.gamma', 'rounding', 'search',
+                 'search.limit', 'margin', 'ref.pvalue')) {
       if (!is.null(a[[nm]])) ss.args[[nm]] <- a[[nm]]
     }
     if (!is.null(a[['ss.method']])) ss.args[['method']] <- a[['ss.method']]
