@@ -158,15 +158,16 @@
   parametrized by the pooled response probability.
 
 - `inst/reproduce/reproduce-published.R` reproduces Table I and Section
-  5 of Friede and Kieser (2004), Example 21.1 of Kieser (2020), Tables I
-  and II and the first example of Farrington and Manning (1990), Table 3
-  and the examples of Blackwelder (1982), Tables 2 and 3 and Sections 5
-  and 6 of Friede, Mitchell and Mueller-Velten (2007), the table of
-  power and the example of Boschloo (1970), the example and Tables 1 and
-  3 of Mehrotra, Chan and Berger (2003), Example 2 of Berger and Boos
-  (1994), and the example and Table 1 of Section 8 of Fay and Hunsberger
-  (2021). A difference from a published value counts as explained only
-  when it is within the tolerance recorded with its reason.
+  5 of Friede and Kieser (2004), Example 21.1 of Kieser (2020), Table I,
+  Table II (Methods 1 and 3 for the difference) and the first example of
+  Farrington and Manning (1990), Table 3 and the examples of Blackwelder
+  (1982), Tables 2 and 3 and Sections 5 and 6 of Friede, Mitchell and
+  Mueller-Velten (2007), the table of power and the example of Boschloo
+  (1970), the example and Tables 1 and 3 of Mehrotra, Chan and Berger
+  (2003), Example 2 of Berger and Boos (1994), and the example and Table
+  1 of Section 8 of Fay and Hunsberger (2021). A difference from a
+  published value counts as explained only when it is within the
+  tolerance recorded with its reason.
 
 - `ref.pvalue = TRUE` refines the maximization over the nuisance
   parameter of the Z-pooled and Boschloo tests, in every function that
