@@ -77,7 +77,7 @@
                         <h4 data-toc-skip class="author">Gosuke
 Homma</h4>
             
-            <h4 data-toc-skip class="date">2026-10-06</h4>
+            <h4 data-toc-skip class="date">2026-10-07</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/gosukehommaEX/bbssr/blob/main/vignettes/bbssr-type1-error.Rmd" class="external-link"><code>vignettes/bbssr-type1-error.Rmd</code></a></small>
       <div class="d-none name"><code>bbssr-type1-error.Rmd</code></div>
@@ -134,10 +134,15 @@ that the package evaluates exactly.</p>
 of a re-estimation design and of the fixed-sample design with the
 initial sample size over a grid of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>,
-by default <code>seq(0.005, 0.995, by = 0.005)</code>, and refines the
-three largest local maxima on the grid by a one-dimensional
-optimization. The design below has an assumed difference of 0.3, an
-initial sample size of 39 per group, an interim analysis after 20 per
+by default <code>seq(0, 1, by = 0.005)</code>. The largest value is not
+read off the grid. With the default <code>maximize = 'certified'</code>
+the function finds the largest value over the whole interval spanned by
+the grid, here
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0, 1]</annotation></semantics></math>,
+together with an upper bound that the rate does not exceed anywhere in
+that interval. The <code>bbssr-statistical-methods</code> vignette
+describes the method. The design below has an assumed difference of 0.3,
+an initial sample size of 39 per group, an interim analysis after 20 per
 group, re-estimation by formula (21.3) of Kieser (2020) and the
 chi-squared test.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -160,15 +165,23 @@ chi-squared test.</p>
 <span><span class="co">#&gt;        Design     theta     TIE</span></span>
 <span><span class="co">#&gt;          BSSR 0.4376830 0.02729</span></span>
 <span><span class="co">#&gt;  Fixed sample 0.0935669 0.02938</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">tie</span>, <span class="st">'max'</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   Design      theta        TIE      bound</span></span>
+<span><span class="co">#&gt; 1   BSSR 0.43768311 0.02728643 0.02728643</span></span>
+<span><span class="co">#&gt; 2   TRAD 0.09356689 0.02937611 0.02937611</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tie</span><span class="op">)</span></span></code></pre></div>
 <p><img src="bbssr-type1-error_files/figure-html/tie-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>The largest type I error rate is 0.02729 at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo></mrow><annotation encoding="application/x-tex">\theta =</annotation></semantics></math>
 0.4377 for the re-estimation design and 0.02938 at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo></mrow><annotation encoding="application/x-tex">\theta =</annotation></semantics></math>
-0.09357 for the fixed-sample design. The chi-squared test is not exact,
-so the fixed-sample design can already exceed the nominal level, and the
-re-estimation changes the rate again.</p>
+0.09357 for the fixed-sample design. The column <code>bound</code> of
+the attribute <code>max</code> exceeds these values by at most
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>12</mn></mrow></msup><annotation encoding="application/x-tex">10^{-12}</annotation></semantics></math>,
+so the largest rates are known to that accuracy whatever the spacing of
+the grid. The chi-squared test is not exact, so the fixed-sample design
+can already exceed the nominal level, and the re-estimation changes the
+rate again.</p>
 </div>
 <div class="section level2">
 <h2 id="exact-tests-in-the-final-analysis">Exact tests in the final analysis<a class="anchor" aria-label="anchor" href="#exact-tests-in-the-final-analysis"></a>
@@ -199,16 +212,27 @@ each design.</p>
 <h2 id="the-adjusted-significance-level">The adjusted significance level<a class="anchor" aria-label="anchor" href="#the-adjusted-significance-level"></a>
 </h2>
 <p>When the rate exceeds the nominal level,
-<code><a href="../reference/BinaryAlphaAdjBSSR.html">BinaryAlphaAdjBSSR()</a></code> finds the largest nominal level at
-which the largest type I error rate does not exceed the target level,
-following Kieser and Friede (2000) and Friede and Kieser (2004). With
+<code><a href="../reference/BinaryAlphaAdjBSSR.html">BinaryAlphaAdjBSSR()</a></code> lowers the nominal level until the
+largest type I error rate does not exceed the target level, following
+Kieser and Friede (2000) and Friede and Kieser (2004). With
 <code>adjust = 'test'</code> (the default) the adjusted level is applied
 to the final analysis only. The re-estimated sample sizes then do not
 depend on the level, the largest rate is a non-decreasing step function
-of it, and the level is found by bisection.</p>
-<p>Both searches below use the grid <code>theta.grid</code> of the
-common response probability, which is coarser than the default to keep
-them short.</p>
+of it, and the level is found by bisection. Every level between the
+largest p-value that is rejected and the smallest p-value that is not
+gives the same rejection regions, and the reported level is the largest
+value with at most six significant digits in that range, so it can be
+used as printed.</p>
+<p>Both searches below use the grid <code>theta.grid</code> from 0.01 to
+0.99 in steps of 0.01, which is coarser than the default to keep them
+short. The grid serves the search: a level is assessed on the grid, and
+with the default <code>maximize = 'certified'</code> the level found is
+accepted only if the upper bound of the type I error rate over the whole
+interval
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0.01</mn><mo>,</mo><mn>0.99</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0.01, 0.99]</annotation></semantics></math>
+does not exceed the target level. The columns <code>max.TIE.bound</code>
+and <code>max.TIE.adj.bound</code> of the result hold the bounds at the
+nominal and at the adjusted level.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">theta.grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">0.99</span>, by <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
 <span><span class="va">adj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">BinaryAlphaAdjBSSR</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">design</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>theta <span class="op">=</span> <span class="va">theta.grid</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -222,14 +246,20 @@ them short.</p>
 <span><span class="co">#&gt;   Target level    : 0.025</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;        Design   max.TIE alpha.adj max.TIE.adj</span></span>
-<span><span class="co">#&gt;          BSSR 0.0272864 0.0204376   0.0237418</span></span>
+<span><span class="co">#&gt;          BSSR 0.0272864 0.0204375   0.0237418</span></span>
 <span><span class="co">#&gt;  Fixed sample 0.0293761 0.0207700   0.0247660</span></span></code></pre></div>
 <p>With <code>adjust = 'both'</code> the adjusted level is used in the
 re-estimation as well. The re-estimated sample sizes then change with
 the level, the rate need not be monotone in it, and the level is lowered
-in steps of <code>step</code> until the rate is controlled. The search
-below uses a step of 0.00005, coarser than the default, to keep it
-short.</p>
+in steps of <code>step</code> until the rate is controlled. The result
+is the first level on this grid of steps at which the rate is
+controlled. The levels that control the rate need not form an interval,
+so the result can change with the step. The published values of Friede
+and Kieser (2004, Section 5) and Kieser (2020, Example 21.1) are
+reproduced only when the re-estimation also uses the adjusted level, as
+the script <code>reproduce-published.R</code> shows (see the
+<code>bbssr-validation</code> vignette). The search below uses a step of
+0.00005, coarser than the default, to keep it short.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">adj.both</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">BinaryAlphaAdjBSSR</span>,</span>
 <span>                    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">design</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>adjust <span class="op">=</span> <span class="st">'both'</span>, step <span class="op">=</span> <span class="fl">5e-5</span>, theta <span class="op">=</span> <span class="va">theta.grid</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -245,9 +275,12 @@ short.</p>
 <span><span class="co">#&gt;        Design   max.TIE alpha.adj max.TIE.adj</span></span>
 <span><span class="co">#&gt;          BSSR 0.0272864   0.02110   0.0246043</span></span>
 <span><span class="co">#&gt;  Fixed sample 0.0293761   0.02077   0.0247660</span></span></code></pre></div>
-<p>The adjusted level of the re-estimation design is 0.02044 when it
+<p>The adjusted level of the re-estimation design is 0.0204375 when it
 applies to the final analysis only and 0.0211 when it also applies to
-the re-estimation. The power at the adjusted level follows from
+the re-estimation. At these levels the upper bounds of the type I error
+rate over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0.01</mn><mo>,</mo><mn>0.99</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0.01, 0.99]</annotation></semantics></math>
+are 0.02374 and 0.0246. The power at the adjusted level follows from
 <code><a href="../reference/BinaryPowerBSSR.html">BinaryPowerBSSR()</a></code> with <code>alpha</code> set to the
 adjusted level. The re-estimation keeps the target level through
 <code>ss.alpha</code> when the level was adjusted with

@@ -77,7 +77,7 @@
                         <h4 data-toc-skip class="author">Gosuke
 Homma</h4>
             
-            <h4 data-toc-skip class="date">2026-10-06</h4>
+            <h4 data-toc-skip class="date">2026-10-07</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/gosukehommaEX/bbssr/blob/main/vignettes/bbssr-non-inferiority.Rmd" class="external-link"><code>vignettes/bbssr-non-inferiority.Rmd</code></a></small>
       <div class="d-none name"><code>bbssr-non-inferiority.Rmd</code></div>
@@ -305,6 +305,15 @@ interval are dropped.</p>
 <span><span class="co">#&gt;  Fixed sample 0.500000 0.02650</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ni.tie</span><span class="op">)</span></span></code></pre></div>
 <p><img src="bbssr-non-inferiority_files/figure-html/tie-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
+<p>The largest type I error rate is certified over the interval spanned
+by <code>theta</code>, here from 0.1 to 0.9. With the default
+<code>theta = seq(0, 1, by = 0.005)</code> the interval is the whole
+part of the boundary on which both response probabilities lie in the
+unit interval, which with an allocation ratio of 1 is <code>theta</code>
+from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">\delta / 2</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>δ</mi><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">1 - \delta / 2</annotation></semantics></math>.</p>
 <p>The same rejection probabilities follow from
 <code><a href="../reference/BinaryPowerBSSR.html">BinaryPowerBSSR()</a></code> with the true difference on the boundary,
 <code>Delta.T = -margin</code>.</p>

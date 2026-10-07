@@ -42,6 +42,7 @@ print(ss)
 #>   Allocation ratio : 1 to 1
 #>   Alpha            : 0.025
 #>   Target power     : 0.8
+#>   Exact search     : crossing
 #> 
 #>   Required sample size: N1 = 80, N2 = 80, total N = 160
 #>   Attained power      : 0.8009

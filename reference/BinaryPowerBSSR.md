@@ -32,6 +32,8 @@ BinaryPowerBSSR(
   ss.Test = Test,
   ss.alpha = alpha,
   rounding = c("group", "friede-kieser", "total", "nearest"),
+  search = c("crossing", "smallest", "stable"),
+  search.limit = c(2, 50),
   N.min = NULL,
   N.max = NULL,
   n.interim = NULL,
@@ -145,6 +147,20 @@ BinaryPowerBSSR(
   `'nearest'`. Only `'group'` is available with `ss.method = 'exact'`.
   See Details
 
+- search:
+
+  How the exact re-estimation chooses the sample size when
+  `ss.method = 'exact'`: `'crossing'` (default), `'smallest'` or
+  `'stable'`, as in
+  [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md).
+  Ignored by the other methods
+
+- search.limit:
+
+  Limit of the size of group 2 examined by `search = 'stable'`, as in
+  [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md).
+  Default is `c(2, 50)`
+
 - N.min:
 
   Lower bound on the final total sample size, or `NULL` (default) for
@@ -213,11 +229,13 @@ element of `p` containing:
 
 The interim sample sizes are stored as the attributes `n1.interim` and
 `n2.interim`. The attribute `reestimation` holds, for every pooled
-number of interim responders `s`, the recovered proportions and the
-final sample sizes, and the attribute `N.dist` holds the distribution of
-the final sample size for every row of the result, identified by the
-column `scenario`. [`summary()`](https://rdrr.io/r/base/summary.html)
-reports the standard deviation and quantiles of the final sample size.
+number of interim responders `s`, the recovered proportions, the final
+sample sizes and, in the column `N2.limit`, the limit of
+`search = 'stable'` (otherwise `NA`). The attribute `N.dist` holds the
+distribution of the final sample size for every row of the result,
+identified by the column `scenario`, and the attribute `search` the
+search. [`summary()`](https://rdrr.io/r/base/summary.html) reports the
+standard deviation and quantiles of the final sample size.
 
 ## Details
 

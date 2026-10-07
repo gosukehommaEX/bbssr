@@ -1,10 +1,11 @@
 # Adjusted Significance Level of a Blinded Sample Size Re-estimation Design
 
-Finds the largest nominal significance level at which a two-arm trial
-with a binary endpoint and blinded sample size re-estimation (BSSR)
-keeps its type I error rate at or below the target level `alpha` for
-every common response probability, together with the corresponding level
-of the fixed-sample design.
+Lowers the nominal significance level of a two-arm trial with a binary
+endpoint and blinded sample size re-estimation (BSSR) until the largest
+type I error rate over the common response probability, or over the
+pooled response probability on the boundary of a non-inferiority
+hypothesis, does not exceed the target level `alpha`, and returns the
+adjusted level together with that of the fixed-sample design.
 
 ## Usage
 
@@ -28,6 +29,8 @@ BinaryAlphaAdjBSSR(
   ss.Test = Test,
   ss.alpha = alpha,
   rounding = c("group", "friede-kieser", "total", "nearest"),
+  search = c("crossing", "smallest", "stable"),
+  search.limit = c(2, 50),
   N.min = NULL,
   N.max = NULL,
   n.interim = NULL,
@@ -140,6 +143,20 @@ BinaryAlphaAdjBSSR(
   `'nearest'`. Only `'group'` is available with `ss.method = 'exact'`.
   See Details
 
+- search:
+
+  How the exact re-estimation chooses the sample size when
+  `ss.method = 'exact'`: `'crossing'` (default), `'smallest'` or
+  `'stable'`, as in
+  [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md).
+  Ignored by the other methods
+
+- search.limit:
+
+  Limit of the size of group 2 examined by `search = 'stable'`, as in
+  [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md).
+  Default is `c(2, 50)`
+
 - N.min:
 
   Lower bound on the final total sample size, or `NULL` (default) for
@@ -170,7 +187,10 @@ BinaryAlphaAdjBSSR(
   [`BinaryTypeIErrorBSSR`](https://gosukehommaex.github.io/bbssr/reference/BinaryTypeIErrorBSSR.md).
   With `'certified'` (default) the adjusted level controls the type I
   error rate over the whole interval from the smallest to the largest
-  value of `theta`, see Details
+  value of `theta`, restricted with a margin to the values at which both
+  response probabilities on the null boundary lie in the unit interval,
+  see Details. With `'refined'` and `'grid'` the control is assessed on
+  the grid
 
 - adjust:
 
@@ -180,8 +200,9 @@ BinaryAlphaAdjBSSR(
 
 - tol:
 
-  Tolerance of the bisection used when `adjust = 'test'`, relative to
-  `alpha`. Default is `1e-8`
+  Tolerance of the bisection, relative to `alpha`, a single value in (0,
+  1). The bisection is used when `adjust = 'test'` and, whatever
+  `adjust`, for the fixed-sample design. Default is `1e-8`
 
 - step:
 
@@ -228,16 +249,20 @@ BSSR design and one for the fixed-sample design containing:
 
 - alpha.adj:
 
-  Adjusted nominal level
+  Adjusted nominal level, see Details. It is `alpha` when the nominal
+  level already controls the type I error rate, and 0, with a warning,
+  when no level examined does
 
 - max.TIE.adj:
 
-  Largest type I error rate at the adjusted level
+  Largest type I error rate at the adjusted level, 0 when `alpha.adj` is
+  0
 
 - theta.adj:
 
   Common response probability, or pooled response probability on the
-  null boundary, at which `max.TIE.adj` occurs
+  null boundary, at which `max.TIE.adj` occurs, `NA` when `alpha.adj` is
+  0
 
 - max.TIE.bound:
 
@@ -260,17 +285,33 @@ does not exceed `alpha`.
 With `adjust = 'test'` the final sample sizes do not depend on the
 nominal level, and the rejection regions shrink as the level decreases,
 so the largest type I error rate is a non-decreasing step function of
-the level. The adjusted level is then found by bisection to within
-`tol * alpha`, and the reported value is the largest level examined that
-controls the type I error rate.
+the level. The bisection locates, to within `tol * alpha`, the level
+above which the largest rate exceeds `alpha`. The package rejects a
+p-value at a level when it is below the level by more than a tolerance
+of about 1.49e-8, so every level between the largest p-value rejected at
+the level found plus this tolerance and the smallest p-value not
+rejected gives the same rejection regions, also when a p-value is
+rejected if it is below the level or at most equal to it. The reported
+`alpha.adj` is the largest value with at most six significant digits in
+this range, or with more digits if there is none, so the printed value
+can be used as it is. The same applies to the fixed-sample design.
 
 With `adjust = 'both'` the re-estimated sample sizes change with the
 level as well, so the type I error rate need not be monotone in the
 level. The level is then lowered from `alpha` in steps of `step` until
-the type I error rate is controlled. This search re-estimates the sample
-size at every step and can take much longer than the bisection. The
-fixed-sample design always uses the bisection, since its sample size
-does not depend on the level.
+the type I error rate is controlled. The result is the first level among
+`alpha - step`, `alpha - 2 * step`, and so on, at which the type I error
+rate is controlled, and it can change with `step`. The levels that
+control the type I error rate need not form an interval, so a level
+below the result can fail, and a level above it that is not on this grid
+can pass. This search re-estimates the sample size at every step and can
+take much longer than the bisection. The fixed-sample design always uses
+the bisection, since its sample size does not depend on the level. The
+script `reproduce-published.R` in the folder
+`system.file('reproduce', package = 'bbssr')` reproduces the published
+values of Section 5 of Friede and Kieser (2004) and of Example 21.1 of
+Kieser (2020) only when the re-estimation also uses the adjusted level,
+as with `adjust = 'both'`.
 
 With `maximize = 'certified'` the levels are assessed on the grid with
 the refinement of `maximize = 'refined'`, and the level found is then
@@ -278,19 +319,28 @@ certified as in
 [`BinaryTypeIErrorBSSR`](https://gosukehommaex.github.io/bbssr/reference/BinaryTypeIErrorBSSR.md):
 it is accepted only if the upper bound of the type I error rate over the
 interval from the smallest to the largest value of `theta` does not
-exceed `alpha`. If the bound exceeds `alpha`, the grid has missed the
-value of `theta` at which the level fails, and the search continues
-below that level. The bisection then certifies every level that passes
-the assessment on the grid, and the search of `adjust = 'both'`
-certifies every such level from the start. The adjusted level therefore
-controls the type I error rate over the whole interval.
+exceed `alpha`. If the bound exceeds `alpha`, the grid has missed a
+value of `theta` at which the level fails, or the largest rate lies
+within 1e-12 below `alpha`, and the search continues below that level.
+The bisection then certifies every level that passes the assessment on
+the grid, and the search of `adjust = 'both'` certifies every such level
+from the start. The adjusted level therefore controls the type I error
+rate over the whole interval. If a certification stops at its limit of
+1e5 subdivisions, with a warning, the bound can exceed the largest rate
+by more than 1e-12, and the level found can be lower than necessary.
 
 In both searches the type I error rate at a new level is first evaluated
 at the single value of `theta` where the largest rate of the last level
 that failed was found. If it exceeds `alpha` there, the level fails
 without the evaluation over the whole grid. The largest rate over
-`theta` is never below the rate at any one value, so every decision, and
-hence the result, is that of the full evaluation.
+`theta` is never below the rate at any one value, so such a level also
+fails on the largest rate. With `maximize = 'grid'` this value is a grid
+point, and every decision is that of the evaluation on the grid. With
+`'refined'` and `'certified'` it can lie between the grid points, where
+the grid can miss a rate above `alpha`, so a level can fail that the
+evaluation on the grid would accept. This can only lower the level
+found, and with `'certified'` the level found is certified in either
+case.
 
 ## References
 
@@ -301,6 +351,9 @@ in Medicine*, 19(7), 901-911.
 Friede T, Kieser M (2004). Sample size recalculation for binary data in
 internal pilot study designs. *Pharmaceutical Statistics*, 3(4),
 269-279.
+
+Kieser M (2020). *Methods and Applications of Sample Size Calculation
+and Recalculation in Clinical Trials*. Springer, Cham.
 
 ## See also
 
@@ -328,7 +381,7 @@ BinaryAlphaAdjBSSR(
 #>   Target level    : 0.025
 #> 
 #>        Design   max.TIE alpha.adj max.TIE.adj
-#>          BSSR 0.0272864 0.0204376   0.0237418
+#>          BSSR 0.0272864 0.0204375   0.0237418
 #>  Fixed sample 0.0293761 0.0207700   0.0247660
 # }
 ```

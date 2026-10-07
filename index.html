@@ -90,13 +90,15 @@
 <ul>
 <li>Two tests of non-inferiority with a margin on the scale of the risk difference, <code>Test = 'Blackwelder'</code> and <code>Test = 'Farrington-Manning'</code>, and the blinded re-estimation of Friede, Mitchell and Mueller-Velten (2007).</li>
 <li>
-<code><a href="reference/BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR()</a></code> evaluates the type I error rate of a re-estimation design over the nuisance parameter, <code><a href="reference/BinaryAlphaAdjBSSR.html">BinaryAlphaAdjBSSR()</a></code> finds the adjusted significance level that controls it, and <code><a href="reference/BinaryCondRejectBSSR.html">BinaryCondRejectBSSR()</a></code> decomposes it by the interim outcome.</li>
+<code><a href="reference/BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR()</a></code> evaluates the type I error rate of a re-estimation design over the nuisance parameter and finds its largest value over the whole range together with an upper bound, <code><a href="reference/BinaryAlphaAdjBSSR.html">BinaryAlphaAdjBSSR()</a></code> finds the adjusted significance level that controls it, and <code><a href="reference/BinaryCondRejectBSSR.html">BinaryCondRejectBSSR()</a></code> decomposes it by the interim outcome.</li>
 <li>
 <code><a href="reference/BinaryGridBSSR.html">BinaryGridBSSR()</a></code> evaluates several designs, given as the rows of a data frame, over common scenarios.</li>
 <li>The sample size can be re-estimated by the normal approximation (<code>ss.method</code>), with another test or level (<code>ss.Test</code>, <code>ss.alpha</code>), with one of several rounding rules (<code>rounding</code>), within bounds on the final sample size (<code>N.min</code>, <code>N.max</code>), from given interim sample sizes (<code>n.interim</code>) and with an effect on the scale of the risk ratio or the odds ratio (<code>effect</code>).</li>
 <li>Every function accepts <code>alternative = 'less'</code>, and <code>ref.pvalue = TRUE</code> refines the maximization over the nuisance parameter of the unconditional tests.</li>
 <li>
 <code>tsmethod = 'blaker'</code> adds a third two-sided convention for the Fisher, Fisher mid-p and Boschloo tests, formula (2) of Mehrotra, Chan and Berger (2003).</li>
+<li>
+<code>search</code> chooses among three exact sample size searches: the default, which stops where the power crosses the target, the smallest size that attains the target, and the smallest size from which every size up to a limit attains it.</li>
 <li>
 <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> of <code><a href="reference/BinaryPowerBSSR.html">BinaryPowerBSSR()</a></code> reports the distribution of the final sample size.</li>
 </ul>
@@ -197,6 +199,7 @@
 <span><span class="co">#&gt;   Allocation ratio : 1 to 1</span></span>
 <span><span class="co">#&gt;   Alpha            : 0.025</span></span>
 <span><span class="co">#&gt;   Target power     : 0.8</span></span>
+<span><span class="co">#&gt;   Exact search     : crossing</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   Required sample size: N1 = 48, N2 = 48, total N = 96</span></span>
 <span><span class="co">#&gt;   Attained power      : 0.8005</span></span></code></pre></div>
@@ -288,12 +291,13 @@
 <span><span class="co">#&gt;   Interim size    : n1 = 20, n2 = 20</span></span>
 <span><span class="co">#&gt;   Assumed effect  : 0.3 (RD)</span></span>
 <span><span class="co">#&gt;   Nominal level   : 0.025</span></span>
-<span><span class="co">#&gt;   Grid            : 199 values of theta in [0.005, 0.995], maxima refined</span></span>
+<span><span class="co">#&gt;   Grid            : 201 values of theta in [0, 1]</span></span>
+<span><span class="co">#&gt;   Maximum         : certified over theta in [0, 1]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Largest type I error rate</span></span>
 <span><span class="co">#&gt;        Design     theta     TIE</span></span>
-<span><span class="co">#&gt;          BSSR 0.5623150 0.02729</span></span>
-<span><span class="co">#&gt;  Fixed sample 0.0935671 0.02938</span></span>
+<span><span class="co">#&gt;          BSSR 0.4376830 0.02729</span></span>
+<span><span class="co">#&gt;  Fixed sample 0.0935669 0.02938</span></span>
 <span></span>
 <span><span class="fu"><a href="reference/BinaryAlphaAdjBSSR.html">BinaryAlphaAdjBSSR</a></span><span class="op">(</span></span>
 <span>  Delta.A <span class="op">=</span> <span class="fl">0.3</span>, N1 <span class="op">=</span> <span class="fl">39</span>, N2 <span class="op">=</span> <span class="fl">39</span>, n.interim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">20</span><span class="op">)</span>, r <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -304,12 +308,13 @@
 <span><span class="co">#&gt;   Test            : Chisq</span></span>
 <span><span class="co">#&gt;   Alternative     : greater</span></span>
 <span><span class="co">#&gt;   Adjusted part   : final analysis only</span></span>
+<span><span class="co">#&gt;   Maximum         : certified over theta in [0, 1]</span></span>
 <span><span class="co">#&gt;   Target level    : 0.025</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;        Design   max.TIE alpha.adj max.TIE.adj</span></span>
-<span><span class="co">#&gt;          BSSR 0.0272864 0.0204376   0.0237418</span></span>
+<span><span class="co">#&gt;          BSSR 0.0272864 0.0204375   0.0237418</span></span>
 <span><span class="co">#&gt;  Fixed sample 0.0293761 0.0207700   0.0247660</span></span></code></pre></div>
-<p>The type I error rate is computed exactly over the common response probability, and the adjusted level is the largest nominal level at which its maximum does not exceed the target level.</p>
+<p>The type I error rate is computed exactly over the common response probability. Its largest value over the whole interval spanned by <code>theta</code>, by default from 0 to 1, is found together with an upper bound, so it does not depend on the spacing of the grid. The adjusted level is found by lowering the nominal level until this bound does not exceed the target level. It is reported with at most six significant digits where the rejection regions allow, so the printed value can be used as it is.</p>
 </div>
 <div class="section level3">
 <h3 id="comparing-designs">Comparing designs<a class="anchor" aria-label="anchor" href="#comparing-designs"></a>

@@ -29,6 +29,8 @@ BinaryTypeIErrorBSSR(
   ss.Test = Test,
   ss.alpha = alpha,
   rounding = c("group", "friede-kieser", "total", "nearest"),
+  search = c("crossing", "smallest", "stable"),
+  search.limit = c(2, 50),
   N.min = NULL,
   N.max = NULL,
   n.interim = NULL,
@@ -136,6 +138,20 @@ BinaryTypeIErrorBSSR(
   `'nearest'`. Only `'group'` is available with `ss.method = 'exact'`.
   See Details
 
+- search:
+
+  How the exact re-estimation chooses the sample size when
+  `ss.method = 'exact'`: `'crossing'` (default), `'smallest'` or
+  `'stable'`, as in
+  [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md).
+  Ignored by the other methods
+
+- search.limit:
+
+  Limit of the size of group 2 examined by `search = 'stable'`, as in
+  [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md).
+  Default is `c(2, 50)`
+
 - N.min:
 
   Lower bound on the final total sample size, or `NULL` (default) for
@@ -164,10 +180,12 @@ BinaryTypeIErrorBSSR(
 
   How the largest type I error rate is located. `'certified'` (default)
   finds it over the whole interval from the smallest to the largest
-  value of `theta`, together with an upper bound, see Details.
-  `'refined'` refines the largest local maxima on the grid by a
-  one-dimensional optimization between the neighbouring grid points, and
-  `'grid'` takes the largest value on the grid
+  value of `theta`, restricted with a margin to the values at which both
+  response probabilities on the null boundary lie in the unit interval,
+  together with an upper bound, see Details. `'refined'` refines the
+  largest local maxima on the grid by a one-dimensional optimization
+  between the neighbouring grid points, and `'grid'` takes the largest
+  value on the grid
 
 - margin:
 
@@ -217,12 +235,14 @@ An object of class `bbssr_tie`, a data frame with one row per element of
   Type I error rate of the fixed-sample design with sample sizes `N1`
   and `N2`
 
-The attribute `max` is a data frame with the largest type I error rate
-`TIE` of each design, the common response probability `theta` at which
-it occurs and, with `maximize = 'certified'`, the upper bound `bound` of
-the type I error rate over the interval given by the attribute
-`interval` (otherwise `NA`). The attribute `reestimation` holds the
-final sample size for every pooled number of interim responders.
+The attribute `max` is a data frame with one row for each design,
+`'BSSR'` and `'TRAD'` in the column `Design`, holding the largest type I
+error rate `TIE`, the common response probability, or pooled response
+probability on the null boundary, `theta` at which it occurs and, with
+`maximize = 'certified'`, the upper bound `bound` of the type I error
+rate over the interval given by the attribute `interval` (otherwise
+`NA`). The attribute `reestimation` holds the final sample size for
+every pooled number of interim responders.
 
 ## Details
 
@@ -249,10 +269,13 @@ Casteljau, and a subinterval is set aside once its largest coefficient
 exceeds the largest value found by at most 1e-12. The largest
 coefficient of the subintervals set aside, reported as `bound`, is an
 upper bound of the type I error rate at every value of `theta` in the
-interval, up to rounding error. With `maximize = 'refined'` the three
-largest local maxima on the grid are refined, which finds the maximum
-when the grid separates the local maxima, and with `maximize = 'grid'`
-the largest value on the grid is reported.
+interval, up to rounding error, and `TIE` is within 1e-12 of it. If 1e5
+subdivisions do not suffice, a warning is given; `bound` remains an
+upper bound, but `TIE` can then be more than 1e-12 below it. With
+`maximize = 'refined'` the three largest local maxima on the grid are
+refined, which usually finds the maximum when the grid is fine compared
+with the spacing of the local maxima but does not guarantee it, and with
+`maximize = 'grid'` the largest value on the grid is reported.
 
 With a non-inferiority `margin` the null hypothesis is
 `p1 - p2 <= -margin`, or `p1 - p2 >= margin` for `alternative = 'less'`,

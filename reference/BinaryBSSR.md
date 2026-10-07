@@ -31,6 +31,8 @@ BinaryBSSR(
   ss.Test = Test,
   ss.alpha = alpha,
   rounding = c("group", "friede-kieser", "total", "nearest"),
+  search = c("crossing", "smallest", "stable"),
+  search.limit = c(2, 50),
   N.min = NULL,
   N.max = NULL,
   margin = 0,
@@ -143,6 +145,20 @@ BinaryBSSR(
   `'nearest'`, as in
   [`BinaryPowerBSSR`](https://gosukehommaex.github.io/bbssr/reference/BinaryPowerBSSR.md)
 
+- search:
+
+  How the exact re-estimation chooses the sample size when
+  `ss.method = 'exact'`: `'crossing'` (default), `'smallest'` or
+  `'stable'`, as in
+  [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md).
+  Ignored by the other methods
+
+- search.limit:
+
+  Limit of the size of group 2 examined by `search = 'stable'`, as in
+  [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md).
+  Default is `c(2, 50)`
+
 - N.min:
 
   Lower bound on the final total sample size, or `NULL` (default). It
@@ -244,6 +260,10 @@ An object of class `bbssr_bssr`, a data frame with one row containing:
 - Power:
 
   Exact power at the final sample size under the recovered proportions
+
+The attribute `search` holds the search, and the attribute
+`search.limit` the limit of the size of group 2 examined by
+`search = 'stable'` (otherwise `NA`).
 
 ## Details
 

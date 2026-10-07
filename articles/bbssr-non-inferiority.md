@@ -231,6 +231,13 @@ plot(ni.tie)
 
 ![](bbssr-non-inferiority_files/figure-html/tie-1.png)
 
+The largest type I error rate is certified over the interval spanned by
+`theta`, here from 0.1 to 0.9. With the default
+`theta = seq(0, 1, by = 0.005)` the interval is the whole part of the
+boundary on which both response probabilities lie in the unit interval,
+which with an allocation ratio of 1 is `theta` from $`\delta / 2`$ to
+$`1 - \delta / 2`$.
+
 The same rejection probabilities follow from
 [`BinaryPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryPowerBSSR.md)
 with the true difference on the boundary, `Delta.T = -margin`.

@@ -77,7 +77,7 @@
                         <h4 data-toc-skip class="author">Gosuke
 Homma</h4>
             
-            <h4 data-toc-skip class="date">2026-10-06</h4>
+            <h4 data-toc-skip class="date">2026-10-07</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/gosukehommaEX/bbssr/blob/main/vignettes/bbssr-reestimation-rules.Rmd" class="external-link"><code>vignettes/bbssr-reestimation-rules.Rmd</code></a></small>
       <div class="d-none name"><code>bbssr-reestimation-rules.Rmd</code></div>
@@ -118,6 +118,7 @@ analysis takes place after half of it.</p>
 <span><span class="co">#&gt;   Allocation ratio : 1 to 1</span></span>
 <span><span class="co">#&gt;   Alpha            : 0.025</span></span>
 <span><span class="co">#&gt;   Target power     : 0.8</span></span>
+<span><span class="co">#&gt;   Exact search     : crossing</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   Required sample size: N1 = 39, N2 = 39, total N = 78</span></span>
 <span><span class="co">#&gt;   Attained power      : 0.8128</span></span></code></pre></div>
@@ -132,7 +133,10 @@ from the recovered probabilities.</p>
 <code>'exact'</code> (the default) steps from the normal
 approximation, one patient at a time, to the sample size at which the
 exact power of the test first attains the target, as
-<code><a href="../reference/BinarySampleSize.html">BinarySampleSize()</a></code> does.</li>
+<code><a href="../reference/BinarySampleSize.html">BinarySampleSize()</a></code> does. The argument <code>search</code>
+replaces this search by the smallest size that attains the target power
+or by the smallest size from which every size up to a limit attains it,
+see the <code>bbssr-introduction</code> vignette.</li>
 <li>
 <code>'standard'</code> uses the normal approximation with the
 variance under the null hypothesis in the term of the significance level

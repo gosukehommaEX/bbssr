@@ -349,18 +349,18 @@ microbenchmark::microbenchmark(
   unit = 'ms'
 )
 #> Unit: milliseconds
-#>                   expr      min        lq       mean    median        uq
-#>                  Chisq 0.221039  0.232667  0.2420672  0.245580  0.252276
-#>                 Fisher 1.823163  1.856483  1.8876039  1.887844  1.916752
-#>                 Z-pool 2.979714  2.996399  3.0170215  3.012838  3.028046
-#>               Boschloo 4.746333  4.766523  4.8284642  4.799197  4.832211
-#>  Boschloo, Berger-Boos 9.972070 10.031208 10.0979407 10.046886 10.079529
+#>                   expr      min       lq       mean     median        uq
+#>                  Chisq 0.223253 0.230954  0.2380496  0.2401225  0.242471
+#>                 Fisher 1.807522 1.844166  1.8652694  1.8660835  1.878777
+#>                 Z-pool 2.966036 2.986847  3.0169559  3.0245730  3.041659
+#>               Boschloo 4.748210 4.759647  4.7849723  4.7946290  4.805595
+#>  Boschloo, Berger-Boos 9.971045 9.984505 10.0684905 10.0137840 10.043884
 #>        max neval
-#>   0.258685    10
-#>   1.981609    10
-#>   3.084400    10
-#>   5.092168    10
-#>  10.556479    10
+#>   0.250463    10
+#>   1.959588    10
+#>   3.080186    10
+#>   4.818534    10
+#>  10.484120    10
 options(old)
 ```
 
@@ -391,11 +391,11 @@ microbenchmark::microbenchmark(
 )
 #> Unit: milliseconds
 #>              expr        min         lq       mean     median         uq
-#>  bbssr.whole.grid   1.609876   1.642905   2.284762   1.709544   2.092814
-#>     Exact.one.row 199.909924 201.677093 201.633805 201.960315 202.249936
+#>  bbssr.whole.grid   1.488616   1.614754   1.685243   1.632731   1.640392
+#>     Exact.one.row 196.871985 197.677274 198.831344 198.166252 200.209635
 #>         max neval
-#>    4.368671     5
-#>  202.371758     5
+#>    2.049722     5
+#>  201.231576     5
 options(old)
 ```
 
@@ -428,6 +428,34 @@ do.call(rbind, lapply(c('Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', 'Boschloo'),
 
 The power reaches the target at the returned sample size and falls short
 one patient per group below it.
+
+The two other searches are checked against a scan of the power function
+at every size of group 2 up to the limit of the stable search, for
+Fisher’s exact test with a target power of 0.85, where they return
+different sizes.
+
+``` r
+
+found <- lapply(c('smallest', 'stable'), function(s) {
+  BinarySampleSize(0.6, 0.3, 1, 0.025, 0.85, 'Fisher', search = s)
+})
+limit <- attr(found[[2]], 'search.limit')
+scan <- vapply(seq_len(limit), function(n) {
+  BinaryPower(0.6, 0.3, n, n, 0.025, 'Fisher')$Power
+}, numeric(1))
+data.frame(
+  search = c('smallest', 'stable'),
+  N2 = c(found[[1]]$N2, found[[2]]$N2),
+  N2.from.scan = c(min(which(scan >= 0.85)), max(which(scan < 0.85)) + 1)
+)
+#>     search N2 N2.from.scan
+#> 1 smallest 52           52
+#> 2   stable 56           56
+```
+
+`N2.from.scan` is the first size whose power attains the target, and one
+more than the last size below the limit whose power falls short of it.
+Both agree with the searches.
 
 ## Re-estimation designs
 
@@ -482,6 +510,37 @@ data.frame(
 #> 3   Z-pool   two.sided            1.734723e-17
 #> 4 Boschloo     greater            3.122502e-17
 ```
+
+The largest type I error rate is also obtained in two separate ways.
+With the default `maximize = 'certified'`,
+[`BinaryTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryTypeIErrorBSSR.md)
+computes the coefficients of the rate in the Bernstein basis and halves
+the interval until an upper bound is within $`10^{-12}`$ of the largest
+value found, as the `bbssr-statistical-methods` vignette describes. With
+`theta = c(0, 1)` the grid holds only the two ends of the interval, so
+the summation above is used only there and the largest value in between
+comes from the coefficients. With `maximize = 'refined'` the function
+evaluates the rate by that summation on a grid, here of step 0.001, and
+refines the largest local maxima by a one-dimensional optimization.
+
+``` r
+
+cert.args <- list(Delta.A = 0.3, N1 = 39, N2 = 39, n.interim = c(20, 20), r = 1,
+                  alpha = 0.025, tar.power = 0.8, Test = 'Chisq', ss.method = 'standard')
+certified <- attr(do.call(BinaryTypeIErrorBSSR, c(cert.args, list(theta = c(0, 1)))),
+                  'max')
+dense <- attr(do.call(BinaryTypeIErrorBSSR,
+                      c(cert.args, list(theta = seq(0, 1, by = 0.001),
+                                        maximize = 'refined'))), 'max')
+data.frame(Design = certified$Design, certified = certified$TIE, bound = certified$bound,
+           dense.refined = dense$TIE, difference = certified$TIE - dense$TIE)
+#>   Design  certified      bound dense.refined    difference
+#> 1   BSSR 0.02728643 0.02728643    0.02728643 -3.105051e-13
+#> 2   TRAD 0.02937611 0.02937611    0.02937611 -1.157720e-13
+```
+
+For both designs the two maxima differ by at most 3.1e-13, and the
+refined maximum does not exceed the bound by more than rounding error.
 
 ## Reproduction of published results
 
@@ -665,7 +724,8 @@ configuration examined, the three exact tests hold the type I error rate
 below the nominal level for one-sided and two-sided alternatives alike.
 A re-estimation design without re-estimation reproduces the fixed-sample
 design, the two calculations of the type I error rate of a re-estimation
-design agree, and published values are recomputed.
+design agree, the certified largest type I error rate is confirmed by a
+dense grid, and published values are recomputed.
 
 ## References
 

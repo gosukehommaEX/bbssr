@@ -34,12 +34,15 @@ a polynomial in $`\theta`$ that the package evaluates exactly.
 [`BinaryTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryTypeIErrorBSSR.md)
 evaluates the type I error rate of a re-estimation design and of the
 fixed-sample design with the initial sample size over a grid of
-$`\theta`$, by default `seq(0.005, 0.995, by = 0.005)`, and refines the
-three largest local maxima on the grid by a one-dimensional
-optimization. The design below has an assumed difference of 0.3, an
-initial sample size of 39 per group, an interim analysis after 20 per
-group, re-estimation by formula (21.3) of Kieser (2020) and the
-chi-squared test.
+$`\theta`$, by default `seq(0, 1, by = 0.005)`. The largest value is not
+read off the grid. With the default `maximize = 'certified'` the
+function finds the largest value over the whole interval spanned by the
+grid, here $`[0, 1]`$, together with an upper bound that the rate does
+not exceed anywhere in that interval. The `bbssr-statistical-methods`
+vignette describes the method. The design below has an assumed
+difference of 0.3, an initial sample size of 39 per group, an interim
+analysis after 20 per group, re-estimation by formula (21.3) of Kieser
+(2020) and the chi-squared test.
 
 ``` r
 
@@ -62,6 +65,10 @@ tie
 #>        Design     theta     TIE
 #>          BSSR 0.4376830 0.02729
 #>  Fixed sample 0.0935669 0.02938
+attr(tie, 'max')
+#>   Design      theta        TIE      bound
+#> 1   BSSR 0.43768311 0.02728643 0.02728643
+#> 2   TRAD 0.09356689 0.02937611 0.02937611
 plot(tie)
 ```
 
@@ -69,9 +76,11 @@ plot(tie)
 
 The largest type I error rate is 0.02729 at $`\theta =`$ 0.4377 for the
 re-estimation design and 0.02938 at $`\theta =`$ 0.09357 for the
-fixed-sample design. The chi-squared test is not exact, so the
-fixed-sample design can already exceed the nominal level, and the
-re-estimation changes the rate again.
+fixed-sample design. The column `bound` of the attribute `max` exceeds
+these values by at most $`10^{-12}`$, so the largest rates are known to
+that accuracy whatever the spacing of the grid. The chi-squared test is
+not exact, so the fixed-sample design can already exceed the nominal
+level, and the re-estimation changes the rate again.
 
 ## Exact tests in the final analysis
 
@@ -105,15 +114,25 @@ each design.
 
 When the rate exceeds the nominal level,
 [`BinaryAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryAlphaAdjBSSR.md)
-finds the largest nominal level at which the largest type I error rate
-does not exceed the target level, following Kieser and Friede (2000) and
-Friede and Kieser (2004). With `adjust = 'test'` (the default) the
-adjusted level is applied to the final analysis only. The re-estimated
-sample sizes then do not depend on the level, the largest rate is a
+lowers the nominal level until the largest type I error rate does not
+exceed the target level, following Kieser and Friede (2000) and Friede
+and Kieser (2004). With `adjust = 'test'` (the default) the adjusted
+level is applied to the final analysis only. The re-estimated sample
+sizes then do not depend on the level, the largest rate is a
 non-decreasing step function of it, and the level is found by bisection.
+Every level between the largest p-value that is rejected and the
+smallest p-value that is not gives the same rejection regions, and the
+reported level is the largest value with at most six significant digits
+in that range, so it can be used as printed.
 
-Both searches below use the grid `theta.grid` of the common response
-probability, which is coarser than the default to keep them short.
+Both searches below use the grid `theta.grid` from 0.01 to 0.99 in steps
+of 0.01, which is coarser than the default to keep them short. The grid
+serves the search: a level is assessed on the grid, and with the default
+`maximize = 'certified'` the level found is accepted only if the upper
+bound of the type I error rate over the whole interval $`[0.01, 0.99]`$
+does not exceed the target level. The columns `max.TIE.bound` and
+`max.TIE.adj.bound` of the result hold the bounds at the nominal and at
+the adjusted level.
 
 ``` r
 
@@ -129,15 +148,22 @@ adj
 #>   Target level    : 0.025
 #> 
 #>        Design   max.TIE alpha.adj max.TIE.adj
-#>          BSSR 0.0272864 0.0204376   0.0237418
+#>          BSSR 0.0272864 0.0204375   0.0237418
 #>  Fixed sample 0.0293761 0.0207700   0.0247660
 ```
 
 With `adjust = 'both'` the adjusted level is used in the re-estimation
 as well. The re-estimated sample sizes then change with the level, the
 rate need not be monotone in it, and the level is lowered in steps of
-`step` until the rate is controlled. The search below uses a step of
-0.00005, coarser than the default, to keep it short.
+`step` until the rate is controlled. The result is the first level on
+this grid of steps at which the rate is controlled. The levels that
+control the rate need not form an interval, so the result can change
+with the step. The published values of Friede and Kieser (2004, Section
+5) and Kieser (2020, Example 21.1) are reproduced only when the
+re-estimation also uses the adjusted level, as the script
+`reproduce-published.R` shows (see the `bbssr-validation` vignette). The
+search below uses a step of 0.00005, coarser than the default, to keep
+it short.
 
 ``` r
 
@@ -157,9 +183,11 @@ adj.both
 #>  Fixed sample 0.0293761   0.02077   0.0247660
 ```
 
-The adjusted level of the re-estimation design is 0.02044 when it
+The adjusted level of the re-estimation design is 0.0204375 when it
 applies to the final analysis only and 0.0211 when it also applies to
-the re-estimation. The power at the adjusted level follows from
+the re-estimation. At these levels the upper bounds of the type I error
+rate over $`[0.01, 0.99]`$ are 0.02374 and 0.0246. The power at the
+adjusted level follows from
 [`BinaryPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryPowerBSSR.md)
 with `alpha` set to the adjusted level. The re-estimation keeps the
 target level through `ss.alpha` when the level was adjusted with

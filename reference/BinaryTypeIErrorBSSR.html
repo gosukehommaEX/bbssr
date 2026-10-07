@@ -86,6 +86,8 @@ each.</p>
 <span>  ss.Test <span class="op">=</span> <span class="va">Test</span>,</span>
 <span>  ss.alpha <span class="op">=</span> <span class="va">alpha</span>,</span>
 <span>  rounding <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"group"</span>, <span class="st">"friede-kieser"</span>, <span class="st">"total"</span>, <span class="st">"nearest"</span><span class="op">)</span>,</span>
+<span>  search <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"crossing"</span>, <span class="st">"smallest"</span>, <span class="st">"stable"</span><span class="op">)</span>,</span>
+<span>  search.limit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">50</span><span class="op">)</span>,</span>
 <span>  N.min <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N.max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n.interim <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -194,6 +196,17 @@ Options: <code>'group'</code> (default), <code>'friede-kieser'</code>, <code>'to
 See Details</p></dd>
 
 
+<dt id="arg-search">search<a class="anchor" aria-label="anchor" href="#arg-search"></a></dt>
+<dd><p>How the exact re-estimation chooses the sample size when
+<code>ss.method = 'exact'</code>: <code>'crossing'</code> (default), <code>'smallest'</code> or
+<code>'stable'</code>, as in <code><a href="BinarySampleSize.html">BinarySampleSize</a></code>. Ignored by the other methods</p></dd>
+
+
+<dt id="arg-search-limit">search.limit<a class="anchor" aria-label="anchor" href="#arg-search-limit"></a></dt>
+<dd><p>Limit of the size of group 2 examined by <code>search = 'stable'</code>,
+as in <code><a href="BinarySampleSize.html">BinarySampleSize</a></code>. Default is <code>c(2, 50)</code></p></dd>
+
+
 <dt id="arg-n-min">N.min<a class="anchor" aria-label="anchor" href="#arg-n-min"></a></dt>
 <dd><p>Lower bound on the final total sample size, or <code>NULL</code> (default) for
 none beyond the interim total. It can be used to keep the patients who are already
@@ -220,9 +233,11 @@ evaluated. Default is <code>seq(0, 1, by = 0.005)</code>. With a non-zero
 <dt id="arg-maximize">maximize<a class="anchor" aria-label="anchor" href="#arg-maximize"></a></dt>
 <dd><p>How the largest type I error rate is located. <code>'certified'</code>
 (default) finds it over the whole interval from the smallest to the largest value of
-<code>theta</code>, together with an upper bound, see Details. <code>'refined'</code> refines the
-largest local maxima on the grid by a one-dimensional optimization between the
-neighbouring grid points, and <code>'grid'</code> takes the largest value on the grid</p></dd>
+<code>theta</code>, restricted with a margin to the values at which both response
+probabilities on the null boundary lie in the unit interval, together with an upper
+bound, see Details. <code>'refined'</code> refines the largest local maxima on the grid
+by a one-dimensional optimization between the neighbouring grid points, and
+<code>'grid'</code> takes the largest value on the grid</p></dd>
 
 
 <dt id="arg-margin">margin<a class="anchor" aria-label="anchor" href="#arg-margin"></a></dt>
@@ -265,10 +280,12 @@ probability on the null boundary</p></dd>
 <code>N1</code> and <code>N2</code></p></dd>
 
 
-</dl><p>The attribute <code>max</code> is a data frame with the largest type I error rate <code>TIE</code>
-of each design, the common response probability <code>theta</code> at which it occurs and,
-with <code>maximize = 'certified'</code>, the upper bound <code>bound</code> of the type I error
-rate over the interval given by the attribute <code>interval</code> (otherwise <code>NA</code>).
+</dl><p>The attribute <code>max</code> is a data frame with one row for each design, <code>'BSSR'</code>
+and <code>'TRAD'</code> in the column <code>Design</code>, holding the largest type I error rate
+<code>TIE</code>, the common response probability, or pooled response probability on the
+null boundary, <code>theta</code> at which it occurs and, with
+<code>maximize = 'certified'</code>, the upper bound <code>bound</code> of the type I error rate
+over the interval given by the attribute <code>interval</code> (otherwise <code>NA</code>).
 The attribute <code>reestimation</code> holds the final sample size for every pooled number
 of interim responders.</p>
     </div>
@@ -292,10 +309,13 @@ at the two ends. The interval is halved repeatedly by the algorithm of de Castel
 a subinterval is set aside once its largest coefficient exceeds the largest value found
 by at most 1e-12. The largest coefficient of the subintervals set aside, reported as
 <code>bound</code>, is an upper bound of the type I error rate at every value of <code>theta</code>
-in the interval, up to rounding error. With <code>maximize = 'refined'</code> the three
-largest local maxima on the grid are refined, which finds the maximum when the grid
-separates the local maxima, and with <code>maximize = 'grid'</code> the largest value on the
-grid is reported.</p>
+in the interval, up to rounding error, and <code>TIE</code> is within 1e-12 of it. If 1e5
+subdivisions do not suffice, a warning is given; <code>bound</code> remains an upper bound,
+but <code>TIE</code> can then be more than 1e-12 below it. With <code>maximize = 'refined'</code>
+the three largest local maxima on the grid are refined, which usually finds the maximum
+when the grid is fine compared with the spacing of the local maxima but does not
+guarantee it, and with <code>maximize = 'grid'</code> the largest value on the grid is
+reported.</p>
 <p>With a non-inferiority <code>margin</code> the null hypothesis is <code>p1 - p2 &lt;= -margin</code>,
 or <code>p1 - p2 &gt;= margin</code> for <code>alternative = 'less'</code>, and the type I error rate
 is evaluated on its boundary, as in Friede et al. (2007). The boundary is parametrized

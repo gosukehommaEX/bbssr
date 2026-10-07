@@ -77,6 +77,8 @@ power of the selected test or from the normal approximation.</p>
 <span>  bb.gamma <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exact"</span>, <span class="st">"standard"</span>, <span class="st">"null.variance"</span>, <span class="st">"alternative.variance"</span><span class="op">)</span>,</span>
 <span>  rounding <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"group"</span>, <span class="st">"friede-kieser"</span>, <span class="st">"total"</span>, <span class="st">"nearest"</span><span class="op">)</span>,</span>
+<span>  search <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"crossing"</span>, <span class="st">"smallest"</span>, <span class="st">"stable"</span><span class="op">)</span>,</span>
+<span>  search.limit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">50</span><span class="op">)</span>,</span>
 <span>  margin <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  ref.pvalue <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -157,6 +159,23 @@ the two group sizes separately to the nearest whole number, as in Farrington and
 Manning (1990). Only <code>'group'</code> is available with <code>method = 'exact'</code></p></dd>
 
 
+<dt id="arg-search">search<a class="anchor" aria-label="anchor" href="#arg-search"></a></dt>
+<dd><p>How the search of <code>method = 'exact'</code> chooses the size of group 2.
+<code>'crossing'</code> (default) steps from the normal approximation to a size that
+attains the target power while the size one unit smaller does not.
+<code>'smallest'</code> returns the smallest size that attains the target power.
+<code>'stable'</code> returns the smallest size from which every size up to a limit attains
+it. See Details. Ignored by the other methods</p></dd>
+
+
+<dt id="arg-search-limit">search.limit<a class="anchor" aria-label="anchor" href="#arg-search-limit"></a></dt>
+<dd><p>Two numbers <code>a</code> and <code>b</code> giving the limit
+<code>max(ceiling(a n0), ceiling(n0 + b))</code> of the size of group 2 examined by
+<code>search = 'stable'</code>, where <code>n0</code> is the size of group 2 from the normal
+approximation, rounded up. <code>a</code> must be at least 1 and <code>b</code> non-negative.
+Default is <code>c(2, 50)</code></p></dd>
+
+
 <dt id="arg-margin">margin<a class="anchor" aria-label="anchor" href="#arg-margin"></a></dt>
 <dd><p>Non-inferiority margin on the scale of the risk difference. The
 default of 0 gives a test of superiority. A value other than 0 tests the null
@@ -211,10 +230,13 @@ containing:</p><dl><dt>p1</dt>
 <dd><p>Total required sample size</p></dd>
 
 
-</dl></div>
+</dl><p>The attribute <code>search</code> holds the search, and the attribute <code>search.limit</code>
+the limit of the size of group 2 examined by <code>search = 'stable'</code> (otherwise
+<code>NA</code>).</p>
+    </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The calculation uses a three-step approach:</p><ol><li><p>Calculate an initial sample size from the normal approximation to the
+    <p>With the default <code>search = 'crossing'</code> the calculation uses a three-step approach:</p><ol><li><p>Calculate an initial sample size from the normal approximation to the
 chi-squared test</p></li>
 <li><p>Evaluate the exact power at the initial sample size</p></li>
 <li><p>If the exact power attains the target power, lower the size of group 2 one
@@ -228,6 +250,15 @@ group 2 attains the target power and the size one unit smaller does not, unless 
 returned size is 1. The exact power is not monotone in the sample size, so a smaller
 size further from the normal approximation may also attain the target power, and a
 larger size may fall short of it.</p>
+<p>The two other searches do not depend on where the normal approximation starts.
+<code>search = 'smallest'</code> scans the size of group 2 upwards from 1 and returns the
+first size that attains the target power. It visits every smaller size, which takes
+longer for the unconditional tests. <code>search = 'stable'</code> scans downwards from the
+limit given by <code>search.limit</code> and returns the smallest size from which every size
+up to the limit attains the target power, so that adding patients within this range
+does not take the power below the target. The search stops with an error if the limit
+itself falls short of the target power. The three searches can return different sizes
+because the exact power is not monotone in the sample size.</p>
 <p>Under <code>method = 'standard'</code>, <code>'null.variance'</code> or
 <code>'alternative.variance'</code> the steps above are replaced by the closed-form normal
 approximation and the rounding rule selected by <code>rounding</code>. The <code>Power</code>
@@ -275,6 +306,7 @@ non-inferiority trials with binary endpoints. <em>Biometrical Journal</em>, 49(6
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Allocation ratio : 1 to 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Alpha            : 0.025</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Target power     : 0.8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Exact search     : crossing</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Required sample size: N1 = 80, N2 = 80, total N = 160</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Attained power      : 0.8009</span>
@@ -291,6 +323,7 @@ non-inferiority trials with binary endpoints. <em>Biometrical Journal</em>, 49(6
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Allocation ratio : 2 to 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Alpha            : 0.05</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Target power     : 0.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Exact search     : crossing</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Required sample size: N1 = 78, N2 = 39, total N = 117</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Attained power      : 0.9013</span>

@@ -32,6 +32,8 @@ BinaryCondRejectBSSR(
   ss.Test = Test,
   ss.alpha = alpha,
   rounding = c("group", "friede-kieser", "total", "nearest"),
+  search = c("crossing", "smallest", "stable"),
+  search.limit = c(2, 50),
   N.min = NULL,
   N.max = NULL,
   n.interim = NULL,
@@ -137,6 +139,20 @@ BinaryCondRejectBSSR(
   Options: `'group'` (default), `'friede-kieser'`, `'total'` or
   `'nearest'`. Only `'group'` is available with `ss.method = 'exact'`.
   See Details
+
+- search:
+
+  How the exact re-estimation chooses the sample size when
+  `ss.method = 'exact'`: `'crossing'` (default), `'smallest'` or
+  `'stable'`, as in
+  [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md).
+  Ignored by the other methods
+
+- search.limit:
+
+  Limit of the size of group 2 examined by `search = 'stable'`, as in
+  [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md).
+  Default is `c(2, 50)`
 
 - N.min:
 

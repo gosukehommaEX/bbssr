@@ -77,7 +77,7 @@
                         <h4 data-toc-skip class="author">Gosuke
 Homma</h4>
             
-            <h4 data-toc-skip class="date">2026-10-06</h4>
+            <h4 data-toc-skip class="date">2026-10-07</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/gosukehommaEX/bbssr/blob/main/vignettes/bbssr-statistical-methods.Rmd" class="external-link"><code>vignettes/bbssr-statistical-methods.Rmd</code></a></small>
       <div class="d-none name"><code>bbssr-statistical-methods.Rmd</code></div>
@@ -543,8 +543,13 @@ normal approximation, one patient at a time, to the sample size at which
 the exact power of the test first attains the target, as
 <code><a href="../reference/BinarySampleSize.html">BinarySampleSize()</a></code> does, and this search needs
 probabilities inside the unit interval, so the recovered probabilities
-are truncated to it. The other three methods use the normal
-approximation, which gives the size of group 2 as
+are truncated to it. The argument <code>search</code> selects instead
+the smallest size that attains the target power, or the smallest size
+from which every size up to a limit attains it, as in
+<code><a href="../reference/BinarySampleSize.html">BinarySampleSize()</a></code>, and the limit is returned in the column
+<code>N2.limit</code> of the attribute <code>reestimation</code>. The
+other three methods use the normal approximation, which gives the size
+of group 2 as
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mn>2</mn></msub><mo>=</mo><mfrac><mrow><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">(</mo><msub><mi>z</mi><mrow><mn>1</mn><mo>−</mo><mi>α</mi></mrow></msub><msqrt><msub><mi>v</mi><mn>0</mn></msub></msqrt><mo>+</mo><msub><mi>z</mi><mrow><mn>1</mn><mo>−</mo><mi>β</mi></mrow></msub><msqrt><msub><mi>v</mi><mn>1</mn></msub></msqrt><msup><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">)</mo><mn>2</mn></msup></mrow><mrow><mo stretchy="false" form="prefix">(</mo><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mn>1</mn></msub><mo>−</mo><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mn>2</mn></msub><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>v</mi><mn>0</mn></msub><mo>=</mo><mover><mi>p</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mover><mi>p</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><mfrac><mn>1</mn><mi>r</mi></mfrac><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
 n_{2} = \frac{\bigl(z_{1 - \alpha} \sqrt{v_{0}} + z_{1 - \beta} \sqrt{v_{1}}\bigr)^{2}}{(\hat{p}_{1} - \hat{p}_{2})^{2}}, \qquad
 v_{0} = \hat{p}(1 - \hat{p}) \Bigl(1 + \frac{1}{r}\Bigr) ,
@@ -632,6 +637,205 @@ bounded by the size of the test at any one sample size, and
 The <code>bbssr-type1-error</code> vignette covers this calculation, the
 adjusted nominal level and the decomposition of the rate by the interim
 outcome.</p>
+<div class="section level3">
+<h3 id="the-largest-type-i-error-rate">The largest type I error rate<a class="anchor" aria-label="anchor" href="#the-largest-type-i-error-rate"></a>
+</h3>
+<p>The largest type I error rate is the largest rejection probability on
+the boundary of the null hypothesis. Without a margin the boundary is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>=</mo><msub><mi>p</mi><mn>2</mn></msub><mo>=</mo><mi>θ</mi></mrow><annotation encoding="application/x-tex">p_{1} = p_{2} = \theta</annotation></semantics></math>.
+With a margin both response probabilities on the boundary are linear
+functions
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_{1}(\theta)</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_{2}(\theta)</annotation></semantics></math>
+of the pooled response probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>,
+see the <code>bbssr-non-inferiority</code> vignette.
+<code><a href="../reference/BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR()</a></code> and
+<code><a href="../reference/BinaryAlphaAdjBSSR.html">BinaryAlphaAdjBSSR()</a></code> find the largest value over an
+interval of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+together with an upper bound, as described in this section.</p>
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mn>1</mn></msub><annotation encoding="application/x-tex">x_{1}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mn>2</mn></msub><annotation encoding="application/x-tex">x_{2}</annotation></semantics></math>
+be the interim numbers of responders, as in the sum above,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>=</mo><msub><mi>x</mi><mn>1</mn></msub><mo>+</mo><msub><mi>x</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">s = x_{1} + x_{2}</annotation></semantics></math>
+their total, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">N_{1}(s)</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">N_{2}(s)</annotation></semantics></math>
+the final sample sizes that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+leads to. Given that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>X</mi><mn>1</mn></msub><annotation encoding="application/x-tex">X_{1}</annotation></semantics></math>
+of the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">N_{1}(s)</annotation></semantics></math>
+patients of group 1 respond, the number of responders among the first
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mn>1</mn></msub><annotation encoding="application/x-tex">n_{1}</annotation></semantics></math>
+is hypergeometric whatever the response probability,
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>;</mo><msub><mi>n</mi><mn>1</mn></msub><mo>,</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>b</mi><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo>−</mo><msub><mi>x</mi><mn>1</mn></msub><mo>;</mo><msub><mi>N</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>n</mi><mn>1</mn></msub><mo>,</mo><msub><mi>p</mi><mn>1</mn></msub><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">)</mo><mo>=</mo><mi>b</mi><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo>;</mo><msub><mi>N</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>p</mi><mn>1</mn></msub><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>h</mi><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>;</mo><msub><mi>n</mi><mn>1</mn></msub><mo>,</mo><msub><mi>N</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>n</mi><mn>1</mn></msub><mo>,</mo><msub><mi>X</mi><mn>1</mn></msub><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+b(x_{1}; n_{1}, p_{1}) \, b\bigl(X_{1} - x_{1}; N_{1}(s) - n_{1}, p_{1}\bigr) =
+b\bigl(X_{1}; N_{1}(s), p_{1}\bigr) \, h\bigl(x_{1}; n_{1}, N_{1}(s) - n_{1}, X_{1}\bigr) ,
+</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>n</mi><mo>,</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b(x; n, p)</annotation></semantics></math>
+is the binomial probability and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>;</mo><msub><mi>m</mi><mn>1</mn></msub><mo>,</mo><msub><mi>m</mi><mn>2</mn></msub><mo>,</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac linethickness="0"><msub><mi>m</mi><mn>1</mn></msub><mi>x</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mfrac linethickness="0"><msub><mi>m</mi><mn>2</mn></msub><mrow><mi>k</mi><mo>−</mo><mi>x</mi></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mrow><mo stretchy="true" form="prefix">(</mo><mfrac linethickness="0"><mrow><msub><mi>m</mi><mn>1</mn></msub><mo>+</mo><msub><mi>m</mi><mn>2</mn></msub></mrow><mi>k</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h(x; m_{1}, m_{2}, k) = \binom{m_{1}}{x} \binom{m_{2}}{k - x} / \binom{m_{1} + m_{2}}{k}</annotation></semantics></math>,
+and likewise for group 2. Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+index the distinct pairs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>N</mi><mrow><mn>1</mn><mi>K</mi></mrow></msub><mo>,</mo><msub><mi>N</mi><mrow><mn>2</mn><mi>K</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(N_{1K}, N_{2K})</annotation></semantics></math>
+of final sample sizes and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ℛ</mi><mi>K</mi></msub><annotation encoding="application/x-tex">\mathcal{R}_{K}</annotation></semantics></math>
+be the rejection region at these sizes. Summing over the interim
+outcomes and the final responder counts, the type I error rate is
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">I</mi><mi mathvariant="normal">E</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munder><mo>∑</mo><mi>K</mi></munder><munderover><mo>∑</mo><mrow><msub><mi>X</mi><mn>1</mn></msub><mo>=</mo><mn>0</mn></mrow><msub><mi>N</mi><mrow><mn>1</mn><mi>K</mi></mrow></msub></munderover><munderover><mo>∑</mo><mrow><msub><mi>X</mi><mn>2</mn></msub><mo>=</mo><mn>0</mn></mrow><msub><mi>N</mi><mrow><mn>2</mn><mi>K</mi></mrow></msub></munderover><msub><mi>C</mi><mi>K</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo>,</mo><msub><mi>X</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>b</mi><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo>;</mo><msub><mi>N</mi><mrow><mn>1</mn><mi>K</mi></mrow></msub><mo>,</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>b</mi><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">(</mo><msub><mi>X</mi><mn>2</mn></msub><mo>;</mo><msub><mi>N</mi><mrow><mn>2</mn><mi>K</mi></mrow></msub><mo>,</mo><msub><mi>p</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\mathrm{TIE}(\theta) = \sum_{K} \sum_{X_{1} = 0}^{N_{1K}} \sum_{X_{2} = 0}^{N_{2K}}
+C_{K}(X_{1}, X_{2}) \, b\bigl(X_{1}; N_{1K}, p_{1}(\theta)\bigr) \, b\bigl(X_{2}; N_{2K}, p_{2}(\theta)\bigr) ,
+</annotation></semantics></math><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>K</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo>,</mo><msub><mi>X</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>𝟏</mn><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">{</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo>,</mo><msub><mi>X</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>∈</mo><msub><mi>ℛ</mi><mi>K</mi></msub><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">}</mo><munder><mo>∑</mo><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>→</mo><mi>K</mi></mrow></munder><mi>h</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>1</mn></msub><mo>;</mo><msub><mi>n</mi><mn>1</mn></msub><mo>,</mo><msub><mi>N</mi><mrow><mn>1</mn><mi>K</mi></mrow></msub><mo>−</mo><msub><mi>n</mi><mn>1</mn></msub><mo>,</mo><msub><mi>X</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>h</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mn>2</mn></msub><mo>;</mo><msub><mi>n</mi><mn>2</mn></msub><mo>,</mo><msub><mi>N</mi><mrow><mn>2</mn><mi>K</mi></mrow></msub><mo>−</mo><msub><mi>n</mi><mn>2</mn></msub><mo>,</mo><msub><mi>X</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+C_{K}(X_{1}, X_{2}) = \mathbf{1}\bigl\{(X_{1}, X_{2}) \in \mathcal{R}_{K}\bigr\}
+\sum_{(x_{1}, x_{2}) \to K} h(x_{1}; n_{1}, N_{1K} - n_{1}, X_{1}) \, h(x_{2}; n_{2}, N_{2K} - n_{2}, X_{2}) ,
+</annotation></semantics></math> where the inner sum runs over the
+interim outcomes that lead to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>N</mi><mrow><mn>1</mn><mi>K</mi></mrow></msub><mo>,</mo><msub><mi>N</mi><mrow><mn>2</mn><mi>K</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(N_{1K}, N_{2K})</annotation></semantics></math>.
+The weights
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>K</mi></msub><annotation encoding="application/x-tex">C_{K}</annotation></semantics></math>
+do not depend on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>.
+The fixed-sample design is the case of a single
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+without interim patients, with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo>,</mo><msub><mi>X</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>𝟏</mn><mo stretchy="false" form="prefix">{</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo>,</mo><msub><mi>X</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>∈</mo><mi>ℛ</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">C_{1}(X_{1}, X_{2}) = \mathbf{1}\{(X_{1}, X_{2}) \in \mathcal{R}\}</annotation></semantics></math>.</p>
+<p>On an interval
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mn>0</mn></msub><mo>≤</mo><mi>θ</mi><mo>≤</mo><msub><mi>θ</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\theta_{0} \le \theta \le \theta_{1}</annotation></semantics></math>
+write
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>θ</mi><mn>0</mn></msub><mo>+</mo><mi>t</mi><msub><mi>θ</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\theta = (1 - t) \theta_{0} + t \theta_{1}</annotation></semantics></math>
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>≤</mo><mi>t</mi><mo>≤</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">0 \le t \le 1</annotation></semantics></math>.
+Then
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>j</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>p</mi><mi>j</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>θ</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>t</mi><msub><mi>p</mi><mi>j</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>θ</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_{j}(\theta) = (1 - t) p_{j}(\theta_{0}) + t p_{j}(\theta_{1})</annotation></semantics></math>,
+and the type I error rate is a polynomial in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>,
+which the package writes in the Bernstein basis
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mrow><mi>k</mi><mo>,</mo><mi>n</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac linethickness="0"><mi>n</mi><mi>k</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msup><mi>t</mi><mi>k</mi></msup><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>t</mi><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>n</mi><mo>−</mo><mi>k</mi></mrow></msup><mo>,</mo><mspace width="2.0em"></mspace><mi>k</mi><mo>=</mo><mn>0</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>n</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+B_{k,n}(t) = \binom{n}{k} t^{k} (1 - t)^{n - k} , \qquad k = 0, \ldots, n .
+</annotation></semantics></math> Three identities give its coefficients
+without subtraction. First, a response probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>q</mi><mn>0</mn></msub><mo>+</mo><mi>t</mi><msub><mi>q</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">(1 - t) q_{0} + t q_{1}</annotation></semantics></math>
+is that of a patient who responds with probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mn>1</mn></msub><annotation encoding="application/x-tex">q_{1}</annotation></semantics></math>
+with probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+and with probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mn>0</mn></msub><annotation encoding="application/x-tex">q_{0}</annotation></semantics></math>
+otherwise. The number
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>
+of the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+patients of the first kind is binomial with parameters
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>,
+so
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">(</mo><mi>X</mi><mo>;</mo><mi>N</mi><mo>,</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>q</mi><mn>0</mn></msub><mo>+</mo><mi>t</mi><msub><mi>q</mi><mn>1</mn></msub><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">)</mo><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>0</mn></mrow><mi>N</mi></munderover><msub><mi>M</mi><mi>N</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>X</mi><mo>,</mo><mi>j</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msub><mi>B</mi><mrow><mi>j</mi><mo>,</mo><mi>N</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>M</mi><mi>N</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>X</mi><mo>,</mo><mi>j</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>Y</mi><mi>j</mi></msub><mo>+</mo><msub><mi>Z</mi><mi>j</mi></msub><mo>=</mo><mi>X</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+b\bigl(X; N, (1 - t) q_{0} + t q_{1}\bigr) = \sum_{j = 0}^{N} M_{N}(X, j) \, B_{j,N}(t) , \qquad
+M_{N}(X, j) = \Pr(Y_{j} + Z_{j} = X) ,
+</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mi>j</mi></msub><mo>∼</mo><mrow><mi mathvariant="normal">B</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>N</mi><mo>−</mo><mi>j</mi><mo>,</mo><msub><mi>q</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Y_{j} \sim \mathrm{Bin}(N - j, q_{0})</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mi>j</mi></msub><mo>∼</mo><mrow><mi mathvariant="normal">B</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>j</mi><mo>,</mo><msub><mi>q</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Z_{j} \sim \mathrm{Bin}(j, q_{1})</annotation></semantics></math>
+are independent, with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mn>0</mn></msub><mo>=</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>θ</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">q_{0} = p_{1}(\theta_{0})</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mn>1</mn></msub><mo>=</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>θ</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">q_{1} = p_{1}(\theta_{1})</annotation></semantics></math>
+for group 1 and likewise for group 2. Second, the product of two basis
+polynomials is a multiple of a basis polynomial,
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mrow><mi>j</mi><mo>,</mo><msub><mi>N</mi><mn>1</mn></msub></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msub><mi>B</mi><mrow><mi>l</mi><mo>,</mo><msub><mi>N</mi><mn>2</mn></msub></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>j</mi><mo>;</mo><msub><mi>N</mi><mn>1</mn></msub><mo>,</mo><msub><mi>N</mi><mn>2</mn></msub><mo>,</mo><mi>j</mi><mo>+</mo><mi>l</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msub><mi>B</mi><mrow><mi>j</mi><mo>+</mo><mi>l</mi><mo>,</mo><msub><mi>N</mi><mn>1</mn></msub><mo>+</mo><msub><mi>N</mi><mn>2</mn></msub></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+B_{j,N_{1}}(t) \, B_{l,N_{2}}(t) = h(j; N_{1}, N_{2}, j + l) \, B_{j + l, N_{1} + N_{2}}(t) ,
+</annotation></semantics></math> so the term of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+is a polynomial of degree
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mrow><mn>1</mn><mi>K</mi></mrow></msub><mo>+</mo><msub><mi>N</mi><mrow><mn>2</mn><mi>K</mi></mrow></msub></mrow><annotation encoding="application/x-tex">N_{1K} + N_{2K}</annotation></semantics></math>
+with the coefficients
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mrow><mi>K</mi><mo>,</mo><mi>m</mi></mrow></msub><mo>=</mo><munder><mo>∑</mo><mrow><mi>j</mi><mo>+</mo><mi>l</mi><mo>=</mo><mi>m</mi></mrow></munder><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>j</mi><mo>;</mo><msub><mi>N</mi><mrow><mn>1</mn><mi>K</mi></mrow></msub><mo>,</mo><msub><mi>N</mi><mrow><mn>2</mn><mi>K</mi></mrow></msub><mo>,</mo><mi>m</mi><mo stretchy="false" form="postfix">)</mo><munder><mo>∑</mo><mrow><msub><mi>X</mi><mn>1</mn></msub><mo>,</mo><msub><mi>X</mi><mn>2</mn></msub></mrow></munder><msub><mi>M</mi><msub><mi>N</mi><mrow><mn>1</mn><mi>K</mi></mrow></msub></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo>,</mo><mi>j</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msub><mi>C</mi><mi>K</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo>,</mo><msub><mi>X</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msub><mi>M</mi><msub><mi>N</mi><mrow><mn>2</mn><mi>K</mi></mrow></msub></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>X</mi><mn>2</mn></msub><mo>,</mo><mi>l</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+d_{K,m} = \sum_{j + l = m} h(j; N_{1K}, N_{2K}, m) \sum_{X_{1}, X_{2}}
+M_{N_{1K}}(X_{1}, j) \, C_{K}(X_{1}, X_{2}) \, M_{N_{2K}}(X_{2}, l) .
+</annotation></semantics></math> Third, a polynomial of degree
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+with the coefficients
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mn>0</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>d</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">d_{0}, \ldots, d_{n}</annotation></semantics></math>
+is one of degree
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n + 1</annotation></semantics></math>
+with the coefficients
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>d</mi><mi>i</mi><mo>′</mo></msubsup><mo>=</mo><mfrac><mi>i</mi><mrow><mi>n</mi><mo>+</mo><mn>1</mn></mrow></mfrac><mspace width="0.167em"></mspace><msub><mi>d</mi><mrow><mi>i</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mfrac><mi>i</mi><mrow><mi>n</mi><mo>+</mo><mn>1</mn></mrow></mfrac><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><msub><mi>d</mi><mi>i</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><mi>i</mi><mo>=</mo><mn>0</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo>,</mo></mrow><annotation encoding="application/x-tex">
+d'_{i} = \frac{i}{n + 1} \, d_{i - 1} + \Bigl(1 - \frac{i}{n + 1}\Bigr) d_{i} , \qquad i = 0, \ldots, n + 1 ,
+</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mrow><mi>−</mi><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>d</mi><mrow><mi>n</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">d_{-1} = d_{n + 1} = 0</annotation></semantics></math>.
+The terms of the different final sample sizes are raised to the largest
+degree in this way and added. Every quantity in these steps is
+non-negative.</p>
+<p>The basis polynomials are non-negative and sum to one, so on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>≤</mo><mi>t</mi><mo>≤</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">0 \le t \le 1</annotation></semantics></math>
+the rate lies between the smallest and the largest of its coefficients
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mn>0</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>d</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">d_{0}, \ldots, d_{n}</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mn>0</mn></msub><annotation encoding="application/x-tex">d_{0}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>n</mi></msub><annotation encoding="application/x-tex">d_{n}</annotation></semantics></math>
+are its values at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t = 0</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">t = 1</annotation></semantics></math>.
+The coefficients on the two halves of the interval follow from the
+algorithm of de Casteljau. With
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>d</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>=</mo><msub><mi>d</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">d^{(0)}_{i} = d_{i}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>d</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>q</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>=</mo><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">(</mo><msubsup><mi>d</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>q</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>+</mo><msubsup><mi>d</mi><mrow><mi>i</mi><mo>+</mo><mn>1</mn></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>q</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">)</mo><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">d^{(q)}_{i} = \bigl(d^{(q - 1)}_{i} + d^{(q - 1)}_{i + 1}\bigr) / 2</annotation></semantics></math>
+for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>=</mo><mn>0</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>n</mi><mo>−</mo><mi>q</mi></mrow><annotation encoding="application/x-tex">i = 0, \ldots, n - q</annotation></semantics></math>,
+the coefficients on the first half are
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>d</mi><mn>0</mn><mrow><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>,</mo><msubsup><mi>d</mi><mn>0</mn><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>,</mo><mi>…</mi><mo>,</mo><msubsup><mi>d</mi><mn>0</mn><mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mrow><annotation encoding="application/x-tex">d^{(0)}_{0}, d^{(1)}_{0}, \ldots, d^{(n)}_{0}</annotation></semantics></math>
+and those on the second half are
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>d</mi><mn>0</mn><mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>,</mo><msubsup><mi>d</mi><mn>1</mn><mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>,</mo><mi>…</mi><mo>,</mo><msubsup><mi>d</mi><mi>n</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mrow><annotation encoding="application/x-tex">d^{(n)}_{0}, d^{(n - 1)}_{1}, \ldots, d^{(0)}_{n}</annotation></semantics></math>.
+The package halves the interval repeatedly and keeps the largest value
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+found at the ends of the pieces. A piece is set aside once its largest
+coefficient is at most
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>+</mo><msup><mn>10</mn><mrow><mi>−</mi><mn>12</mn></mrow></msup></mrow><annotation encoding="application/x-tex">m + 10^{-12}</annotation></semantics></math>,
+and the largest coefficient
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>m</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar{m}</annotation></semantics></math>
+of the pieces set aside is an upper bound of the rate on the whole
+interval. If fewer than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mn>5</mn></msup><annotation encoding="application/x-tex">10^{5}</annotation></semantics></math>
+subdivisions suffice,
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>≤</mo><munder><mi mathvariant="normal">max</mi><mrow><msub><mi>θ</mi><mn>0</mn></msub><mo>≤</mo><mi>θ</mi><mo>≤</mo><msub><mi>θ</mi><mn>1</mn></msub></mrow></munder><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">I</mi><mi mathvariant="normal">E</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mover><mi>m</mi><mo accent="true">‾</mo></mover><mo>≤</mo><mi>m</mi><mo>+</mo><msup><mn>10</mn><mrow><mi>−</mi><mn>12</mn></mrow></msup></mrow><annotation encoding="application/x-tex">
+m \le \max_{\theta_{0} \le \theta \le \theta_{1}} \mathrm{TIE}(\theta) \le \bar{m} \le m + 10^{-12}
+</annotation></semantics></math> up to rounding error. After
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mn>5</mn></msup><annotation encoding="application/x-tex">10^{5}</annotation></semantics></math>
+subdivisions the remaining pieces are set aside with their largest
+coefficients. The bound
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>m</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar{m}</annotation></semantics></math>
+is then still valid, and a warning reports that it can exceed
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+by more than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>12</mn></mrow></msup><annotation encoding="application/x-tex">10^{-12}</annotation></semantics></math>.</p>
+<p>The interval runs from the smallest to the largest value of
+<code>theta</code>, restricted with a margin to the values at which both
+response probabilities lie in the unit interval.
+<code><a href="../reference/BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR()</a></code> with the default
+<code>maximize = 'certified'</code> reports
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>,
+or the largest value on the grid if that is larger, as <code>TIE</code>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>m</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar{m}</annotation></semantics></math>,
+or <code>TIE</code> if that is larger by rounding error, as
+<code>bound</code>. <code><a href="../reference/BinaryAlphaAdjBSSR.html">BinaryAlphaAdjBSSR()</a></code> accepts a level
+only when
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>m</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar{m}</annotation></semantics></math>
+does not exceed the target level. The <code>bbssr-validation</code>
+vignette compares the result with a dense grid.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="choosing-a-test">Choosing a test<a class="anchor" aria-label="anchor" href="#choosing-a-test"></a>

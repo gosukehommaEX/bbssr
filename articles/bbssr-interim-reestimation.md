@@ -42,6 +42,7 @@ plan
 #>   Allocation ratio : 1 to 1
 #>   Alpha            : 0.025
 #>   Target power     : 0.8
+#>   Exact search     : crossing
 #> 
 #>   Required sample size: N1 = 54, N2 = 54, total N = 108
 #>   Attained power      : 0.8038
@@ -319,8 +320,9 @@ rejection probabilities under the null hypothesis at the values passed
 through `p`.
 [`BinaryTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryTypeIErrorBSSR.md)
 evaluates the same rejection probabilities over a grid of the common
-response probability and refines the largest local maxima, so the
-largest type I error rate does not have to be read off a grid.
+response probability and finds their largest value over the whole range
+of the grid, together with an upper bound, so the largest type I error
+rate does not have to be read off a grid.
 
 ``` r
 

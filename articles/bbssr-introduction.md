@@ -162,6 +162,7 @@ ss
 #>   Allocation ratio : 1 to 1
 #>   Alpha            : 0.025
 #>   Target power     : 0.8
+#>   Exact search     : crossing
 #> 
 #>   Required sample size: N1 = 48, N2 = 48, total N = 96
 #>   Attained power      : 0.8005
@@ -199,6 +200,30 @@ data.frame(
 This is why the sample size search evaluates the exact power at every
 candidate it visits rather than inverting a smooth approximation.
 
+The argument `search` chooses among three searches. The default
+`'crossing'` steps from the normal approximation to a size that attains
+the target power while the size one patient smaller does not.
+`'smallest'` returns the smallest size that attains the target power,
+and `'stable'` the smallest size from which every size up to a limit
+attains it, the limit being by default the larger of twice the normal
+approximation and the normal approximation plus 50. With a target power
+of 0.85 the three searches give the following sizes of group 2.
+
+``` r
+
+searches <- c('crossing', 'smallest', 'stable')
+sizes <- vapply(searches, function(s) {
+  BinarySampleSize(p1 = 0.6, p2 = 0.3, r = 1, alpha = 0.025, tar.power = 0.85,
+                   Test = 'Fisher', search = s)$N2
+}, numeric(1))
+sizes
+#> crossing smallest   stable 
+#>       52       52       56
+```
+
+The search `'stable'` returns 56 rather than 52 because the power falls
+below the target again at a size in between.
+
 ## Blinded sample size re-estimation
 
 Consider a trial designed for a response probability of 0.45 in group 1
@@ -224,6 +249,7 @@ plan
 #>   Allocation ratio : 1 to 1
 #>   Alpha            : 0.025
 #>   Target power     : 0.8
+#>   Exact search     : crossing
 #> 
 #>   Required sample size: N1 = 24, N2 = 24, total N = 48
 #>   Attained power      : 0.8182
@@ -418,8 +444,9 @@ A test that keeps the nominal level at a fixed sample size need not keep
 it once the sample size depends on the interim data.
 [`BinaryTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryTypeIErrorBSSR.md)
 evaluates the rejection probability of the design above under equal
-response probabilities, over a grid of the common value, and refines the
-largest local maxima.
+response probabilities over a grid of the common value, and finds its
+largest value over the whole range of the grid together with an upper
+bound.
 
 ``` r
 

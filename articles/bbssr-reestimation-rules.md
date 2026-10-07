@@ -41,6 +41,7 @@ plan
 #>   Allocation ratio : 1 to 1
 #>   Alpha            : 0.025
 #>   Target power     : 0.8
+#>   Exact search     : crossing
 #> 
 #>   Required sample size: N1 = 39, N2 = 39, total N = 78
 #>   Attained power      : 0.8128
@@ -55,7 +56,9 @@ recovered probabilities.
   patient at a time, to the sample size at which the exact power of the
   test first attains the target, as
   [`BinarySampleSize()`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md)
-  does.
+  does. The argument `search` replaces this search by the smallest size
+  that attains the target power or by the smallest size from which every
+  size up to a limit attains it, see the `bbssr-introduction` vignette.
 - `'standard'` uses the normal approximation with the variance under the
   null hypothesis in the term of the significance level and the variance
   under the alternative in the term of the power, formula (21.3) of

@@ -28,6 +28,12 @@ print(x, digits = 6, ...)
 
 `x`, invisibly
 
+## Details
+
+The adjusted levels are rounded down to `digits` significant digits, so
+that a printed level does not reject more outcomes than the level it
+stands for.
+
 ## Examples
 
 ``` r
@@ -47,7 +53,7 @@ print(adj)
 #>   Target level    : 0.025
 #> 
 #>        Design   max.TIE alpha.adj max.TIE.adj
-#>          BSSR 0.0272864 0.0204376   0.0237418
+#>          BSSR 0.0272864 0.0204375   0.0237418
 #>  Fixed sample 0.0293761 0.0207700   0.0247660
 # }
 ```

@@ -23,6 +23,8 @@ BinarySampleSize(
   bb.gamma = 0,
   method = c("exact", "standard", "null.variance", "alternative.variance"),
   rounding = c("group", "friede-kieser", "total", "nearest"),
+  search = c("crossing", "smallest", "stable"),
+  search.limit = c(2, 50),
   margin = 0,
   ref.pvalue = FALSE
 )
@@ -106,6 +108,23 @@ BinarySampleSize(
   nearest whole number, as in Farrington and Manning (1990). Only
   `'group'` is available with `method = 'exact'`
 
+- search:
+
+  How the search of `method = 'exact'` chooses the size of group 2.
+  `'crossing'` (default) steps from the normal approximation to a size
+  that attains the target power while the size one unit smaller does
+  not. `'smallest'` returns the smallest size that attains the target
+  power. `'stable'` returns the smallest size from which every size up
+  to a limit attains it. See Details. Ignored by the other methods
+
+- search.limit:
+
+  Two numbers `a` and `b` giving the limit
+  `max(ceiling(a n0), ceiling(n0 + b))` of the size of group 2 examined
+  by `search = 'stable'`, where `n0` is the size of group 2 from the
+  normal approximation, rounded up. `a` must be at least 1 and `b`
+  non-negative. Default is `c(2, 50)`
+
 - margin:
 
   Non-inferiority margin on the scale of the risk difference. The
@@ -173,9 +192,14 @@ containing:
 
   Total required sample size
 
+The attribute `search` holds the search, and the attribute
+`search.limit` the limit of the size of group 2 examined by
+`search = 'stable'` (otherwise `NA`).
+
 ## Details
 
-The calculation uses a three-step approach:
+With the default `search = 'crossing'` the calculation uses a three-step
+approach:
 
 1.  Calculate an initial sample size from the normal approximation to
     the chi-squared test
@@ -197,6 +221,18 @@ does not, unless the returned size is 1. The exact power is not monotone
 in the sample size, so a smaller size further from the normal
 approximation may also attain the target power, and a larger size may
 fall short of it.
+
+The two other searches do not depend on where the normal approximation
+starts. `search = 'smallest'` scans the size of group 2 upwards from 1
+and returns the first size that attains the target power. It visits
+every smaller size, which takes longer for the unconditional tests.
+`search = 'stable'` scans downwards from the limit given by
+`search.limit` and returns the smallest size from which every size up to
+the limit attains the target power, so that adding patients within this
+range does not take the power below the target. The search stops with an
+error if the limit itself falls short of the target power. The three
+searches can return different sizes because the exact power is not
+monotone in the sample size.
 
 Under `method = 'standard'`, `'null.variance'` or
 `'alternative.variance'` the steps above are replaced by the closed-form
@@ -254,6 +290,7 @@ BinarySampleSize(p1 = 0.4, p2 = 0.2, r = 1, alpha = 0.025,
 #>   Allocation ratio : 1 to 1
 #>   Alpha            : 0.025
 #>   Target power     : 0.8
+#>   Exact search     : crossing
 #> 
 #>   Required sample size: N1 = 80, N2 = 80, total N = 160
 #>   Attained power      : 0.8009
@@ -270,6 +307,7 @@ BinarySampleSize(p1 = 0.5, p2 = 0.2, r = 2, alpha = 0.05,
 #>   Allocation ratio : 2 to 1
 #>   Alpha            : 0.05
 #>   Target power     : 0.9
+#>   Exact search     : crossing
 #> 
 #>   Required sample size: N1 = 78, N2 = 39, total N = 117
 #>   Attained power      : 0.9013
