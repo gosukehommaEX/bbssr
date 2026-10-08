@@ -362,13 +362,15 @@ the [package website](https://gosukehommaex.github.io/bbssr/).
 - `bbssr-statistical-methods`: the tests and the re-estimation
 - `bbssr-validation`: comparisons with other packages and with published
   results
-- `bbssr-published-figures`: twelve published figures redrawn from
+- `bbssr-published-figures`: fifteen published figures redrawn from
   values computed with the package
 
 ## Validation
 
 The Fisher exact test reproduces `stats::fisher.test` to machine
 precision, and its `'blaker'` convention reproduces `exact2x2`. The
+mid-p test reproduces its definition under every convention, and
+`exact2x2` for the one-sided and the `'central'` p-values. The
 unconditional tests reproduce a direct evaluation of their definition,
 and agree with `Exact` and `exact2x2` up to the difference in the search
 over the nuisance parameter. The script
@@ -378,7 +380,7 @@ Farrington and Manning (1990), Fay and Hunsberger (2021), Friede and
 Kieser (2004), Friede, Mitchell and Mueller-Velten (2007), Kieser (2020)
 and Mehrotra, Chan and Berger (2003), and the unit tests compare the
 package with independent implementations. Details are in the validation
-vignette, and the `bbssr-published-figures` vignette redraws twelve
+vignette, and the `bbssr-published-figures` vignette redraws fifteen
 published figures of Friede and Kieser (2004), Kieser (2020), Friede,
 Mitchell and Mueller-Velten (2007) and Boschloo (1970).
 

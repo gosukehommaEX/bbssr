@@ -208,11 +208,13 @@ kieser_scatter <- function(dir, stop) {
 plot_kieser_figure21_1 <- function(dir = fig_dir()) kieser_scatter(dir, stop = FALSE)
 plot_kieser_figure21_1_stop <- function(dir = fig_dir()) kieser_scatter(dir, stop = TRUE)
 
-# Two stacked panels with the legend 'design' on the right, as in Figures 21.2 and 21.3
+# Stacked panels with the legend 'design' on the right, as in Figures 21.2, 21.3, 23.1
+# and 23.2
 kieser_curves <- function(panels, ylab, hline) {
   restore <- fig_restore()
   on.exit(restore())
-  graphics::layout(matrix(c(1, 2, 3, 3), 2), widths = c(5, 1))
+  n <- length(panels)
+  graphics::layout(matrix(c(seq_len(n), rep(n + 1, n)), n), widths = c(5, 1))
   for (pn in panels) {
     graphics::par(mar = c(4, 5, 1.5, 0.5), las = 1)
     plot(NA, xlim = fig_expand(pn$x), ylim = fig_expand(c(pn$y1, pn$y2, hline)),
@@ -224,7 +226,7 @@ kieser_curves <- function(panels, ylab, hline) {
     graphics::abline(h = hline, col = 'grey60')
     graphics::lines(pn$x, pn$y1, col = 'grey20', lwd = 1.5)
     graphics::lines(pn$x, pn$y2, col = 'grey20', lwd = 1.5, lty = 3)
-    fig_tag(pn$tag)
+    if (!is.null(pn$tag)) fig_tag(pn$tag)
   }
   graphics::par(mar = c(0, 0, 0, 0))
   plot.new()
@@ -259,11 +261,13 @@ plot_kieser_figure21_3 <- function(dir = fig_dir()) {
   kieser_curves(list(panel(1, 'a)'), panel(3, 'b)')), ylab = 'power', hline = 0.8)
 }
 
-plot_kieser_figure21_4 <- function(dir = fig_dir()) {
+# Box plots of the total sample size, as in Figures 21.4 and 23.3, from the files name and
+# name-outside; the labelled ticks of the y axis are at yat
+kieser_boxes_plot <- function(dir, name, yat) {
   restore <- fig_restore()
   on.exit(restore())
-  b <- read_fig(dir, 'kieser-2020-figure21-4.csv')
-  o <- read_fig(dir, 'kieser-2020-figure21-4-outside.csv')
+  b <- read_fig(dir, paste0(name, '.csv'))
+  o <- read_fig(dir, paste0(name, '-outside.csv'))
   w <- 0.0225
   graphics::par(mar = c(4, 4.5, 0.5, 0.5), las = 1)
   plot(NA, xlim = fig_expand(c(b$p - w, b$p + w)),
@@ -271,7 +275,7 @@ plot_kieser_figure21_4 <- function(dir = fig_dir()) {
        axes = FALSE, xlab = 'p', ylab = 'sample size')
   graphics::axis(1, at = c(0.25, 0.5, 0.75), labels = c('0.25', '0.50', '0.75'),
                  col = 'grey40', cex.axis = 0.85)
-  graphics::axis(2, at = seq(150, 350, by = 50), col = 'grey40', cex.axis = 0.85)
+  graphics::axis(2, at = yat, col = 'grey40', cex.axis = 0.85)
   graphics::box(col = 'grey40')
   graphics::segments(b$p, b$N.q75, b$p, b$whisker.high)
   graphics::segments(b$p, b$N.q25, b$p, b$whisker.low)
@@ -279,6 +283,32 @@ plot_kieser_figure21_4 <- function(dir = fig_dir()) {
   graphics::segments(b$p - w, b$N.q50, b$p + w, b$N.q50, lwd = 3)
   graphics::points(o$p, o$N, pch = 8, cex = 0.45)
   graphics::points(b$p, b$E.N, pch = 4, cex = 1.3)
+}
+
+plot_kieser_figure21_4 <- function(dir = fig_dir()) {
+  kieser_boxes_plot(dir, 'kieser-2020-figure21-4', seq(150, 350, by = 50))
+}
+
+# Example 23.1: a single panel with the legend on the right
+kieser_curve23 <- function(dir, name, ylab, hline, yat, ylabels) {
+  d <- read_fig(dir, name)
+  kieser_curves(list(list(x = d$p, y1 = d$fixed, y2 = d$recalculation,
+                          xat = c(0.25, 0.5, 0.75), xlab = c('0.25', '0.50', '0.75'),
+                          yat = yat, ylab = ylabels)), ylab = ylab, hline = hline)
+}
+
+plot_kieser_figure23_1 <- function(dir = fig_dir()) {
+  kieser_curve23(dir, 'kieser-2020-figure23-1.csv', 'actual level', 0.025,
+                 c(0.015, 0.020, 0.025), c('0.015', '0.020', '0.025'))
+}
+
+plot_kieser_figure23_2 <- function(dir = fig_dir()) {
+  kieser_curve23(dir, 'kieser-2020-figure23-2.csv', 'power', 0.8, c(0.7, 0.8, 0.9),
+                 c('0.7', '0.8', '0.9'))
+}
+
+plot_kieser_figure23_3 <- function(dir = fig_dir()) {
+  kieser_boxes_plot(dir, 'kieser-2020-figure23-3', seq(100, 350, by = 50))
 }
 
 # Friede, Mitchell and Mueller-Velten (2007) ---------------------------------------------
@@ -405,6 +435,9 @@ write_figure_pngs <- function(out.dir, dir = fig_dir()) {
     'kieser-2020-figure21-2' = list(plot_kieser_figure21_2, 1600, 1350),
     'kieser-2020-figure21-3' = list(plot_kieser_figure21_3, 1600, 1350),
     'kieser-2020-figure21-4' = list(plot_kieser_figure21_4, 1600, 750),
+    'kieser-2020-figure23-1' = list(plot_kieser_figure23_1, 1600, 900),
+    'kieser-2020-figure23-2' = list(plot_kieser_figure23_2, 1600, 840),
+    'kieser-2020-figure23-3' = list(plot_kieser_figure23_3, 1600, 800),
     'friede-2007-figure1' = list(plot_fmm2007_figure1, 1600, 850),
     'friede-2007-figure2' = list(plot_fmm2007_figure2, 1300, 950),
     'friede-2007-figure3' = list(plot_fmm2007_figure3, 1500, 1500),

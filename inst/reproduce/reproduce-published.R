@@ -1,13 +1,16 @@
 # Reproduces the published numerical results of Friede and Kieser (2004, Table I and
-# Section 5), Kieser (2020, Example 21.1 and the values stated for Figures 21.1 and 21.2),
-# Farrington and Manning (1990, Tables I and II and the first example), Blackwelder (1982,
-# Table 3 and the examples), Friede, Mitchell and Mueller-Velten (2007, Tables 2 and 3 and
-# Sections 5 and 6), Boschloo (1970, Sections 2, 3, 4 and 6), Mehrotra, Chan and Berger
-# (2003, Section 3.1 and Tables 1 and 3), Berger and Boos (1994, Example 2) and Fay and
-# Hunsberger (2021, Section 8 and Table 1) with bbssr.
+# Section 5), Kieser (2020, Example 21.1, the values stated for Figures 21.1 and 21.2,
+# Example 23.1 and Section 23.2), Farrington and Manning (1990, Tables I and II and the
+# first example), Blackwelder (1982, Table 3 and the examples), Friede, Mitchell and
+# Mueller-Velten (2007, Tables 2 and 3 and Sections 5 and 6), Boschloo (1970, Sections 2,
+# 3, 4 and 6), Mehrotra, Chan and Berger (2003, Section 3.1 and Tables 1 and 3), Berger
+# and Boos (1994, Example 2) and Fay and Hunsberger (2021, Section 8 and Table 1) with
+# bbssr.
 # Run from the package root after devtools::load_all(); the levels of Figure 21.1 of
 # Kieser (2020) under the rule that stops after the pilot use internal functions of the
-# package. The results are written to reproduce-output/: published-comparison.csv lists
+# package, and the statement of Section 23.2.2 of Kieser (2020) is compared with the
+# levels that inst/reproduce/reproduce-figures.R stores for Figure 1 of Friede et al.
+# (2007). The results are written to reproduce-output/: published-comparison.csv lists
 # every published value next to the recomputed value with a verdict (PASS, EXPLAINED,
 # FAIL or INFO), and summary.md is generated from it. The full run takes several minutes.
 
@@ -587,6 +590,143 @@ for (tst in names(s6.pub)) {
                       'expected total sample size'))
   add(fmm.src, s6.lab, s6.pub[[tst]], c(res$power.TRAD, res$power.BSSR, res$E.N),
       c(3, 3, 0))
+}
+
+# Kieser (2020), Example 23.1 and Section 23.2 -------------------------------------------
+# FreezeAF trial: Farrington-Manning test of pE - pC <= -0.15 at the one-sided level
+# 0.025, the equal assumed rates 0.78, power 0.8, sample size from formula (23.2) with
+# each group rounded up, a pilot of 100 patients (50 + 50) and unrestricted recalculation
+# without an upper bound. Group 1 is the experimental group E. On the boundary of the null
+# hypothesis the overall rate p ranges over [0.075, 0.925]. The book states steps of 0.05
+# for this range and for the confidence interval, but the maximum it reports at p = 0.865
+# lies only on a grid with steps of 0.005, and so do the limits 0.610 and 0.815 of its
+# grid for the interval, so both grids below have steps of 0.005
+k23.src <- 'Kieser (2020)'
+k23.ss <- function(p, level) {
+  BinarySampleSize(p, p, 1, level, 0.8, 'Farrington-Manning', method = 'standard',
+                   margin = 0.15)
+}
+add(k23.src, 'Kieser 2020 Example 23.1: initial total sample size', 244,
+    k23.ss(0.78, 0.025)$N, 0)
+add(k23.src, 'Kieser 2020 Example 23.1: total sample size at the overall rate 0.5', 344,
+    k23.ss(0.5, 0.025)$N, 0, 'The implicit upper bound of the recalculated sample size')
+k23.grid <- round(seq(0.075, 0.925, by = 0.005), 3)
+k23.args <- list(Delta.A = 0, N1 = 122, N2 = 122, n.interim = c(50, 50), r = 1,
+                 alpha = 0.025, tar.power = 0.8, Test = 'Farrington-Manning',
+                 ss.method = 'standard', margin = 0.15)
+k23 <- do.call(BinaryTypeIErrorBSSR,
+               c(k23.args, list(theta = k23.grid, maximize = 'grid')))
+write.csv(k23, file.path(out.dir, 'kieser-2020-example23-1-level.csv'), row.names = FALSE)
+k23.map <- attr(do.call(BinaryPowerBSSR, c(k23.args, list(p = 0.78, Delta.T = 0))),
+                'reestimation')
+add(k23.src, 'Kieser 2020 Example 23.1: largest recalculated total sample size', 344,
+    max(k23.map$N1 + k23.map$N2), 0)
+add(k23.src, 'Kieser 2020 Example 23.1: fixed design, maximum level', 0.0281,
+    max(k23$TIE.TRAD), 4)
+add(k23.src, 'Kieser 2020 Example 23.1: IPS design, maximum level', 0.0264,
+    max(k23$TIE.BSSR), 4)
+k23.top <- k23$theta[abs(k23$TIE.BSSR - max(k23$TIE.BSSR)) < 1e-12]
+add(k23.src, 'Kieser 2020 Example 23.1: IPS design, rate of the maximum', 0.865,
+    max(k23.top), 3,
+    'The level is symmetric about 0.5, so the maximum is attained at 0.135 and 0.865')
+# Adjusted level of the recalculation design. Section 22.1.3 of the book inserts the
+# adjusted level in the sample size formula of the recalculation as well, which is
+# adjust = 'both'; the level is lowered in steps of 1e-5. adjust = 'test' is reported as
+# INFO
+for (adj in c('both', 'test')) {
+  a <- do.call(BinaryAlphaAdjBSSR, c(k23.args, list(theta = k23.grid, maximize = 'grid',
+                                                    adjust = adj, step = 1e-5)))
+  write.csv(a, file.path(out.dir,
+                         sprintf('kieser-2020-example23-1-adjusted-%s.csv', adj)),
+            row.names = FALSE)
+  add(k23.src,
+      sprintf('Kieser 2020 Example 23.1: adjusted level, IPS design (adjust = %s)', adj),
+      0.0241, a$alpha.adj[a$Design == 'BSSR'], if (adj == 'both') 4 else NA,
+      if (adj == 'both') {
+        'The recalculation also uses the adjusted level'
+      } else {
+        'INFO: the adjusted level applied to the final analysis only'
+      })
+  if (adj == 'both') {
+    add(k23.src, 'Kieser 2020 Example 23.1: adjusted level, fixed design with 2 x 122',
+        0.0221, a$alpha.adj[a$Design == 'TRAD'], NA,
+        'INFO: BinaryAlphaAdjBSSR() keeps the initial sample size of the fixed design')
+  }
+}
+# Adjusted level of the fixed design. As for the recalculation, the sample size of formula
+# (23.2) is recomputed at each level, and the level is lowered in steps of 1e-5 until the
+# largest level on the grid does not exceed 0.025
+k23.fixed <- function(level) {
+  n <- k23.ss(0.78, level)$N2
+  max(BinaryPower(round(k23.grid - 0.075, 3), round(k23.grid + 0.075, 3), n, n, level,
+                  'Farrington-Manning', margin = 0.15)$Power)
+}
+k23.k <- 0L
+while (k23.fixed(0.025 - k23.k * 1e-5) > 0.025) k23.k <- k23.k + 1L
+add(k23.src, 'Kieser 2020 Example 23.1: adjusted level, fixed design', 0.0221,
+    0.025 - k23.k * 1e-5, 4,
+    'The sample size of the fixed design is recomputed at the adjusted level')
+# Control within the confidence interval (Remark 2 of Section 22.1.3): the maximum level
+# within the 1 - gamma = 0.9999 Clopper-Pearson interval for the overall rate of the
+# completed trial (210 / 291) must not exceed 0.025 - gamma = 0.0249. The interval is
+# known only at the end of the trial, so with adjust = 'test' the recalculation keeps the
+# nominal level 0.025; adjust = 'both' gives the same level here
+k23.ci <- stats::binom.test(210, 291, conf.level = 0.9999)$conf.int
+k23.ci.note <- paste(
+  'The book calls the interval [0.611, 0.816] a 95 per cent interval, but it is the',
+  'interval with the coverage 1 - gamma = 0.9999 of the example. The 95 per cent',
+  'interval is [0.666, 0.772]')
+add(k23.src, 'Kieser 2020 Example 23.1: lower limit of the Clopper-Pearson interval',
+    0.611, k23.ci[1], 3, k23.ci.note)
+add(k23.src, 'Kieser 2020 Example 23.1: upper limit of the Clopper-Pearson interval',
+    0.816, k23.ci[2], 3, k23.ci.note)
+k23.ci.grid <- round(seq(0.610, 0.815, by = 0.005), 3)
+in.ci <- k23$theta >= 0.610 - 1e-9 & k23$theta <= 0.815 + 1e-9
+add(k23.src, 'Kieser 2020 Example 23.1: IPS design, maximum level within the interval',
+    0.0260, max(k23$TIE.BSSR[in.ci]), 4)
+for (adj in c('test', 'both')) {
+  a <- do.call(BinaryAlphaAdjBSSR,
+               c(modifyList(k23.args, list(alpha = 0.025 - 1e-4)),
+                 list(ss.alpha = 0.025, theta = k23.ci.grid, maximize = 'grid',
+                      adjust = adj, step = 1e-5)))
+  write.csv(a, file.path(out.dir,
+                         sprintf('kieser-2020-example23-1-interval-%s.csv', adj)),
+            row.names = FALSE)
+  add(k23.src,
+      paste0('Kieser 2020 Example 23.1: adjusted level within the interval (adjust = ',
+             adj, ')'),
+      0.0241, a$alpha.adj[a$Design == 'BSSR'], 4,
+      if (adj == 'test') {
+        'The recalculation uses the nominal level 0.025'
+      } else {
+        'The recalculation also uses the adjusted level'
+      })
+}
+# Section 23.2.3 restates Table 2 of Friede et al. (2007): the difference between the 0.95
+# and the 0.05 quantile of the total sample size is 6 for p = 0.5 and r = 1 (N = 780) and
+# 145 for p = 0.7 and r = 3 (N = 815)
+k23.t2 <- c(which(t2$pa == 0.5 & t2$q == 1),
+            which(t2$pa == 0.7 & abs(t2$q - 1 / 3) < 1e-9))
+k23.t2.lab <- sprintf('Kieser 2020 Section 23.2.3: p = %g, r = %d', t2$pa[k23.t2],
+                      c(1, 3))
+add(k23.src, paste0(k23.t2.lab, ': total sample size of the fixed design'), c(780, 815),
+    t2$N[k23.t2], 0)
+add(k23.src, paste0(k23.t2.lab, ': difference between the 0.95 and 0.05 quantiles'),
+    c(6, 145), t2$q95[k23.t2] - t2$q05[k23.t2], 0)
+explain(paste0(k23.t2.lab, ': difference between the 0.95 and 0.05 quantiles'), 2,
+        fmm.round)
+# Section 23.2.2 states that in the designs of Figure 1 of Friede et al. (2007) the levels
+# of the Farrington-Manning test are below 0.0265 in both designs. The levels are those
+# that inst/reproduce/reproduce-figures.R computes for that figure
+k23.m1 <- utils::read.csv(file.path('inst', 'extdata', 'published-figures',
+                                    'friede-2007-figure1.csv'))
+k23.m1 <- k23.m1[k23.m1$Test == 'Farrington-Manning', ]
+for (des in c('fixed', 'reestimation')) {
+  add(k23.src,
+      paste0('Kieser 2020 Section 23.2.2: largest level over the designs of ',
+             'Friede et al. (2007, Figure 1), ', des, ' design'),
+      NA, max(k23.m1[[des]]), NA,
+      'INFO: the book states that all these levels are below 0.0265')
 }
 
 # Boschloo (1970), Sections 2, 3, 4 and 6 ------------------------------------------------

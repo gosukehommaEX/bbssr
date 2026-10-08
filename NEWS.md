@@ -117,8 +117,8 @@
   hypothesis, parametrized by the pooled response probability.
 
 * `inst/reproduce/reproduce-published.R` reproduces Table I and Section 5 of Friede and
-  Kieser (2004), Example 21.1 and the values stated for Figures 21.1 and 21.2 of Kieser
-  (2020), Table I, Table II (Methods 1 and 3 for
+  Kieser (2004), Example 21.1, the values stated for Figures 21.1 and 21.2, Example 23.1
+  and Section 23.2 of Kieser (2020), Table I, Table II (Methods 1 and 3 for
   the difference) and the first example of Farrington and Manning (1990), Table 3 and
   the examples of Blackwelder (1982), Tables 2 and 3 and Sections 5 and 6 of Friede,
   Mitchell and Mueller-Velten (2007), the table of power and the example of Boschloo
@@ -195,12 +195,21 @@
   the options of the re-estimation, `bbssr-type1-error` on the type I error rate and the
   adjusted level, `bbssr-non-inferiority` on the tests with a margin,
   `bbssr-design-grid` on the comparison of designs with `BinaryGridBSSR()`, and
-  `bbssr-published-figures`, which redraws twelve figures of Friede and Kieser (2004),
+  `bbssr-published-figures`, which redraws fifteen figures of Friede and Kieser (2004),
   Kieser (2020), Friede, Mitchell and Mueller-Velten (2007) and Boschloo (1970) from
   values computed with the package. Those values are computed by
   `inst/reproduce/reproduce-figures.R` and stored in `inst/extdata/published-figures/`,
   and the figures are drawn by `inst/reproduce/plot-figures.R`. The numbers quoted in
   the text are computed when the vignette is built.
+
+* The help page of `BinaryAlphaAdjBSSR()` and the `bbssr-type1-error` vignette describe
+  how the type I error rate is controlled within a confidence interval for the nuisance
+  parameter (Kieser, 2020, Section 22.1.3), with Example 23.1 of Kieser (2020) as the
+  illustration.
+
+* The `bbssr-validation` vignette checks the mid-p values of every two-sided convention
+  against their definition, and the one-sided and `central` mid-p values against
+  `exact2x2`.
 
 * `README.md` is generated from `README.Rmd`, and a 'pkgdown' site is built from the
   help pages and the vignettes.

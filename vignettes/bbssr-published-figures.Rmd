@@ -32,6 +32,15 @@ k2 <- read_fig(dir, 'kieser-2020-figure21-2.csv')
 k3 <- read_fig(dir, 'kieser-2020-figure21-3.csv')
 k4 <- read_fig(dir, 'kieser-2020-figure21-4.csv')
 k4.out <- read_fig(dir, 'kieser-2020-figure21-4-outside.csv')
+k23.1 <- read_fig(dir, 'kieser-2020-figure23-1.csv')
+k23.2 <- read_fig(dir, 'kieser-2020-figure23-2.csv')
+k23.3 <- read_fig(dir, 'kieser-2020-figure23-3.csv')
+k23.3.out <- read_fig(dir, 'kieser-2020-figure23-3-outside.csv')
+# Example 23.1: initial sample size and the total at the overall rate 0.5, formula (23.2)
+k23.n <- vapply(c(0.78, 0.5), function(p) {
+  BinarySampleSize(p, p, 1, 0.025, 0.8, 'Farrington-Manning', method = 'standard',
+                   margin = 0.15)$N
+}, numeric(1))
 bo <- read_fig(dir, 'boschloo-1970-figure2.csv')
 m1 <- read_fig(dir, 'friede-2007-figure1.csv')
 # Number formatting for the text
@@ -41,7 +50,7 @@ f6 <- function(x) formatC(x, format = 'f', digits = 6)
 
 ## Purpose
 
-This vignette redraws twelve figures of four publications on binary endpoints, blinded sample size re-estimation and exact tests from values computed with bbssr: Figures 1 to 4 of Friede and Kieser (2004), Figures 21.1 to 21.4 of Kieser (2020), Figures 1 to 3 of Friede, Mitchell and Mueller-Velten (2007) and Figure 2 of Boschloo (1970). A figure carries the operating characteristics of a design over a whole range of parameters, so its agreement with the original checks the package at many more points than the tables that `reproduce-published.R` compares (see the validation vignette). Where the text of a publication states values that are read from a figure, they are compared with the recomputed values.
+This vignette redraws fifteen figures of four publications on binary endpoints, blinded sample size re-estimation and exact tests from values computed with bbssr: Figures 1 to 4 of Friede and Kieser (2004), Figures 21.1 to 21.4 and 23.1 to 23.3 of Kieser (2020), Figures 1 to 3 of Friede, Mitchell and Mueller-Velten (2007) and Figure 2 of Boschloo (1970). A figure carries the operating characteristics of a design over a whole range of parameters, so its agreement with the original checks the package at many more points than the tables that `reproduce-published.R` compares (see the validation vignette). Where the text of a publication states values that are read from a figure, they are compared with the recomputed values.
 
 The original figures are not reproduced here; they are to be compared with the publications. The axis ranges, tick marks, line types and symbols follow the original figures, so that a figure can be laid next to its original. Each section states how the design was specified, what the publication leaves open, and where the figure departs from the original.
 
@@ -85,7 +94,7 @@ plot_fk2004_figure4(dir)
 
 Actual type I error rate in the depression trial of Section 5 of the article: the fixed design with 122 patients per group against the overall rate (left), and the internal pilot study design with $\Delta^* = 0.15$ and a pilot of 120 patients against the required total $n$ (right). Both panels agree with the original.
 
-## Kieser (2020)
+## Kieser (2020), Chapter 21
 
 The figures use the normal approximation test, which is equivalent to the chi-squared test, at the one-sided level 0.025 and the target power 0.8, with the sample size of formula (21.3) of the book and unrestricted recalculation. Group 1 of bbssr is the experimental group E, so the allocation ratio $r = n_E / n_C$ of the book is the argument r of bbssr. Example 21.1 of the book (the BACLOREA trial) assumes the rates $p_{E,A} = 0.27$ and $p_{C,A} = 0.42$, so the overall rate $p_A = 0.345$, and gives $n_0 = 2 \times 157$ and a pilot of $79 + 79$ patients.
 
@@ -189,6 +198,48 @@ Distribution of the recalculated total sample size of Example 21.1 against the o
 
 For $p = 0.35$ the book gives the quartiles 303 and 325 and the median 315, and for $p = 0.25$ and $p = 0.45$ the medians 258 and 343 and the interquartile ranges 31 and 7. The recomputed values are `r k4$N.q25[abs(k4$p - 0.35) < 1e-9]`, `r k4$N.q75[abs(k4$p - 0.35) < 1e-9]` and `r k4$N.q50[abs(k4$p - 0.35) < 1e-9]`, and `r k4$N.q50[abs(k4$p - 0.25) < 1e-9]`, `r k4$N.q50[abs(k4$p - 0.45) < 1e-9]`, `r k4$N.q75[abs(k4$p - 0.25) < 1e-9] - k4$N.q25[abs(k4$p - 0.25) < 1e-9]` and `r k4$N.q75[abs(k4$p - 0.45) < 1e-9] - k4$N.q25[abs(k4$p - 0.45) < 1e-9]`.
 
+## Kieser (2020), Chapter 23
+
+Example 23.1 of the book (the FreezeAF trial) uses the test of Farrington and Manning (1990) of the non-inferiority hypothesis $p_E - p_C \le -\delta$ with the margin $\delta = 0.15$ at the one-sided level 0.025, the equal assumed rates $p_{C,A} = p_{E,A} = 0.78$ and the target power 0.8. Formula (23.2) gives $n_0 = `r k23.n[1]`$ patients in total, the pilot has 100 patients, and the recalculation is unrestricted. The recalculated total therefore lies between the 100 patients of the pilot and the `r k23.n[2]` patients that formula (23.2) gives at the overall rate 0.5, the bounds that the book points out. In bbssr this design is `Test = 'Farrington-Manning'`, `margin = 0.15`, `Delta.A = 0`, `ss.method = 'standard'` and `n.interim = c(50, 50)`, with group 1 the experimental group E and each group rounded up, as in the reproduction of the values of Example 23.1 by `reproduce-published.R`.
+
+### Figure 23.1 (p. 251)
+
+```{r k23-fig1, echo = FALSE, fig.height = 3.4}
+plot_kieser_figure23_1(dir)
+```
+
+Actual level on the boundary of the null hypothesis, $p_E = p - 0.075$ and $p_C = p + 0.075$, against the overall rate $p$ in $[0.075, 0.925]$, for the fixed design with $n_0$ patients and the internal pilot study design. The book states that it varied $p$ in steps of 0.05, but the maximum it reports at $p = 0.865$ lies only on a grid with steps of 0.005, which is the grid used here.
+
+```{r k23-fig1-table, echo = FALSE}
+k23.top <- max(k23.1$p[abs(k23.1$recalculation - max(k23.1$recalculation)) < 1e-12])
+k23.tab <- data.frame(
+  Value = c('fixed design: maximum level', 'recalculation design: maximum level',
+            'recalculation design: rate of the maximum'),
+  Book = c(0.0281, 0.0264, 0.865),
+  bbssr = c(max(k23.1$fixed), max(k23.1$recalculation), k23.top)
+)
+k23.tab$Agrees <- ifelse(round(k23.tab$bbssr, c(4, 4, 3)) == k23.tab$Book, 'yes', 'no')
+knitr::kable(k23.tab, digits = 6, row.names = FALSE)
+```
+
+The level is symmetric about $p = 0.5$, so the maximum of the recalculation design is attained at $p = 0.135$ as well. `r sum(k23.tab$Agrees == 'yes')` of the `r nrow(k23.tab)` values agree, and the curves agree with the original figure. The adjusted levels that the book derives from this figure are reproduced by `reproduce-published.R`, and the `bbssr-type1-error` vignette uses the example to illustrate the control of the type I error rate within a confidence interval.
+
+### Figure 23.2 (p. 252)
+
+```{r k23-fig2, echo = FALSE, fig.height = 3.3}
+plot_kieser_figure23_2(dir)
+```
+
+Power for the equal true rates $p_E = p_C = p$. The power of the fixed design falls to `r f4(min(k23.2$fixed))` near $p = 0.5$, while the power of the recalculation design lies between `r f4(min(k23.2$recalculation))` and `r f4(max(k23.2$recalculation))`. The figure agrees with the original.
+
+### Figure 23.3 (p. 252)
+
+```{r k23-fig3, echo = FALSE, fig.height = 3.3}
+plot_kieser_figure23_3(dir)
+```
+
+Distribution of the recalculated total sample size against the overall rate $p$, drawn from the exact distribution as Figure 21.4. The book does not state the true rates, and the figure uses equal rates $p_E = p_C = p$, as for the power in Figure 23.2. The caption of the book refers to Example 21.1, but its text describes this figure with the bounds of Example 23.1, and the recomputed totals lie between `r min(c(k23.3$whisker.low, k23.3.out$N))` and `r max(c(k23.3$whisker.high, k23.3.out$N))`. The boxes and the asterisks agree with the original to within the accuracy with which the figure can be read. At a few rates a whisker ends one attainable total nearer to or farther from the box than in the original. These are rates at which a total lies close to 1.5 interquartile ranges from the box, so that the end of the whisker depends on how the quartiles are computed, and the book does not say whether its box plots come from simulated trials.
+
 ## Friede, Mitchell and Mueller-Velten (2007)
 
 The tests have the one-sided level 0.025 and the margin 0.1, the target power is 0.8 and the assumed treatment difference is 0. The article writes $q = n_2 / n_1$ for the allocation, with group 1 the experimental group, so $r = 1 / q$ in bbssr, and $\delta_1 = p_2 - p_1$ for the treatment difference. The fixed sample sizes come from formula (1) (Blackwelder) or (2) (Farrington and Manning) with each group rounded up, the internal pilot study has half of each group rounded to the nearest integer, and the re-estimated groups are rounded to the nearest integer, as in the reproduction of Tables 2 and 3 of the article by `reproduce-published.R`.
@@ -265,18 +316,26 @@ k2.res <- BinaryTypeIErrorBSSR(
   tar.power = 0.8, Test = 'Chisq', alternative = 'less', ss.method = 'standard',
   theta = k2.row$p, maximize = 'grid'
 )
+# Kieser (2020), Figure 23.1: the overall rate 0.865
+k23.row <- k23.1[abs(k23.1$p - 0.865) < 1e-9, ]
+k23.res <- BinaryTypeIErrorBSSR(
+  Delta.A = 0, N1 = 122, N2 = 122, n.interim = c(50, 50), r = 1, alpha = 0.025,
+  tar.power = 0.8, Test = 'Farrington-Manning', ss.method = 'standard', margin = 0.15,
+  theta = 0.865, maximize = 'grid'
+)
 # Boschloo (1970), Figure 2: p = 0.5
 bo.row <- bo[abs(bo$p - 0.5) < 1e-9, ]
 check <- data.frame(
   Value = c('FK2004 Figure 1', 'FK2004 Figure 4', 'Kieser Figure 21.1, fixed',
             'Kieser Figure 21.1, recalculation', 'Kieser Figure 21.2, fixed',
-            'Kieser Figure 21.2, recalculation', 'Boschloo Figure 2, alpha',
+            'Kieser Figure 21.2, recalculation', 'Kieser Figure 23.1, fixed',
+            'Kieser Figure 23.1, recalculation', 'Boschloo Figure 2, alpha',
             'Boschloo Figure 2, alpha_gamma'),
   Stored = c(fk1$pilot.20[fk1$pi == 0.1 & fk1$n == 60], fk4.row$level, k1.row$fixed,
-             k1.row$ips, k2.row$fixed, k2.row$recalculation, bo.row$alpha,
-             bo.row$alpha.gamma),
+             k1.row$ips, k2.row$fixed, k2.row$recalculation, k23.row$fixed,
+             k23.row$recalculation, bo.row$alpha, bo.row$alpha.gamma),
   Recomputed = c(fk1.ips, fk4.ips, k1.res$power.TRAD, k1.res$power.BSSR,
-                 k2.res$TIE.TRAD, k2.res$TIE.BSSR,
+                 k2.res$TIE.TRAD, k2.res$TIE.BSSR, k23.res$TIE.TRAD, k23.res$TIE.BSSR,
                  BinaryPower(0.5, 0.5, 15, 10, 0.05, 'Fisher')$Power,
                  BinaryPower(0.5, 0.5, 15, 10, 0.09, 'Fisher')$Power)
 )
@@ -288,6 +347,8 @@ stopifnot(max(check$Difference) < 1e-10)
 ## References
 
 Boschloo, R. D. (1970). Raised conditional level of significance for the 2 &times; 2-table when testing the equality of two probabilities. *Statistica Neerlandica*, 24, 1-9.
+
+Farrington, C. P. and Manning, G. (1990). Test statistics and sample size formulae for comparative binomial trials with null hypothesis of non-zero risk difference or non-unity relative risk. *Statistics in Medicine*, 9, 1447-1454.
 
 Friede, T. and Kieser, M. (2004). Sample size recalculation for binary data in internal pilot study designs. *Pharmaceutical Statistics*, 3, 269-279.
 

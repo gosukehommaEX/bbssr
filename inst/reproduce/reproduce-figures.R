@@ -1,9 +1,9 @@
 # Computes with bbssr the values plotted in the published figures that the vignette
 # 'Validation by reproducing published figures' redraws: Figures 1 to 4 of Friede and
-# Kieser (2004), Figures 21.1 to 21.4 of Kieser (2020), Figures 1 to 3 of Friede, Mitchell
-# and Mueller-Velten (2007) and Figure 2 of Boschloo (1970). The designs follow
-# inst/reproduce/reproduce-published.R. The figures themselves are drawn by the functions
-# in inst/reproduce/plot-figures.R.
+# Kieser (2004), Figures 21.1 to 21.4 and 23.1 to 23.3 of Kieser (2020), Figures 1 to 3 of
+# Friede, Mitchell and Mueller-Velten (2007) and Figure 2 of Boschloo (1970). The designs
+# follow inst/reproduce/reproduce-published.R. The figures themselves are drawn by the
+# functions in inst/reproduce/plot-figures.R.
 #
 # Run from the package root after devtools::load_all(); the computation for Figure 21.1
 # uses internal functions of the package. The values are written as CSV files to
@@ -222,36 +222,76 @@ k3 <- do.call(rbind, lapply(c(1, 3), function(ri) {
 save_csv(k3, 'kieser-2020-figure21-3.csv')
 elapsed('Kieser (2020), Figure 21.3')
 
-# Figure 21.4: distribution of the recalculated total sample size of Example 21.1, with
-# the total rounded up as in inst/reproduce/reproduce-published.R. The quartiles are the
-# smallest totals whose cumulative probability reaches them, as in summary(); the whiskers
-# reach the most extreme totals within 1.5 interquartile ranges of the box, and the totals
+# Box plots of the exact distribution of the recalculated total sample size for each
+# overall rate of res, a result of BinaryPowerBSSR(). The quartiles are the smallest
+# totals whose cumulative probability reaches them, as in summary(); the whiskers reach
+# the most extreme totals within 1.5 interquartile ranges of the box, and the totals
 # beyond them with a probability of at least 1e-4 are kept for plotting
+kieser_boxes <- function(res) {
+  k4.box <- summary(res)[c('p', 'E.N', 'N.q25', 'N.q50', 'N.q75')]
+  k4.box[c('whisker.low', 'whisker.high')] <- NA_real_
+  k4.dist <- attr(res, 'N.dist')
+  k4.out <- list(data.frame(p = numeric(0), N = numeric(0), prob = numeric(0)))
+  for (k in seq_len(nrow(k4.box))) {
+    d <- k4.dist[k4.dist$scenario == k, ]
+    prob <- tapply(d$prob, d$N, sum)
+    N <- as.numeric(names(prob))
+    iqr <- k4.box$N.q75[k] - k4.box$N.q25[k]
+    inside <- N >= k4.box$N.q25[k] - 1.5 * iqr & N <= k4.box$N.q75[k] + 1.5 * iqr
+    k4.box$whisker.low[k] <- min(N[inside])
+    k4.box$whisker.high[k] <- max(N[inside])
+    far <- !inside & prob >= 1e-4
+    if (any(far)) {
+      k4.out[[length(k4.out) + 1L]] <- data.frame(
+        p = k4.box$p[k], N = N[far], prob = as.numeric(prob[far])
+      )
+    }
+  }
+  list(box = k4.box, outside = do.call(rbind, k4.out))
+}
+
+# Figure 21.4: distribution of the recalculated total sample size of Example 21.1, with
+# the total rounded up as in inst/reproduce/reproduce-published.R
 k4 <- BinaryPowerBSSR(p = seq(0.10, 0.90, by = 0.05), Delta.A = -0.15, Delta.T = -0.15,
                       N1 = 157, N2 = 157, n.interim = c(79, 79), r = 1, alpha = 0.025,
                       tar.power = 0.8, Test = 'Chisq', alternative = 'less',
                       ss.method = 'standard', rounding = 'total')
-k4.box <- summary(k4)[c('p', 'E.N', 'N.q25', 'N.q50', 'N.q75')]
-k4.box[c('whisker.low', 'whisker.high')] <- NA_real_
-k4.dist <- attr(k4, 'N.dist')
-k4.out <- list()
-for (k in seq_len(nrow(k4.box))) {
-  d <- k4.dist[k4.dist$scenario == k, ]
-  prob <- tapply(d$prob, d$N, sum)
-  N <- as.numeric(names(prob))
-  iqr <- k4.box$N.q75[k] - k4.box$N.q25[k]
-  inside <- N >= k4.box$N.q25[k] - 1.5 * iqr & N <= k4.box$N.q75[k] + 1.5 * iqr
-  k4.box$whisker.low[k] <- min(N[inside])
-  k4.box$whisker.high[k] <- max(N[inside])
-  far <- !inside & prob >= 1e-4
-  if (any(far)) {
-    k4.out[[length(k4.out) + 1L]] <- data.frame(p = k4.box$p[k], N = N[far],
-                                                prob = as.numeric(prob[far]))
-  }
-}
-save_csv(k4.box, 'kieser-2020-figure21-4.csv')
-save_csv(do.call(rbind, k4.out), 'kieser-2020-figure21-4-outside.csv')
+k4.boxes <- kieser_boxes(k4)
+save_csv(k4.boxes$box, 'kieser-2020-figure21-4.csv')
+save_csv(k4.boxes$outside, 'kieser-2020-figure21-4-outside.csv')
 elapsed('Kieser (2020), Figure 21.4')
+
+# Example 23.1 (FreezeAF trial): Farrington-Manning test of pE - pC <= -0.15 at the
+# one-sided level 0.025, the equal assumed rates 0.78, power 0.8, n0 = 2 x 122 from
+# formula (23.2) with each group rounded up, a pilot of 50 + 50 patients and unrestricted
+# recalculation, as in inst/reproduce/reproduce-published.R
+k23.args <- list(Delta.A = 0, N1 = 122, N2 = 122, n.interim = c(50, 50), r = 1,
+                 alpha = 0.025, tar.power = 0.8, Test = 'Farrington-Manning',
+                 ss.method = 'standard', margin = 0.15)
+k23.p <- round(seq(0.075, 0.925, by = 0.005), 3)
+
+# Figure 23.1: actual level on the boundary of the null hypothesis, pE = p - 0.075 and
+# pC = p + 0.075, against the overall rate p over [0.075, 0.925]
+k23.1 <- do.call(BinaryTypeIErrorBSSR,
+                 c(k23.args, list(theta = k23.p, maximize = 'grid')))
+save_csv(data.frame(p = k23.1$theta, fixed = k23.1$TIE.TRAD,
+                    recalculation = k23.1$TIE.BSSR), 'kieser-2020-figure23-1.csv')
+elapsed('Kieser (2020), Figure 23.1')
+
+# Figure 23.2: power for the equal true rates pE = pC = p
+k23.2 <- do.call(BinaryPowerBSSR, c(k23.args, list(p = k23.p, Delta.T = 0)))
+save_csv(data.frame(p = k23.2$p, fixed = k23.2$power.TRAD,
+                    recalculation = k23.2$power.BSSR), 'kieser-2020-figure23-2.csv')
+elapsed('Kieser (2020), Figure 23.2')
+
+# Figure 23.3: distribution of the recalculated total sample size for the equal true rates
+# pE = pC = p
+k23.3 <- kieser_boxes(do.call(BinaryPowerBSSR, c(k23.args, list(
+  p = round(seq(0.10, 0.90, by = 0.05), 2), Delta.T = 0
+))))
+save_csv(k23.3$box, 'kieser-2020-figure23-3.csv')
+save_csv(k23.3$outside, 'kieser-2020-figure23-3-outside.csv')
+elapsed('Kieser (2020), Figure 23.3')
 
 # Boschloo (1970), Figure 2 --------------------------------------------------------------
 # Fisher's test of p1 <= p2 against p1 > p2 at the conditional level 0.05 with m = 15 and
