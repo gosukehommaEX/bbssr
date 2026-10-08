@@ -411,12 +411,13 @@ that means at this configuration.
 
 ## Blinded sample size re-estimation
 
-At the interim analysis, $`n_{1}`$ and $`n_{2}`$ patients have been
-observed and the total number of responders $`S`$ is known. The blinded
-estimate of the pooled response probability is
-$`\hat{p} = S / (n_{1} + n_{2})`$. With an allocation ratio of $`r`$ to
-1 and an assumed treatment effect $`\Delta_{A}`$, group-specific
-probabilities are recovered as
+At the interim analysis, $`n_{11}`$ and $`n_{12}`$ patients have been
+observed in the two groups and the total number of responders $`S`$ is
+known. The first index is the stage and the second the group, as in the
+`bbssr-type1-error` vignette. The blinded estimate of the pooled
+response probability is $`\hat{p} = S / (n_{11} + n_{12})`$. With an
+allocation ratio of $`r`$ to 1 and an assumed treatment effect
+$`\Delta_{A}`$, group-specific probabilities are recovered as
 
 ``` math
 \hat{p}_{1} = \hat{p} + \frac{\Delta_{A}}{1 + r}, \qquad
@@ -442,9 +443,9 @@ smallest size from which every size up to a limit attains it, as in
 [`BinarySampleSize()`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md),
 and the limit is returned in the column `N2.limit` of the attribute
 `reestimation`. The other three methods use the normal approximation,
-which gives the size of group 2 as
+which gives the size of group 2, before rounding, as
 ``` math
-n_{2} = \frac{\bigl(z_{1 - \alpha} \sqrt{v_{0}} + z_{1 - \beta} \sqrt{v_{1}}\bigr)^{2}}{(\hat{p}_{1} - \hat{p}_{2})^{2}}, \qquad
+\hat{N}_{2} = \frac{\bigl(z_{1 - \alpha} \sqrt{v_{0}} + z_{1 - \beta} \sqrt{v_{1}}\bigr)^{2}}{(\hat{p}_{1} - \hat{p}_{2})^{2}}, \qquad
 v_{0} = \hat{p}(1 - \hat{p}) \Bigl(1 + \frac{1}{r}\Bigr) ,
 ```
 where
@@ -454,14 +455,14 @@ $`v_{1} = v_{0}`$ under `'null.variance'`, formula (1) of Friede and
 Kieser (2004). Under `'alternative.variance'` both terms use $`v_{1}`$.
 A two-sided alternative uses $`\alpha / 2`$ in place of $`\alpha`$, and
 for the risk difference the denominator is $`\Delta_{A}^{2}`$. Group 1
-receives $`r n_{2}`$ patients. With a non-inferiority margin the
+receives $`r \hat{N}_{2}`$ patients. With a non-inferiority margin the
 difference and the variance $`v_{0}`$ change, as the
 `bbssr-non-inferiority` vignette describes. The approximation uses the
 recovered probabilities before truncation, with each Bernoulli variance
 truncated at zero, so that the assumed effect $`\Delta_{A}`$ is kept as
 in formula (2) of Friede and Kieser (2004). The
 `bbssr-reestimation-rules` vignette compares the methods and the rules
-that turn $`n_{2}`$ into whole numbers.
+that turn $`\hat{N}_{2}`$ into whole numbers.
 
 Two rules govern what happens next. The unrestricted rule takes the
 re-estimated sample size as it stands, allowing the trial to end up
@@ -502,9 +503,9 @@ evaluates a design by averaging the conditional power over the
 distribution of the interim outcome,
 
 ``` math
-1 - \beta_{\mathrm{BSSR}} = \sum_{x_{1}, x_{2}}
-\Pr(x_{1} \mid n_{1}, p_{1}) \Pr(x_{2} \mid n_{2}, p_{2}) \,
-\mathrm{CP}(x_{1}, x_{2}) ,
+1 - \beta_{\mathrm{BSSR}} = \sum_{x_{11}, x_{12}}
+\Pr(x_{11} \mid n_{11}, p_{1}) \Pr(x_{12} \mid n_{12}, p_{2}) \,
+\mathrm{CP}(x_{11}, x_{12}) ,
 ```
 
 where the conditional power $`\mathrm{CP}`$ is computed from the
@@ -535,15 +536,15 @@ and
 find the largest value over an interval of $`\theta`$ together with an
 upper bound, as described in this section.
 
-Let $`x_{1}`$ and $`x_{2}`$ be the interim numbers of responders, as in
-the sum above, $`s = x_{1} + x_{2}`$ their total, and $`N_{1}(s)`$ and
-$`N_{2}(s)`$ the final sample sizes that $`s`$ leads to. Given that
+Let $`x_{11}`$ and $`x_{12}`$ be the interim numbers of responders, as
+in the sum above, $`s = x_{11} + x_{12}`$ their total, and $`N_{1}(s)`$
+and $`N_{2}(s)`$ the final sample sizes that $`s`$ leads to. Given that
 $`X_{1}`$ of the $`N_{1}(s)`$ patients of group 1 respond, the number of
-responders among the first $`n_{1}`$ is hypergeometric whatever the
+responders among the first $`n_{11}`$ is hypergeometric whatever the
 response probability,
 ``` math
-b(x_{1}; n_{1}, p_{1}) \, b\bigl(X_{1} - x_{1}; N_{1}(s) - n_{1}, p_{1}\bigr) =
-b\bigl(X_{1}; N_{1}(s), p_{1}\bigr) \, h\bigl(x_{1}; n_{1}, N_{1}(s) - n_{1}, X_{1}\bigr) ,
+b(x_{11}; n_{11}, p_{1}) \, b\bigl(X_{1} - x_{11}; N_{1}(s) - n_{11}, p_{1}\bigr) =
+b\bigl(X_{1}; N_{1}(s), p_{1}\bigr) \, h\bigl(x_{11}; n_{11}, N_{1}(s) - n_{11}, X_{1}\bigr) ,
 ```
 where $`b(x; n, p)`$ is the binomial probability and
 $`h(x; m_{1}, m_{2}, k) = \binom{m_{1}}{x} \binom{m_{2}}{k - x} / \binom{m_{1} + m_{2}}{k}`$,
@@ -557,7 +558,7 @@ C_{K}(X_{1}, X_{2}) \, b\bigl(X_{1}; N_{1K}, p_{1}(\theta)\bigr) \, b\bigl(X_{2}
 ```
 ``` math
 C_{K}(X_{1}, X_{2}) = \mathbf{1}\bigl\{(X_{1}, X_{2}) \in \mathcal{R}_{K}\bigr\}
-\sum_{(x_{1}, x_{2}) \to K} h(x_{1}; n_{1}, N_{1K} - n_{1}, X_{1}) \, h(x_{2}; n_{2}, N_{2K} - n_{2}, X_{2}) ,
+\sum_{(x_{11}, x_{12}) \to K} h(x_{11}; n_{11}, N_{1K} - n_{11}, X_{1}) \, h(x_{12}; n_{12}, N_{2K} - n_{12}, X_{2}) ,
 ```
 where the inner sum runs over the interim outcomes that lead to
 $`(N_{1K}, N_{2K})`$. The weights $`C_{K}`$ do not depend on $`\theta`$.

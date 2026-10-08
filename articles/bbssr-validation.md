@@ -5,6 +5,7 @@
 library(bbssr)
 has_exact <- requireNamespace('Exact', quietly = TRUE)
 has_exact2x2 <- requireNamespace('exact2x2', quietly = TRUE)
+has_exact2x2_midp <- has_exact2x2 && 'midp' %in% names(formals(exact2x2::exact2x2))
 has_bench <- requireNamespace('microbenchmark', quietly = TRUE)
 c(Exact = has_exact, exact2x2 = has_exact2x2, microbenchmark = has_bench)
 #>          Exact       exact2x2 microbenchmark 
@@ -83,6 +84,71 @@ want <- outer(0:N1, 0:N2, Vectorize(function(i, j) {
 max(abs(got - want))
 #> [1] 0
 ```
+
+The mid-p values of `Fisher-midP` are checked against their definition.
+The observed table counts with half of its probability. Under `minlike`
+and `blaker` the same holds for the tables tied with it in the ordering,
+while the tables strictly more extreme count in full, as in Fay and
+Hunsberger (2021, Section 9). Under `central` the p-value is twice the
+smaller of the two one-sided mid-p values. With 7 and 6 patients no two
+tables are tied, so two other grids are used. With 7 patients in each
+group the conditional distribution is symmetric and many tables are tied
+with their mirror image, and with 10 and 6 patients `minlike` and
+`blaker` order the tables differently.
+
+``` r
+
+# Mid-p value of one outcome from its definition, and the number of other tables tied
+# with the observed one in the ordering of the convention
+midp_ref <- function(i, j, N1, N2, alternative, tsmethod) {
+  s <- i + j
+  k <- max(0, s - N2):min(N1, s)
+  f <- stats::dhyper(k, N1, N2, s)
+  upper <- sum(f[k > i]) + 0.5 * f[k == i]
+  lower <- sum(f[k < i]) + 0.5 * f[k == i]
+  if (alternative == 'greater') return(c(p = upper, ties = 0))
+  if (tsmethod == 'central') return(c(p = min(1, 2 * min(upper, lower)), ties = 0))
+  g <- if (tsmethod == 'minlike') {
+    f
+  } else {
+    pmin(stats::phyper(k, N1, N2, s), stats::phyper(k - 1, N1, N2, s, lower.tail = FALSE))
+  }
+  g0 <- g[k == i]
+  tied <- abs(g - g0) <= 1e-10 * pmax(g, g0)
+  c(p = min(1, sum(f[g < g0 & !tied]) + 0.5 * sum(f[tied])), ties = sum(tied) - 1)
+}
+compare_midp <- function(alternative, tsmethod) {
+  out <- lapply(list(c(7, 7), c(10, 6)), function(n) {
+    cells <- expand.grid(i = 0:n[1], j = 0:n[2])
+    got <- attr(BinaryRR(n[1], n[2], 0.05, 'Fisher-midP', alternative = alternative,
+                         tsmethod = tsmethod), 'p.value')
+    want <- mapply(midp_ref, cells$i, cells$j,
+                   MoreArgs = list(N1 = n[1], N2 = n[2], alternative = alternative,
+                                   tsmethod = tsmethod))
+    c(difference = max(abs(got[cbind(cells$i + 1, cells$j + 1)] - want['p', ])),
+      ties = sum(want['ties', ] > 0), outcomes = nrow(cells))
+  })
+  out <- do.call(rbind, out)
+  c(difference = max(out[, 'difference']), ties = sum(out[, 'ties']),
+    outcomes = sum(out[, 'outcomes']))
+}
+midp <- rbind(compare_midp('greater', 'minlike'), compare_midp('two.sided', 'minlike'),
+              compare_midp('two.sided', 'central'), compare_midp('two.sided', 'blaker'))
+data.frame(
+  comparison = c('one-sided', 'two-sided, minlike', 'two-sided, central',
+                 'two-sided, blaker'),
+  max.absolute.difference = midp[, 'difference']
+)
+#>           comparison max.absolute.difference
+#> 1          one-sided            2.220446e-16
+#> 2 two-sided, minlike            1.110223e-16
+#> 3 two-sided, central            2.220446e-16
+#> 4  two-sided, blaker            1.110223e-16
+```
+
+At 62 of the 141 outcomes of the two grids another table is tied with
+the observed one under `minlike`, and at 62 under `blaker`, so the half
+weight of the tied tables is checked.
 
 ## Unconditional tests against a direct evaluation
 
@@ -262,6 +328,36 @@ max(abs(ours - theirs))
 #> [1] 4.440892e-16
 ```
 
+With `midp = TRUE`,
+[`exact2x2::exact2x2()`](https://rdrr.io/pkg/exact2x2/man/exact2x2.html)
+computes the one-sided mid-p value and the two-sided mid-p value of the
+`central` convention, and does not offer the mid-p value under `minlike`
+or `blaker`. The two are compared with `Fisher-midP` at the same
+outcomes as above.
+
+``` r
+
+compare_exact2x2_midp <- function(alternative) {
+  ours <- attr(BinaryRR(N1, N2, 0.05, 'Fisher-midP', alternative = alternative,
+                        tsmethod = 'central'), 'p.value')
+  theirs <- outer(0:N1, 0:N2, Vectorize(function(i, j) {
+    if (i + j == 0 || i + j == N1 + N2) return(NA_real_)
+    tab <- matrix(c(i, j, N1 - i, N2 - j), nrow = 2)
+    exact2x2::exact2x2(tab, alternative = alternative, tsmethod = 'central',
+                       conf.int = FALSE, midp = TRUE)$p.value
+  }))
+  max(abs(ours - theirs), na.rm = TRUE)
+}
+data.frame(
+  comparison = c('one-sided', 'two-sided, central'),
+  max.absolute.difference = c(compare_exact2x2_midp('greater'),
+                              compare_exact2x2_midp('two.sided'))
+)
+#>           comparison max.absolute.difference
+#> 1          one-sided            4.440892e-16
+#> 2 two-sided, central            8.881784e-16
+```
+
 [`exact2x2::boschloo()`](https://rdrr.io/pkg/exact2x2/man/boschloo.html)
 offers the `central` and `minlike` conventions. The two-sided Boschloo
 p-values of the `central` convention are compared below.
@@ -349,18 +445,18 @@ microbenchmark::microbenchmark(
   unit = 'ms'
 )
 #> Unit: milliseconds
-#>                   expr      min       lq       mean    median        uq
-#>                  Chisq 0.218223 0.223931  0.2400154  0.239084  0.255138
-#>                 Fisher 1.797993 1.837241  1.8634245  1.862513  1.887435
-#>                 Z-pool 2.968446 3.008305  3.0212621  3.017979  3.033202
-#>               Boschloo 4.723965 4.750605  4.7784060  4.778391  4.805947
-#>  Boschloo, Berger-Boos 9.943775 9.992627 10.0779836 10.034916 10.131923
+#>                   expr       min        lq       mean    median        uq
+#>                  Chisq  0.293938  0.319557  0.3279953  0.325207  0.334835
+#>                 Fisher  2.581989  2.604351  2.6483834  2.644782  2.678480
+#>                 Z-pool  3.736435  3.745030  3.7855309  3.804396  3.814430
+#>               Boschloo  6.184924  6.228105  6.3323788  6.356039  6.421607
+#>  Boschloo, Berger-Boos 12.797638 12.883448 12.9841637 12.928997 13.050981
 #>        max neval
-#>   0.266224    10
-#>   1.959912    10
-#>   3.080241    10
-#>   4.836011    10
-#>  10.409735    10
+#>   0.386151    10
+#>   2.760423    10
+#>   3.816954    10
+#>   6.483061    10
+#>  13.253348    10
 options(old)
 ```
 
@@ -390,12 +486,12 @@ microbenchmark::microbenchmark(
   unit = 'ms'
 )
 #> Unit: milliseconds
-#>              expr        min        lq       mean     median         uq
-#>  bbssr.whole.grid   1.486792   1.62106   1.676154   1.630004   1.646988
-#>     Exact.one.row 199.249984 199.56055 201.125234 200.649077 202.927380
+#>              expr        min         lq       mean     median         uq
+#>  bbssr.whole.grid   2.032955   2.123594   2.236208   2.152527   2.171413
+#>     Exact.one.row 294.514556 297.760265 298.447834 298.074110 298.883871
 #>         max neval
-#>    1.995926     5
-#>  203.239172     5
+#>    2.700551     5
+#>  303.006366     5
 options(old)
 ```
 
@@ -719,7 +815,9 @@ therefore compares these tables with `minlike`.
 The Fisher exact test reproduces
 [`stats::fisher.test`](https://rdrr.io/r/stats/fisher.test.html) to
 machine precision, and its `blaker` convention reproduces `exact2x2`.
-The unconditional tests reproduce a direct evaluation of their
+The mid-p test reproduces its definition under every convention to
+machine precision, and `exact2x2` for the one-sided and the `central`
+p-values. The unconditional tests reproduce a direct evaluation of their
 definition to machine precision, and agree with `Exact` and `exact2x2`
 up to the difference in the search over the nuisance parameter. In the
 configuration examined, the three exact tests hold the type I error rate

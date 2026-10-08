@@ -90,6 +90,7 @@ Homma</h4>
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://gosukehommaex.github.io/bbssr/">bbssr</a></span><span class="op">)</span></span>
 <span><span class="va">has_exact</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">'Exact'</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">has_exact2x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">'exact2x2'</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">has_exact2x2_midp</span> <span class="op">&lt;-</span> <span class="va">has_exact2x2</span> <span class="op">&amp;&amp;</span> <span class="st">'midp'</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/formals.html" class="external-link">formals</a></span><span class="op">(</span><span class="fu">exact2x2</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/exact2x2/man/exact2x2.html" class="external-link">exact2x2</a></span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">has_bench</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">'microbenchmark'</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>Exact <span class="op">=</span> <span class="va">has_exact</span>, exact2x2 <span class="op">=</span> <span class="va">has_exact2x2</span>, microbenchmark <span class="op">=</span> <span class="va">has_bench</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          Exact       exact2x2 microbenchmark </span></span>
@@ -155,6 +156,68 @@ Mehrotra, Chan and Berger (2003) in the same way, and against
 <span><span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">got</span> <span class="op">-</span> <span class="va">want</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
+<p>The mid-p values of <code>Fisher-midP</code> are checked against
+their definition. The observed table counts with half of its
+probability. Under <code>minlike</code> and <code>blaker</code> the same
+holds for the tables tied with it in the ordering, while the tables
+strictly more extreme count in full, as in Fay and Hunsberger (2021,
+Section 9). Under <code>central</code> the p-value is twice the smaller
+of the two one-sided mid-p values. With 7 and 6 patients no two tables
+are tied, so two other grids are used. With 7 patients in each group the
+conditional distribution is symmetric and many tables are tied with
+their mirror image, and with 10 and 6 patients <code>minlike</code> and
+<code>blaker</code> order the tables differently.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Mid-p value of one outcome from its definition, and the number of other tables tied</span></span>
+<span><span class="co"># with the observed one in the ordering of the convention</span></span>
+<span><span class="va">midp_ref</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">i</span>, <span class="va">j</span>, <span class="va">N1</span>, <span class="va">N2</span>, <span class="va">alternative</span>, <span class="va">tsmethod</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">s</span> <span class="op">&lt;-</span> <span class="va">i</span> <span class="op">+</span> <span class="va">j</span></span>
+<span>  <span class="va">k</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">s</span> <span class="op">-</span> <span class="va">N2</span><span class="op">)</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">N1</span>, <span class="va">s</span><span class="op">)</span></span>
+<span>  <span class="va">f</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html" class="external-link">dhyper</a></span><span class="op">(</span><span class="va">k</span>, <span class="va">N1</span>, <span class="va">N2</span>, <span class="va">s</span><span class="op">)</span></span>
+<span>  <span class="va">upper</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">f</span><span class="op">[</span><span class="va">k</span> <span class="op">&gt;</span> <span class="va">i</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="va">f</span><span class="op">[</span><span class="va">k</span> <span class="op">==</span> <span class="va">i</span><span class="op">]</span></span>
+<span>  <span class="va">lower</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">f</span><span class="op">[</span><span class="va">k</span> <span class="op">&lt;</span> <span class="va">i</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="va">f</span><span class="op">[</span><span class="va">k</span> <span class="op">==</span> <span class="va">i</span><span class="op">]</span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="va">alternative</span> <span class="op">==</span> <span class="st">'greater'</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>p <span class="op">=</span> <span class="va">upper</span>, ties <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="va">tsmethod</span> <span class="op">==</span> <span class="st">'central'</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">upper</span>, <span class="va">lower</span><span class="op">)</span><span class="op">)</span>, ties <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">g</span> <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="va">tsmethod</span> <span class="op">==</span> <span class="st">'minlike'</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">f</span></span>
+<span>  <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmin</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html" class="external-link">phyper</a></span><span class="op">(</span><span class="va">k</span>, <span class="va">N1</span>, <span class="va">N2</span>, <span class="va">s</span><span class="op">)</span>, <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html" class="external-link">phyper</a></span><span class="op">(</span><span class="va">k</span> <span class="op">-</span> <span class="fl">1</span>, <span class="va">N1</span>, <span class="va">N2</span>, <span class="va">s</span>, lower.tail <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span>  <span class="va">g0</span> <span class="op">&lt;-</span> <span class="va">g</span><span class="op">[</span><span class="va">k</span> <span class="op">==</span> <span class="va">i</span><span class="op">]</span></span>
+<span>  <span class="va">tied</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">g</span> <span class="op">-</span> <span class="va">g0</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="fl">1e-10</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmax</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">g0</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">f</span><span class="op">[</span><span class="va">g</span> <span class="op">&lt;</span> <span class="va">g0</span> <span class="op">&amp;</span> <span class="op">!</span><span class="va">tied</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">f</span><span class="op">[</span><span class="va">tied</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, ties <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">tied</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">compare_midp</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">alternative</span>, <span class="va">tsmethod</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">7</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">cells</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>i <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="va">n</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, j <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="va">n</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="va">got</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="va">n</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">n</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="fl">0.05</span>, <span class="st">'Fisher-midP'</span>, alternative <span class="op">=</span> <span class="va">alternative</span>,</span>
+<span>                         tsmethod <span class="op">=</span> <span class="va">tsmethod</span><span class="op">)</span>, <span class="st">'p.value'</span><span class="op">)</span></span>
+<span>    <span class="va">want</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mapply.html" class="external-link">mapply</a></span><span class="op">(</span><span class="va">midp_ref</span>, <span class="va">cells</span><span class="op">$</span><span class="va">i</span>, <span class="va">cells</span><span class="op">$</span><span class="va">j</span>,</span>
+<span>                   MoreArgs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N1 <span class="op">=</span> <span class="va">n</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, N2 <span class="op">=</span> <span class="va">n</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, alternative <span class="op">=</span> <span class="va">alternative</span>,</span>
+<span>                                   tsmethod <span class="op">=</span> <span class="va">tsmethod</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>difference <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">got</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">cells</span><span class="op">$</span><span class="va">i</span> <span class="op">+</span> <span class="fl">1</span>, <span class="va">cells</span><span class="op">$</span><span class="va">j</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span><span class="op">]</span> <span class="op">-</span> <span class="va">want</span><span class="op">[</span><span class="st">'p'</span>, <span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>      ties <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">want</span><span class="op">[</span><span class="st">'ties'</span>, <span class="op">]</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span>, outcomes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cells</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">}</span><span class="op">)</span></span>
+<span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">out</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>difference <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">out</span><span class="op">[</span>, <span class="st">'difference'</span><span class="op">]</span><span class="op">)</span>, ties <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">out</span><span class="op">[</span>, <span class="st">'ties'</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>    outcomes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">out</span><span class="op">[</span>, <span class="st">'outcomes'</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">midp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">compare_midp</span><span class="op">(</span><span class="st">'greater'</span>, <span class="st">'minlike'</span><span class="op">)</span>, <span class="fu">compare_midp</span><span class="op">(</span><span class="st">'two.sided'</span>, <span class="st">'minlike'</span><span class="op">)</span>,</span>
+<span>              <span class="fu">compare_midp</span><span class="op">(</span><span class="st">'two.sided'</span>, <span class="st">'central'</span><span class="op">)</span>, <span class="fu">compare_midp</span><span class="op">(</span><span class="st">'two.sided'</span>, <span class="st">'blaker'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  comparison <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'one-sided'</span>, <span class="st">'two-sided, minlike'</span>, <span class="st">'two-sided, central'</span>,</span>
+<span>                 <span class="st">'two-sided, blaker'</span><span class="op">)</span>,</span>
+<span>  max.absolute.difference <span class="op">=</span> <span class="va">midp</span><span class="op">[</span>, <span class="st">'difference'</span><span class="op">]</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;           comparison max.absolute.difference</span></span>
+<span><span class="co">#&gt; 1          one-sided            2.220446e-16</span></span>
+<span><span class="co">#&gt; 2 two-sided, minlike            1.110223e-16</span></span>
+<span><span class="co">#&gt; 3 two-sided, central            2.220446e-16</span></span>
+<span><span class="co">#&gt; 4  two-sided, blaker            1.110223e-16</span></span></code></pre></div>
+<p>At 62 of the 141 outcomes of the two grids another table is tied with
+the observed one under <code>minlike</code>, and at 62 under
+<code>blaker</code>, so the half weight of the tied tables is
+checked.</p>
 </div>
 <div class="section level2">
 <h2 id="unconditional-tests-against-a-direct-evaluation">Unconditional tests against a direct evaluation<a class="anchor" aria-label="anchor" href="#unconditional-tests-against-a-direct-evaluation"></a>
@@ -165,7 +228,7 @@ outcome explicitly and searches the same grid, which is slow but follows
 the definition. It shares with the package only the Fisher p-values that
 order the outcomes for the Boschloo test, and these are checked against
 <code><a href="https://rdrr.io/r/stats/fisher.test.html" class="external-link">stats::fisher.test</a></code> above.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">unconditional_ref</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">stat</span>, <span class="va">N1</span>, <span class="va">N2</span>, <span class="va">n.grid</span>, <span class="va">decreasing</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="va">n.grid</span><span class="op">)</span></span>
 <span>  <span class="va">joint</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">theta</span>, <span class="kw">function</span><span class="op">(</span><span class="va">t</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">dbinom</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="va">N1</span>, <span class="va">N1</span>, <span class="va">t</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">dbinom</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="va">N2</span>, <span class="va">N2</span>, <span class="va">t</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -210,7 +273,7 @@ order the outcomes for the Boschloo test, and these are checked against
 arbitrary ordering of the outcomes, which splits groups of tied values.
 The function below reproduces that behaviour so the two can be
 compared.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">legacy_boschloo</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">N1</span>, <span class="va">N2</span>, <span class="va">n.grid</span> <span class="op">=</span> <span class="fl">100</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">stat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="va">N1</span>, <span class="va">N2</span>, <span class="fl">0.5</span>, <span class="st">'Fisher'</span><span class="op">)</span>, <span class="st">'p.value'</span><span class="op">)</span></span>
 <span>  <span class="va">ord</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">stat</span><span class="op">)</span><span class="op">)</span></span>
@@ -242,7 +305,7 @@ share a Fisher p-value of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>/</mi><mn>39</mn></mrow><annotation encoding="application/x-tex">2/39</annotation></semantics></math>,
 so no test whose ordering statistic is the Fisher p-value can
 distinguish them.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fisher77</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">7</span>, <span class="fl">0.5</span>, <span class="st">'Fisher'</span><span class="op">)</span>, <span class="st">'p.value'</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  outcome <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'x1 = 5, x2 = 1'</span>, <span class="st">'x1 = 6, x2 = 2'</span><span class="op">)</span>,</span>
@@ -261,7 +324,7 @@ initial segment of it, and at every value of the nuisance parameter on
 the grid its rejection probability is the running total at its last
 member, which is below alpha. The decision nevertheless depends on how
 the sorting routine breaks the tie rather than on the data.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">max_type1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">reject</span>, <span class="va">N1</span>, <span class="va">N2</span>, <span class="va">n.grid</span> <span class="op">=</span> <span class="fl">401</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="va">n.grid</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">theta</span>, <span class="kw">function</span><span class="op">(</span><span class="va">t</span><span class="op">)</span> <span class="op">{</span></span>
@@ -276,7 +339,7 @@ the sorting routine breaks the tie rather than on the data.</p>
 <div class="section level2">
 <h2 id="comparison-with-the-exact-package">Comparison with the Exact package<a class="anchor" aria-label="anchor" href="#comparison-with-the-exact-package"></a>
 </h2>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">N1</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
 <span><span class="va">N2</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
 <span><span class="va">cells</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>x1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">8</span>, <span class="fl">9</span><span class="op">)</span>, x2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
@@ -311,7 +374,7 @@ p-value of the <code>blaker</code> convention. It is compared with
 <code>tsmethod = 'blaker'</code> at every outcome with at least one
 responder and at least one non-responder in total; the two remaining
 outcomes have the p-value 1.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">N1</span> <span class="op">&lt;-</span> <span class="fl">9</span></span>
 <span><span class="va">N2</span> <span class="op">&lt;-</span> <span class="fl">6</span></span>
 <span><span class="va">ours</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="va">N1</span>, <span class="va">N2</span>, <span class="fl">0.05</span>, <span class="st">'Fisher'</span>, alternative <span class="op">=</span> <span class="st">'two.sided'</span>,</span>
@@ -323,10 +386,35 @@ outcomes have the p-value 1.</p>
 <span><span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">ours</span> <span class="op">-</span> <span class="va">theirs</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 4.440892e-16</span></span></code></pre></div>
+<p>With <code>midp = TRUE</code>, <code><a href="https://rdrr.io/pkg/exact2x2/man/exact2x2.html" class="external-link">exact2x2::exact2x2()</a></code>
+computes the one-sided mid-p value and the two-sided mid-p value of the
+<code>central</code> convention, and does not offer the mid-p value
+under <code>minlike</code> or <code>blaker</code>. The two are compared
+with <code>Fisher-midP</code> at the same outcomes as above.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">compare_exact2x2_midp</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">alternative</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">ours</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="va">N1</span>, <span class="va">N2</span>, <span class="fl">0.05</span>, <span class="st">'Fisher-midP'</span>, alternative <span class="op">=</span> <span class="va">alternative</span>,</span>
+<span>                        tsmethod <span class="op">=</span> <span class="st">'central'</span><span class="op">)</span>, <span class="st">'p.value'</span><span class="op">)</span></span>
+<span>  <span class="va">theirs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="va">N1</span>, <span class="fl">0</span><span class="op">:</span><span class="va">N2</span>, <span class="fu"><a href="https://rdrr.io/r/base/Vectorize.html" class="external-link">Vectorize</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">i</span>, <span class="va">j</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="kw">if</span> <span class="op">(</span><span class="va">i</span> <span class="op">+</span> <span class="va">j</span> <span class="op">==</span> <span class="fl">0</span> <span class="op">||</span> <span class="va">i</span> <span class="op">+</span> <span class="va">j</span> <span class="op">==</span> <span class="va">N1</span> <span class="op">+</span> <span class="va">N2</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="cn">NA_real_</span><span class="op">)</span></span>
+<span>    <span class="va">tab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">i</span>, <span class="va">j</span>, <span class="va">N1</span> <span class="op">-</span> <span class="va">i</span>, <span class="va">N2</span> <span class="op">-</span> <span class="va">j</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span>    <span class="fu">exact2x2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/exact2x2/man/exact2x2.html" class="external-link">exact2x2</a></span><span class="op">(</span><span class="va">tab</span>, alternative <span class="op">=</span> <span class="va">alternative</span>, tsmethod <span class="op">=</span> <span class="st">'central'</span>,</span>
+<span>                       conf.int <span class="op">=</span> <span class="cn">FALSE</span>, midp <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">p.value</span></span>
+<span>  <span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">ours</span> <span class="op">-</span> <span class="va">theirs</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  comparison <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'one-sided'</span>, <span class="st">'two-sided, central'</span><span class="op">)</span>,</span>
+<span>  max.absolute.difference <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu">compare_exact2x2_midp</span><span class="op">(</span><span class="st">'greater'</span><span class="op">)</span>,</span>
+<span>                              <span class="fu">compare_exact2x2_midp</span><span class="op">(</span><span class="st">'two.sided'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;           comparison max.absolute.difference</span></span>
+<span><span class="co">#&gt; 1          one-sided            4.440892e-16</span></span>
+<span><span class="co">#&gt; 2 two-sided, central            8.881784e-16</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/pkg/exact2x2/man/boschloo.html" class="external-link">exact2x2::boschloo()</a></code> offers the <code>central</code> and
 <code>minlike</code> conventions. The two-sided Boschloo p-values of the
 <code>central</code> convention are compared below.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">N1</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
 <span><span class="va">N2</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
 <span><span class="va">ours</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="va">N1</span>, <span class="va">N2</span>, <span class="fl">0.05</span>, <span class="st">'Boschloo'</span>, alternative <span class="op">=</span> <span class="st">'two.sided'</span>,</span>
@@ -348,7 +436,7 @@ outcomes have the p-value 1.</p>
 <div class="section level2">
 <h2 id="type-i-error-rate-of-every-test">Type I error rate of every test<a class="anchor" aria-label="anchor" href="#type-i-error-rate-of-every-test"></a>
 </h2>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tests</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Chisq'</span>, <span class="st">'Fisher'</span>, <span class="st">'Fisher-midP'</span>, <span class="st">'Z-pool'</span>, <span class="st">'Boschloo'</span>, <span class="st">'Blackwelder'</span>,</span>
 <span>           <span class="st">'Farrington-Manning'</span><span class="op">)</span></span>
 <span><span class="va">type1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">Test</span>, <span class="va">alternative</span>, <span class="va">N</span> <span class="op">=</span> <span class="fl">30</span>, <span class="va">alpha</span> <span class="op">=</span> <span class="fl">0.025</span><span class="op">)</span> <span class="op">{</span></span>
@@ -393,7 +481,7 @@ the nuisance parameter runs in compiled code. The p-values of each test
 are normally kept for the rest of the session, so the timings below turn
 this off with <code>options(bbssr.cache = FALSE)</code> and measure the
 computation itself.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">old</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>bbssr.cache <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu">microbenchmark</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/microbenchmark/man/microbenchmark.html" class="external-link">microbenchmark</a></span><span class="op">(</span></span>
 <span>  Chisq <span class="op">=</span> <span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">50</span>, <span class="fl">0.025</span>, <span class="st">'Chisq'</span><span class="op">)</span>,</span>
@@ -405,18 +493,18 @@ computation itself.</p>
 <span>  unit <span class="op">=</span> <span class="st">'ms'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
-<span><span class="co">#&gt;                   expr      min       lq       mean    median        uq</span></span>
-<span><span class="co">#&gt;                  Chisq 0.218223 0.223931  0.2400154  0.239084  0.255138</span></span>
-<span><span class="co">#&gt;                 Fisher 1.797993 1.837241  1.8634245  1.862513  1.887435</span></span>
-<span><span class="co">#&gt;                 Z-pool 2.968446 3.008305  3.0212621  3.017979  3.033202</span></span>
-<span><span class="co">#&gt;               Boschloo 4.723965 4.750605  4.7784060  4.778391  4.805947</span></span>
-<span><span class="co">#&gt;  Boschloo, Berger-Boos 9.943775 9.992627 10.0779836 10.034916 10.131923</span></span>
+<span><span class="co">#&gt;                   expr       min        lq       mean    median        uq</span></span>
+<span><span class="co">#&gt;                  Chisq  0.293938  0.319557  0.3279953  0.325207  0.334835</span></span>
+<span><span class="co">#&gt;                 Fisher  2.581989  2.604351  2.6483834  2.644782  2.678480</span></span>
+<span><span class="co">#&gt;                 Z-pool  3.736435  3.745030  3.7855309  3.804396  3.814430</span></span>
+<span><span class="co">#&gt;               Boschloo  6.184924  6.228105  6.3323788  6.356039  6.421607</span></span>
+<span><span class="co">#&gt;  Boschloo, Berger-Boos 12.797638 12.883448 12.9841637 12.928997 13.050981</span></span>
 <span><span class="co">#&gt;        max neval</span></span>
-<span><span class="co">#&gt;   0.266224    10</span></span>
-<span><span class="co">#&gt;   1.959912    10</span></span>
-<span><span class="co">#&gt;   3.080241    10</span></span>
-<span><span class="co">#&gt;   4.836011    10</span></span>
-<span><span class="co">#&gt;  10.409735    10</span></span>
+<span><span class="co">#&gt;   0.386151    10</span></span>
+<span><span class="co">#&gt;   2.760423    10</span></span>
+<span><span class="co">#&gt;   3.816954    10</span></span>
+<span><span class="co">#&gt;   6.483061    10</span></span>
+<span><span class="co">#&gt;  13.253348    10</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 <p>The Berger-Boos variant costs more than the plain Boschloo test,
 because the confidence bounds of every possible responder total are
@@ -426,7 +514,7 @@ at a time is not like for like, since <code><a href="../reference/BinaryRR.html"
 the p-values of every outcome of its grid. The comparison below
 therefore charges <code>Exact</code> only for the p-values of a single
 row.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">N1</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
 <span><span class="va">N2</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
 <span><span class="va">old</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>bbssr.cache <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
@@ -441,12 +529,12 @@ row.</p>
 <span>  unit <span class="op">=</span> <span class="st">'ms'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
-<span><span class="co">#&gt;              expr        min        lq       mean     median         uq</span></span>
-<span><span class="co">#&gt;  bbssr.whole.grid   1.486792   1.62106   1.676154   1.630004   1.646988</span></span>
-<span><span class="co">#&gt;     Exact.one.row 199.249984 199.56055 201.125234 200.649077 202.927380</span></span>
+<span><span class="co">#&gt;              expr        min         lq       mean     median         uq</span></span>
+<span><span class="co">#&gt;  bbssr.whole.grid   2.032955   2.123594   2.236208   2.152527   2.171413</span></span>
+<span><span class="co">#&gt;     Exact.one.row 294.514556 297.760265 298.447834 298.074110 298.883871</span></span>
 <span><span class="co">#&gt;         max neval</span></span>
-<span><span class="co">#&gt;    1.995926     5</span></span>
-<span><span class="co">#&gt;  203.239172     5</span></span>
+<span><span class="co">#&gt;    2.700551     5</span></span>
+<span><span class="co">#&gt;  303.006366     5</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -454,7 +542,7 @@ row.</p>
 </h2>
 <p>The sample size returned by <code><a href="../reference/BinarySampleSize.html">BinarySampleSize()</a></code> is
 checked against a direct scan of the power function.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">check</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">Test</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">ss</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinarySampleSize.html">BinarySampleSize</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.2</span>, <span class="fl">1</span>, <span class="fl">0.025</span>, <span class="fl">0.8</span>, <span class="va">Test</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -478,7 +566,7 @@ short one patient per group below it.</p>
 function at every size of group 2 up to the limit of the stable search,
 for Fisher’s exact test with a target power of 0.85, where they return
 different sizes.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">found</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'smallest'</span>, <span class="st">'stable'</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="../reference/BinarySampleSize.html">BinarySampleSize</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.3</span>, <span class="fl">1</span>, <span class="fl">0.025</span>, <span class="fl">0.85</span>, <span class="st">'Fisher'</span>, search <span class="op">=</span> <span class="va">s</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
@@ -506,7 +594,7 @@ is a fixed-sample design. Bounding the final total sample size from
 below and from above by the initial total turns a re-estimation design
 into one, and its power must then equal that of the fixed-sample
 design.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fixed</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryPowerBSSR.html">BinaryPowerBSSR</a></span><span class="op">(</span></span>
 <span>  p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.6</span>, by <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>, Delta.A <span class="op">=</span> <span class="fl">0.3</span>, Delta.T <span class="op">=</span> <span class="fl">0.3</span>,</span>
 <span>  N1 <span class="op">=</span> <span class="fl">30</span>, N2 <span class="op">=</span> <span class="fl">30</span>, n.interim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">15</span><span class="op">)</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>,</span>
@@ -521,7 +609,7 @@ stage, and <code><a href="../reference/BinaryCondRejectBSSR.html">BinaryCondReje
 rejection probabilities given the pooled numbers of responders of the
 two stages over their binomial distributions. The two agree for every
 test and alternative below.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.5</span>, <span class="fl">0.7</span>, <span class="fl">0.9</span><span class="op">)</span></span>
 <span><span class="va">routes</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">Test</span>, <span class="va">alternative</span>, <span class="va">Delta.A</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">args</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Delta.A <span class="op">=</span> <span class="va">Delta.A</span>, N1 <span class="op">=</span> <span class="fl">16</span>, N2 <span class="op">=</span> <span class="fl">16</span>, n.interim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">8</span>, <span class="fl">8</span><span class="op">)</span>, r <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -558,7 +646,7 @@ value in between comes from the coefficients. With
 <code>maximize = 'refined'</code> the function evaluates the rate by
 that summation on a grid, here of step 0.001, and refines the largest
 local maxima by a one-dimensional optimization.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cert.args</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Delta.A <span class="op">=</span> <span class="fl">0.3</span>, N1 <span class="op">=</span> <span class="fl">39</span>, N2 <span class="op">=</span> <span class="fl">39</span>, n.interim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">20</span><span class="op">)</span>, r <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>                  alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Chisq'</span>, ss.method <span class="op">=</span> <span class="st">'standard'</span><span class="op">)</span></span>
 <span><span class="va">certified</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">BinaryTypeIErrorBSSR</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">cert.args</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -591,7 +679,7 @@ is run from the root of the package source after
 <code>reproduce-output</code>, and runs for several minutes. The values
 below are a selection that can be recomputed quickly, each compared
 after rounding to the digits of the publication.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Kieser (2020), Example 21.1: initial sample size by formula (21.3), and the largest</span></span>
 <span><span class="co"># type I error rate over the overall rate in [0.15, 0.85] for Delta = 0.30</span></span>
 <span><span class="va">k.plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinarySampleSize.html">BinarySampleSize</a></span><span class="op">(</span><span class="fl">0.27</span>, <span class="fl">0.42</span>, <span class="fl">1</span>, <span class="fl">0.025</span>, <span class="fl">0.8</span>, <span class="st">'Chisq'</span>, alternative <span class="op">=</span> <span class="st">'less'</span>,</span>
@@ -700,7 +788,7 @@ values computed with the package.</p>
 two published examples: 8 responders out of 14 against 1 out of 7 in Fay
 and Hunsberger (2021, Section 8), and 8 out of 148 against 1 out of 132
 in Mehrotra, Chan and Berger (2003, Section 3.1).</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fisher_p</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">N1</span>, <span class="va">N2</span>, <span class="va">x1</span>, <span class="va">x2</span>, <span class="va">tsmethod</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span><span class="va">N1</span>, <span class="va">N2</span>, <span class="fl">0.05</span>, <span class="st">'Fisher'</span>, alternative <span class="op">=</span> <span class="st">'two.sided'</span>, tsmethod <span class="op">=</span> <span class="va">tsmethod</span><span class="op">)</span>,</span>
 <span>       <span class="st">'p.value'</span><span class="op">)</span><span class="op">[</span><span class="va">x1</span> <span class="op">+</span> <span class="fl">1</span>, <span class="va">x2</span> <span class="op">+</span> <span class="fl">1</span><span class="op">]</span></span>
@@ -747,16 +835,18 @@ script therefore compares these tables with <code>minlike</code>.</p>
 </h2>
 <p>The Fisher exact test reproduces <code><a href="https://rdrr.io/r/stats/fisher.test.html" class="external-link">stats::fisher.test</a></code> to
 machine precision, and its <code>blaker</code> convention reproduces
-<code>exact2x2</code>. The unconditional tests reproduce a direct
-evaluation of their definition to machine precision, and agree with
-<code>Exact</code> and <code>exact2x2</code> up to the difference in the
-search over the nuisance parameter. In the configuration examined, the
-three exact tests hold the type I error rate below the nominal level for
-one-sided and two-sided alternatives alike. A re-estimation design
-without re-estimation reproduces the fixed-sample design, the two
-calculations of the type I error rate of a re-estimation design agree,
-the certified largest type I error rate is confirmed by a dense grid,
-and published values are recomputed.</p>
+<code>exact2x2</code>. The mid-p test reproduces its definition under
+every convention to machine precision, and <code>exact2x2</code> for the
+one-sided and the <code>central</code> p-values. The unconditional tests
+reproduce a direct evaluation of their definition to machine precision,
+and agree with <code>Exact</code> and <code>exact2x2</code> up to the
+difference in the search over the nuisance parameter. In the
+configuration examined, the three exact tests hold the type I error rate
+below the nominal level for one-sided and two-sided alternatives alike.
+A re-estimation design without re-estimation reproduces the fixed-sample
+design, the two calculations of the type I error rate of a re-estimation
+design agree, the certified largest type I error rate is confirmed by a
+dense grid, and published values are recomputed.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
