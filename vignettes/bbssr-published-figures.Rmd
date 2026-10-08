@@ -43,6 +43,12 @@ k23.n <- vapply(c(0.78, 0.5), function(p) {
 }, numeric(1))
 bo <- read_fig(dir, 'boschloo-1970-figure2.csv')
 m1 <- read_fig(dir, 'friede-2007-figure1.csv')
+# Friede et al. (2007), Figure 1: the level of the fixed design for q = 1/3 and the
+# overall rate 0.7 on the null boundary (rates 0.675 and 0.775) for the split 611 + 204 of
+# the total of 815 patients, with one patient fewer in group 1, and for two other splits
+fmm.split <- vapply(list(c(611, 204), c(610, 204), c(610, 205), c(612, 203)), function(n) {
+  BinaryPower(0.675, 0.775, n[1], n[2], 0.025, 'Farrington-Manning', margin = 0.1)$Power
+}, numeric(1))
 # Number formatting for the text
 f4 <- function(x) formatC(x, format = 'f', digits = 4)
 f6 <- function(x) formatC(x, format = 'f', digits = 6)
@@ -250,7 +256,9 @@ The tests have the one-sided level 0.025 and the margin 0.1, the target power is
 plot_fmm2007_figure1(dir)
 ```
 
-Type I error rate of the re-estimation design against that of the fixed design for the test of Blackwelder (left) and of Farrington and Manning (right), on the boundary of the null hypothesis ($\delta_1 = 0.1$) at the assumed overall rate, for $q = 1/3, 1/2, 1$ and the assumed overall rates 0.30, 0.31, ..., 0.70 (`r nrow(m1) / 2` designs per test). The points of the test of Blackwelder lie along the diagonal between `r f4(min(unlist(m1[m1$Test == 'Blackwelder', c('fixed', 'reestimation')])))` and `r f4(max(unlist(m1[m1$Test == 'Blackwelder', c('fixed', 'reestimation')])))`, and those of the test of Farrington and Manning between `r f4(min(unlist(m1[m1$Test == 'Farrington-Manning', c('fixed', 'reestimation')])))` and `r f4(max(unlist(m1[m1$Test == 'Farrington-Manning', c('fixed', 'reestimation')])))`, as in the original.
+Type I error rate of the re-estimation design against that of the fixed design for the test of Blackwelder (left) and of Farrington and Manning (right), on the boundary of the null hypothesis ($\delta_1 = 0.1$) at the assumed overall rate, for $q = 1/3, 1/2, 1$ and the assumed overall rates 0.30, 0.31, ..., 0.70 (`r nrow(m1) / 2` designs per test). The points of the test of Blackwelder lie along the diagonal between `r f4(min(unlist(m1[m1$Test == 'Blackwelder', c('fixed', 'reestimation')])))` and `r f4(max(unlist(m1[m1$Test == 'Blackwelder', c('fixed', 'reestimation')])))`, as in the original. The points of the test of Farrington and Manning lie between `r f4(min(unlist(m1[m1$Test == 'Farrington-Manning', c('fixed', 'reestimation')])))` and `r f4(max(unlist(m1[m1$Test == 'Farrington-Manning', c('fixed', 'reestimation')])))`, and those of the original between about 0.0238 and 0.0264, so the cloud agrees in its shape but not exactly at its edges.
+
+The article does not simulate. It sums over all outcomes and bounds the omitted terms, so that each plotted level lies within 0.00005 of the exact level (Section 4.3 of the article), and the differences are not simulation error. The level of the test changes by several units in the fourth decimal when a group gains or loses one patient, and the article does not state how the sample size of formula (2) is split between the groups or how the pilot and the re-estimated sample sizes are rounded. For $q = 1/3$ and $\pi^a = 0.7$, Table 2 of the article gives only the total of 815 patients. bbssr allocates them as 611 + 204, for which the level of the fixed design is `r f4(fmm.split[1])`. One patient fewer in group 1 gives `r f4(fmm.split[2])`, and the other splits 610 + 205 and 612 + 203 give `r f4(fmm.split[3])` and `r f4(fmm.split[4])`. The levels of all fixed designs of the figure, and the levels of these four splits, agree with an independent computation in Python (`tools/reference/check_friede_2007_figure1.py` in the source repository), which finds the restricted maximum likelihood estimates by bisection on the score equation rather than by the closed form of Farrington and Manning (1990).
 
 ### Figure 2 (p. 909)
 
