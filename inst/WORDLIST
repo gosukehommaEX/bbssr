@@ -1,4 +1,5 @@
 alphaadj
+BACLOREA
 bbssr
 bbssr's
 Berger
@@ -41,6 +42,7 @@ hypergeometric
 ij
 ISF
 Kieser
+lceil
 ldots
 leq
 mathbf
@@ -59,6 +61,7 @@ pkgdown
 powerbssr
 pst
 qquad
+rceil
 Rcpp
 README
 reestimation

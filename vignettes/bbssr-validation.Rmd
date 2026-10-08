@@ -475,7 +475,7 @@ published$agrees <- abs(round(published$recomputed, published$digits) -
 published
 ```
 
-Of the `r nrow(published)` values above, `r sum(published$agrees)` agree with the publication after rounding. The script reports every value that it does not reproduce, together with the reason when one is known.
+Of the `r nrow(published)` values above, `r sum(published$agrees)` agree with the publication after rounding. The script reports every value that it does not reproduce, together with the reason when one is known. The vignette 'Validation by Reproducing Published Figures' redraws twelve figures of the same publications from values computed with the package.
 
 The two-sided Fisher p-values of the conventions are compared with two published examples: 8 responders out of 14 against 1 out of 7 in Fay and Hunsberger (2021, Section 8), and 8 out of 148 against 1 out of 132 in Mehrotra, Chan and Berger (2003, Section 3.1).
 

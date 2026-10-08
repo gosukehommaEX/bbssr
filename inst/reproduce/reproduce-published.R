@@ -1,14 +1,15 @@
 # Reproduces the published numerical results of Friede and Kieser (2004, Table I and
-# Section 5), Kieser (2020, Example 21.1), Farrington and Manning (1990, Tables I and II and
-# the first example), Blackwelder (1982, Table 3 and the examples), Friede, Mitchell and
-# Mueller-Velten (2007, Tables 2 and 3 and Sections 5 and 6), Boschloo (1970, Sections
-# 2, 3, 4 and 6), Mehrotra, Chan and Berger (2003, Section 3.1 and Tables 1 and 3), Berger
-# and Boos (1994, Example 2) and Fay and Hunsberger (2021, Section 8 and Table 1) with
-# bbssr.
-# Run from the package root after devtools::load_all(). The results are written to
-# reproduce-output/: published-comparison.csv lists every published value next to the
-# recomputed value with a verdict (PASS, EXPLAINED, FAIL or INFO), and summary.md is
-# generated from it. The full run takes several minutes.
+# Section 5), Kieser (2020, Example 21.1 and the values stated for Figures 21.1 and 21.2),
+# Farrington and Manning (1990, Tables I and II and the first example), Blackwelder (1982,
+# Table 3 and the examples), Friede, Mitchell and Mueller-Velten (2007, Tables 2 and 3 and
+# Sections 5 and 6), Boschloo (1970, Sections 2, 3, 4 and 6), Mehrotra, Chan and Berger
+# (2003, Section 3.1 and Tables 1 and 3), Berger and Boos (1994, Example 2) and Fay and
+# Hunsberger (2021, Section 8 and Table 1) with bbssr.
+# Run from the package root after devtools::load_all(); the levels of Figure 21.1 of
+# Kieser (2020) under the rule that stops after the pilot use internal functions of the
+# package. The results are written to reproduce-output/: published-comparison.csv lists
+# every published value next to the recomputed value with a verdict (PASS, EXPLAINED,
+# FAIL or INFO), and summary.md is generated from it. The full run takes several minutes.
 
 out.dir <- 'reproduce-output'
 dir.create(out.dir, showWarnings = FALSE)
@@ -29,13 +30,6 @@ explained <- list()
 explain <- function(items, tol, reason) {
   explained[[length(explained) + 1L]] <<- list(items = items, tol = tol, reason = reason)
 }
-explain('Kieser 2020: fixed design, Delta = 0.30, maximum level', 1e-4, paste(
-  'The range of the overall rate behind the summary statistics is not stated. Over',
-  '[0.15, 0.85] the recomputed maximum is reported; outside this range the level of the',
-  'fixed design rises to about 0.029 near p = 0.09.'))
-explain('Kieser 2020: IPS design, Delta = 0.30, maximum level', 1e-4, paste(
-  'Same as for the fixed design: the range of the overall rate is not stated, and the',
-  'recomputed maximum is taken over [0.15, 0.85].'))
 
 # Friede and Kieser (2004), Table I -----------------------------------------------------
 # Two-sided chi-squared test at level 0.05, target power 0.8, alternative 0.2, sample size
@@ -161,13 +155,19 @@ k.top <- tie$theta[abs(tie$TIE.BSSR - max(tie$TIE.BSSR)) < 1e-12]
 add('Kieser (2020)', 'Kieser 2020: IPS design, Delta = 0.15, rate of the maximum', 0.075,
     min(k.top), 3,
     'The level is symmetric about 0.5, so the maximum is attained at 0.075 and 0.925')
-in.range <- k.grid >= 0.05 - 1e-9 & k.grid <= 0.95 + 1e-9
+# The book reports the mean and the minimum over the overall rates that Figure 21.2
+# shows, those for which the assumed rates of both groups lie in the unit interval:
+# [0.075, 0.925] for Delta = 0.15 and [0.15, 0.85] for Delta = 0.30
+in.range <- k.grid >= 0.075 - 1e-9 & k.grid <= 0.925 + 1e-9
+range.note <- 'Over the overall rates shown in Figure 21.2 a, [0.075, 0.925]'
 add('Kieser (2020)', 'Kieser 2020: fixed design, Delta = 0.15, mean level', 0.0248,
-    mean(tie$TIE.TRAD[in.range]), NA,
-    'INFO: range of the overall rate not stated; recomputed over [0.05, 0.95]')
+    mean(tie$TIE.TRAD[in.range]), 4, range.note)
 add('Kieser (2020)', 'Kieser 2020: IPS design, Delta = 0.15, mean level', 0.0250,
-    mean(tie$TIE.BSSR[in.range]), NA,
-    'INFO: range of the overall rate not stated; recomputed over [0.05, 0.95]')
+    mean(tie$TIE.BSSR[in.range]), 4, range.note)
+add('Kieser (2020)', 'Kieser 2020: fixed design, Delta = 0.15, minimum level', 0.0236,
+    min(tie$TIE.TRAD[in.range]), 4, range.note)
+add('Kieser (2020)', 'Kieser 2020: IPS design, Delta = 0.15, minimum level', 0.0235,
+    min(tie$TIE.BSSR[in.range]), 4, range.note)
 for (adj in c('test', 'both')) {
   a <- do.call(BinaryAlphaAdjBSSR, c(k.args, list(adjust = adj, step = 1e-5)))
   write.csv(a, file.path(out.dir, sprintf('kieser-2020-adjusted-%s.csv', adj)),
@@ -192,15 +192,100 @@ k3 <- do.call(BinaryTypeIErrorBSSR,
                                       n.interim = c(20, 20), maximize = 'grid')))
 write.csv(k3, file.path(out.dir, 'kieser-2020-level-delta030.csv'), row.names = FALSE)
 mid <- k.grid >= 0.15 - 1e-9 & k.grid <= 0.85 + 1e-9
-range.note <- 'Range of the overall rate not stated; recomputed over [0.15, 0.85]'
+range.note <- 'Over the overall rates shown in Figure 21.2 b, [0.15, 0.85]'
 add('Kieser (2020)', 'Kieser 2020: fixed design, Delta = 0.30, maximum level', 0.0268,
     max(k3$TIE.TRAD[mid]), 4, range.note)
 add('Kieser (2020)', 'Kieser 2020: fixed design, Delta = 0.30, minimum level', 0.0253,
     min(k3$TIE.TRAD[mid]), 4, range.note)
+add('Kieser (2020)', 'Kieser 2020: fixed design, Delta = 0.30, mean level', 0.0260,
+    mean(k3$TIE.TRAD[mid]), 4, range.note)
 add('Kieser (2020)', 'Kieser 2020: IPS design, Delta = 0.30, maximum level', 0.0273,
     max(k3$TIE.BSSR[mid]), 4, range.note)
+add('Kieser (2020)', 'Kieser 2020: IPS design, Delta = 0.30, minimum level', 0.0259,
+    min(k3$TIE.BSSR[mid]), 4, range.note)
+add('Kieser (2020)', 'Kieser 2020: IPS design, Delta = 0.30, mean level', 0.0268,
+    mean(k3$TIE.BSSR[mid]), 4, range.note)
 add('Kieser (2020)', 'Kieser 2020: fixed design, Delta = 0.30, maximum over [0.01, 0.99]',
     NA, max(k3$TIE.TRAD), NA, 'INFO')
+# Figure 21.1: actual levels at the assumed overall rate for the alternatives 0.15 to 0.30
+# (pE > pC), the assumed overall rates 0.30 to 0.50 and pilots of 25, 50 and 75 per cent
+# of the fixed sample size, with ceiling(fraction nC) patients in group C and r times as
+# many in group E, as in inst/reproduce/reproduce-figures.R. The book reports the mean,
+# minimum and maximum over these designs. The book does not state how the interim
+# outcomes with a negative recovered rate of group C are treated: bbssr truncates the
+# Bernoulli variance of that group at zero, and the levels when the trial stops after the
+# pilot for such outcomes are reported as INFO
+k1.stop <- function(p, Delta, r, N1, N2, n.interim) {
+  map <- bssr_map(Delta.A = Delta, N1 = N1, N2 = N2, omega = NULL, n.interim = n.interim,
+                  r = r, alpha = 0.025, tar.power = 0.8, Test = 'Chisq',
+                  restricted = FALSE, alternative = 'greater', tsmethod = 'minlike',
+                  n.grid = 100, bb.gamma = 0, effect = 'RD', ss.method = 'standard',
+                  ss.Test = 'Chisq', ss.alpha = 0.025, rounding = 'group', N.min = NULL,
+                  N.max = NULL, ref.pvalue = FALSE, margin = 0)
+  sp <- split_pooled(map$hat.p, Delta, r, 'RD')
+  outside <- sp$p1 > 1 + 1e-9 | sp$p2 < -1e-9
+  map$N1[outside] <- attr(map, 'n11')
+  map$N2[outside] <- attr(map, 'n12')
+  setup <- bssr_setup(map)
+  rr.list <- lapply(seq_along(setup$N1), function(k) {
+    get_rr(setup$N1[k], setup$N2[k], 0.025, 'Chisq', 'greater', 'minlike', 100, 0, FALSE,
+           0)
+  })
+  bssr_reject(setup, rr.list, p, p)
+}
+k1 <- expand.grid(pA = round(seq(0.30, 0.50, by = 0.01), 2),
+                  Delta = c(0.15, 0.20, 0.25, 0.30), fraction = c(0.25, 0.5, 0.75),
+                  r = c(1, 3))
+k1[c('fixed', 'ips', 'ips.stop')] <- NA_real_
+for (i in seq_len(nrow(k1))) {
+  ri <- k1$r[i]
+  pE <- k1$pA[i] + k1$Delta[i] / (1 + ri)
+  pC <- k1$pA[i] - ri * k1$Delta[i] / (1 + ri)
+  ss <- BinarySampleSize(pE, pC, ri, 0.025, 0.8, 'Chisq', method = 'standard')
+  n1C <- ceiling(k1$fraction[i] * ss$N2)
+  res <- BinaryPowerBSSR(p = k1$pA[i], Delta.A = k1$Delta[i], Delta.T = 0, N1 = ss$N1,
+                         N2 = ss$N2, n.interim = c(ri * n1C, n1C), r = ri, alpha = 0.025,
+                         tar.power = 0.8, Test = 'Chisq', ss.method = 'standard')
+  k1[i, c('fixed', 'ips', 'ips.stop')] <- c(
+    res$power.TRAD, res$power.BSSR,
+    k1.stop(k1$pA[i], k1$Delta[i], ri, ss$N1, ss$N2, c(ri * n1C, n1C))
+  )
+}
+write.csv(k1, file.path(out.dir, 'kieser-2020-figure21-1.csv'), row.names = FALSE)
+k1.add <- function(label, published, x, digits = 4, note = '') {
+  add('Kieser (2020)',
+      sprintf('Kieser 2020 Figure 21.1: %s, %s level', label,
+              c('mean', 'minimum', 'maximum')),
+      published, c(mean(x), min(x), max(x)), digits, note)
+}
+# The fixed design does not depend on the pilot, so it is summarized over one fraction
+k1.add('r = 1, fixed design', c(0.0257, 0.0233, 0.0308),
+       k1$fixed[k1$r == 1 & k1$fraction == 0.5])
+k1.add('r = 1, IPS design', c(0.0257, 0.0235, 0.0289), k1$ips[k1$r == 1])
+k1.pub <- list(c(0.0256, 0.0238, 0.0279), c(0.0257, 0.0236, 0.0286),
+               c(0.0257, 0.0235, 0.0289))
+for (j in 1:3) {
+  fr <- c(0.25, 0.5, 0.75)[j]
+  k1.add(sprintf('r = 1, IPS design, pilot %g%%', 100 * fr), k1.pub[[j]],
+         k1$ips[k1$r == 1 & k1$fraction == fr])
+}
+k1.add('r = 3, fixed design', c(0.0243, 0.0214, 0.0279),
+       k1$fixed[k1$r == 3 & k1$fraction == 0.5])
+k1.add('r = 3, IPS design', c(0.0241, 0.0174, 0.0274), k1$ips[k1$r == 3])
+for (ri in c(1, 3)) {
+  k1.add(sprintf('r = %d, IPS design stopped after the pilot', ri),
+         if (ri == 1) c(0.0257, 0.0235, 0.0289) else c(0.0241, 0.0174, 0.0274),
+         k1$ips.stop[k1$r == ri], NA,
+         'INFO: the trial stops after the pilot when a recovered rate is negative')
+}
+k1.reason <- paste(
+  'The book does not state how the interim outcomes with a negative recovered rate of',
+  'group C are treated. bbssr truncates the Bernoulli variance of that group at zero and',
+  're-estimates the sample size. If the trial stops after the pilot for such outcomes,',
+  'the minimum of the book is reproduced (INFO items of the same figure and the vignette',
+  'Validation by Reproducing Published Figures).')
+explain('Kieser 2020 Figure 21.1: r = 3, IPS design, minimum level', 0.0035, k1.reason)
+explain('Kieser 2020 Figure 21.1: r = 3, IPS design, mean level', 1e-4, k1.reason)
 # Distribution of the recalculated total sample size (Figure 21.4). The book reports
 # totals such as 315, so the total is rounded up rather than each group
 kN <- BinaryPowerBSSR(p = c(0.25, 0.35, 0.45), Delta.A = -0.15, Delta.T = -0.15,

@@ -117,7 +117,8 @@
   hypothesis, parametrized by the pooled response probability.
 
 * `inst/reproduce/reproduce-published.R` reproduces Table I and Section 5 of Friede and
-  Kieser (2004), Example 21.1 of Kieser (2020), Table I, Table II (Methods 1 and 3 for
+  Kieser (2004), Example 21.1 and the values stated for Figures 21.1 and 21.2 of Kieser
+  (2020), Table I, Table II (Methods 1 and 3 for
   the difference) and the first example of Farrington and Manning (1990), Table 3 and
   the examples of Blackwelder (1982), Tables 2 and 3 and Sections 5 and 6 of Friede,
   Mitchell and Mueller-Velten (2007), the table of power and the example of Boschloo
@@ -188,13 +189,18 @@
 
 ## Documentation
 
-* The vignettes are reorganized into eight. `bbssr-introduction`,
+* The vignettes are reorganized into nine. `bbssr-introduction`,
   `bbssr-statistical-methods`, `bbssr-interim-reestimation` and `bbssr-validation`
-  cover the new tests and functions, and four are added: `bbssr-reestimation-rules` on
+  cover the new tests and functions, and five are added: `bbssr-reestimation-rules` on
   the options of the re-estimation, `bbssr-type1-error` on the type I error rate and the
-  adjusted level, `bbssr-non-inferiority` on the tests with a margin, and
-  `bbssr-design-grid` on the comparison of designs with `BinaryGridBSSR()`. The numbers
-  quoted in the text are computed when the vignette is built.
+  adjusted level, `bbssr-non-inferiority` on the tests with a margin,
+  `bbssr-design-grid` on the comparison of designs with `BinaryGridBSSR()`, and
+  `bbssr-published-figures`, which redraws twelve figures of Friede and Kieser (2004),
+  Kieser (2020), Friede, Mitchell and Mueller-Velten (2007) and Boschloo (1970) from
+  values computed with the package. Those values are computed by
+  `inst/reproduce/reproduce-figures.R` and stored in `inst/extdata/published-figures/`,
+  and the figures are drawn by `inst/reproduce/plot-figures.R`. The numbers quoted in
+  the text are computed when the vignette is built.
 
 * `README.md` is generated from `README.Rmd`, and a 'pkgdown' site is built from the
   help pages and the vignettes.
