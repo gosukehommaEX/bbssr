@@ -10,6 +10,8 @@
 [![pkgdown](https://github.com/gosukehommaEX/bbssr/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/gosukehommaEX/bbssr/actions/workflows/pkgdown.yaml)
 [![downloads](https://cranlogs.r-pkg.org/badges/grand-total/bbssr)](https://cranlogs.r-pkg.org/badges/grand-total/bbssr)
 [![downloads](https://cranlogs.r-pkg.org/badges/bbssr)](https://cranlogs.r-pkg.org/badges/bbssr)
+[![Codecov test
+coverage](https://codecov.io/gh/gosukehommaEX/bbssr/graph/badge.svg)](https://app.codecov.io/gh/gosukehommaEX/bbssr)
 <!-- badges: end -->
 
 ## Overview

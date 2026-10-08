@@ -1,7 +1,7 @@
 Package: bbssr
 Type: Package
 Title: Blinded Sample Size Re-Estimation for Binary Endpoints
-Version: 2.0.0.9000
+Version: 2.1.0
 Authors@R: person("Gosuke", "Homma", email = "my.name.is.gosuke@gmail.com", 
                   role = c("aut", "cre"))
 Description: Tools for blinded sample size re-estimation (BSSR) in two-arm clinical 
@@ -11,7 +11,8 @@ Description: Tools for blinded sample size re-estimation (BSSR) in two-arm clini
     unconditional, the exact unconditional test of Boschloo (1970) 
     <doi:10.1111/j.1467-9574.1970.tb00104.x>, and the tests of non-inferiority of 
     Blackwelder (1982) <doi:10.1016/0197-2456(82)90024-1> and of Farrington and 
-    Manning (1990) <doi:10.1002/sim.4780091208>. Each test is available with a 
+    Manning (1990) <doi:10.1002/sim.4780091208>, with a margin on the scale of the risk 
+    difference or the risk ratio. Each test is available with a 
     one-sided or a two-sided alternative, and the exact unconditional tests can be 
     combined with the Berger-Boos procedure. The power, the distribution of the final 
     sample size and the type I error rate of a re-estimation design are computed 

@@ -1,18 +1,15 @@
 ## Submission
 
-This is a major update of a package already on CRAN, from version 1.0.2 to 2.0.0.
+This is a minor update of a package already on CRAN, from version 2.0.0 to 2.1.0.
 
-The main reason for the release is a correction. The exact unconditional tests accumulated
-the null probabilities along an arbitrary ordering of the outcomes, so outcomes sharing the
-same value of the ordering statistic could receive different p-values and different
-decisions. Tied values are now grouped explicitly. The release also adds two-sided
-alternatives, the Berger-Boos procedure, a function for re-estimating the sample size from
-observed interim data, and 'Rcpp' for the inner loops.
-
-The user interface has changed in ways that are not backward compatible, which is why the
-major version number has been raised. The `weighted` argument of `BinaryPowerBSSR()` has
-been removed and `BinaryPower()` now returns a data frame rather than a numeric vector.
-`NEWS.md` lists every change.
+The release adds two tests of non-inferiority, those of Blackwelder (1982) and of
+Farrington and Manning (1990), with a margin on the scale of the risk difference or the
+risk ratio, and the blinded sample size re-estimation of non-inferiority trials. It also
+adds functions for the exact type I error rate of a re-estimation design, with a certified
+maximum over the nuisance parameter, for the adjusted significance level that controls it,
+for the rejection probabilities given the interim outcome and for the evaluation of several
+designs at once, together with further options for the re-estimation. `NEWS.md` lists every
+change, including the changes in behaviour.
 
 ## Test environments
 
