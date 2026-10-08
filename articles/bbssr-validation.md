@@ -349,18 +349,18 @@ microbenchmark::microbenchmark(
   unit = 'ms'
 )
 #> Unit: milliseconds
-#>                   expr       min        lq       mean     median        uq
-#>                  Chisq  0.278871  0.293027  0.2995584  0.3007465  0.305530
-#>                 Fisher  2.488245  2.518432  2.5470124  2.5413050  2.556553
-#>                 Z-pool  3.610922  3.656607  3.6790275  3.6886860  3.701942
-#>               Boschloo  6.067838  6.076895  6.1116893  6.0884920  6.145794
-#>  Boschloo, Berger-Boos 12.585767 12.622116 12.7380750 12.7084720 12.736319
+#>                   expr      min       lq       mean    median        uq
+#>                  Chisq 0.218223 0.223931  0.2400154  0.239084  0.255138
+#>                 Fisher 1.797993 1.837241  1.8634245  1.862513  1.887435
+#>                 Z-pool 2.968446 3.008305  3.0212621  3.017979  3.033202
+#>               Boschloo 4.723965 4.750605  4.7784060  4.778391  4.805947
+#>  Boschloo, Berger-Boos 9.943775 9.992627 10.0779836 10.034916 10.131923
 #>        max neval
-#>   0.314718    10
-#>   2.630441    10
-#>   3.735975    10
-#>   6.247003    10
-#>  13.222937    10
+#>   0.266224    10
+#>   1.959912    10
+#>   3.080241    10
+#>   4.836011    10
+#>  10.409735    10
 options(old)
 ```
 
@@ -390,12 +390,12 @@ microbenchmark::microbenchmark(
   unit = 'ms'
 )
 #> Unit: milliseconds
-#>              expr        min         lq       mean    median         uq
-#>  bbssr.whole.grid   1.946935   2.031662   2.109885   2.04057   2.068122
-#>     Exact.one.row 285.172413 286.257178 287.626983 288.46840 289.085098
+#>              expr        min        lq       mean     median         uq
+#>  bbssr.whole.grid   1.486792   1.62106   1.676154   1.630004   1.646988
+#>     Exact.one.row 199.249984 199.56055 201.125234 200.649077 202.927380
 #>         max neval
-#>    2.462137     5
-#>  289.151832     5
+#>    1.995926     5
+#>  203.239172     5
 options(old)
 ```
 
@@ -661,7 +661,9 @@ published
 
 Of the 12 values above, 12 agree with the publication after rounding.
 The script reports every value that it does not reproduce, together with
-the reason when one is known.
+the reason when one is known. The vignette ‘Validation by Reproducing
+Published Figures’ redraws twelve figures of the same publications from
+values computed with the package.
 
 The two-sided Fisher p-values of the conventions are compared with two
 published examples: 8 responders out of 14 against 1 out of 7 in Fay and

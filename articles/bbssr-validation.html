@@ -52,6 +52,7 @@
     <li><h6 class="dropdown-header" data-toc-skip>Methods and validation</h6></li>
     <li><a class="dropdown-item" href="../articles/bbssr-statistical-methods.html">Statistical Methods in bbssr</a></li>
     <li><a class="dropdown-item" href="../articles/bbssr-validation.html">Validation of bbssr</a></li>
+    <li><a class="dropdown-item" href="../articles/bbssr-published-figures.html">Validation by Reproducing Published Figures</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -77,7 +78,7 @@
                         <h4 data-toc-skip class="author">Gosuke
 Homma</h4>
             
-            <h4 data-toc-skip class="date">2026-10-07</h4>
+            <h4 data-toc-skip class="date">2026-10-08</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/gosukehommaEX/bbssr/blob/main/vignettes/bbssr-validation.Rmd" class="external-link"><code>vignettes/bbssr-validation.Rmd</code></a></small>
       <div class="d-none name"><code>bbssr-validation.Rmd</code></div>
@@ -404,18 +405,18 @@ computation itself.</p>
 <span>  unit <span class="op">=</span> <span class="st">'ms'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
-<span><span class="co">#&gt;                   expr       min        lq       mean     median        uq</span></span>
-<span><span class="co">#&gt;                  Chisq  0.278871  0.293027  0.2995584  0.3007465  0.305530</span></span>
-<span><span class="co">#&gt;                 Fisher  2.488245  2.518432  2.5470124  2.5413050  2.556553</span></span>
-<span><span class="co">#&gt;                 Z-pool  3.610922  3.656607  3.6790275  3.6886860  3.701942</span></span>
-<span><span class="co">#&gt;               Boschloo  6.067838  6.076895  6.1116893  6.0884920  6.145794</span></span>
-<span><span class="co">#&gt;  Boschloo, Berger-Boos 12.585767 12.622116 12.7380750 12.7084720 12.736319</span></span>
+<span><span class="co">#&gt;                   expr      min       lq       mean    median        uq</span></span>
+<span><span class="co">#&gt;                  Chisq 0.218223 0.223931  0.2400154  0.239084  0.255138</span></span>
+<span><span class="co">#&gt;                 Fisher 1.797993 1.837241  1.8634245  1.862513  1.887435</span></span>
+<span><span class="co">#&gt;                 Z-pool 2.968446 3.008305  3.0212621  3.017979  3.033202</span></span>
+<span><span class="co">#&gt;               Boschloo 4.723965 4.750605  4.7784060  4.778391  4.805947</span></span>
+<span><span class="co">#&gt;  Boschloo, Berger-Boos 9.943775 9.992627 10.0779836 10.034916 10.131923</span></span>
 <span><span class="co">#&gt;        max neval</span></span>
-<span><span class="co">#&gt;   0.314718    10</span></span>
-<span><span class="co">#&gt;   2.630441    10</span></span>
-<span><span class="co">#&gt;   3.735975    10</span></span>
-<span><span class="co">#&gt;   6.247003    10</span></span>
-<span><span class="co">#&gt;  13.222937    10</span></span>
+<span><span class="co">#&gt;   0.266224    10</span></span>
+<span><span class="co">#&gt;   1.959912    10</span></span>
+<span><span class="co">#&gt;   3.080241    10</span></span>
+<span><span class="co">#&gt;   4.836011    10</span></span>
+<span><span class="co">#&gt;  10.409735    10</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 <p>The Berger-Boos variant costs more than the plain Boschloo test,
 because the confidence bounds of every possible responder total are
@@ -440,12 +441,12 @@ row.</p>
 <span>  unit <span class="op">=</span> <span class="st">'ms'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
-<span><span class="co">#&gt;              expr        min         lq       mean    median         uq</span></span>
-<span><span class="co">#&gt;  bbssr.whole.grid   1.946935   2.031662   2.109885   2.04057   2.068122</span></span>
-<span><span class="co">#&gt;     Exact.one.row 285.172413 286.257178 287.626983 288.46840 289.085098</span></span>
+<span><span class="co">#&gt;              expr        min        lq       mean     median         uq</span></span>
+<span><span class="co">#&gt;  bbssr.whole.grid   1.486792   1.62106   1.676154   1.630004   1.646988</span></span>
+<span><span class="co">#&gt;     Exact.one.row 199.249984 199.56055 201.125234 200.649077 202.927380</span></span>
 <span><span class="co">#&gt;         max neval</span></span>
-<span><span class="co">#&gt;    2.462137     5</span></span>
-<span><span class="co">#&gt;  289.151832     5</span></span>
+<span><span class="co">#&gt;    1.995926     5</span></span>
+<span><span class="co">#&gt;  203.239172     5</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -692,7 +693,9 @@ after rounding to the digits of the publication.</p>
 <span><span class="co">#&gt; 12   0.35314961   TRUE</span></span></code></pre></div>
 <p>Of the 12 values above, 12 agree with the publication after rounding.
 The script reports every value that it does not reproduce, together with
-the reason when one is known.</p>
+the reason when one is known. The vignette ‘Validation by Reproducing
+Published Figures’ redraws twelve figures of the same publications from
+values computed with the package.</p>
 <p>The two-sided Fisher p-values of the conventions are compared with
 two published examples: 8 responders out of 14 against 1 out of 7 in Fay
 and Hunsberger (2021, Section 8), and 8 out of 148 against 1 out of 132

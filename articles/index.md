@@ -27,3 +27,5 @@
   bbssr](https://gosukehommaex.github.io/bbssr/articles/bbssr-statistical-methods.md):
 - [Validation of
   bbssr](https://gosukehommaex.github.io/bbssr/articles/bbssr-validation.md):
+- [Validation by Reproducing Published
+  Figures](https://gosukehommaex.github.io/bbssr/articles/bbssr-published-figures.md):
