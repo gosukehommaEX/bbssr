@@ -165,6 +165,43 @@ test_that("the mid-p correction removes half of the observed cell probability", 
   expect_equal(p, manual)
 })
 
+test_that("the two-sided mid-p values of minlike and central follow their definitions", {
+  # Under minlike the tables less probable than the observed one count in full and the
+  # tables as probable as it, the observed one included, count half (Fay and Hunsberger,
+  # 2021, Section 9). Under central the p-value is twice the smaller of the two one-sided
+  # mid-p values. With 7 and 7 patients many tables are tied with their mirror image, and
+  # 10 and 6 patients give groups of unequal size
+  for (n in list(c(7, 7), c(10, 6))) {
+    N1 <- n[1]
+    N2 <- n[2]
+    tied_tables <- function(i, j) {
+      s <- i + j
+      k <- max(0, s - N2):min(N1, s)
+      f <- stats::dhyper(k, N1, N2, s)
+      f0 <- f[k == i]
+      list(f = f, f0 = f0, tied = abs(f - f0) <= 1e-10 * pmax(f, f0))
+    }
+    ref <- outer(0:N1, 0:N2, Vectorize(function(i, j) {
+      tab <- tied_tables(i, j)
+      min(1, sum(tab$f[tab$f < tab$f0 & !tab$tied]) + 0.5 * sum(tab$f[tab$tied]))
+    }))
+    ties <- outer(0:N1, 0:N2, Vectorize(function(i, j) sum(tied_tables(i, j)$tied) - 1))
+    # The grids contain outcomes with tied tables, so the half weight is checked
+    expect_gt(sum(ties > 0), 0)
+    expect_equal(fisher_pvalue(N1, N2, 'two.sided', 'minlike', midp = TRUE), ref,
+                 tolerance = 1e-12, info = sprintf('minlike, %d x %d', N1, N2))
+    central <- outer(0:N1, 0:N2, function(i, j) {
+      s <- i + j
+      mid <- 0.5 * stats::dhyper(i, N1, N2, s)
+      upper <- stats::phyper(i, N1, N2, s, lower.tail = FALSE) + mid
+      lower <- stats::phyper(i - 1, N1, N2, s) + mid
+      pmin(1, 2 * pmin(lower, upper))
+    })
+    expect_equal(fisher_pvalue(N1, N2, 'two.sided', 'central', midp = TRUE), central,
+                 tolerance = 1e-12, info = sprintf('central, %d x %d', N1, N2))
+  }
+})
+
 test_that("the mid-p p-value never exceeds the exact p-value", {
   for (alt in c('greater', 'two.sided')) {
     for (ts in c('minlike', 'central', 'blaker')) {

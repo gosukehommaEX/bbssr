@@ -28,6 +28,7 @@ knitr::opts_chunk$set(
 library(bbssr)
 has_exact <- requireNamespace('Exact', quietly = TRUE)
 has_exact2x2 <- requireNamespace('exact2x2', quietly = TRUE)
+has_exact2x2_midp <- has_exact2x2 && 'midp' %in% names(formals(exact2x2::exact2x2))
 has_bench <- requireNamespace('microbenchmark', quietly = TRUE)
 c(Exact = has_exact, exact2x2 = has_exact2x2, microbenchmark = has_bench)
 ```
@@ -90,6 +91,54 @@ want <- outer(0:N1, 0:N2, Vectorize(function(i, j) {
 }))
 max(abs(got - want))
 ```
+
+The mid-p values of `Fisher-midP` are checked against their definition. The observed table counts with half of its probability. Under `minlike` and `blaker` the same holds for the tables tied with it in the ordering, while the tables strictly more extreme count in full, as in Fay and Hunsberger (2021, Section 9). Under `central` the p-value is twice the smaller of the two one-sided mid-p values. With 7 and 6 patients no two tables are tied, so two other grids are used. With 7 patients in each group the conditional distribution is symmetric and many tables are tied with their mirror image, and with 10 and 6 patients `minlike` and `blaker` order the tables differently.
+
+```{r midp-vs-definition}
+# Mid-p value of one outcome from its definition, and the number of other tables tied
+# with the observed one in the ordering of the convention
+midp_ref <- function(i, j, N1, N2, alternative, tsmethod) {
+  s <- i + j
+  k <- max(0, s - N2):min(N1, s)
+  f <- stats::dhyper(k, N1, N2, s)
+  upper <- sum(f[k > i]) + 0.5 * f[k == i]
+  lower <- sum(f[k < i]) + 0.5 * f[k == i]
+  if (alternative == 'greater') return(c(p = upper, ties = 0))
+  if (tsmethod == 'central') return(c(p = min(1, 2 * min(upper, lower)), ties = 0))
+  g <- if (tsmethod == 'minlike') {
+    f
+  } else {
+    pmin(stats::phyper(k, N1, N2, s), stats::phyper(k - 1, N1, N2, s, lower.tail = FALSE))
+  }
+  g0 <- g[k == i]
+  tied <- abs(g - g0) <= 1e-10 * pmax(g, g0)
+  c(p = min(1, sum(f[g < g0 & !tied]) + 0.5 * sum(f[tied])), ties = sum(tied) - 1)
+}
+compare_midp <- function(alternative, tsmethod) {
+  out <- lapply(list(c(7, 7), c(10, 6)), function(n) {
+    cells <- expand.grid(i = 0:n[1], j = 0:n[2])
+    got <- attr(BinaryRR(n[1], n[2], 0.05, 'Fisher-midP', alternative = alternative,
+                         tsmethod = tsmethod), 'p.value')
+    want <- mapply(midp_ref, cells$i, cells$j,
+                   MoreArgs = list(N1 = n[1], N2 = n[2], alternative = alternative,
+                                   tsmethod = tsmethod))
+    c(difference = max(abs(got[cbind(cells$i + 1, cells$j + 1)] - want['p', ])),
+      ties = sum(want['ties', ] > 0), outcomes = nrow(cells))
+  })
+  out <- do.call(rbind, out)
+  c(difference = max(out[, 'difference']), ties = sum(out[, 'ties']),
+    outcomes = sum(out[, 'outcomes']))
+}
+midp <- rbind(compare_midp('greater', 'minlike'), compare_midp('two.sided', 'minlike'),
+              compare_midp('two.sided', 'central'), compare_midp('two.sided', 'blaker'))
+data.frame(
+  comparison = c('one-sided', 'two-sided, minlike', 'two-sided, central',
+                 'two-sided, blaker'),
+  max.absolute.difference = midp[, 'difference']
+)
+```
+
+At `r midp[2, 'ties']` of the `r midp[2, 'outcomes']` outcomes of the two grids another table is tied with the observed one under `minlike`, and at `r midp[4, 'ties']` under `blaker`, so the half weight of the tied tables is checked.
 
 ## Unconditional tests against a direct evaluation
 
@@ -226,6 +275,27 @@ theirs <- outer(0:N1, 0:N2, Vectorize(function(i, j) {
   exact2x2::exact2x2(tab, tsmethod = 'blaker', conf.int = FALSE)$p.value
 }))
 max(abs(ours - theirs))
+```
+
+With `midp = TRUE`, `exact2x2::exact2x2()` computes the one-sided mid-p value and the two-sided mid-p value of the `central` convention, and does not offer the mid-p value under `minlike` or `blaker`. The two are compared with `Fisher-midP` at the same outcomes as above.
+
+```{r exact2x2-midp, eval = has_exact2x2_midp}
+compare_exact2x2_midp <- function(alternative) {
+  ours <- attr(BinaryRR(N1, N2, 0.05, 'Fisher-midP', alternative = alternative,
+                        tsmethod = 'central'), 'p.value')
+  theirs <- outer(0:N1, 0:N2, Vectorize(function(i, j) {
+    if (i + j == 0 || i + j == N1 + N2) return(NA_real_)
+    tab <- matrix(c(i, j, N1 - i, N2 - j), nrow = 2)
+    exact2x2::exact2x2(tab, alternative = alternative, tsmethod = 'central',
+                       conf.int = FALSE, midp = TRUE)$p.value
+  }))
+  max(abs(ours - theirs), na.rm = TRUE)
+}
+data.frame(
+  comparison = c('one-sided', 'two-sided, central'),
+  max.absolute.difference = c(compare_exact2x2_midp('greater'),
+                              compare_exact2x2_midp('two.sided'))
+)
 ```
 
 `exact2x2::boschloo()` offers the `central` and `minlike` conventions. The two-sided Boschloo p-values of the `central` convention are compared below.
@@ -503,7 +573,7 @@ In the example of Mehrotra, Chan and Berger (2003) the `minlike` and `blaker` co
 
 ## Summary
 
-The Fisher exact test reproduces `stats::fisher.test` to machine precision, and its `blaker` convention reproduces `exact2x2`. The unconditional tests reproduce a direct evaluation of their definition to machine precision, and agree with `Exact` and `exact2x2` up to the difference in the search over the nuisance parameter. In the configuration examined, the three exact tests hold the type I error rate below the nominal level for one-sided and two-sided alternatives alike. A re-estimation design without re-estimation reproduces the fixed-sample design, the two calculations of the type I error rate of a re-estimation design agree, the certified largest type I error rate is confirmed by a dense grid, and published values are recomputed.
+The Fisher exact test reproduces `stats::fisher.test` to machine precision, and its `blaker` convention reproduces `exact2x2`. The mid-p test reproduces its definition under every convention to machine precision, and `exact2x2` for the one-sided and the `central` p-values. The unconditional tests reproduce a direct evaluation of their definition to machine precision, and agree with `Exact` and `exact2x2` up to the difference in the search over the nuisance parameter. In the configuration examined, the three exact tests hold the type I error rate below the nominal level for one-sided and two-sided alternatives alike. A re-estimation design without re-estimation reproduces the fixed-sample design, the two calculations of the type I error rate of a re-estimation design agree, the certified largest type I error rate is confirmed by a dense grid, and published values are recomputed.
 
 ## References
 
