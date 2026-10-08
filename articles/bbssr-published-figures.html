@@ -816,8 +816,31 @@ at the assumed overall rate, for
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo>=</mo><mn>1</mn><mi>/</mi><mn>3</mn><mo>,</mo><mn>1</mn><mi>/</mi><mn>2</mn><mo>,</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">q = 1/3, 1/2, 1</annotation></semantics></math>
 and the assumed overall rates 0.30, 0.31, …, 0.70 (123 designs per
 test). The points of the test of Blackwelder lie along the diagonal
-between 0.0215 and 0.0276, and those of the test of Farrington and
-Manning between 0.0240 and 0.0266, as in the original.</p>
+between 0.0215 and 0.0276, as in the original. The points of the test of
+Farrington and Manning lie between 0.0240 and 0.0266, and those of the
+original between about 0.0238 and 0.0264, so the cloud agrees in its
+shape but not exactly at its edges.</p>
+<p>The article does not simulate. It sums over all outcomes and bounds
+the omitted terms, so that each plotted level lies within 0.00005 of the
+exact level (Section 4.3 of the article), and the differences are not
+simulation error. The level of the test changes by several units in the
+fourth decimal when a group gains or loses one patient, and the article
+does not state how the sample size of formula (2) is split between the
+groups or how the pilot and the re-estimated sample sizes are rounded.
+For
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo>=</mo><mn>1</mn><mi>/</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">q = 1/3</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>π</mi><mi>a</mi></msup><mo>=</mo><mn>0.7</mn></mrow><annotation encoding="application/x-tex">\pi^a = 0.7</annotation></semantics></math>,
+Table 2 of the article gives only the total of 815 patients. bbssr
+allocates them as 611 + 204, for which the level of the fixed design is
+0.0266. One patient fewer in group 1 gives 0.0262, and the other splits
+610 + 205 and 612 + 203 give 0.0264 and 0.0266. The levels of all fixed
+designs of the figure, and the levels of these four splits, agree with
+an independent computation in Python
+(<code>tools/reference/check_friede_2007_figure1.py</code> in the source
+repository), which finds the restricted maximum likelihood estimates by
+bisection on the score equation rather than by the closed form of
+Farrington and Manning (1990).</p>
 </div>
 <div class="section level3">
 <h3 id="figure-2-p--909">Figure 2 (p. 909)<a class="anchor" aria-label="anchor" href="#figure-2-p--909"></a>

@@ -349,8 +349,28 @@ design for the test of Blackwelder (left) and of Farrington and Manning
 the assumed overall rate, for $`q = 1/3, 1/2, 1`$ and the assumed
 overall rates 0.30, 0.31, …, 0.70 (123 designs per test). The points of
 the test of Blackwelder lie along the diagonal between 0.0215 and
-0.0276, and those of the test of Farrington and Manning between 0.0240
-and 0.0266, as in the original.
+0.0276, as in the original. The points of the test of Farrington and
+Manning lie between 0.0240 and 0.0266, and those of the original between
+about 0.0238 and 0.0264, so the cloud agrees in its shape but not
+exactly at its edges.
+
+The article does not simulate. It sums over all outcomes and bounds the
+omitted terms, so that each plotted level lies within 0.00005 of the
+exact level (Section 4.3 of the article), and the differences are not
+simulation error. The level of the test changes by several units in the
+fourth decimal when a group gains or loses one patient, and the article
+does not state how the sample size of formula (2) is split between the
+groups or how the pilot and the re-estimated sample sizes are rounded.
+For $`q = 1/3`$ and $`\pi^a = 0.7`$, Table 2 of the article gives only
+the total of 815 patients. bbssr allocates them as 611 + 204, for which
+the level of the fixed design is 0.0266. One patient fewer in group 1
+gives 0.0262, and the other splits 610 + 205 and 612 + 203 give 0.0264
+and 0.0266. The levels of all fixed designs of the figure, and the
+levels of these four splits, agree with an independent computation in
+Python (`tools/reference/check_friede_2007_figure1.py` in the source
+repository), which finds the restricted maximum likelihood estimates by
+bisection on the score equation rather than by the closed form of
+Farrington and Manning (1990).
 
 ### Figure 2 (p. 909)
 
