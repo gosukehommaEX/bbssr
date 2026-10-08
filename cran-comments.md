@@ -19,7 +19,17 @@ change, including the changes in behaviour.
 
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes
+0 errors | 0 warnings | 0 notes on the local installation.
+
+win-builder gives 1 NOTE with R-devel and with R-release:
+
+    Possibly misspelled words in DESCRIPTION:
+      Blackwelder (13:5)
+      Farrington (13:66)
+      Friede (23:43, 24:28)
+
+These are the surnames of the authors of the cited references, and they are spelled
+correctly.
 
 ## Reverse dependencies
 
