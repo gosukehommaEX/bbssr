@@ -34,12 +34,13 @@
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
 #' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the
 #'   unconditional tests is refined between the grid points
-#' @param margin Non-inferiority margin on the scale of the risk difference, 0 for a test
-#'   of superiority. With a margin other than 0 the search starts from
-#'   the formula of Farrington and Manning (1990)
+#' @param margin Non-inferiority margin, 0 for a test of superiority on the scale of the
+#'   risk difference. With a margin other than 0, or a margin on the scale of the risk
+#'   ratio, the search starts from the formula of Farrington and Manning (1990)
 #' @param search \code{'crossing'} (default), \code{'smallest'} or \code{'stable'}
 #' @param search.limit The factor \code{a} and the increment \code{b} of the limit of
 #'   \code{search = 'stable'}. Default is \code{c(2, 50)}
+#' @param margin.scale \code{'RD'} or \code{'RR'}, the scale of the margin
 #'
 #' @return A list with the integer vectors \code{N2}, the sizes of group 2, and
 #'   \code{limit}, the limits of \code{search = 'stable'} (otherwise \code{NA})
@@ -50,7 +51,7 @@
 #' @importFrom stats qnorm dbinom
 ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod,
                             n.grid, bb.gamma, ref.pvalue, margin, search = 'crossing',
-                            search.limit = c(2, 50)) {
+                            search.limit = c(2, 50), margin.scale) {
   if (search == 'stable' &&
       (!is.numeric(search.limit) || length(search.limit) != 2 || anyNA(search.limit) ||
          any(!is.finite(search.limit)) || search.limit[1] < 1 || search.limit[2] < 0)) {
@@ -64,7 +65,7 @@ ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsme
     hit <- store[[key]]
     if (is.null(hit)) {
       hit <- get_rr(ceiling(r * N2), N2, alpha, Test, alternative, tsmethod, n.grid,
-                    bb.gamma, ref.pvalue, margin)
+                    bb.gamma, ref.pvalue, margin, margin.scale)
       assign(key, hit, envir = store)
     }
     hit
@@ -82,8 +83,9 @@ ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsme
     (qnorm(alpha.eff) * sqrt(p * (1 - p)) +
        qnorm(1 - tar.power) * sqrt((p1 * (1 - p1) / r + p2 * (1 - p2)) / (1 + 1 / r))) ^ 2
   )
-  if (margin != 0) {
-    init.N2 <- ss_raw_n2(p1, p2, r, alpha, tar.power, alternative, 'standard', margin)
+  if (margin.scale == 'RR' || margin != 0) {
+    init.N2 <- ss_raw_n2(p1, p2, r, alpha, tar.power, alternative, 'standard', margin,
+                         margin.scale)
   }
   out <- integer(length(p1))
   limit <- rep(NA_integer_, length(p1))

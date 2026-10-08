@@ -14,7 +14,8 @@ BinaryRR(
   n.grid = 100,
   bb.gamma = 0,
   margin = 0,
-  ref.pvalue = FALSE
+  ref.pvalue = FALSE,
+  margin.scale = c("RD", "RR")
 )
 }
 \arguments{
@@ -50,18 +51,25 @@ restricts the search over the nuisance parameter to an exact
 \code{100 (1 - bb.gamma)} percent confidence interval and adds \code{bb.gamma} to the
 resulting p-value. A common choice is 0.0001}
 
-\item{margin}{Non-inferiority margin on the scale of the risk difference. The
-default of 0 gives a test of superiority. A value other than 0 tests the null
-hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
-\code{alternative} is \code{'greater'}, and \code{p1 - p2 >= margin} against
-\code{p1 - p2 < margin} when it is \code{'less'}. It requires
-\code{Test = 'Blackwelder'} or \code{'Farrington-Manning'}, see
-\code{\link{BinaryRR}}. A negative value tests for superiority by more than its
-absolute value}
+\item{margin}{Non-inferiority margin, on the scale given by \code{margin.scale}. On the
+scale of the risk difference the default of 0 gives a test of superiority, and a
+value other than 0 tests the null hypothesis \code{p1 - p2 <= -margin} against
+\code{p1 - p2 > -margin} when \code{alternative} is \code{'greater'}, and
+\code{p1 - p2 >= margin} against \code{p1 - p2 < margin} when it is \code{'less'}. A
+negative value tests for superiority by more than its absolute value. On the scale
+of the risk ratio the margin is a positive ratio \code{R0}, and the null hypothesis
+is \code{p1 / p2 <= R0} against \code{p1 / p2 > R0} when \code{alternative} is
+\code{'greater'}, and \code{p1 / p2 >= R0} against \code{p1 / p2 < R0} when it is
+\code{'less'}. A margin other than 0, and any margin on the scale of the risk ratio,
+requires \code{Test = 'Blackwelder'} or \code{'Farrington-Manning'} and a one-sided
+alternative, see \code{\link{BinaryRR}}}
 
 \item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
 of the unconditional tests is refined between the grid points, see Details. Default
 is \code{FALSE}. Ignored by the conditional tests}
+
+\item{margin.scale}{Scale of \code{margin}. Options: \code{'RD'} (default) for the
+risk difference \code{p1 - p2} or \code{'RR'} for the risk ratio \code{p1 / p2}}
 }
 \value{
 An object of class \code{bbssr_rr}, which is a logical matrix of dimension
@@ -72,7 +80,8 @@ responders in group 2. The design settings are stored as attributes
 \description{
 Provides a rejection region (RR) for two-arm trials with binary endpoints. Seven tests
 are supported. Each can be applied with a one-sided or a two-sided alternative, and two
-of them also test non-inferiority with a margin on the scale of the risk difference.
+of them also test non-inferiority with a margin on the scale of the risk difference or
+the risk ratio.
 }
 \details{
 The function supports the following seven tests:
@@ -145,6 +154,18 @@ asymptotic, and their rejection regions and power are computed exactly, as for t
 other tests. A margin other than 0 is available only with these two tests and a
 one-sided alternative.
 
+With \code{margin.scale = 'RR'} the margin is a ratio \code{R0}, and both tests refer
+the statistic \code{z = (hat.p1 - R0 hat.p2) / SE} of Farrington and Manning (1990) to
+the standard normal distribution, which tests the null hypothesis \code{p1 / p2 <= R0}
+for \code{alternative = 'greater'}. The squared standard error is
+\code{p1 (1 - p1) / N1 + R0^2 p2 (1 - p2) / N2}. The Blackwelder test evaluates it at
+the observed proportions, which is Method 1 of Farrington and Manning (1990), and the
+Farrington-Manning test at the maximum likelihood estimates under \code{p1 = R0 p2},
+formula (13) of that article. For \code{alternative = 'less'} the groups are exchanged
+as for the other tests, with the ratio \code{1 / R0}, which changes only the sign of
+the statistic. A margin on the scale of the risk ratio is also available only with
+these two tests and a one-sided alternative.
+
 The p-values are kept for the rest of the session and reused by later calls with the
 same sample sizes and test, see \code{\link{bbssr-package}}.
 }
@@ -169,6 +190,11 @@ sum(RR.grid) - sum(RR.ref)
 # Non-inferiority with a margin of 0.1 by the test of Farrington and Manning
 RR <- BinaryRR(N1 = 60, N2 = 60, alpha = 0.025, Test = 'Farrington-Manning',
                margin = 0.1)
+print(RR)
+
+# Non-inferiority with the margin 0.8 on the scale of the risk ratio
+RR <- BinaryRR(N1 = 60, N2 = 60, alpha = 0.025, Test = 'Farrington-Manning',
+               margin = 0.8, margin.scale = 'RR')
 print(RR)
 }
 

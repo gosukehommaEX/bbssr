@@ -133,11 +133,11 @@ BinaryCondRejectBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   map <- bssr_map(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Test,
                   restricted, alternative, tsmethod, n.grid, bb.gamma, effect,
                   ss.method, ss.Test, ss.alpha, rounding, N.min, N.max, ref.pvalue, 0,
-                  search = search, search.limit = search.limit)
+                  search = search, search.limit = search.limit, margin.scale = 'RD')
   setup <- bssr_setup(map)
   rr.list <- lapply(seq_along(setup$N1), function(k) {
     get_rr(setup$N1[k], setup$N2[k], alpha, Test, alternative, tsmethod, n.grid, bb.gamma,
-           ref.pvalue, 0)
+           ref.pvalue, 0, 'RD')
   })
   # Index of the final sample sizes reached from each pooled number of interim responders
   id.s <- match(paste(map$N1, map$N2, sep = '_'), paste(setup$N1, setup$N2, sep = '_'))

@@ -2,7 +2,7 @@
 eps <- sqrt(.Machine$double.eps)
 
 test_that("report_level moves the level found below the smallest p-value not rejected", {
-  pv <- get_pvalue(39L, 39L, 'Chisq', 'greater', 'minlike', 100L, 0, FALSE, 0)
+  pv <- get_pvalue(39L, 39L, 'Chisq', 'greater', 'minlike', 100L, 0, FALSE, 0, 'RD')
   # Level found by the bisection of BinaryAlphaAdjBSSR for the fixed design with 39
   # patients per group, just below the smallest p-value not rejected plus eps
   level <- 0.020770048405393

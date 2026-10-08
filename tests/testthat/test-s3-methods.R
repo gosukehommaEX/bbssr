@@ -174,4 +174,11 @@ test_that("the printed output reports a non-inferiority margin", {
   ss <- BinarySampleSize(0.7, 0.7, 1, 0.025, 0.8, 'Farrington-Manning',
                          method = 'standard', margin = 0.1)
   expect_true(any(grepl('Margin', utils::capture.output(print(ss)))))
+  out <- utils::capture.output(print(BinaryRR(10, 10, 0.05, 'Blackwelder', margin = 0.8,
+                                              margin.scale = 'RR')))
+  expect_true(any(grepl('Margin        : 0.8 (risk ratio)', out, fixed = TRUE)))
+  ss <- BinarySampleSize(0.6, 0.6, 1, 0.025, 0.8, 'Farrington-Manning',
+                         method = 'standard', margin = 0.8, margin.scale = 'RR')
+  expect_true(any(grepl('0.8 (risk ratio)', utils::capture.output(print(ss)),
+                        fixed = TRUE)))
 })

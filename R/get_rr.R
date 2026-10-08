@@ -15,8 +15,9 @@
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
 #' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the
 #'   unconditional tests is refined between the grid points
-#' @param margin Non-inferiority margin on the scale of the risk difference, 0 for a test
-#'   of superiority
+#' @param margin Non-inferiority margin, 0 for a test of superiority on the scale of the
+#'   risk difference
+#' @param margin.scale \code{'RD'} or \code{'RR'}, the scale of the margin
 #'
 #' @return A logical matrix of dimension \code{(N1 + 1)} by \code{(N2 + 1)} without
 #'   attributes other than \code{dim}
@@ -25,10 +26,10 @@
 #' @noRd
 #' @import fpCompare
 get_rr <- function(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma,
-                   ref.pvalue, margin) {
+                   ref.pvalue, margin, margin.scale) {
   a <- check_rr_args(N1, N2, alpha, Test, n.grid, bb.gamma, ref.pvalue, alternative,
-                     margin)
+                     margin, margin.scale)
   pv <- get_pvalue(a$N1, a$N2, a$Test, alternative, tsmethod, a$n.grid, bb.gamma,
-                   a$ref.pvalue, a$margin)
+                   a$ref.pvalue, a$margin, a$margin.scale)
   pv %<<% alpha
 }

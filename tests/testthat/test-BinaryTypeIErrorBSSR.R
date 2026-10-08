@@ -176,3 +176,56 @@ test_that("BinaryTypeIErrorBSSR passes search and search.limit to the re-estimat
   expect_equal(attr(res, 'search'), 'stable')
   expect_false(anyNA(attr(res, 'reestimation')$N2.limit))
 })
+
+test_that("BinaryTypeIErrorBSSR evaluates the boundary of a ratio margin", {
+  args <- list(Delta.A = 1, N1 = 100, N2 = 100, n.interim = c(20, 20), r = 1,
+               alpha = 0.025, tar.power = 0.8, Test = 'Farrington-Manning', effect = 'RR',
+               ss.method = 'standard', rounding = 'nearest', N.max = 300, margin = 0.8,
+               margin.scale = 'RR')
+  seen <- ref_pvalue_calls(tie <- do.call(BinaryTypeIErrorBSSR, c(args, list(
+    theta = c(0.3, 0.5, 0.7, 0.95), maximize = 'grid'
+  ))))
+  expect_true(all(seen$margin.scale == 'RR'))
+  # theta = 0.95 puts the response probability of group 2 above 1
+  expect_equal(tie$theta, c(0.3, 0.5, 0.7))
+  expect_equal(tie$p1, 0.8 * tie$p2)
+  # Reference values from tools/reference/reference_values.py, BSSR and fixed design in
+  # turn for each value of theta
+  expect_equal(c(rbind(tie$TIE.BSSR, tie$TIE.TRAD)),
+               c(0.0255030250799468, 0.025862696947157, 0.0253098748918834,
+                 0.025463971862289, 0.0260046973465639, 0.0249123070548097),
+               tolerance = 1e-10)
+  expect_identical(attr(tie, 'margin.scale'), 'RR')
+  # Certified over the whole boundary, on which theta runs from 0 to 0.9 and p2 from 0 to
+  # 1. The largest rate of the re-estimation design lies at the end, where few patients
+  # are recruited
+  cert <- do.call(BinaryTypeIErrorBSSR, args)
+  expect_equal(attr(cert, 'interval'), c(0, 0.9), tolerance = 1e-14)
+  m <- attr(cert, 'max')
+  expect_equal(m$TIE, c(0.0370092046191537, 0.0262750446720697), tolerance = 1e-10)
+  expect_equal(m$theta[1], 0.9, tolerance = 1e-9)
+  expect_true(all(m$bound - m$TIE <= 1e-12 + 1e-15))
+})
+
+test_that("the certified maximum on a ratio boundary agrees with a dense grid", {
+  # Groups of different sizes and the boundary p1 = 1.5 p2 of the hypothesis of
+  # alternative = 'less', on which p2 = 3 theta / 4 and p1 = 1.125 theta, so theta can run
+  # up to 8 / 9. The certification over [0.05, 0.85] uses the Bernstein coefficients and
+  # the refinement on a grid of step 0.001 sums the binomial probabilities, two separate
+  # computations
+  args <- list(Delta.A = 1, N1 = 24, N2 = 12, n.interim = c(12, 6), r = 2, alpha = 0.025,
+               tar.power = 0.8, Test = 'Farrington-Manning', alternative = 'less',
+               effect = 'RR', ss.method = 'standard', N.max = 120, margin = 1.5,
+               margin.scale = 'RR')
+  cert <- do.call(BinaryTypeIErrorBSSR, c(args, list(theta = c(0.05, 0.85))))
+  expect_equal(attr(cert, 'interval'), c(0.05, 0.85), tolerance = 1e-14)
+  expect_equal(cert$p1, 1.5 * cert$p2, tolerance = 1e-14)
+  dense <- do.call(BinaryTypeIErrorBSSR,
+                   c(args, list(theta = seq(0.05, 0.85, by = 0.001), maximize = 'refined')))
+  mc <- attr(cert, 'max')
+  md <- attr(dense, 'max')
+  expect_gt(min(md$TIE), 0.001)
+  expect_equal(mc$TIE, md$TIE, tolerance = 1e-10)
+  expect_true(all(md$TIE <= mc$bound + 1e-15))
+  expect_true(all(mc$bound - mc$TIE <= 1e-12 + 1e-15))
+})

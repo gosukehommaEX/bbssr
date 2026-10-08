@@ -145,7 +145,7 @@ kieser_pilot_stop <- function(p, Delta, r, N1, N2, n.interim) {
                   restricted = FALSE, alternative = 'greater', tsmethod = 'minlike',
                   n.grid = 100, bb.gamma = 0, effect = 'RD', ss.method = 'standard',
                   ss.Test = 'Chisq', ss.alpha = 0.025, rounding = 'group', N.min = NULL,
-                  N.max = NULL, ref.pvalue = FALSE, margin = 0)
+                  N.max = NULL, ref.pvalue = FALSE, margin = 0, margin.scale = 'RD')
   sp <- split_pooled(map$hat.p, Delta, r, 'RD')
   outside <- sp$p1 > 1 + 1e-9 | sp$p2 < -1e-9
   map$N1[outside] <- attr(map, 'n11')
@@ -153,7 +153,7 @@ kieser_pilot_stop <- function(p, Delta, r, N1, N2, n.interim) {
   setup <- bssr_setup(map)
   rr.list <- lapply(seq_along(setup$N1), function(k) {
     get_rr(setup$N1[k], setup$N2[k], 0.025, 'Chisq', 'greater', 'minlike', 100, 0, FALSE,
-           0)
+           0, 'RD')
   })
   bssr_reject(setup, rr.list, p, p)
 }

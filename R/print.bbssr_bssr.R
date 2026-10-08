@@ -22,9 +22,9 @@ print.bbssr_bssr <- function(x, digits = 4, ...) {
   cat(sprintf('  Design rule      : %s\n',
               if (isTRUE(attr(x, 'restricted'))) 'restricted' else 'unrestricted'))
   cat(sprintf('  Assumed effect   : %s\n', format(attr(x, 'Delta.A'))))
-  margin <- attr(x, 'margin')
-  if (!is.null(margin) && margin != 0) {
-    cat(sprintf('  Margin           : %s\n', format(margin)))
+  margin <- format_margin(attr(x, 'margin'), attr(x, 'margin.scale'))
+  if (!is.null(margin)) {
+    cat(sprintf('  Margin           : %s\n', margin))
   }
   cat(sprintf('  Alpha            : %s, target power %s\n\n',
               format(attr(x, 'alpha')), format(attr(x, 'tar.power'))))

@@ -34,9 +34,9 @@ print.bbssr_alphaadj <- function(x, digits = 6, ...) {
   cat(sprintf('  Adjusted part   : %s\n',
               if (attr(x, 'adjust') == 'test') 'final analysis only'
               else 'final analysis and re-estimation'))
-  margin <- attr(x, 'margin')
-  if (!is.null(margin) && margin != 0) {
-    cat(sprintf('  Margin          : %s\n', format(margin)))
+  margin <- format_margin(attr(x, 'margin'), attr(x, 'margin.scale'))
+  if (!is.null(margin)) {
+    cat(sprintf('  Margin          : %s\n', margin))
   }
   cat(sprintf('  Maximum         : %s\n', maximize_label(x)))
   cat(sprintf('  Target level    : %s\n\n', format(x$alpha[1])))

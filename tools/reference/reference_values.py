@@ -964,6 +964,193 @@ def block_search():
          rtol=0)
 
 
+# ---------------------------------------------------------------------------------------
+# Non-inferiority on the scale of the risk ratio, Farrington and Manning (1990)
+def restricted_mle_rr(x1, n1, x2, n2, R0):
+    """Maximum likelihood estimates under p1 = R0 p2, by bisection on the score in p2.
+
+    The log likelihood x1 log(R0 p2) + (n1 - x1) log(1 - R0 p2) + x2 log(p2) +
+    (n2 - x2) log(1 - p2) is concave in p2 on (0, min(1, 1 / R0)), so its derivative is
+    decreasing and its sign change is found by bisection. This shares nothing with the
+    closed form of formula (13) used by the package."""
+    x1, x2 = np.broadcast_arrays(np.asarray(x1, float), np.asarray(x2, float))
+    lo = np.zeros(x1.shape); hi = np.full(x1.shape, min(1.0, 1.0 / R0))
+    def score(t):
+        with np.errstate(divide="ignore", invalid="ignore"):
+            a = (np.where(x1 > 0, x1 / t, 0.0)
+                 - np.where(n1 - x1 > 0, (n1 - x1) * R0 / (1 - R0 * t), 0.0))
+            b = np.where(x2 > 0, x2 / t, 0.0) - np.where(n2 - x2 > 0, (n2 - x2) / (1 - t), 0.0)
+        return a + b
+    for _ in range(200):
+        mid = 0.5 * (lo + hi)
+        sc = score(mid)
+        lo = np.where(sc > 0, mid, lo); hi = np.where(sc > 0, hi, mid)
+    t = 0.5 * (lo + hi)
+    return R0 * t, t
+
+
+def large_sample_rr(p1, p2, theta, R0):
+    """Large sample values: the restricted estimates with expected counts p1 and theta p2.
+    The score is linear in the counts, so the scaling by 1e6 is exact."""
+    t1, t2 = restricted_mle_rr(p1 * 1e6, 1e6, p2 * theta * 1e6, theta * 1e6, R0)
+    return float(t1), float(t2)
+
+
+@lru_cache(maxsize=None)
+def rr_pvalues(N1, N2, test, R0, alt):
+    """p-values of the statistic (hat.p1 - R0 hat.p2) / SE. For 'less' the lower tail of
+    the same statistic is taken, without exchanging the groups."""
+    x1 = np.arange(N1 + 1)[:, None] + 0 * np.arange(N2 + 1)[None, :]
+    x2 = np.arange(N2 + 1)[None, :] + 0 * np.arange(N1 + 1)[:, None]
+    h1, h2 = x1 / N1, x2 / N2
+    num = h1 - R0 * h2
+    if test == "Blackwelder":
+        var = h1 * (1 - h1) / N1 + R0 ** 2 * h2 * (1 - h2) / N2
+    else:
+        t1, t2 = restricted_mle_rr(x1, N1, x2, N2, R0)
+        var = t1 * (1 - t1) / N1 + R0 ** 2 * t2 * (1 - t2) / N2
+    with np.errstate(divide="ignore", invalid="ignore"):
+        z = np.where(var > 0, num / np.sqrt(np.where(var > 0, var, 1.0)),
+                     np.where(num == 0, 0.0, np.sign(num) * np.inf))
+    return norm.sf(z) if alt == "greater" else norm.cdf(z)
+
+
+def rr_reject(N1, N2, test, R0, alt, alpha):
+    return rr_pvalues(N1, N2, test, R0, alt) < alpha - TOL
+
+
+def rr_power(p1, p2, N1, N2, test, R0, alt, alpha):
+    R = rr_reject(N1, N2, test, R0, alt, alpha).astype(float)
+    return binom.pmf(np.arange(N1 + 1), N1, p1) @ R @ binom.pmf(np.arange(N2 + 1), N2, p2)
+
+
+def rr_raw_n2(p1, p2, r, alpha, tp, R0, alt, method):
+    """Unrounded size of group 2, formula (8) of Farrington and Manning (1990) with
+    N1 = r N2."""
+    za, zb = norm.ppf(1 - alpha), norm.ppf(tp)
+    t1, t2 = large_sample_rr(min(1, max(0, p1)), min(1, max(0, p2)), 1 / r, R0)
+    v0 = t1 * (1 - t1) / r + R0 ** 2 * t2 * (1 - t2)
+    v1 = max(p1 * (1 - p1), 0) / r + R0 ** 2 * max(p2 * (1 - p2), 0)
+    if method == "null.variance":
+        v1 = v0
+    if method == "alternative.variance":
+        v0 = v1
+    d = p1 - R0 * p2 if alt == "greater" else R0 * p2 - p1
+    return (za * math.sqrt(v0) + zb * math.sqrt(v1)) ** 2 / d ** 2
+
+
+def rr_exact_n2(p1, p2, r, alpha, tp, test, R0, alt):
+    pa = lambda n2: rr_power(p1, p2, math.ceil(r * n2), n2, test, R0, alt, alpha)
+    ge = lambda a, b: a - b > -TOL
+    lt = lambda a, b: b - a > TOL
+    n2 = max(1, math.ceil(rr_raw_n2(p1, p2, r, alpha, tp, R0, alt, "standard")))
+    P = pa(n2)
+    if ge(P, tp):
+        while ge(P, tp) and n2 > 1:
+            n2 -= 1
+            P = pa(n2)
+        if lt(P, tp):
+            n2 += 1
+    else:
+        while lt(P, tp):
+            n2 += 1
+            P = pa(n2)
+    return n2
+
+
+def rr_bssr_sizes(n11, n12, r, DA, R0, alt, alpha, tp, method, Nplan, Nmax):
+    """Unrestricted design with the upper bound Nmax of the total and each group rounded
+    to the nearest whole number. Recovered rates p2 = (1 + r) ph / (1 + r DA), p1 = DA p2.
+    The interim outcome without responders lies on the null boundary and keeps the
+    planned total."""
+    n = n11 + n12
+    sizes = {}
+    for s in range(n + 1):
+        ph = s / n
+        b = (1 + r) * ph / (1 + r * DA)
+        a = DA * b
+        d = a - R0 * b if alt == "greater" else R0 * b - a
+        raw = sum(Nplan) if abs(d) < TOL else (1 + r) * rr_raw_n2(a, b, r, alpha, tp, R0, alt, method)
+        tot = min(Nmax, max(n, raw))
+        sizes[s] = (max(n11, math.floor(r * tot / (1 + r) + 0.5)), max(n12, math.floor(tot / (1 + r) + 0.5)))
+    return sizes
+
+
+def rr_bssr(sizes, n11, n12, test, R0, alt, alpha, p1, p2):
+    w1 = binom.pmf(np.arange(n11 + 1), n11, p1); w2 = binom.pmf(np.arange(n12 + 1), n12, p2)
+    power = 0.0
+    for x11 in range(n11 + 1):
+        for x12 in range(n12 + 1):
+            N1, N2 = sizes[x11 + x12]; m1, m2 = N1 - n11, N2 - n12
+            R = rr_reject(N1, N2, test, R0, alt, alpha)[x11:x11 + m1 + 1, x12:x12 + m2 + 1]
+            power += w1[x11] * w2[x12] * (binom.pmf(np.arange(m1 + 1), m1, p1) @ R.astype(float)
+                                           @ binom.pmf(np.arange(m2 + 1), m2, p2))
+    ps = interim_total_pmf(n11, n12, p1, p2)
+    EN = float(sum(ps[s] * (N1 + N2) for s, (N1, N2) in sizes.items()))
+    return power, EN
+
+
+def block_ni_rr():
+    f = "test-fm_restricted_rr.R"
+    cases = [(3, 12, 7, 20, 0.5), (0, 18, 0, 18, 0.8), (12, 12, 20, 20, 0.9), (5, 10, 0, 15, 2.0),
+             (8, 25, 9, 30, 1.5), (10, 10, 5, 10, 2.0)]
+    vals = []
+    for x1, n1, x2, n2, R0 in cases:
+        t1, t2 = restricted_mle_rr(x1, n1, x2, n2, R0)
+        vals += [float(t1), float(t2)]
+    vals = [0.0 if abs(v) < 1e-12 else v for v in vals]
+    emit(f, "restricted estimates", vals, rtol=1e-9)
+    emit(f, "large sample values", large_sample_rr(0.65, 0.7, 0.5, 0.8), rtol=1e-9)
+    f = "test-zstat_margin.R"
+    t1, t2 = restricted_mle_rr(15, 25, 20, 30, 0.8)
+    num = 15 / 25 - 0.8 * 20 / 30
+    emit(f, "ratio statistic, restricted and unpooled",
+         [num / math.sqrt(t1 * (1 - t1) / 25 + 0.64 * t2 * (1 - t2) / 30),
+          num / math.sqrt(0.6 * 0.4 / 25 + 0.64 * (2 / 3) * (1 / 3) / 30)], rtol=1e-9)
+    f = "test-binary-rr.R"
+    emit(f, "ratio margin rejection counts",
+         [int(rr_reject(40, 30, "FM", 0.8, "greater", 0.025).sum()),
+          int(rr_reject(30, 40, "Blackwelder", 1.25, "less", 0.025).sum())], rtol=0)
+    f = "test-binary-power.R"
+    emit(f, "ratio margin power", [rr_power(0.6, 0.6, 150, 150, "FM", 0.8, "greater", 0.025),
+                                   rr_power(0.3, 0.3, 120, 100, "Blackwelder", 1.5, "less", 0.025)],
+         rtol=1e-8)
+    f = "test-ss_raw_n2.R"
+    emit(f, "ratio margin raw n2", [rr_raw_n2(0.6, 0.6, 1, 0.025, 0.8, 0.8, "greater", "standard"),
+                                    rr_raw_n2(0.3, 0.3, 2, 0.025, 0.9, 1.5, "less", "standard"),
+                                    rr_raw_n2(0.5, 0.45, 0.5, 0.05, 0.8, 0.75, "greater", "null.variance"),
+                                    rr_raw_n2(0.2, 0.25, 1, 0.025, 0.8, 1.6, "less", "alternative.variance")],
+         rtol=1e-9)
+    f = "test-binary-sample-size.R"
+    emit(f, "exact ratio margin N2", [rr_exact_n2(0.6, 0.6, 1, 0.025, 0.8, "FM", 0.8, "greater"),
+                                      rr_exact_n2(0.3, 0.3, 2, 0.025, 0.8, "Blackwelder", 1.6, "less")],
+         rtol=0)
+    # Re-estimation design: Delta.A = 1, margin 0.8, interim 20 + 20, planned 100 + 100,
+    # at most 300 patients in total
+    sizes = rr_bssr_sizes(20, 20, 1, 1.0, 0.8, "greater", 0.025, 0.8, "standard", (100, 100), 300)
+    f = "test-binary-power-bssr.R"
+    emit(f, "ratio margin power and E.N", rr_bssr(sizes, 20, 20, "FM", 0.8, "greater", 0.025, 0.7, 0.7))
+    emit(f, "ratio margin boundary", rr_bssr(sizes, 20, 20, "FM", 0.8, "greater", 0.025, 0.8 * 1.2 / 1.8, 1.2 / 1.8))
+    f = "test-BinaryTypeIErrorBSSR.R"
+    tie = []
+    for th in (0.3, 0.5, 0.7):
+        b = 2 * th / 1.8
+        tie.append(rr_bssr(sizes, 20, 20, "FM", 0.8, "greater", 0.025, 0.8 * b, b)[0])
+        tie.append(rr_power(0.8 * b, b, 100, 100, "FM", 0.8, "greater", 0.025))
+    emit(f, "ratio margin type I error", tie)
+    # Certified maximum over theta in [0, 0.9], on which p1 runs from 0 to 0.8 and p2 from
+    # 0 to 1
+    rej = lambda N1, N2: rr_reject(N1, N2, "FM", 0.8, "greater", 0.025)
+    coef = {"BSSR": tie_coefficients(interim_hyper(sizes, 20, 20), rej, 0.0, 0.8, 0.0, 1.0),
+            "TRAD": tie_coefficients(interim_hyper({0: (100, 100)}, 0, 0), rej, 0.0, 0.8, 0.0, 1.0)}
+    for th in (0.3, 0.5):
+        t = th / 0.9
+        b = 2 * th / 1.8
+        assert abs(bernstein_value(coef["BSSR"], t)
+                   - rr_bssr(sizes, 20, 20, "FM", 0.8, "greater", 0.025, 0.8 * b, b)[0]) < 1e-13
+        assert abs(bernstein_value(coef["TRAD"], t) - rr_power(0.8 * b, b, 100, 100, "FM", 0.8, "greater", 0.025)) < 1e-13
+    emit(f, "ratio margin certified max", [checked_max(coef[d]) for d in ("BSSR", "TRAD")])
+
 if __name__ == "__main__":
     print("# test file\tkey\trelative tolerance\tvalues (15 significant digits)")
     block_split_pooled()
@@ -977,3 +1164,4 @@ if __name__ == "__main__":
     block_blaker()
     block_certified()
     block_search()
+    block_ni_rr()

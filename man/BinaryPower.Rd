@@ -16,7 +16,8 @@ BinaryPower(
   n.grid = 100,
   bb.gamma = 0,
   margin = 0,
-  ref.pvalue = FALSE
+  ref.pvalue = FALSE,
+  margin.scale = c("RD", "RR")
 )
 }
 \arguments{
@@ -48,18 +49,25 @@ unconditional tests. Default is 100}
 \item{bb.gamma}{Confidence level parameter of the Berger-Boos procedure. The default of
 0 disables the procedure}
 
-\item{margin}{Non-inferiority margin on the scale of the risk difference. The
-default of 0 gives a test of superiority. A value other than 0 tests the null
-hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
-\code{alternative} is \code{'greater'}, and \code{p1 - p2 >= margin} against
-\code{p1 - p2 < margin} when it is \code{'less'}. It requires
-\code{Test = 'Blackwelder'} or \code{'Farrington-Manning'}, see
-\code{\link{BinaryRR}}. A negative value tests for superiority by more than its
-absolute value}
+\item{margin}{Non-inferiority margin, on the scale given by \code{margin.scale}. On the
+scale of the risk difference the default of 0 gives a test of superiority, and a
+value other than 0 tests the null hypothesis \code{p1 - p2 <= -margin} against
+\code{p1 - p2 > -margin} when \code{alternative} is \code{'greater'}, and
+\code{p1 - p2 >= margin} against \code{p1 - p2 < margin} when it is \code{'less'}. A
+negative value tests for superiority by more than its absolute value. On the scale
+of the risk ratio the margin is a positive ratio \code{R0}, and the null hypothesis
+is \code{p1 / p2 <= R0} against \code{p1 / p2 > R0} when \code{alternative} is
+\code{'greater'}, and \code{p1 / p2 >= R0} against \code{p1 / p2 < R0} when it is
+\code{'less'}. A margin other than 0, and any margin on the scale of the risk ratio,
+requires \code{Test = 'Blackwelder'} or \code{'Farrington-Manning'} and a one-sided
+alternative, see \code{\link{BinaryRR}}}
 
 \item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
 of the unconditional tests is refined between the grid points, see
 \code{\link{BinaryRR}}. Default is \code{FALSE}}
+
+\item{margin.scale}{Scale of \code{margin}. Options: \code{'RD'} (default) for the
+risk difference \code{p1 - p2} or \code{'RR'} for the risk ratio \code{p1 / p2}}
 }
 \value{
 An object of class \code{bbssr_power}, a data frame with one row per element of
@@ -79,7 +87,8 @@ An object of class \code{bbssr_power}, a data frame with one row per element of
 Calculates the exact power for two-arm trials with binary endpoints. Seven tests are
 supported (see \code{\link{BinaryRR}}), each of which can be applied with a one-sided or
 a two-sided alternative, and two of them also test non-inferiority with a margin on the
-scale of the risk difference. Vectors of response probabilities are accepted.
+scale of the risk difference or the risk ratio. Vectors of response probabilities are
+accepted.
 }
 \details{
 The power is obtained by summing the joint probability mass function of the two

@@ -1,14 +1,15 @@
 # Reproduces the published numerical results of Friede and Kieser (2004, Table I and
 # Section 5), Kieser (2020, Example 21.1, the values stated for Figures 21.1 and 21.2,
-# Example 23.1 and Section 23.2), Farrington and Manning (1990, Tables I and II and the
-# first example), Blackwelder (1982, Table 3 and the examples), Friede, Mitchell and
-# Mueller-Velten (2007, Tables 2 and 3 and Sections 5 and 6), Boschloo (1970, Sections 2,
-# 3, 4 and 6), Mehrotra, Chan and Berger (2003, Section 3.1 and Tables 1 and 3), Berger
-# and Boos (1994, Example 2) and Fay and Hunsberger (2021, Section 8 and Table 1) with
-# bbssr.
+# Example 23.1 and Section 23.2), Farrington and Manning (1990, Tables I and II for the
+# difference and the relative risk, and both examples), Blackwelder (1982, Table 3 and the
+# examples), Friede, Mitchell and Mueller-Velten (2007, Tables 2 and 3 and Sections 5 and
+# 6), Boschloo (1970, Sections 2, 3, 4 and 6), Mehrotra, Chan and Berger (2003, Section
+# 3.1 and Tables 1 and 3), Berger and Boos (1994, Example 2) and Fay and Hunsberger (2021,
+# Section 8 and Table 1) with bbssr.
 # Run from the package root after devtools::load_all(); the levels of Figure 21.1 of
-# Kieser (2020) under the rule that stops after the pilot use internal functions of the
-# package, and the statement of Section 23.2.2 of Kieser (2020) is compared with the
+# Kieser (2020) under the rule that stops after the pilot and the second example of
+# Farrington and Manning (1990) use internal functions of the package, and the
+# statement of Section 23.2.2 of Kieser (2020) is compared with the
 # levels that inst/reproduce/reproduce-figures.R stores for Figure 1 of Friede et al.
 # (2007). The results are written to reproduce-output/: published-comparison.csv lists
 # every published value next to the recomputed value with a verdict (PASS, EXPLAINED,
@@ -224,7 +225,7 @@ k1.stop <- function(p, Delta, r, N1, N2, n.interim) {
                   restricted = FALSE, alternative = 'greater', tsmethod = 'minlike',
                   n.grid = 100, bb.gamma = 0, effect = 'RD', ss.method = 'standard',
                   ss.Test = 'Chisq', ss.alpha = 0.025, rounding = 'group', N.min = NULL,
-                  N.max = NULL, ref.pvalue = FALSE, margin = 0)
+                  N.max = NULL, ref.pvalue = FALSE, margin = 0, margin.scale = 'RD')
   sp <- split_pooled(map$hat.p, Delta, r, 'RD')
   outside <- sp$p1 > 1 + 1e-9 | sp$p2 < -1e-9
   map$N1[outside] <- attr(map, 'n11')
@@ -232,7 +233,7 @@ k1.stop <- function(p, Delta, r, N1, N2, n.interim) {
   setup <- bssr_setup(map)
   rr.list <- lapply(seq_along(setup$N1), function(k) {
     get_rr(setup$N1[k], setup$N2[k], 0.025, 'Chisq', 'greater', 'minlike', 100, 0, FALSE,
-           0)
+           0, 'RD')
   })
   bssr_reject(setup, rr.list, p, p)
 }
@@ -410,6 +411,137 @@ fm3.lab <- sprintf('FM1990 Table II: p1 = %g, p2 = %g, s0 = %g, Method 1', fm3$p
                    fm3$s0)
 add(fm.src, paste0(fm3.lab, ': N1'), fm3$N.pub, fm3$N1, 0)
 add(fm.src, paste0(fm3.lab, ': N2'), fm3$N.pub, fm3$N2, 0)
+
+# Farrington and Manning (1990), the relative risk: Tables I and II and the second example
+# The left half of Table I tests p1 / p2 <= R0 at the one-sided level 0.05 with power 0.9
+# and sample sizes from formula (8) rounded to the nearest integer. In bbssr this is
+# margin = R0, margin.scale = 'RR' and r = 1 / theta. Formula (8) with the standard normal
+# quantiles gives the published sample sizes in most settings; the article rounds the
+# quantiles to 1.645 and 1.282, and with these quantiles formula (8) gives every published
+# sample size, which is checked below. The true powers are computed at the published
+# sample sizes and compared after truncation, as for the difference. Formula (7) of the
+# article prints R0 / hat.p2 for R0 hat.p2 in the numerator; statistic (5) and variance
+# (6) are those of bbssr
+fmr <- data.frame(
+  p1 = rep(c(0.1, 0.2, 0.5, 0.05, 0.1, 0.25, 0.01, 0.02, 0.05), each = 3),
+  p2 = rep(c(0.1, 0.1, 0.1, 0.05, 0.05, 0.05, 0.01, 0.01, 0.01), each = 3),
+  R0 = rep(c(0.1, 0.5, 2), each = 3, times = 3),
+  theta = rep(c(2 / 3, 1, 3 / 2), times = 9),
+  N1.pub = c(49, 46, 43, 67, 57, 50, 100, 73, 55, 104, 96, 90, 149, 126, 109, 236, 175,
+             134, 545, 501, 469, 807, 677, 587, 1318, 985, 760),
+  N2.pub = c(33, 46, 65, 45, 57, 75, 67, 73, 83, 69, 96, 136, 99, 126, 164, 157, 175, 201,
+             364, 501, 703, 538, 677, 880, 879, 985, 1140),
+  pw.pub = c(92.68, 92.25, 92.62, 92.21, 91.75, 91.00, 90.07, 90.18, 90.49, 92.96, 92.42,
+             92.88, 91.27, 92.28, 91.31, 90.28, 90.47, 90.78, 93.31, 92.78, 92.20, 91.91,
+             92.60, 92.10, 90.51, 90.80, 90.83) / 100
+)
+# Formula (8) for the size of group 1, with theta = N2 / N1
+fm8 <- function(p1, p2, theta, R0, z.a, z.b) {
+  est <- bbssr:::fm_restricted_rr(p1, p2, theta, R0)
+  v0 <- est$p1 * (1 - est$p1) + R0^2 / theta * est$p2 * (1 - est$p2)
+  v1 <- p1 * (1 - p1) + R0^2 / theta * p2 * (1 - p2)
+  (z.a * sqrt(v0) + z.b * sqrt(v1))^2 / (p1 - R0 * p2)^2
+}
+fmr[c('N1', 'N2', 'N1.tab', 'N2.tab', 'power')] <- NA_real_
+for (i in seq_len(nrow(fmr))) {
+  ss <- BinarySampleSize(fmr$p1[i], fmr$p2[i], 1 / fmr$theta[i], 0.05, 0.9,
+                         'Farrington-Manning', method = 'standard', rounding = 'nearest',
+                         margin = fmr$R0[i], margin.scale = 'RR')
+  fmr$N1[i] <- ss$N1
+  fmr$N2[i] <- ss$N2
+  n1 <- fm8(fmr$p1[i], fmr$p2[i], fmr$theta[i], fmr$R0[i], 1.645, 1.282)
+  fmr$N1.tab[i] <- floor(n1 + 0.5)
+  fmr$N2.tab[i] <- floor(fmr$theta[i] * n1 + 0.5)
+  fmr$power[i] <- BinaryPower(fmr$p1[i], fmr$p2[i], fmr$N1.pub[i], fmr$N2.pub[i], 0.05,
+                              'Farrington-Manning', margin = fmr$R0[i],
+                              margin.scale = 'RR')$Power
+}
+write.csv(fmr, file.path(out.dir, 'farrington-manning-1990-table1-rr.csv'),
+          row.names = FALSE)
+fmr.lab <- sprintf('FM1990 Table I: p1 = %g, p2 = %g, R0 = %g, theta = %s', fmr$p1,
+                   fmr$p2, fmr$R0, rep(c('2/3', '1', '3/2'), times = 9))
+add(fm.src, paste0(fmr.lab, ': N1'), fmr$N1.pub, fmr$N1, 0)
+add(fm.src, paste0(fmr.lab, ': N2'), fmr$N2.pub, fmr$N2, 0)
+add(fm.src, paste('FM1990 Table I, relative risk: settings in which formula (8) with the',
+                  'quantiles 1.645 and 1.282 gives N1 and N2'),
+    nrow(fmr), sum(fmr$N1.tab == fmr$N1.pub & fmr$N2.tab == fmr$N2.pub), 0)
+fmr.tab <- c(paste0(fmr.lab, ': N1')[fmr$N1 != fmr$N1.pub & fmr$N1.tab == fmr$N1.pub],
+             paste0(fmr.lab, ': N2')[fmr$N2 != fmr$N2.pub & fmr$N2.tab == fmr$N2.pub])
+if (length(fmr.tab) > 0) {
+  explain(fmr.tab, 1, paste(
+    'Formula (8) with the standard normal quantiles gives one patient less; with the',
+    'quantiles 1.645 and 1.282 used in the article it gives the published value.'))
+}
+# The powers that are not reproduced stay FAILs, since no reason has been found
+fmr.miss <- abs(floor(fmr$power * 1e4 + 1e-9) / 1e4 - fmr$pw.pub) > 1e-9
+fmr.note <- ifelse(fmr.miss, paste(
+  'Not reproduced, cause not identified. The recomputed power exceeds the published',
+  'value by 0.011 to 0.017 percentage points, and an independent implementation with',
+  'numpy gives the same value. The critical value 1.645 and the exclusion of the',
+  'outcomes without responders in one or both groups do not give the published value,',
+  'and no outcome with a probability above 1e-6 lies within 0.001 of the critical',
+  'value. A sample size one patient larger or smaller gives it only for p1 = p2 = 0.05',
+  'and theta = 1, with 97 patients in group 2.'), '')
+add(fm.src, paste0(fmr.lab, ': true power'), fmr$pw.pub, fmr$power, 4, fmr.note,
+    rule = 'truncate')
+# Table II, Method 1 for the relative risk: the null variance is also evaluated at the
+# true values, which is method = 'alternative.variance', with equal groups. Method 3 with
+# equal groups repeats the entries theta = 1 of Table I, and Method 2 (fixed marginal
+# totals) is not implemented, as for the difference
+fmr2 <- data.frame(p1 = c(0.1, 0.2, 0.5, 0.05, 0.1, 0.25, 0.01, 0.02, 0.05),
+                   p2 = c(0.1, 0.1, 0.1, 0.05, 0.05, 0.05, 0.01, 0.01, 0.01),
+                   R0 = rep(c(0.1, 0.5, 2), times = 3),
+                   N.pub = c(96, 69, 58, 203, 155, 144, 1057, 840, 829))
+fmr2[c('N1', 'N2')] <- NA_real_
+for (i in seq_len(nrow(fmr2))) {
+  ss <- BinarySampleSize(fmr2$p1[i], fmr2$p2[i], 1, 0.05, 0.9, 'Blackwelder',
+                         method = 'alternative.variance', rounding = 'nearest',
+                         margin = fmr2$R0[i], margin.scale = 'RR')
+  fmr2$N1[i] <- ss$N1
+  fmr2$N2[i] <- ss$N2
+}
+write.csv(fmr2, file.path(out.dir, 'farrington-manning-1990-table2-rr.csv'),
+          row.names = FALSE)
+fmr2.lab <- sprintf('FM1990 Table II: p1 = %g, p2 = %g, R0 = %g, Method 1', fmr2$p1,
+                    fmr2$p2, fmr2$R0)
+add(fm.src, paste0(fmr2.lab, ': N1'), fmr2$N.pub, fmr2$N1, 0)
+add(fm.src, paste0(fmr2.lab, ': N2'), fmr2$N.pub, fmr2$N2, 0)
+# Second example: p1 = p2 = 0.01 and the null hypothesis p1 / p2 >= 1.5 with equal
+# groups, one-sided level 0.025 and power 0.9, which is alternative = 'less'. The article
+# rounds the 12,889.1 patients of formula (8) up to 12,890 here. BinarySampleSize() would
+# also evaluate the exact power, whose rejection region has 12,891^2 cells, so the sample
+# size is taken from the internal function that BinarySampleSize() uses, and the power is
+# summed over the responder counts 0 to 450 of each group, outside which each binomial
+# distribution has a probability below 1e-100. The truncated sum uses the statistic of
+# bbssr and is checked against BinaryPower() at 600 patients per group
+fmr.ex2 <- function(N, K = 450) {
+  x <- (0:K) / N
+  P1 <- rep(x, times = K + 1)
+  P2 <- rep(x, each = K + 1)
+  est <- bbssr:::fm_restricted_rr(P1, P2, 1, 1.5)
+  v <- (est$p1 * (1 - est$p1) + 1.5^2 * est$p2 * (1 - est$p2)) / N
+  z <- ifelse(v > 0, (P1 - 1.5 * P2) / sqrt(v), 0)
+  rej <- stats::pnorm(z) < 0.025 - sqrt(.Machine$double.eps)
+  w <- dbinom(0:K, N, 0.01)
+  sum(outer(w, w) * matrix(rej, K + 1, K + 1))
+}
+fmr.600 <- BinaryPower(0.01, 0.01, 600, 600, 0.025, 'Farrington-Manning',
+                       alternative = 'less', margin = 1.5, margin.scale = 'RR')$Power
+stopifnot(abs(fmr.ex2(600) - fmr.600) < 1e-12,
+          pbinom(450, 12890, 0.01, lower.tail = FALSE) < 1e-100)
+fmr.est <- bbssr:::fm_restricted_rr(0.01, 0.01, 1, 1.5)
+add(fm.src, 'FM1990 second example: restricted estimate of p1', 0.012, fmr.est$p1, 3)
+add(fm.src, 'FM1990 second example: restricted estimate of p2', 0.008, fmr.est$p2, 3)
+fmr.n <- bbssr:::sample_size_n(0.01, 0.01, 1, 0.025, 0.9, 'Farrington-Manning', 'less',
+                               'minlike', 100L, 0, 'standard', 'group', FALSE, 1.5,
+                               margin.scale = 'RR')
+fmr.pw <- fmr.ex2(12890)
+write.csv(data.frame(N1 = fmr.n[['N1']], N2 = fmr.n[['N2']], power = fmr.pw),
+          file.path(out.dir, 'farrington-manning-1990-example2-rr.csv'),
+          row.names = FALSE)
+add(fm.src, c('FM1990 second example: N1', 'FM1990 second example: N2'), 12890,
+    unname(fmr.n), 0)
+add(fm.src, 'FM1990 second example: true power at N1 = N2 = 12890', 0.904, fmr.pw, 3)
 
 # Blackwelder (1982), Table 3 and the examples ------------------------------------------
 # The statistics use the unpooled standard error. In the examples with 30 patients per
@@ -830,7 +962,7 @@ mcb.gam <- 0.001
 mcb.cols <- c('F', 'D', 'D*', 'B', 'B*', 'ZP', 'ZP*', 'ZU', 'ZU*', 'ZP asymptotic',
               'ZU asymptotic')
 mcb_pv <- function(N1, N2, Test, ts, gam = 0) {
-  bbssr:::get_pvalue(N1, N2, Test, 'two.sided', ts, 100L, gam, TRUE, 0)
+  bbssr:::get_pvalue(N1, N2, Test, 'two.sided', ts, 100L, gam, TRUE, 0, 'RD')
 }
 # p-values of F, B and B* under the two-sided convention ts
 mcb_fb <- function(N1, N2, ts) {
@@ -844,7 +976,7 @@ mcb_pvalues <- function(N1, N2, ts) {
                                  ref.pvalue = TRUE)
   }
   d <- abs(outer((0:N1) / N1, (0:N2) / N2, '-'))
-  zu <- abs(bbssr:::zstat_margin(N1, N2, 0, 'unpooled'))
+  zu <- abs(bbssr:::zstat_margin(N1, N2, 0, 'unpooled', 'RD'))
   # The outcomes with one proportion 0 and the other 1 have an infinite statistic. They
   # are the most extreme outcomes, and a finite value keeps them apart in the tie groups
   zu[is.infinite(zu)] <- max(zu[is.finite(zu)]) + 1
@@ -1097,9 +1229,9 @@ add(bb.src, paste0(bb.lab, ': chi-squared statistic'), 4.346, bb.z[15, 49] ^ 2, 
 add(bb.src, paste0(bb.lab, ': .999 confidence interval, ', c('lower', 'upper')),
     c(0.123, 0.267), unname(bbssr:::cp_bounds(330, 0.001)[63, ]), 3)
 bb.sup <- bbssr:::get_pvalue(47, 283, 'Z-pool', 'two.sided', 'minlike', 100L, 0, TRUE,
-                             0)[15, 49]
+                             0, 'RD')[15, 49]
 bb.p <- bbssr:::get_pvalue(47, 283, 'Z-pool', 'two.sided', 'minlike', 100L, 0.001, TRUE,
-                           0)[15, 49]
+                           0, 'RD')[15, 49]
 add(bb.src, paste0(bb.lab, c(': p-value maximized over [0, 1]',
                              ': maximum over the confidence interval',
                              ': p-value p_.001')),
@@ -1122,7 +1254,7 @@ add(bb.src, paste0(bb.lab, ': location of the maximum in [0, 1/2]'), 0.003, bb.l
 fh.src <- 'Fay and Hunsberger (2021)'
 fh.pub <- c(blaker = 0.087, minlike = 0.159, central = 0.157)
 fh.p <- lapply(names(fh.pub), function(ts) {
-  bbssr:::get_pvalue(14, 7, 'Fisher', 'two.sided', ts, 100L, 0, FALSE, 0)
+  bbssr:::get_pvalue(14, 7, 'Fisher', 'two.sided', ts, 100L, 0, FALSE, 0, 'RD')
 })
 add(fh.src, paste0('FH2021 Section 8: 8 / 14 against 1 / 7: two-sided p-value, ',
                    names(fh.pub)), fh.pub, vapply(fh.p, function(p) p[9, 2], numeric(1)),

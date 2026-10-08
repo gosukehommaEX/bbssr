@@ -30,7 +30,8 @@ BinaryBSSR(
   N.min = NULL,
   N.max = NULL,
   margin = 0,
-  ref.pvalue = FALSE
+  ref.pvalue = FALSE,
+  margin.scale = c("RD", "RR")
 )
 }
 \arguments{
@@ -108,19 +109,28 @@ can be used to keep the patients who are already enrolled but not yet evaluated}
 
 \item{N.max}{Upper bound on the final total sample size, or \code{NULL} (default)}
 
-\item{margin}{Non-inferiority margin on the scale of the risk difference. The
-default of 0 gives a test of superiority. A value other than 0 tests the null
-hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
-\code{alternative} is \code{'greater'}, and \code{p1 - p2 >= margin} against
-\code{p1 - p2 < margin} when it is \code{'less'}. It requires
-\code{Test = 'Blackwelder'} or \code{'Farrington-Manning'}, see
-\code{\link{BinaryRR}}. A negative value tests for superiority by more than its
-absolute value. With a value other than 0 the assumed
-and the true effects are risk differences (\code{effect = 'RD'})}
+\item{margin}{Non-inferiority margin, on the scale given by \code{margin.scale}. On the
+scale of the risk difference the default of 0 gives a test of superiority, and a
+value other than 0 tests the null hypothesis \code{p1 - p2 <= -margin} against
+\code{p1 - p2 > -margin} when \code{alternative} is \code{'greater'}, and
+\code{p1 - p2 >= margin} against \code{p1 - p2 < margin} when it is \code{'less'}. A
+negative value tests for superiority by more than its absolute value. On the scale
+of the risk ratio the margin is a positive ratio \code{R0}, and the null hypothesis
+is \code{p1 / p2 <= R0} against \code{p1 / p2 > R0} when \code{alternative} is
+\code{'greater'}, and \code{p1 / p2 >= R0} against \code{p1 / p2 < R0} when it is
+\code{'less'}. A margin other than 0, and any margin on the scale of the risk ratio,
+requires \code{Test = 'Blackwelder'} or \code{'Farrington-Manning'} and a one-sided
+alternative, see \code{\link{BinaryRR}}. With a margin other than 0 on the scale of
+the risk difference the assumed and the true effects are risk differences
+(\code{effect = 'RD'}), and with a margin on the scale of the risk ratio they are
+risk ratios (\code{effect = 'RR'})}
 
 \item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
 of the unconditional tests is refined between the grid points, see
 \code{\link{BinaryRR}}. Default is \code{FALSE}}
+
+\item{margin.scale}{Scale of \code{margin}. Options: \code{'RD'} (default) for the
+risk difference \code{p1 - p2} or \code{'RR'} for the risk ratio \code{p1 / p2}}
 }
 \value{
 An object of class \code{bbssr_bssr}, a data frame with one row containing:

@@ -61,15 +61,23 @@
 #'   none
 #' @param n.interim Interim sample sizes of group 1 and group 2, as a vector of length
 #'   two. An alternative to \code{omega}
-#' @param margin Non-inferiority margin on the scale of the risk difference. The
-#'   default of 0 gives a test of superiority. A value other than 0 tests the null
-#'   hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
-#'   \code{alternative} is \code{'greater'}, and \code{p1 - p2 >= margin} against
-#'   \code{p1 - p2 < margin} when it is \code{'less'}. It requires
-#'   \code{Test = 'Blackwelder'} or \code{'Farrington-Manning'}, see
-#'   \code{\link{BinaryRR}}. A negative value tests for superiority by more than its
-#'   absolute value. With a value other than 0 the assumed
-#'   and the true effects are risk differences (\code{effect = 'RD'})
+#' @param margin Non-inferiority margin, on the scale given by \code{margin.scale}. On the
+#'   scale of the risk difference the default of 0 gives a test of superiority, and a
+#'   value other than 0 tests the null hypothesis \code{p1 - p2 <= -margin} against
+#'   \code{p1 - p2 > -margin} when \code{alternative} is \code{'greater'}, and
+#'   \code{p1 - p2 >= margin} against \code{p1 - p2 < margin} when it is \code{'less'}. A
+#'   negative value tests for superiority by more than its absolute value. On the scale
+#'   of the risk ratio the margin is a positive ratio \code{R0}, and the null hypothesis
+#'   is \code{p1 / p2 <= R0} against \code{p1 / p2 > R0} when \code{alternative} is
+#'   \code{'greater'}, and \code{p1 / p2 >= R0} against \code{p1 / p2 < R0} when it is
+#'   \code{'less'}. A margin other than 0, and any margin on the scale of the risk ratio,
+#'   requires \code{Test = 'Blackwelder'} or \code{'Farrington-Manning'} and a one-sided
+#'   alternative, see \code{\link{BinaryRR}}. With a margin other than 0 on the scale of
+#'   the risk difference the assumed and the true effects are risk differences
+#'   (\code{effect = 'RD'}), and with a margin on the scale of the risk ratio they are
+#'   risk ratios (\code{effect = 'RR'})
+#' @param margin.scale Scale of \code{margin}. Options: \code{'RD'} (default) for the
+#'   risk difference \code{p1 - p2} or \code{'RR'} for the risk ratio \code{p1 / p2}
 #' @param ref.pvalue Logical. If \code{TRUE}, the maximization over the nuisance parameter
 #'   of the unconditional tests is refined between the grid points, see
 #'   \code{\link{BinaryRR}}. Default is \code{FALSE}. It applies to the final analysis, to
@@ -146,6 +154,16 @@
 #' \code{margin} for \code{alternative = 'less'}) gives the rejection probability on the
 #' boundary of the null hypothesis.
 #'
+#' With \code{margin.scale = 'RR'} the margin is a ratio \code{R0} and the effects are
+#' risk ratios (\code{effect = 'RR'}). The assumed effect \code{Delta.A} must exceed
+#' \code{R0} for \code{alternative = 'greater'} and fall below it for \code{'less'}, and
+#' is usually 1. The sample size is re-estimated by formula (8) of Farrington and Manning
+#' (1990) (\code{ss.method = 'standard'}) or by their Method 1
+#' (\code{ss.method = 'alternative.variance'}), and \code{Delta.T = R0} gives the
+#' rejection probability on the boundary of the null hypothesis. The recovered
+#' proportions lie on that boundary only when no interim patient responds, and the
+#' initial sample size is kept for this interim outcome.
+#'
 #' @references
 #' Friede T, Kieser M (2004). Sample size recalculation for binary data in internal pilot
 #' study designs. \emph{Pharmaceutical Statistics}, 3(4), 269-279.
@@ -215,13 +233,14 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
                             search = c('crossing', 'smallest', 'stable'),
                             search.limit = c(2, 50),
                             N.min = NULL, N.max = NULL, n.interim = NULL, margin = 0,
-                            ref.pvalue = FALSE) {
+                            ref.pvalue = FALSE, margin.scale = c('RD', 'RR')) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
   ss.method <- match.arg(ss.method)
   rounding <- match.arg(rounding)
   search <- match.arg(search)
+  margin.scale <- match.arg(margin.scale)
   if (rounding == 'group' && N1 != ceiling(r * N2)) {
     warning('N1 differs from ceiling(r * N2), the fixed-sample comparator is not ',
             'allocated in the ratio r to 1')
@@ -230,7 +249,8 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
   map <- bssr_map(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Test,
                   restricted, alternative, tsmethod, n.grid, bb.gamma, effect,
                   ss.method, ss.Test, ss.alpha, rounding, N.min, N.max, ref.pvalue,
-                  margin, search = search, search.limit = search.limit)
+                  margin, search = search, search.limit = search.limit,
+                  margin.scale = margin.scale)
   setup <- bssr_setup(map)
   N11 <- setup$n11
   N12 <- setup$n12
@@ -258,7 +278,7 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
   # rejected outcomes in each column of the rejection region
   rr.list <- lapply(seq_along(setup$N1), function(k) {
     get_rr(setup$N1[k], setup$N2[k], alpha, Test, alternative, tsmethod, n.grid, bb.gamma,
-           ref.pvalue, margin)
+           ref.pvalue, margin, margin.scale)
   })
   power.BSSR <- bssr_reject(setup, rr.list, p1, p2)
   # Final total sample size of every interim outcome, in the order of the interim cells
@@ -281,7 +301,7 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
   # Power of the fixed-sample design
   power.TRAD <- BinaryPower(p1, p2, N1, N2, alpha, Test, alternative, tsmethod,
                             n.grid, bb.gamma, margin = margin,
-                            ref.pvalue = ref.pvalue)$Power
+                            ref.pvalue = ref.pvalue, margin.scale = margin.scale)$Power
   out <- data.frame(p1, p2, p, power.BSSR, power.TRAD, E.N)
   attr(out, 'Test') <- Test
   attr(out, 'alternative') <- alternative
@@ -304,6 +324,7 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
   attr(out, 'N.min') <- N.min
   attr(out, 'N.max') <- N.max
   attr(out, 'margin') <- margin
+  attr(out, 'margin.scale') <- margin.scale
   attr(out, 'ref.pvalue') <- ref.pvalue
   attr(out, 'reestimation') <- map
   attr(out, 'N.dist') <- N.dist

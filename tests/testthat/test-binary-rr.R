@@ -351,3 +351,42 @@ test_that("BinaryRR passes the margin to the p-value computation", {
   seen <- ref_pvalue_calls(BinaryRR(8, 6, 0.05, 'Farrington-Manning'))
   expect_equal(seen$margin, 0)
 })
+
+test_that("BinaryRR tests a margin on the scale of the risk ratio", {
+  # Numbers of rejected outcomes from tools/reference/reference_values.py, which takes the
+  # lower tail of the statistic for 'less' instead of exchanging the groups
+  fm <- BinaryRR(40, 30, 0.025, 'Farrington-Manning', margin = 0.8, margin.scale = 'RR')
+  bw <- BinaryRR(30, 40, 0.025, 'Blackwelder', alternative = 'less', margin = 1.25,
+                 margin.scale = 'RR')
+  expect_equal(c(sum(fm), sum(bw)), c(537, 543))
+  expect_equal(attr(fm, 'margin'), 0.8)
+  expect_identical(attr(fm, 'margin.scale'), 'RR')
+  expect_identical(attr(BinaryRR(10, 10, 0.05, 'Chisq'), 'margin.scale'), 'RD')
+  # The null hypothesis p1 / p2 >= 1.25 is p2 / p1 <= 0.8 with the groups exchanged
+  less <- as_plain(BinaryRR(30, 40, 0.025, 'Farrington-Manning', alternative = 'less',
+                            margin = 1.25, margin.scale = 'RR'))
+  expect_identical(less, t(as_plain(fm)))
+  # The p-value of 24 of 30 against 30 of 40 from the statistic written out directly
+  p <- attr(bw, 'p.value')
+  se <- sqrt((0.8 * 0.2) / 30 + 1.25^2 * (0.75 * 0.25) / 40)
+  expect_equal(p[25, 31], pnorm((0.8 - 1.25 * 0.75) / se), tolerance = 1e-12)
+})
+
+test_that("a ratio margin needs a non-inferiority test, a one-sided alternative and R0 > 0", {
+  expect_error(BinaryRR(10, 10, 0.05, 'Chisq', margin = 0.8, margin.scale = 'RR'),
+               'Blackwelder')
+  expect_error(BinaryRR(10, 10, 0.05, 'Blackwelder', alternative = 'two.sided',
+                        margin = 0.8, margin.scale = 'RR'), 'one-sided')
+  expect_error(BinaryRR(10, 10, 0.05, 'Blackwelder', margin.scale = 'RR'), 'positive')
+  expect_error(BinaryRR(10, 10, 0.05, 'Blackwelder', margin = 0.8, margin.scale = 'OR'),
+               'should be one of')
+})
+
+test_that("BinaryRR passes the scale of the margin to the p-value computation", {
+  seen <- ref_pvalue_calls(BinaryRR(8, 6, 0.05, 'Farrington-Manning', margin = 0.8,
+                                    margin.scale = 'RR'))
+  expect_identical(seen$margin.scale, 'RR')
+  expect_equal(seen$margin, 0.8)
+  seen <- ref_pvalue_calls(BinaryRR(8, 6, 0.05, 'Farrington-Manning', margin = 0.15))
+  expect_identical(seen$margin.scale, 'RD')
+})

@@ -2,10 +2,11 @@
 weights_design <- function() {
   map <- bssr_map(0.3, 10, 10, NULL, c(4, 3), 1, 0.025, 0.8, 'Chisq', FALSE, 'greater',
                   'minlike', 100L, 0, 'RD', 'standard', 'Chisq', 0.025, 'group', NULL,
-                  NULL, FALSE, 0)
+                  NULL, FALSE, 0, margin.scale = 'RD')
   st <- bssr_setup(map)
   rr.list <- lapply(seq_along(st$N1), function(k) {
-    get_rr(st$N1[k], st$N2[k], 0.025, 'Chisq', 'greater', 'minlike', 100, 0, FALSE, 0)
+    get_rr(st$N1[k], st$N2[k], 0.025, 'Chisq', 'greater', 'minlike', 100, 0, FALSE, 0,
+           'RD')
   })
   list(st = st, rr.list = rr.list)
 }
@@ -40,7 +41,7 @@ test_that("the weights vanish outside the rejection region and add up to one", {
 })
 
 test_that("tie_weights of a fixed-sample design is its rejection region", {
-  rr <- get_rr(12, 9, 0.025, 'Chisq', 'greater', 'minlike', 100, 0, FALSE, 0)
+  rr <- get_rr(12, 9, 0.025, 'Chisq', 'greater', 'minlike', 100, 0, FALSE, 0, 'RD')
   w <- tie_weights(fixed_setup(12, 9), list(rr))
   expect_equal(w[[1]]$C, rr * 1, tolerance = 0)
 })

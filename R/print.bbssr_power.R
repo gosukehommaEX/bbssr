@@ -18,9 +18,9 @@ print.bbssr_power <- function(x, digits = 4, ...) {
   cat(sprintf('  Test         : %s\n', x$Test[1]))
   cat(sprintf('  Alternative  : %s\n', x$alternative[1]))
   cat(sprintf('  Sample sizes : N1 = %d, N2 = %d\n', x$N1[1], x$N2[1]))
-  margin <- attr(x, 'margin')
-  if (!is.null(margin) && margin != 0) {
-    cat(sprintf('  Margin       : %s\n', format(margin)))
+  margin <- format_margin(attr(x, 'margin'), attr(x, 'margin.scale'))
+  if (!is.null(margin)) {
+    cat(sprintf('  Margin       : %s\n', margin))
   }
   cat(sprintf('  Alpha        : %s\n\n', format(x$alpha[1])))
   tab <- data.frame(p1 = x$p1, p2 = x$p2, Power = round(x$Power, digits))

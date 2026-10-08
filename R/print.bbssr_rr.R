@@ -26,9 +26,9 @@ print.bbssr_rr <- function(x, show.map = NULL, ...) {
   }
   cat(sprintf('  Sample sizes  : N1 = %d, N2 = %d\n', N1, N2))
   cat(sprintf('  Alpha         : %s\n', format(attr(x, 'alpha'))))
-  margin <- attr(x, 'margin')
-  if (!is.null(margin) && margin != 0) {
-    cat(sprintf('  Margin        : %s\n', format(margin)))
+  margin <- format_margin(attr(x, 'margin'), attr(x, 'margin.scale'))
+  if (!is.null(margin)) {
+    cat(sprintf('  Margin        : %s\n', margin))
   }
   if (Test %in% c('Z-pool', 'Boschloo')) {
     cat(sprintf('  Grid points   : %d\n', attr(x, 'n.grid')))

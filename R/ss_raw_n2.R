@@ -25,6 +25,14 @@
 #' \code{alternative = 'less'} the two groups exchange their roles. The restricted
 #' estimates are computed from the probabilities truncated to the unit interval.
 #'
+#' With \code{margin.scale = 'RR'} the margin is the ratio \code{R0} of the boundary
+#' \code{p1 = R0 p2}, the difference is \code{d = p1 - R0 p2}, or \code{R0 p2 - p1} for
+#' \code{alternative = 'less'}, and the variances are \code{v1 = p1 (1 - p1) / r +
+#' R0^2 p2 (1 - p2)} and \code{v0}, the same expression at the large sample values of the
+#' restricted estimates of \code{fm_restricted_rr}. The method \code{'standard'} is then
+#' formula (8) of Farrington and Manning (1990) divided by \code{r}, which gives the size
+#' of group 2, and \code{'alternative.variance'} is Method 1 of that article.
+#'
 #' The probabilities recovered from a pooled rate with an assumed risk difference can fall
 #' outside the unit interval. Each Bernoulli variance is truncated at zero, so that such
 #' probabilities remain usable and the assumed difference \code{d} is kept.
@@ -38,22 +46,35 @@
 #'   alternative uses \code{alpha / 2}
 #' @param ss.method \code{'standard'}, \code{'null.variance'} or
 #'   \code{'alternative.variance'}
-#' @param margin Non-inferiority margin on the scale of the risk difference, 0 for a test
-#'   of superiority
+#' @param margin Non-inferiority margin, 0 for a test of superiority on the scale of the
+#'   risk difference
+#' @param margin.scale \code{'RD'} or \code{'RR'}, the scale of the margin
 #'
-#' @return A numeric vector. The value is \code{Inf} or \code{NaN} when \code{p1} equals
-#'   \code{p2}
+#' @return A numeric vector. The value is \code{Inf} or \code{NaN} when \code{p1} and
+#'   \code{p2} lie on the boundary of the null hypothesis
 #'
 #' @keywords internal
 #' @noRd
 #' @importFrom stats qnorm
-ss_raw_n2 <- function(p1, p2, r, alpha, tar.power, alternative, ss.method, margin) {
+ss_raw_n2 <- function(p1, p2, r, alpha, tar.power, alternative, ss.method, margin,
+                      margin.scale) {
   alpha.eff <- if (alternative == 'two.sided') alpha / 2 else alpha
   z.a <- qnorm(1 - alpha.eff)
   z.b <- qnorm(tar.power)
   p <- (r * p1 + p2) / (1 + r)
   d <- p1 - p2
   v0 <- pmax(p * (1 - p), 0) * (1 + 1 / r)
+  if (margin.scale == 'RR') {
+    q1 <- pmin(1, pmax(0, p1))
+    q2 <- pmin(1, pmax(0, p2))
+    d <- null_distance(p1, p2, alternative, margin, 'RR')
+    est <- fm_restricted_rr(q1, q2, 1 / r, margin)
+    v0 <- pmax(est$p1 * (1 - est$p1), 0) / r + margin^2 * pmax(est$p2 * (1 - est$p2), 0)
+    v.alt <- pmax(p1 * (1 - p1), 0) / r + margin^2 * pmax(p2 * (1 - p2), 0)
+    v1 <- if (ss.method == 'null.variance') v0 else v.alt
+    if (ss.method == 'alternative.variance') v0 <- v.alt
+    return((z.a * sqrt(v0) + z.b * sqrt(v1))^2 / d^2)
+  }
   if (margin != 0) {
     q1 <- pmin(1, pmax(0, p1))
     q2 <- pmin(1, pmax(0, p2))

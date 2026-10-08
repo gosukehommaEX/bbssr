@@ -112,6 +112,13 @@ test.df <- as.data.frame(test.res)
 note(sprintf('tests: %d expectations, %d failed, %d errors, %d skipped, %d warnings',
              sum(test.df$nb), sum(test.df$failed), sum(test.df$error),
              sum(test.df$skipped), sum(test.df$warning)))
+# Time of every test_that() block, slowest first, since each block should finish within
+# 10 seconds
+test.times <- test.df[order(-test.df$real), c('file', 'test', 'real')]
+utils::write.csv(test.times, file.path(out.dir, 'test-times.csv'), row.names = FALSE)
+note(sprintf('tests: slowest block %.1f s (%s: %s), %d block(s) over 10 s, listed in %s',
+             test.times$real[1], test.times$file[1], test.times$test[1],
+             sum(test.times$real > 10), file.path(out.dir, 'test-times.csv')))
 for (t in test.res) {
   for (e in t$results) {
     if (inherits(e, c('expectation_failure', 'expectation_error', 'expectation_warning'))) {

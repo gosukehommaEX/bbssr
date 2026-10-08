@@ -2,10 +2,11 @@
 certify_design <- function() {
   map <- bssr_map(0.3, 10, 10, NULL, c(4, 3), 1, 0.025, 0.8, 'Chisq', FALSE, 'greater',
                   'minlike', 100L, 0, 'RD', 'standard', 'Chisq', 0.025, 'group', NULL,
-                  NULL, FALSE, 0)
+                  NULL, FALSE, 0, margin.scale = 'RD')
   st <- bssr_setup(map)
   rr.list <- lapply(seq_along(st$N1), function(k) {
-    get_rr(st$N1[k], st$N2[k], 0.025, 'Chisq', 'greater', 'minlike', 100, 0, FALSE, 0)
+    get_rr(st$N1[k], st$N2[k], 0.025, 'Chisq', 'greater', 'minlike', 100, 0, FALSE, 0,
+           'RD')
   })
   list(st = st, rr.list = rr.list)
 }
@@ -14,7 +15,7 @@ test_that("tie_certify bounds the type I error rate over the interval", {
   d <- certify_design()
   w <- tie_weights(d$st, d$rr.list)
   for (iv in list(c(0, 1), c(0.2, 0.6))) {
-    cm <- tie_certify(w, iv, 1, 'greater', 0)
+    cm <- tie_certify(w, iv, 1, 'greater', 0, margin.scale = 'RD')
     th <- seq(iv[1], iv[2], length.out = 2001)
     v <- bssr_reject(d$st, d$rr.list, th, th)
     expect_gte(cm$y, max(v) - 1e-12)
@@ -28,12 +29,12 @@ test_that("tie_certify bounds the type I error rate over the interval", {
 
 test_that("tie_certify follows the boundary of a non-inferiority hypothesis", {
   rr <- get_rr(20, 20, 0.025, 'Farrington-Manning', 'greater', 'minlike', 100, 0, FALSE,
-               0.2)
+               0.2, 'RD')
   w <- tie_weights(fixed_setup(20, 20), list(rr))
-  iv <- null_range(seq(0, 1, by = 0.01), 1, 'greater', 0.2)
-  cm <- tie_certify(w, iv, 1, 'greater', 0.2)
+  iv <- null_range(seq(0, 1, by = 0.01), 1, 'greater', 0.2, 'RD')
+  cm <- tie_certify(w, iv, 1, 'greater', 0.2, margin.scale = 'RD')
   rate <- function(theta) {
-    b <- null_boundary(theta, 1, 'greater', 0.2)
+    b <- null_boundary(theta, 1, 'greater', 0.2, 'RD')
     vapply(seq_along(theta), function(i) {
       power_from_rr(rr, dbinom(0:20, 20, b$p1[i]), dbinom(0:20, 20, b$p2[i]))
     }, numeric(1))

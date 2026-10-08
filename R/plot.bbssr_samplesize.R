@@ -75,10 +75,11 @@ plot.bbssr_samplesize <- function(x, N2.range = NULL, main = NULL, sub = NULL,
   bb.gamma <- attr(x, 'bb.gamma')
   ref.pvalue <- isTRUE(attr(x, 'ref.pvalue'))
   margin <- if (is.null(attr(x, 'margin'))) 0 else attr(x, 'margin')
+  margin.scale <- if (is.null(attr(x, 'margin.scale'))) 'RD' else attr(x, 'margin.scale')
   Power <- vapply(N2.range, function(n2) {
     BinaryPower(x$p1[1], x$p2[1], ceiling(x$r[1] * n2), n2, x$alpha[1], x$Test[1],
                 x$alternative[1], tsmethod, n.grid, bb.gamma, margin = margin,
-                ref.pvalue = ref.pvalue)$Power
+                ref.pvalue = ref.pvalue, margin.scale = margin.scale)$Power
   }, numeric(1))
   df <- data.frame(N2 = N2.range, Power = Power)
   out <- ggplot(df, aes(x = N2, y = Power)) +

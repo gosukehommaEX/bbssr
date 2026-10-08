@@ -20,7 +20,8 @@ BinarySampleSize(
   search = c("crossing", "smallest", "stable"),
   search.limit = c(2, 50),
   margin = 0,
-  ref.pvalue = FALSE
+  ref.pvalue = FALSE,
+  margin.scale = c("RD", "RR")
 )
 }
 \arguments{
@@ -41,7 +42,9 @@ r > 0)}
 
 \item{alternative}{Direction of the alternative hypothesis. Options: \code{'greater'}
 (default), which requires \code{p1 - p2 > -margin}, \code{'less'}, which requires
-\code{p1 - p2 < margin}, or \code{'two.sided'}, which requires \code{p1 != p2}}
+\code{p1 - p2 < margin}, or \code{'two.sided'}, which requires \code{p1 != p2}. With
+\code{margin.scale = 'RR'}, \code{'greater'} requires \code{p1 > margin p2} and
+\code{'less'} requires \code{p1 < margin p2}}
 
 \item{tsmethod}{Convention used to construct the two-sided version of the conditional
 tests, see \code{\link{BinaryRR}}. Options: \code{'minlike'} (default),
@@ -61,7 +64,8 @@ hypothesis for the significance term and the variance under the alternative for 
 power term, formula (21.3) of Kieser (2020). \code{'null.variance'} uses the variance
 under the null hypothesis for both terms, formula (1) of Friede and Kieser (2004).
 \code{'alternative.variance'} uses the variance under the alternative for both terms,
-as in Blackwelder (1982). See Details for a non-zero \code{margin}}
+as in Blackwelder (1982). See Details for a non-zero \code{margin} and for a margin
+on the scale of the risk ratio}
 
 \item{rounding}{How an unrounded sample size from the normal approximation is turned
 into whole numbers. \code{'group'} (default) rounds up the size of group 2 and gives
@@ -84,18 +88,25 @@ it. See Details. Ignored by the other methods}
 approximation, rounded up. \code{a} must be at least 1 and \code{b} non-negative.
 Default is \code{c(2, 50)}}
 
-\item{margin}{Non-inferiority margin on the scale of the risk difference. The
-default of 0 gives a test of superiority. A value other than 0 tests the null
-hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
-\code{alternative} is \code{'greater'}, and \code{p1 - p2 >= margin} against
-\code{p1 - p2 < margin} when it is \code{'less'}. It requires
-\code{Test = 'Blackwelder'} or \code{'Farrington-Manning'}, see
-\code{\link{BinaryRR}}. A negative value tests for superiority by more than its
-absolute value}
+\item{margin}{Non-inferiority margin, on the scale given by \code{margin.scale}. On the
+scale of the risk difference the default of 0 gives a test of superiority, and a
+value other than 0 tests the null hypothesis \code{p1 - p2 <= -margin} against
+\code{p1 - p2 > -margin} when \code{alternative} is \code{'greater'}, and
+\code{p1 - p2 >= margin} against \code{p1 - p2 < margin} when it is \code{'less'}. A
+negative value tests for superiority by more than its absolute value. On the scale
+of the risk ratio the margin is a positive ratio \code{R0}, and the null hypothesis
+is \code{p1 / p2 <= R0} against \code{p1 / p2 > R0} when \code{alternative} is
+\code{'greater'}, and \code{p1 / p2 >= R0} against \code{p1 / p2 < R0} when it is
+\code{'less'}. A margin other than 0, and any margin on the scale of the risk ratio,
+requires \code{Test = 'Blackwelder'} or \code{'Farrington-Manning'} and a one-sided
+alternative, see \code{\link{BinaryRR}}}
 
 \item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
 of the unconditional tests is refined between the grid points, see
 \code{\link{BinaryRR}}. Default is \code{FALSE}}
+
+\item{margin.scale}{Scale of \code{margin}. Options: \code{'RD'} (default) for the
+risk difference \code{p1 - p2} or \code{'RR'} for the risk ratio \code{p1 / p2}}
 }
 \value{
 An object of class \code{bbssr_samplesize}, a data frame with one row
@@ -168,6 +179,15 @@ Manning (1990), which is formula (2) of Friede et al. (2007), and
 \code{'alternative.variance'} gives the formula of Blackwelder (1982), which is formula
 (1) of Friede et al. (2007). The exact search starts from the formula of Farrington and
 Manning.
+
+With \code{margin.scale = 'RR'} and the ratio \code{R0 = margin}, the difference in the
+normal approximation is the distance \code{p1 - R0 p2}, or \code{R0 p2 - p1} for
+\code{alternative = 'less'}, and the variance of the size of group 2 is
+\code{p1 (1 - p1) / r + R0^2 p2 (1 - p2)}, evaluated at the large sample values of the
+restricted maximum likelihood estimates under \code{p1 = R0 p2} for the significance
+term. The method \code{'standard'} then gives formula (8) of Farrington and Manning
+(1990), \code{'alternative.variance'} gives the formula of their Method 1, and the
+exact search starts from formula (8).
 }
 \examples{
 # One-sided chi-squared test
@@ -189,6 +209,11 @@ BinarySampleSize(p1 = 0.4, p2 = 0.2, r = 1, alpha = 0.05, tar.power = 0.8,
 BinarySampleSize(p1 = 0.7, p2 = 0.7, r = 1, alpha = 0.025, tar.power = 0.8,
                  Test = 'Farrington-Manning', method = 'standard',
                  rounding = 'friede-kieser', margin = 0.1)
+
+# Non-inferiority on the scale of the risk ratio: the null hypothesis p1 / p2 <= 0.8
+# with equal response probabilities of 0.6
+BinarySampleSize(p1 = 0.6, p2 = 0.6, r = 1, alpha = 0.025, tar.power = 0.8,
+                 Test = 'Farrington-Manning', margin = 0.8, margin.scale = 'RR')
 }
 
 }

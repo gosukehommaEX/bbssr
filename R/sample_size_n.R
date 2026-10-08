@@ -39,10 +39,11 @@
 #'   \code{'nearest'}
 #' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the
 #'   unconditional tests is refined between the grid points
-#' @param margin Non-inferiority margin on the scale of the risk difference, 0 for a test
-#'   of superiority
+#' @param margin Non-inferiority margin, 0 for a test of superiority on the scale of the
+#'   risk difference
 #' @param search Search of \code{ss_exact_search} used under \code{method = 'exact'}
 #' @param search.limit Limit of \code{search = 'stable'}, see \code{ss_exact_search}
+#' @param margin.scale \code{'RD'} or \code{'RR'}, the scale of the margin
 #'
 #' @return An integer vector with elements \code{N1} and \code{N2}. Under
 #'   \code{method = 'exact'} its attribute \code{limit} is the limit of
@@ -52,9 +53,10 @@
 #' @noRd
 sample_size_n <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod,
                           n.grid, bb.gamma, method, rounding, ref.pvalue, margin,
-                          search = 'crossing', search.limit = c(2, 50)) {
+                          search = 'crossing', search.limit = c(2, 50), margin.scale) {
   if (method != 'exact') {
-    n2 <- ss_raw_n2(p1, p2, r, alpha, tar.power, alternative, method, margin)
+    n2 <- ss_raw_n2(p1, p2, r, alpha, tar.power, alternative, method, margin,
+                    margin.scale)
     if (rounding == 'group') {
       N2 <- ceil_tol(n2)
       N1 <- ceiling(r * N2)
@@ -72,7 +74,7 @@ sample_size_n <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsmeth
     return(c(N1 = as.integer(max(1, N1)), N2 = as.integer(max(1, N2))))
   }
   s <- ss_exact_search(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod, n.grid,
-                       bb.gamma, ref.pvalue, margin, search, search.limit)
+                       bb.gamma, ref.pvalue, margin, search, search.limit, margin.scale)
   out <- c(N1 = as.integer(ceiling(r * s$N2)), N2 = as.integer(s$N2))
   attr(out, 'limit') <- s$limit
   out

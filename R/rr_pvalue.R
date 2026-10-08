@@ -8,7 +8,9 @@
 #' exchanged. Every test considered treats the groups symmetrically apart from the
 #' direction of the alternative, so the p-value of the outcome \code{(x1, x2)} against
 #' \code{p1 < p2} equals the p-value of \code{(x2, x1)} against \code{p1 > p2} in a trial
-#' with the sample sizes exchanged.
+#' with the sample sizes exchanged. On the scale of the risk ratio the exchange also
+#' inverts the margin: the null hypothesis \code{p1 / p2 >= margin} is
+#' \code{p2 / p1 <= 1 / margin}.
 #'
 #' @param N1 Sample size for group 1
 #' @param N2 Sample size for group 2
@@ -19,8 +21,9 @@
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
 #' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the
 #'   unconditional tests is refined between the grid points
-#' @param margin Non-inferiority margin on the scale of the risk difference, 0 for a test
-#'   of superiority
+#' @param margin Non-inferiority margin, 0 for a test of superiority on the scale of the
+#'   risk difference
+#' @param margin.scale \code{'RD'} or \code{'RR'}, the scale of the margin
 #'
 #' @return A numeric matrix of dimension \code{(N1 + 1)} by \code{(N2 + 1)}
 #'
@@ -28,10 +31,11 @@
 #' @noRd
 #' @importFrom stats pnorm
 rr_pvalue <- function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue,
-                      margin) {
+                      margin, margin.scale) {
   if (alternative == 'less') {
+    m <- if (margin.scale == 'RR') 1 / margin else margin
     return(t(rr_pvalue(N2, N1, Test, 'greater', tsmethod, n.grid, bb.gamma, ref.pvalue,
-                       margin)))
+                       m, margin.scale)))
   }
   if (Test == 'Chisq') {
     Z <- zstat(N1, N2)
@@ -46,7 +50,7 @@ rr_pvalue <- function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref
     fisher_pvalue(N1, N2, alternative, tsmethod, midp = TRUE)
   } else if (Test %in% c('Blackwelder', 'Farrington-Manning')) {
     se <- if (Test == 'Blackwelder') 'unpooled' else 'restricted'
-    Z <- zstat_margin(N1, N2, margin, se)
+    Z <- zstat_margin(N1, N2, margin, se, margin.scale)
     if (alternative == 'greater') {
       pnorm(Z, lower.tail = FALSE)
     } else {

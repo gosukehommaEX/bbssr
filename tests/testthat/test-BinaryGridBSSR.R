@@ -180,3 +180,15 @@ test_that("BinaryGridBSSR passes search and search.limit to the planning and the
   expect_gt(nrow(seen), 1)
   expect_true(all(seen$search == 'stable' & seen$a == 3 & seen$b == 10))
 })
+
+test_that("BinaryGridBSSR plans and evaluates a design with a ratio margin", {
+  seen <- ref_pvalue_calls(g <- BinaryGridBSSR(
+    data.frame(p.plan = 0.6), p = 0.6, Delta.A = 1, omega = 0.25, r = 1, alpha = 0.025,
+    tar.power = 0.8, Test = 'Farrington-Manning', effect = 'RR', ss.method = 'standard',
+    N.max = 300, margin = 0.8, margin.scale = 'RR'
+  ))
+  expect_true(all(seen$margin.scale == 'RR'))
+  ss <- BinarySampleSize(0.6, 0.6, 1, 0.025, 0.8, 'Farrington-Manning',
+                         method = 'standard', margin = 0.8, margin.scale = 'RR')
+  expect_equal(c(g$N1, g$N2), c(ss$N1, ss$N2))
+})

@@ -7,12 +7,12 @@ crp_design <- function(Test, alternative, r, n.interim, Delta.A) {
                   tsmethod = 'minlike', n.grid = 100L, bb.gamma = 0, effect = 'RD',
                   ss.method = 'standard', ss.Test = Test, ss.alpha = 0.025,
                   rounding = 'group', N.min = NULL, N.max = NULL, ref.pvalue = FALSE,
-                  margin = 0)
+                  margin = 0, margin.scale = 'RD')
   st <- bssr_setup(map)
   rr.list <- lapply(seq_along(st$N1), function(k) {
     get_rr(N1 = st$N1[k], N2 = st$N2[k], alpha = 0.025, Test = Test,
            alternative = alternative, tsmethod = 'minlike', n.grid = 100, bb.gamma = 0,
-           ref.pvalue = FALSE, margin = 0)
+           ref.pvalue = FALSE, margin = 0, margin.scale = 'RD')
   })
   id <- match(paste(map$N1, map$N2), paste(st$N1, st$N2)) - 1L
   list(st = st, rr.list = rr.list, id = as.integer(id))

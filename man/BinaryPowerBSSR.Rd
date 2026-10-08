@@ -31,7 +31,8 @@ BinaryPowerBSSR(
   N.max = NULL,
   n.interim = NULL,
   margin = 0,
-  ref.pvalue = FALSE
+  ref.pvalue = FALSE,
+  margin.scale = c("RD", "RR")
 )
 }
 \arguments{
@@ -114,20 +115,29 @@ none}
 \item{n.interim}{Interim sample sizes of group 1 and group 2, as a vector of length
 two. An alternative to \code{omega}}
 
-\item{margin}{Non-inferiority margin on the scale of the risk difference. The
-default of 0 gives a test of superiority. A value other than 0 tests the null
-hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
-\code{alternative} is \code{'greater'}, and \code{p1 - p2 >= margin} against
-\code{p1 - p2 < margin} when it is \code{'less'}. It requires
-\code{Test = 'Blackwelder'} or \code{'Farrington-Manning'}, see
-\code{\link{BinaryRR}}. A negative value tests for superiority by more than its
-absolute value. With a value other than 0 the assumed
-and the true effects are risk differences (\code{effect = 'RD'})}
+\item{margin}{Non-inferiority margin, on the scale given by \code{margin.scale}. On the
+scale of the risk difference the default of 0 gives a test of superiority, and a
+value other than 0 tests the null hypothesis \code{p1 - p2 <= -margin} against
+\code{p1 - p2 > -margin} when \code{alternative} is \code{'greater'}, and
+\code{p1 - p2 >= margin} against \code{p1 - p2 < margin} when it is \code{'less'}. A
+negative value tests for superiority by more than its absolute value. On the scale
+of the risk ratio the margin is a positive ratio \code{R0}, and the null hypothesis
+is \code{p1 / p2 <= R0} against \code{p1 / p2 > R0} when \code{alternative} is
+\code{'greater'}, and \code{p1 / p2 >= R0} against \code{p1 / p2 < R0} when it is
+\code{'less'}. A margin other than 0, and any margin on the scale of the risk ratio,
+requires \code{Test = 'Blackwelder'} or \code{'Farrington-Manning'} and a one-sided
+alternative, see \code{\link{BinaryRR}}. With a margin other than 0 on the scale of
+the risk difference the assumed and the true effects are risk differences
+(\code{effect = 'RD'}), and with a margin on the scale of the risk ratio they are
+risk ratios (\code{effect = 'RR'})}
 
 \item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
 of the unconditional tests is refined between the grid points, see
 \code{\link{BinaryRR}}. Default is \code{FALSE}. It applies to the final analysis, to
 the fixed-sample comparator and to the exact re-estimation}
+
+\item{margin.scale}{Scale of \code{margin}. Options: \code{'RD'} (default) for the
+risk difference \code{p1 - p2} or \code{'RR'} for the risk ratio \code{p1 / p2}}
 }
 \value{
 An object of class \code{bbssr_powerbssr}, a data frame with one row per element
@@ -208,6 +218,16 @@ Manning (\code{ss.method = 'standard'}) or of Blackwelder
 (\code{ss.method = 'alternative.variance'}), and \code{Delta.T = -margin} (or
 \code{margin} for \code{alternative = 'less'}) gives the rejection probability on the
 boundary of the null hypothesis.
+
+With \code{margin.scale = 'RR'} the margin is a ratio \code{R0} and the effects are
+risk ratios (\code{effect = 'RR'}). The assumed effect \code{Delta.A} must exceed
+\code{R0} for \code{alternative = 'greater'} and fall below it for \code{'less'}, and
+is usually 1. The sample size is re-estimated by formula (8) of Farrington and Manning
+(1990) (\code{ss.method = 'standard'}) or by their Method 1
+(\code{ss.method = 'alternative.variance'}), and \code{Delta.T = R0} gives the
+rejection probability on the boundary of the null hypothesis. The recovered
+proportions lie on that boundary only when no interim patient responds, and the
+initial sample size is kept for this interim outcome.
 }
 \examples{
 # Small BSSR calculation with the chi-squared test

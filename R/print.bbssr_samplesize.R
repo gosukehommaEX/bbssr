@@ -21,9 +21,9 @@ print.bbssr_samplesize <- function(x, digits = 4, ...) {
   cat(sprintf('  Alternative      : %s\n', x$alternative[1]))
   cat(sprintf('  Response rates   : p1 = %s, p2 = %s\n', format(x$p1[1]), format(x$p2[1])))
   cat(sprintf('  Allocation ratio : %s to 1\n', format(x$r[1])))
-  margin <- attr(x, 'margin')
-  if (!is.null(margin) && margin != 0) {
-    cat(sprintf('  Margin           : %s\n', format(margin)))
+  margin <- format_margin(attr(x, 'margin'), attr(x, 'margin.scale'))
+  if (!is.null(margin)) {
+    cat(sprintf('  Margin           : %s\n', margin))
   }
   cat(sprintf('  Alpha            : %s\n', format(x$alpha[1])))
   cat(sprintf('  Target power     : %s\n', format(x$tar.power[1])))

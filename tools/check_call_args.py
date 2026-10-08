@@ -5,14 +5,17 @@
 The functions defined at the top level of R/*.R are collected with their formal
 arguments. Every call to one of them is then matched to its formals as R would match it
 (exact names, partial names, then positions), in R/*.R, tests/testthat/*.R, inst/*/*.R,
-tools/*.R, the @examples sections of the roxygen comments and the R chunks of
+tools/*.R, tools/*/*.R, the @examples sections of the roxygen comments and the R chunks of
 vignettes/*.Rmd. A call to do.call() is checked in the same way when its argument list can
 be resolved statically: a list() or c() of lists written in the call, modifyList(), a
 subset X[setdiff(names(X), ...)], or a variable assigned one of these earlier in the same
 file. Lists that cannot be resolved are counted and listed.
 
 ERROR   an argument that matches no formal, more arguments than formals, or a formal
-        without a default that the call does not supply
+        without a default that the call does not supply; also a replacement given to
+        local_mocked_bindings() or with_mocked_bindings() for a function of the package
+        that lacks one of its formals and has no ..., so that the package's own calls
+        of the function would fail while the mock is in place
 WARN    an argument matched by a partial name, or an unnamed element in the argument list
         of do.call(), whose meaning depends on the order of the formals
 The script prints every finding and a summary, and exits with status 1 if there is an
@@ -337,6 +340,25 @@ def rmd_chunks(text):
     return '\n'.join(out)
 
 
+def check_mocks(tokens, k, label, line, defs, report):
+    """Formals of the replacements given to a call of local_mocked_bindings() or
+    with_mocked_bindings() at position k, compared with those of the package."""
+    j = matching(tokens, k + 1)
+    for a in split_args(tokens, k + 1, j):
+        name = arg_name(a)
+        if name not in defs or len(a) < 4 or a[2][1] != 'function' or a[3][1] != '(':
+            continue
+        jf = matching(a, 3)
+        mock = [unquote(f[0][1]) for f in split_args(a, 3, jf) if f]
+        report['mocks'] += 1
+        if '...' in mock:
+            continue
+        missing = [f for f, _ in defs[name] if f != '...' and f not in mock]
+        if missing:
+            report['error'].append(f'{label}:{line} mock of {name}(): lacks the formal(s) '
+                                   + ', '.join(missing))
+
+
 def check_text(text, label, defs, report):
     tokens = tokenize(text)
     for k, (kind, v, line) in enumerate(tokens):
@@ -344,6 +366,9 @@ def check_text(text, label, defs, report):
             continue
         prev = tokens[k - 1][1] if k > 0 else ''
         if prev in ('$', '@', 'function'):
+            continue
+        if unquote(v) in ('local_mocked_bindings', 'with_mocked_bindings'):
+            check_mocks(tokens, k, label, line, defs, report)
             continue
         if prev in ('::', ':::') and (k < 2 or tokens[k - 2][1] != 'bbssr'):
             continue
@@ -389,10 +414,11 @@ def check_text(text, label, defs, report):
 def main(root):
     rfiles = sorted(glob.glob(os.path.join(root, 'R', '*.R')))
     defs = definitions(rfiles)
-    report = {'calls': 0, 'dots': 0, 'error': [], 'warn': [], 'unresolved': []}
+    report = {'calls': 0, 'dots': 0, 'mocks': 0, 'error': [], 'warn': [], 'unresolved': []}
     sources = rfiles + sorted(glob.glob(os.path.join(root, 'tests', 'testthat', '*.R'))) + \
         sorted(glob.glob(os.path.join(root, 'inst', '*', '*.R'))) + \
-        sorted(glob.glob(os.path.join(root, 'tools', '*.R')))
+        sorted(glob.glob(os.path.join(root, 'tools', '*.R'))) + \
+        sorted(glob.glob(os.path.join(root, 'tools', '*', '*.R')))
     for f in sources:
         text = open(f, encoding='utf-8').read()
         rel = os.path.relpath(f, root).replace(os.sep, '/')
@@ -412,6 +438,7 @@ def main(root):
     print(f"{len(defs)} functions, {len(sources) + len(rmd)} files, {report['calls']} calls "
           f"checked, {report['dots']} calls passing ... skipped, "
           f"{len(report['unresolved'])} do.call() lists unresolved, "
+          f"{report['mocks']} mocks checked, "
           f"{len(report['error'])} error(s), {len(report['warn'])} warning(s)")
     return 1 if report['error'] else 0
 

@@ -34,7 +34,8 @@ BinaryAlphaAdjBSSR(
   tol = 1e-08,
   step = 1e-05,
   margin = 0,
-  ref.pvalue = FALSE
+  ref.pvalue = FALSE,
+  margin.scale = c("RD", "RR")
 )
 }
 \arguments{
@@ -115,7 +116,8 @@ two. An alternative to \code{omega}}
 
 \item{theta}{Grid of common response probabilities at which the type I error rate is
 evaluated. Default is \code{seq(0, 1, by = 0.005)}. With a non-zero
-\code{margin}, \code{theta} is the pooled response probability
+\code{margin}, or a margin on the scale of the risk ratio, \code{theta} is the pooled
+response probability
 \code{(r p1 + p2) / (1 + r)} on the boundary of the null hypothesis, see Details}
 
 \item{maximize}{How the largest type I error rate at a level is located, as in
@@ -136,20 +138,29 @@ With \code{'refined'} and \code{'grid'} the control is assessed on the grid}
 \item{step}{Decrement of the level in the search used when \code{adjust = 'both'}.
 Default is \code{1e-5}}
 
-\item{margin}{Non-inferiority margin on the scale of the risk difference. The
-default of 0 gives a test of superiority. A value other than 0 tests the null
-hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
-\code{alternative} is \code{'greater'}, and \code{p1 - p2 >= margin} against
-\code{p1 - p2 < margin} when it is \code{'less'}. It requires
-\code{Test = 'Blackwelder'} or \code{'Farrington-Manning'}, see
-\code{\link{BinaryRR}}. A negative value tests for superiority by more than its
-absolute value. With a value other than 0 the assumed
-and the true effects are risk differences (\code{effect = 'RD'})}
+\item{margin}{Non-inferiority margin, on the scale given by \code{margin.scale}. On the
+scale of the risk difference the default of 0 gives a test of superiority, and a
+value other than 0 tests the null hypothesis \code{p1 - p2 <= -margin} against
+\code{p1 - p2 > -margin} when \code{alternative} is \code{'greater'}, and
+\code{p1 - p2 >= margin} against \code{p1 - p2 < margin} when it is \code{'less'}. A
+negative value tests for superiority by more than its absolute value. On the scale
+of the risk ratio the margin is a positive ratio \code{R0}, and the null hypothesis
+is \code{p1 / p2 <= R0} against \code{p1 / p2 > R0} when \code{alternative} is
+\code{'greater'}, and \code{p1 / p2 >= R0} against \code{p1 / p2 < R0} when it is
+\code{'less'}. A margin other than 0, and any margin on the scale of the risk ratio,
+requires \code{Test = 'Blackwelder'} or \code{'Farrington-Manning'} and a one-sided
+alternative, see \code{\link{BinaryRR}}. With a margin other than 0 on the scale of
+the risk difference the assumed and the true effects are risk differences
+(\code{effect = 'RD'}), and with a margin on the scale of the risk ratio they are
+risk ratios (\code{effect = 'RR'})}
 
 \item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
 of the unconditional tests is refined between the grid points, see
 \code{\link{BinaryRR}}. Default is \code{FALSE}. It applies to the final analysis, to
 the fixed-sample comparator and to the exact re-estimation}
+
+\item{margin.scale}{Scale of \code{margin}. Options: \code{'RD'} (default) for the
+risk difference \code{p1 - p2} or \code{'RR'} for the risk ratio \code{p1 / p2}}
 }
 \value{
 An object of class \code{bbssr_alphaadj}, a data frame with one row for the

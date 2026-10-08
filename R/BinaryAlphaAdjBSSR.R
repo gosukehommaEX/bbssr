@@ -158,7 +158,8 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
                                theta = seq(0, 1, by = 0.005),
                                maximize = c('certified', 'refined', 'grid'),
                                adjust = c('test', 'both'), tol = 1e-8, step = 1e-5,
-                               margin = 0, ref.pvalue = FALSE) {
+                               margin = 0, ref.pvalue = FALSE,
+                               margin.scale = c('RD', 'RR')) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
@@ -167,6 +168,7 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   search <- match.arg(search)
   adjust <- match.arg(adjust)
   maximize <- match.arg(maximize)
+  margin.scale <- match.arg(margin.scale)
   if (length(theta) < 1 || anyNA(theta) || any(theta < 0 | theta > 1)) {
     stop('theta must be a vector of values in [0, 1]')
   }
@@ -178,22 +180,22 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   }
   theta <- sort(unique(theta))
   Test <- check_rr_args(N1, N2, alpha, Test, n.grid, bb.gamma, ref.pvalue, alternative,
-                        margin)$Test
+                        margin, margin.scale)$Test
   # Response probabilities on the boundary of the null hypothesis, which are both theta
   # when the margin is 0
-  ok <- null_boundary(theta, r, alternative, margin)$ok
+  ok <- null_boundary(theta, r, alternative, margin, margin.scale)$ok
   if (!any(ok)) {
     stop('no value of theta gives response probabilities in [0, 1] on the null boundary')
   }
   # Interval over which the largest rate is certified
-  interval <- null_range(theta, r, alternative, margin)
+  interval <- null_range(theta, r, alternative, margin, margin.scale)
   theta <- theta[ok]
   # p-values of a rejection region, from which the region at any level follows
   pvalues <- function(n1, n2) {
     a <- check_rr_args(n1, n2, alpha, Test, n.grid, bb.gamma, ref.pvalue, alternative,
-                       margin)
+                       margin, margin.scale)
     get_pvalue(a$N1, a$N2, a$Test, alternative, tsmethod, a$n.grid, bb.gamma,
-               a$ref.pvalue, a$margin)
+               a$ref.pvalue, a$margin, a$margin.scale)
   }
   # A design at a given level is a list with its type I error rate f as a function of
   # theta, its interim setup and its rejection regions. max_tie returns the largest rate
@@ -219,7 +221,7 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   certify <- if (maximize == 'certified') {
     function(des, m) {
       cm <- tie_certify(tie_weights(des$setup, des$rr.list), interval, r, alternative,
-                        margin)
+                        margin, margin.scale = margin.scale)
       if (cm$y > m$y) {
         m$x <- cm$x
         m$y <- cm$y
@@ -235,7 +237,7 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   make_trad <- function(level) {
     rr <- pv.fixed %<<% level
     f <- function(t) {
-      b <- null_boundary(t, r, alternative, margin)
+      b <- null_boundary(t, r, alternative, margin, margin.scale)
       vapply(seq_along(t), function(i) {
         power_from_rr(rr, dbinom(0:N1, N1, b$p1[i]), dbinom(0:N2, N2, b$p2[i]))
       }, numeric(1))
@@ -249,7 +251,8 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
     map <- bssr_map(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Test,
                     restricted, alternative, tsmethod, n.grid, bb.gamma, effect,
                     ss.method, ss.Test, level.ss, rounding, N.min, N.max, ref.pvalue,
-                    margin, search = search, search.limit = search.limit)
+                    margin, search = search, search.limit = search.limit,
+                    margin.scale = margin.scale)
     setup <- bssr_setup(map)
     pv.list <- lapply(seq_along(setup$N1), function(k) pvalues(setup$N1[k], setup$N2[k]))
     list(setup = setup, pv.list = pv.list)
@@ -257,7 +260,7 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   make_bssr <- function(d, level) {
     rr.list <- lapply(d$pv.list, function(m) m %<<% level)
     f <- function(t) {
-      b <- null_boundary(t, r, alternative, margin)
+      b <- null_boundary(t, r, alternative, margin, margin.scale)
       bssr_reject(d$setup, rr.list, b$p1, b$p2)
     }
     list(f = f, setup = d$setup, rr.list = rr.list)
@@ -316,6 +319,7 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   attr(out, 'ss.method') <- ss.method
   attr(out, 'search') <- search
   attr(out, 'margin') <- margin
+  attr(out, 'margin.scale') <- margin.scale
   attr(out, 'ref.pvalue') <- ref.pvalue
   class(out) <- c('bbssr_alphaadj', 'data.frame')
   out

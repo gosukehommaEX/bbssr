@@ -369,3 +369,32 @@ test_that("BinaryPowerBSSR passes search and search.limit to the exact re-estima
   expect_equal(attr(res, 'search'), 'stable')
   expect_false(anyNA(attr(res, 'reestimation')$N2.limit))
 })
+
+test_that("BinaryPowerBSSR handles a margin on the scale of the risk ratio", {
+  # Interim analysis of 20 per group, the null hypothesis p1 / p2 <= 0.8, re-estimation by
+  # formula (8) of Farrington and Manning with each group rounded to the nearest whole
+  # number and at most 300 patients. Reference values from
+  # tools/reference/reference_values.py
+  run <- function(p, Delta.T, Delta.A = 1) {
+    BinaryPowerBSSR(p = p, Delta.A = Delta.A, Delta.T = Delta.T, N1 = 100, N2 = 100,
+                    n.interim = c(20, 20), r = 1, alpha = 0.025, tar.power = 0.8,
+                    Test = 'Farrington-Manning', effect = 'RR', ss.method = 'standard',
+                    rounding = 'nearest', N.max = 300, margin = 0.8, margin.scale = 'RR')
+  }
+  seen <- ref_pvalue_calls(res <- run(0.7, 1))
+  expect_gt(nrow(seen), 0)
+  expect_true(all(seen$margin.scale == 'RR' & seen$margin == 0.8))
+  expect_identical(attr(res, 'margin.scale'), 'RR')
+  expect_equal(c(res$power.BSSR, res$E.N), c(0.762084654836453, 258.460228984719),
+               tolerance = 1e-10)
+  # The interim outcome without responders lies on the null boundary and keeps the
+  # planned sizes
+  map <- attr(res, 'reestimation')
+  expect_equal(c(map$N1[1], map$N2[1]), c(100, 100))
+  # On the null boundary the power is the type I error rate
+  res <- run(0.6, 0.8)
+  expect_equal(c(res$p1, res$p2), c(0.8, 1) * 1.2 / 1.8)
+  expect_equal(c(res$power.BSSR, res$E.N), c(0.0258625002690389, 294.15944569259),
+               tolerance = 1e-10)
+  expect_error(run(0.6, 0.8, Delta.A = 0.8), 'exceed margin')
+})

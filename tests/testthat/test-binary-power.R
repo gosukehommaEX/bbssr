@@ -123,3 +123,20 @@ test_that("BinaryPower passes the margin to the p-value computation", {
   expect_equal(pw$Power, 0.356600952518614, tolerance = 1e-8)
   expect_equal(attr(pw, 'margin'), 0.15)
 })
+
+test_that("BinaryPower computes the power for a margin on the scale of the risk ratio", {
+  # Reference values from tools/reference/reference_values.py: the Farrington-Manning
+  # test of p1 / p2 <= 0.8 with 150 per group and the Blackwelder test of
+  # p1 / p2 >= 1.5 with 120 and 100 patients, both at equal true rates
+  seen <- ref_pvalue_calls(
+    pw <- c(BinaryPower(0.6, 0.6, 150, 150, 0.025, 'Farrington-Manning', margin = 0.8,
+                        margin.scale = 'RR')$Power,
+            BinaryPower(0.3, 0.3, 120, 100, 0.025, 'Blackwelder', alternative = 'less',
+                        margin = 1.5, margin.scale = 'RR')$Power)
+  )
+  expect_identical(seen$margin.scale, c('RR', 'RR'))
+  expect_equal(pw, c(0.652502871057245, 0.457689359850127), tolerance = 1e-8)
+  res <- BinaryPower(0.6, 0.6, 15, 15, 0.025, 'Farrington-Manning', margin = 0.8,
+                     margin.scale = 'RR')
+  expect_identical(attr(res, 'margin.scale'), 'RR')
+})

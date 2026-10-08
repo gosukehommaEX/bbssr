@@ -109,3 +109,14 @@ test-binary-power-bssr.R	re-estimated N2, smallest	0	36 27 21 18 24 31 34 39 40 
 test-binary-power-bssr.R	re-estimated N2, stable	0	36 27 21 18 24 31 34 39 40 41 44 41 40 39 34 31 24 18 21 27 36
 test-binary-power-bssr.R	limit of the stable search	0	98 85 77 72 77 82 86 89 91 92 93 92 91 89 86 82 77 72 77 85 98
 test-binary-bssr.R	limit of the stable search with search.limit c(3, 10)	0	126
+test-fm_restricted_rr.R	restricted estimates	1e-09	0.189028034951513 0.378056069903026 0 0 0.9 1 0.310102051443364 0.155051025721682 0.372064896664658 0.248043264443105 1 0.5
+test-fm_restricted_rr.R	large sample values	1e-09	0.604729180758055 0.755911475947568
+test-zstat_margin.R	ratio statistic, restricted and unpooled	1e-09	0.555141102984961 0.556702214268904
+test-binary-rr.R	ratio margin rejection counts	0	537 543
+test-binary-power.R	ratio margin power	1e-08	0.652502871057245 0.457689359850127
+test-ss_raw_n2.R	ratio margin raw n2	1e-09	214.702254838666 247.495550873886 142.674397661995 125.582075749585
+test-binary-sample-size.R	exact ratio margin N2	0	215 151
+test-binary-power-bssr.R	ratio margin power and E.N	1e-10	0.762084654836453 258.460228984719
+test-binary-power-bssr.R	ratio margin boundary	1e-10	0.0258625002690389 294.15944569259
+test-BinaryTypeIErrorBSSR.R	ratio margin type I error	1e-10	0.0255030250799468 0.025862696947157 0.0253098748918834 0.025463971862289 0.0260046973465639 0.0249123070548097
+test-BinaryTypeIErrorBSSR.R	ratio margin certified max	1e-10	0.0370092046191537 0.0262750446720697

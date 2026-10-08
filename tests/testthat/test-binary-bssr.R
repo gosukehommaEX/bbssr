@@ -107,7 +107,7 @@ test_that("the lower-tail alternative mirrors the upper-tail one", {
 
 test_that("the normal methods, the rounding rules and the bounds are applied", {
   res <- BinaryBSSR(20, 20, 11, 0.3, 1, 0.025, 0.8, 'Chisq', ss.method = 'standard')
-  n2 <- ss_raw_n2(res$hat.p1, res$hat.p2, 1, 0.025, 0.8, 'greater', 'standard', 0)
+  n2 <- ss_raw_n2(res$hat.p1, res$hat.p2, 1, 0.025, 0.8, 'greater', 'standard', 0, 'RD')
   expect_equal(res$N2.re, ceil_tol(n2))
   capped <- BinaryBSSR(20, 20, 11, 0.3, 1, 0.025, 0.8, 'Chisq', ss.method = 'standard',
                        N.max = 50)
@@ -143,7 +143,7 @@ test_that("BinaryBSSR passes ref.pvalue to the re-estimation and the final analy
 test_that("BinaryBSSR re-estimates under a non-inferiority margin", {
   res <- BinaryBSSR(30, 30, 24, 0, 1, 0.025, 0.8, 'Farrington-Manning',
                     ss.method = 'standard', rounding = 'nearest', margin = 0.2)
-  n2 <- ss_raw_n2(0.4, 0.4, 1, 0.025, 0.8, 'greater', 'standard', 0.2)
+  n2 <- ss_raw_n2(0.4, 0.4, 1, 0.025, 0.8, 'greater', 'standard', 0.2, 'RD')
   expect_equal(c(res$N1.final, res$N2.final), rep(max(30, floor(n2 + 0.5)), 2))
   expect_equal(attr(res, 'margin'), 0.2)
   expect_error(BinaryBSSR(30, 30, 24, -0.2, 1, 0.025, 0.8, 'Farrington-Manning',
@@ -174,4 +174,24 @@ test_that("BinaryBSSR passes search and search.limit to the re-estimation", {
   expect_equal(attr(res, 'search.limit'), 126)
   expect_true(is.na(attr(BinaryBSSR(10, 10, 9, 0.3, 1, 0.025, 0.8, 'Chisq'),
                          'search.limit')))
+})
+
+test_that("BinaryBSSR re-estimates under a margin on the scale of the risk ratio", {
+  run <- function(S, ...) {
+    BinaryBSSR(20, 20, S, 1, 1, 0.025, 0.8, 'Farrington-Manning', effect = 'RR',
+               ss.method = 'standard', rounding = 'nearest', N.max = 300, margin = 0.8,
+               margin.scale = 'RR', ...)
+  }
+  # 28 responders give the pooled rate 0.7 for both groups, and formula (8) of
+  # Farrington and Manning (1990) gives 141 per group, see test-binary-power-bssr.R
+  seen <- ref_pvalue_calls(res <- run(28))
+  expect_true(all(seen$margin.scale == 'RR'))
+  n2 <- ss_raw_n2(0.7, 0.7, 1, 0.025, 0.8, 'greater', 'standard', 0.8, 'RR')
+  expect_equal(c(res$N1.final, res$N2.final), rep(floor(n2 + 0.5), 2))
+  expect_equal(res$N2.final, 141)
+  expect_identical(attr(res, 'margin.scale'), 'RR')
+  # Without responders the recovered rates lie on the null boundary, so the planned
+  # sample sizes are needed
+  expect_error(run(0), 'null boundary')
+  expect_equal(run(0, N1 = 100, N2 = 100)$N.final, 200)
 })

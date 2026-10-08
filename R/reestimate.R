@@ -7,7 +7,8 @@
 #' A pair of equal probabilities admits no sample size. The risk ratio produces one when
 #' no interim patient responds, and the odds ratio when no interim patient or every
 #' interim patient responds. With a non-inferiority margin, a pair on the boundary of the
-#' null hypothesis admits no sample size instead. The planned sizes
+#' null hypothesis admits no sample size instead, which with a margin on the scale of the
+#' risk ratio also arises when no interim patient responds. The planned sizes
 #' \code{N1.plan} and \code{N2.plan} are returned for such a pair.
 #'
 #' @param hat.p1 Recovered response probabilities of group 1. They must lie in the unit
@@ -27,10 +28,11 @@
 #' @param N2.plan Planned sample size of group 2, or \code{NULL}
 #' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the
 #'   unconditional tests is refined between the grid points
-#' @param margin Non-inferiority margin on the scale of the risk difference, 0 for a test
-#'   of superiority
+#' @param margin Non-inferiority margin, 0 for a test of superiority on the scale of the
+#'   risk difference
 #' @param search Search of \code{ss_exact_search} used under \code{method = 'exact'}
 #' @param search.limit Limit of \code{search = 'stable'}, see \code{ss_exact_search}
+#' @param margin.scale \code{'RD'} or \code{'RR'}, the scale of the margin
 #'
 #' @return A data frame with columns \code{n.raw} (unrounded total, \code{NA} under
 #'   \code{method = 'exact'}), \code{N1.re}, \code{N2.re} and \code{N2.limit}, the
@@ -42,16 +44,16 @@
 #' @import fpCompare
 reestimate <- function(hat.p1, hat.p2, r, alpha, tar.power, Test, alternative, tsmethod,
                        n.grid, bb.gamma, method, rounding, N1.plan, N2.plan, ref.pvalue,
-                       margin, search = 'crossing', search.limit = c(2, 50)) {
-  degenerate <- if (margin == 0) {
+                       margin, search = 'crossing', search.limit = c(2, 50),
+                       margin.scale) {
+  superiority <- margin.scale == 'RD' && margin == 0
+  degenerate <- if (superiority) {
     hat.p1 %==% hat.p2
-  } else if (alternative == 'less') {
-    (hat.p2 - hat.p1 + margin) %==% 0
   } else {
-    (hat.p1 - hat.p2 + margin) %==% 0
+    null_distance(hat.p1, hat.p2, alternative, margin, margin.scale) %==% 0
   }
   if (any(degenerate) && (is.null(N1.plan) || is.null(N2.plan))) {
-    stop(if (margin == 0) 'the recovered response probabilities coincide' else
+    stop(if (superiority) 'the recovered response probabilities coincide' else
            'the recovered response probabilities lie on the null boundary',
          ', so no sample size can be re-estimated; supply the planned sample sizes N1 ',
          'and N2')
@@ -64,7 +66,7 @@ reestimate <- function(hat.p1, hat.p2, r, alpha, tar.power, Test, alternative, t
   L.u <- integer(0)
   if (method != 'exact') {
     n.raw <- '*'(1 + r, ss_raw_n2(hat.p1, hat.p2, r, alpha, tar.power, alternative, method,
-                                  margin))
+                                  margin, margin.scale))
   }
   key <- paste(hat.p1, hat.p2, sep = '_')
   first <- which(!duplicated(key) & !degenerate)
@@ -72,14 +74,15 @@ reestimate <- function(hat.p1, hat.p2, r, alpha, tar.power, Test, alternative, t
     # One search over all distinct pairs, sharing the power at every candidate size
     s <- ss_exact_search(hat.p1[first], hat.p2[first], r, alpha, tar.power, Test,
                          alternative, tsmethod, n.grid, bb.gamma, ref.pvalue, margin,
-                         search, search.limit)
+                         search, search.limit, margin.scale)
     N2.u <- s$N2
     L.u <- s$limit
     N1.u <- as.integer(ceiling(r * N2.u))
   } else if (length(first) > 0) {
     n.u <- vapply(first, function(u) {
       sample_size_n(hat.p1[u], hat.p2[u], r, alpha, tar.power, Test, alternative,
-                    tsmethod, n.grid, bb.gamma, method, rounding, ref.pvalue, margin)
+                    tsmethod, n.grid, bb.gamma, method, rounding, ref.pvalue, margin,
+                    margin.scale = margin.scale)
     }, integer(2))
     N1.u <- n.u['N1', ]
     N2.u <- n.u['N2', ]

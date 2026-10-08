@@ -3,13 +3,13 @@ test_that("ss_exact_search reproduces separate searches for every pair", {
   p2 <- c(0.2, 0.3, 0.25, 0.3)
   for (tst in c('Chisq', 'Fisher', 'Boschloo')) {
     res <- ss_exact_search(p1, p2, 1, 0.025, 0.8, tst, 'greater', 'minlike', 100L, 0,
-                           FALSE, 0)
+                           FALSE, 0, margin.scale = 'RD')
     got <- res$N2
     expect_type(got, 'integer')
     expect_true(all(is.na(res$limit)))
     one <- vapply(seq_along(p1), function(k) {
       ss_exact_search(p1[k], p2[k], 1, 0.025, 0.8, tst, 'greater', 'minlike', 100L, 0,
-                      FALSE, 0)$N2
+                      FALSE, 0, margin.scale = 'RD')$N2
     }, integer(1))
     expect_identical(got, one, info = tst)
   }
@@ -17,20 +17,21 @@ test_that("ss_exact_search reproduces separate searches for every pair", {
 
 test_that("the size attains the target power and one patient fewer does not", {
   N2 <- ss_exact_search(0.6, 0.25, 2, 0.025, 0.8, 'Chisq', 'greater', 'minlike', 100L, 0,
-                        FALSE, 0)$N2
+                        FALSE, 0, margin.scale = 'RD')$N2
   at <- BinaryPower(0.6, 0.25, ceiling(2 * N2), N2, 0.025, 'Chisq')$Power
   below <- BinaryPower(0.6, 0.25, ceiling(2 * (N2 - 1)), N2 - 1, 0.025, 'Chisq')$Power
   expect_gte(at, 0.8)
   expect_lt(below, 0.8)
   expect_identical(ss_exact_search(numeric(0), numeric(0), 1, 0.025, 0.8, 'Chisq',
-                                   'greater', 'minlike', 100L, 0, FALSE, 0)$N2,
+                                   'greater', 'minlike', 100L, 0, FALSE, 0,
+                                   margin.scale = 'RD')$N2,
                    integer(0))
 })
 
 test_that("the three searches follow their definitions", {
   run <- function(p1, p2, r, tar.power, Test, search) {
     ss_exact_search(p1, p2, r, 0.025, tar.power, Test, 'greater', 'minlike', 100L, 0,
-                    FALSE, 0, search)
+                    FALSE, 0, search, margin.scale = 'RD')
   }
   # Reference values from tools/reference/reference_values.py: the sizes of group 2 found
   # by the three searches and the limit of the stable search
@@ -61,7 +62,7 @@ test_that("the three searches follow their definitions", {
 test_that("the stable search checks its limit", {
   run <- function(limit) {
     ss_exact_search(0.6, 0.2, 2, 0.025, 0.9, 'Chisq', 'greater', 'minlike', 100L, 0,
-                    FALSE, 0, 'stable', limit)
+                    FALSE, 0, 'stable', limit, 'RD')
   }
   # The size 22 from the normal approximation falls short of the target power
   expect_error(run(c(1, 0)), 'raise search.limit')

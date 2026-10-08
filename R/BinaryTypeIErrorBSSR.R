@@ -9,7 +9,8 @@
 #' @inheritParams BinaryPowerBSSR
 #' @param theta Grid of common response probabilities at which the type I error rate is
 #'   evaluated. Default is \code{seq(0, 1, by = 0.005)}. With a non-zero
-#'   \code{margin}, \code{theta} is the pooled response probability
+#'   \code{margin}, or a margin on the scale of the risk ratio, \code{theta} is the pooled
+#'   response probability
 #'   \code{(r p1 + p2) / (1 + r)} on the boundary of the null hypothesis, see Details
 #' @param maximize How the largest type I error rate is located. \code{'certified'}
 #'   (default) finds it over the whole interval from the smallest to the largest value of
@@ -71,7 +72,12 @@
 #' or \code{p1 - p2 >= margin} for \code{alternative = 'less'}, and the type I error rate
 #' is evaluated on its boundary, as in Friede et al. (2007). The boundary is parametrized
 #' by the pooled response probability \code{theta}, and the values of \code{theta} at
-#' which a response probability falls outside the unit interval are dropped.
+#' which a response probability falls outside the unit interval are dropped. With
+#' \code{margin.scale = 'RR'} the null hypothesis is \code{p1 / p2 <= margin}, or
+#' \code{p1 / p2 >= margin} for \code{alternative = 'less'}, and its boundary
+#' \code{p1 = margin p2} is parametrized in the same way, with
+#' \code{p2 = (1 + r) theta / (1 + r margin)}. Both response probabilities are again
+#' linear in \code{theta}, so the certified maximum applies on either scale.
 #'
 #' @references
 #' Friede T, Kieser M (2004). Sample size recalculation for binary data in internal pilot
@@ -121,7 +127,8 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
                                  N.min = NULL, N.max = NULL, n.interim = NULL,
                                  theta = seq(0, 1, by = 0.005),
                                  maximize = c('certified', 'refined', 'grid'),
-                                 margin = 0, ref.pvalue = FALSE) {
+                                 margin = 0, ref.pvalue = FALSE,
+                                 margin.scale = c('RD', 'RR')) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
@@ -129,6 +136,7 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   rounding <- match.arg(rounding)
   search <- match.arg(search)
   maximize <- match.arg(maximize)
+  margin.scale <- match.arg(margin.scale)
   if (length(theta) < 1 || anyNA(theta) || any(theta < 0 | theta > 1)) {
     stop('theta must be a vector of values in [0, 1]')
   }
@@ -136,28 +144,29 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   map <- bssr_map(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Test,
                   restricted, alternative, tsmethod, n.grid, bb.gamma, effect,
                   ss.method, ss.Test, ss.alpha, rounding, N.min, N.max, ref.pvalue,
-                  margin, search = search, search.limit = search.limit)
+                  margin, search = search, search.limit = search.limit,
+                  margin.scale = margin.scale)
   # Response probabilities on the boundary of the null hypothesis, which are both theta
   # when the margin is 0
-  if (!any(null_boundary(theta, r, alternative, margin)$ok)) {
+  if (!any(null_boundary(theta, r, alternative, margin, margin.scale)$ok)) {
     stop('no value of theta gives response probabilities in [0, 1] on the null boundary')
   }
   # Interval over which the largest rate is certified
-  interval <- null_range(theta, r, alternative, margin)
-  theta <- theta[null_boundary(theta, r, alternative, margin)$ok]
+  interval <- null_range(theta, r, alternative, margin, margin.scale)
+  theta <- theta[null_boundary(theta, r, alternative, margin, margin.scale)$ok]
   setup <- bssr_setup(map)
   rr.list <- lapply(seq_along(setup$N1), function(k) {
     get_rr(setup$N1[k], setup$N2[k], alpha, Test, alternative, tsmethod, n.grid, bb.gamma,
-           ref.pvalue, margin)
+           ref.pvalue, margin, margin.scale)
   })
   rr.fixed <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma,
-                     ref.pvalue, margin)
+                     ref.pvalue, margin, margin.scale)
   f.bssr <- function(t) {
-    b <- null_boundary(t, r, alternative, margin)
+    b <- null_boundary(t, r, alternative, margin, margin.scale)
     bssr_reject(setup, rr.list, b$p1, b$p2)
   }
   f.trad <- function(t) {
-    b <- null_boundary(t, r, alternative, margin)
+    b <- null_boundary(t, r, alternative, margin, margin.scale)
     vapply(seq_along(t), function(i) {
       power_from_rr(rr.fixed, dbinom(0:N1, N1, b$p1[i]), dbinom(0:N2, N2, b$p2[i]))
     }, numeric(1))
@@ -174,7 +183,8 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
     }
     m$bound <- NA_real_
     if (maximize == 'certified') {
-      cm <- tie_certify(tie_weights(setup, rr.list), interval, r, alternative, margin)
+      cm <- tie_certify(tie_weights(setup, rr.list), interval, r, alternative, margin,
+                        margin.scale = margin.scale)
       if (cm$y > m$y) {
         m$x <- cm$x
         m$y <- cm$y
@@ -185,7 +195,7 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   }
   m.bssr <- locate(f.bssr, tie.bssr, setup, rr.list)
   m.trad <- locate(f.trad, tie.trad, fixed_setup(N1, N2), list(rr.fixed))
-  b <- null_boundary(theta, r, alternative, margin)
+  b <- null_boundary(theta, r, alternative, margin, margin.scale)
   out <- data.frame(theta = theta, p1 = b$p1, p2 = b$p2, TIE.BSSR = tie.bssr,
                     TIE.TRAD = tie.trad)
   attr(out, 'max') <- data.frame(Design = c('BSSR', 'TRAD'),
@@ -209,6 +219,7 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   attr(out, 'maximize') <- maximize
   if (maximize == 'certified') attr(out, 'interval') <- interval
   attr(out, 'margin') <- margin
+  attr(out, 'margin.scale') <- margin.scale
   attr(out, 'ref.pvalue') <- ref.pvalue
   attr(out, 'reestimation') <- map
   class(out) <- c('bbssr_tie', 'data.frame')

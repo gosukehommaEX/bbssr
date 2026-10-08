@@ -16,7 +16,9 @@
 #'   \code{'Farrington-Manning'}
 #' @param alternative Direction of the alternative hypothesis. Options: \code{'greater'}
 #'   (default), which requires \code{p1 - p2 > -margin}, \code{'less'}, which requires
-#'   \code{p1 - p2 < margin}, or \code{'two.sided'}, which requires \code{p1 != p2}
+#'   \code{p1 - p2 < margin}, or \code{'two.sided'}, which requires \code{p1 != p2}. With
+#'   \code{margin.scale = 'RR'}, \code{'greater'} requires \code{p1 > margin p2} and
+#'   \code{'less'} requires \code{p1 < margin p2}
 #' @param tsmethod Convention used to construct the two-sided version of the conditional
 #'   tests, see \code{\link{BinaryRR}}. Options: \code{'minlike'} (default),
 #'   \code{'central'} or \code{'blaker'}
@@ -32,7 +34,8 @@
 #'   power term, formula (21.3) of Kieser (2020). \code{'null.variance'} uses the variance
 #'   under the null hypothesis for both terms, formula (1) of Friede and Kieser (2004).
 #'   \code{'alternative.variance'} uses the variance under the alternative for both terms,
-#'   as in Blackwelder (1982). See Details for a non-zero \code{margin}
+#'   as in Blackwelder (1982). See Details for a non-zero \code{margin} and for a margin
+#'   on the scale of the risk ratio
 #' @param rounding How an unrounded sample size from the normal approximation is turned
 #'   into whole numbers. \code{'group'} (default) rounds up the size of group 2 and gives
 #'   group 1 \code{ceiling(r N2)} patients. \code{'friede-kieser'} rounds up the two
@@ -51,14 +54,20 @@
 #'   \code{search = 'stable'}, where \code{n0} is the size of group 2 from the normal
 #'   approximation, rounded up. \code{a} must be at least 1 and \code{b} non-negative.
 #'   Default is \code{c(2, 50)}
-#' @param margin Non-inferiority margin on the scale of the risk difference. The
-#'   default of 0 gives a test of superiority. A value other than 0 tests the null
-#'   hypothesis \code{p1 - p2 <= -margin} against \code{p1 - p2 > -margin} when
-#'   \code{alternative} is \code{'greater'}, and \code{p1 - p2 >= margin} against
-#'   \code{p1 - p2 < margin} when it is \code{'less'}. It requires
-#'   \code{Test = 'Blackwelder'} or \code{'Farrington-Manning'}, see
-#'   \code{\link{BinaryRR}}. A negative value tests for superiority by more than its
-#'   absolute value
+#' @param margin Non-inferiority margin, on the scale given by \code{margin.scale}. On the
+#'   scale of the risk difference the default of 0 gives a test of superiority, and a
+#'   value other than 0 tests the null hypothesis \code{p1 - p2 <= -margin} against
+#'   \code{p1 - p2 > -margin} when \code{alternative} is \code{'greater'}, and
+#'   \code{p1 - p2 >= margin} against \code{p1 - p2 < margin} when it is \code{'less'}. A
+#'   negative value tests for superiority by more than its absolute value. On the scale
+#'   of the risk ratio the margin is a positive ratio \code{R0}, and the null hypothesis
+#'   is \code{p1 / p2 <= R0} against \code{p1 / p2 > R0} when \code{alternative} is
+#'   \code{'greater'}, and \code{p1 / p2 >= R0} against \code{p1 / p2 < R0} when it is
+#'   \code{'less'}. A margin other than 0, and any margin on the scale of the risk ratio,
+#'   requires \code{Test = 'Blackwelder'} or \code{'Farrington-Manning'} and a one-sided
+#'   alternative, see \code{\link{BinaryRR}}
+#' @param margin.scale Scale of \code{margin}. Options: \code{'RD'} (default) for the
+#'   risk difference \code{p1 - p2} or \code{'RR'} for the risk ratio \code{p1 / p2}
 #' @param ref.pvalue Logical. If \code{TRUE}, the maximization over the nuisance parameter
 #'   of the unconditional tests is refined between the grid points, see
 #'   \code{\link{BinaryRR}}. Default is \code{FALSE}
@@ -128,6 +137,15 @@
 #' (1) of Friede et al. (2007). The exact search starts from the formula of Farrington and
 #' Manning.
 #'
+#' With \code{margin.scale = 'RR'} and the ratio \code{R0 = margin}, the difference in the
+#' normal approximation is the distance \code{p1 - R0 p2}, or \code{R0 p2 - p1} for
+#' \code{alternative = 'less'}, and the variance of the size of group 2 is
+#' \code{p1 (1 - p1) / r + R0^2 p2 (1 - p2)}, evaluated at the large sample values of the
+#' restricted maximum likelihood estimates under \code{p1 = R0 p2} for the significance
+#' term. The method \code{'standard'} then gives formula (8) of Farrington and Manning
+#' (1990), \code{'alternative.variance'} gives the formula of their Method 1, and the
+#' exact search starts from formula (8).
+#'
 #' @references
 #' Friede T, Kieser M (2004). Sample size recalculation for binary data in internal pilot
 #' study designs. \emph{Pharmaceutical Statistics}, 3(4), 269-279.
@@ -166,6 +184,11 @@
 #' BinarySampleSize(p1 = 0.7, p2 = 0.7, r = 1, alpha = 0.025, tar.power = 0.8,
 #'                  Test = 'Farrington-Manning', method = 'standard',
 #'                  rounding = 'friede-kieser', margin = 0.1)
+#'
+#' # Non-inferiority on the scale of the risk ratio: the null hypothesis p1 / p2 <= 0.8
+#' # with equal response probabilities of 0.6
+#' BinarySampleSize(p1 = 0.6, p2 = 0.6, r = 1, alpha = 0.025, tar.power = 0.8,
+#'                  Test = 'Farrington-Manning', margin = 0.8, margin.scale = 'RR')
 #' }
 #'
 #' @author Gosuke Homma (\email{my.name.is.gosuke@@gmail.com})
@@ -180,12 +203,14 @@ BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
                                         'alternative.variance'),
                              rounding = c('group', 'friede-kieser', 'total', 'nearest'),
                              search = c('crossing', 'smallest', 'stable'),
-                             search.limit = c(2, 50), margin = 0, ref.pvalue = FALSE) {
+                             search.limit = c(2, 50), margin = 0, ref.pvalue = FALSE,
+                             margin.scale = c('RD', 'RR')) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   method <- match.arg(method)
   rounding <- match.arg(rounding)
   search <- match.arg(search)
+  margin.scale <- match.arg(margin.scale)
   if (length(p1) != 1 || length(p2) != 1) stop('p1 and p2 must each be a single value')
   if (length(r) != 1 || is.na(r) || r <= 0) stop('r must be a single positive value')
   if (length(tar.power) != 1 || tar.power <= 0 || tar.power >= 1) {
@@ -194,7 +219,7 @@ BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
   # Validates the test, the level, the margin and the remaining arguments of the
   # rejection region
   a <- check_rr_args(1, 1, alpha, Test, n.grid, bb.gamma, ref.pvalue, alternative,
-                     margin)
+                     margin, margin.scale)
   Test <- a$Test
   ref.pvalue <- a$ref.pvalue
   margin <- a$margin
@@ -206,22 +231,30 @@ BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
   if (margin == 0 && alternative == 'less' && p1 > p2) {
     stop("p1 must fall below p2 when alternative is 'less'")
   }
-  if (margin != 0 && alternative == 'greater' && !((p1 - p2 + margin) %>>% 0)) {
+  rd <- margin.scale == 'RD'
+  if (rd && margin != 0 && alternative == 'greater' && !((p1 - p2 + margin) %>>% 0)) {
     stop("p1 - p2 must exceed -margin when alternative is 'greater'")
   }
-  if (margin != 0 && alternative == 'less' && !((p2 - p1 + margin) %>>% 0)) {
+  if (rd && margin != 0 && alternative == 'less' && !((p2 - p1 + margin) %>>% 0)) {
     stop("p1 - p2 must fall below margin when alternative is 'less'")
+  }
+  if (!rd && alternative == 'greater' && !((p1 - margin * p2) %>>% 0)) {
+    stop("p1 must exceed margin * p2 when alternative is 'greater'")
+  }
+  if (!rd && alternative == 'less' && !((margin * p2 - p1) %>>% 0)) {
+    stop("p1 must fall below margin * p2 when alternative is 'less'")
   }
   if (method == 'exact' && rounding != 'group') {
     stop("rounding must be 'group' when method is 'exact'")
   }
   n <- sample_size_n(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod, n.grid,
-                     bb.gamma, method, rounding, ref.pvalue, margin, search, search.limit)
+                     bb.gamma, method, rounding, ref.pvalue, margin, search, search.limit,
+                     margin.scale)
   N1 <- n[['N1']]
   N2 <- n[['N2']]
   N <- N1 + N2
   rr <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue,
-               margin)
+               margin, margin.scale)
   Power <- power_from_rr(rr, dbinom(0:N1, N1, p1), dbinom(0:N2, N2, p2))
   out <- data.frame(
     p1 = p1, p2 = p2, r = r, alpha = alpha, tar.power = tar.power,
@@ -238,6 +271,7 @@ BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
   limit <- attr(n, 'limit')
   attr(out, 'search.limit') <- if (is.null(limit)) NA_integer_ else limit
   attr(out, 'margin') <- margin
+  attr(out, 'margin.scale') <- margin.scale
   attr(out, 'ref.pvalue') <- ref.pvalue
   class(out) <- c('bbssr_samplesize', 'data.frame')
   out

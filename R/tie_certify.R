@@ -13,16 +13,20 @@
 #'   returned by \code{null_range}
 #' @param r Allocation ratio to group 1
 #' @param alternative \code{'greater'}, \code{'less'} or \code{'two.sided'}
-#' @param margin Non-inferiority margin on the scale of the risk difference
+#' @param margin Non-inferiority margin, a difference for \code{margin.scale = 'RD'} and
+#'   a ratio for \code{'RR'}
 #' @param tol Largest difference between the bound and the value. Default is \code{1e-12}
+#' @param margin.scale \code{'RD'} or \code{'RR'}. On both scales the response
+#'   probabilities on the boundary are linear in the pooled probability
 #'
 #' @return A list with the pooled response probability \code{x} of the largest value
 #'   found, the value \code{y} and the upper bound \code{bound}
 #'
 #' @keywords internal
 #' @noRd
-tie_certify <- function(weights, interval, r, alternative, margin, tol = 1e-12) {
-  b <- null_boundary(interval, r, alternative, margin)
+tie_certify <- function(weights, interval, r, alternative, margin, tol = 1e-12,
+                        margin.scale) {
+  b <- null_boundary(interval, r, alternative, margin, margin.scale)
   m <- bernstein_max(tie_bernstein(weights, b$p1, b$p2), tol, 100000L)
   if (!m$complete) {
     warning('the certified maximization stopped at its limit of subdivisions; ',

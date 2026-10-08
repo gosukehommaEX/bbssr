@@ -107,18 +107,19 @@ column_run_count <- function(rr) {
   apply(rr, 2, function(v) sum(diff(c(FALSE, v)) == 1))
 }
 
-# Test, refinement flag, margin and two-sided convention of every call of get_pvalue()
-# made while code is evaluated, which shows whether ref.pvalue, margin and tsmethod reach
-# each p-value matrix used by a function
+# Test, refinement flag, margin, two-sided convention and scale of the margin of every
+# call of get_pvalue() made while code is evaluated, which shows whether ref.pvalue,
+# margin, tsmethod and margin.scale reach each p-value matrix used by a function
 ref_pvalue_calls <- function(code) {
   seen <- data.frame(Test = character(0), ref.pvalue = logical(0), margin = numeric(0),
-                     tsmethod = character(0))
+                     tsmethod = character(0), margin.scale = character(0))
   real <- get_pvalue
   testthat::local_mocked_bindings(
     get_pvalue = function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma,
-                          ref.pvalue, margin) {
-      seen[nrow(seen) + 1L, ] <<- list(Test, ref.pvalue, margin, tsmethod)
-      real(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue, margin)
+                          ref.pvalue, margin, margin.scale) {
+      seen[nrow(seen) + 1L, ] <<- list(Test, ref.pvalue, margin, tsmethod, margin.scale)
+      real(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue, margin,
+           margin.scale)
     }
   )
   force(code)
@@ -169,10 +170,10 @@ search_calls <- function(code) {
   testthat::local_mocked_bindings(
     ss_exact_search = function(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod,
                                n.grid, bb.gamma, ref.pvalue, margin, search = 'crossing',
-                               search.limit = c(2, 50)) {
+                               search.limit = c(2, 50), margin.scale) {
       seen[nrow(seen) + 1L, ] <<- list(search, search.limit[1], search.limit[2])
       real(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod, n.grid, bb.gamma,
-           ref.pvalue, margin, search, search.limit)
+           ref.pvalue, margin, search, search.limit, margin.scale)
     }
   )
   force(code)

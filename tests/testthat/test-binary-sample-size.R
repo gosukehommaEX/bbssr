@@ -225,3 +225,36 @@ test_that("BinarySampleSize offers three exact searches", {
   expect_error(BinarySampleSize(0.6, 0.2, 2, 0.025, 0.9, 'Chisq', search = 'first'),
                'should be one of')
 })
+
+test_that("the exact search handles a margin on the scale of the risk ratio", {
+  # Reference values from tools/reference/reference_values.py, whose search starts from
+  # formula (8) of Farrington and Manning (1990) and moves one patient at a time
+  seen <- ref_pvalue_calls(
+    fm <- BinarySampleSize(0.6, 0.6, 1, 0.025, 0.8, 'Farrington-Manning', margin = 0.8,
+                           margin.scale = 'RR')
+  )
+  expect_true(all(seen$margin.scale == 'RR'))
+  bw <- BinarySampleSize(0.3, 0.3, 2, 0.025, 0.8, 'Blackwelder', alternative = 'less',
+                         margin = 1.6, margin.scale = 'RR')
+  expect_equal(c(fm$N2, bw$N2), c(215, 151))
+  expect_equal(c(fm$N1, bw$N1), c(215, 302))
+  expect_identical(attr(fm, 'margin.scale'), 'RR')
+  # The normal approximation by formula (8), rounded up in group 2
+  ss <- BinarySampleSize(0.6, 0.6, 1, 0.025, 0.8, 'Farrington-Manning',
+                         method = 'standard', margin = 0.8, margin.scale = 'RR')
+  n2 <- ss_raw_n2(0.6, 0.6, 1, 0.025, 0.8, 'greater', 'standard', 0.8, 'RR')
+  expect_equal(ss$N2, ceiling(n2))
+})
+
+test_that("BinarySampleSize checks the direction of the effect against a ratio margin", {
+  expect_error(BinarySampleSize(0.4, 0.5, 1, 0.025, 0.8, 'Farrington-Manning',
+                                margin = 0.8, margin.scale = 'RR'), 'exceed margin')
+  expect_error(BinarySampleSize(0.6, 0.4, 1, 0.025, 0.8, 'Farrington-Manning',
+                                alternative = 'less', margin = 1.5, margin.scale = 'RR'),
+               'fall below margin')
+  expect_error(BinarySampleSize(0.6, 0.6, 1, 0.025, 0.8, 'Fisher', margin = 0.8,
+                                margin.scale = 'RR'), 'Blackwelder')
+  expect_no_error(BinarySampleSize(0.6, 0.6, 1, 0.025, 0.8, 'Blackwelder',
+                                   method = 'alternative.variance', margin = 0.8,
+                                   margin.scale = 'RR'))
+})

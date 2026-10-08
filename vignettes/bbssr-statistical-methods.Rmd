@@ -38,7 +38,7 @@ $$
 \binom{N_{2}}{x_{2}} p_{2}^{x_{2}} (1 - p_{2})^{N_{2} - x_{2}} .
 $$
 
-The type I error rate is the same sum evaluated at $p_{1} = p_{2} = \theta$, maximized over $\theta$. The tests of non-inferiority with a margin, `Blackwelder` and `Farrington-Manning`, have the null hypothesis $p_{1} - p_{2} \le -\delta$ instead, and the `bbssr-non-inferiority` vignette describes them. The rest of this vignette concerns the hypothesis of equal response probabilities.
+The type I error rate is the same sum evaluated at $p_{1} = p_{2} = \theta$, maximized over $\theta$. The tests of non-inferiority with a margin, `Blackwelder` and `Farrington-Manning`, have the null hypothesis $p_{1} - p_{2} \le -\delta$ instead, or $p_{1} / p_{2} \le R_{0}$ with a margin on the scale of the risk ratio, and the `bbssr-non-inferiority` vignette describes them. The rest of this vignette concerns the hypothesis of equal response probabilities.
 
 ## Conditional tests
 
@@ -315,7 +315,7 @@ Setting $p_{1} = p_{2} = \theta$ in this sum gives the type I error rate of the 
 
 ### The largest type I error rate
 
-The largest type I error rate is the largest rejection probability on the boundary of the null hypothesis. Without a margin the boundary is $p_{1} = p_{2} = \theta$. With a margin both response probabilities on the boundary are linear functions $p_{1}(\theta)$ and $p_{2}(\theta)$ of the pooled response probability $\theta$, see the `bbssr-non-inferiority` vignette. `BinaryTypeIErrorBSSR()` and `BinaryAlphaAdjBSSR()` find the largest value over an interval of $\theta$ together with an upper bound, as described in this section.
+The largest type I error rate is the largest rejection probability on the boundary of the null hypothesis. Without a margin the boundary is $p_{1} = p_{2} = \theta$. With a margin, on the scale of the risk difference or of the risk ratio, both response probabilities on the boundary are linear functions $p_{1}(\theta)$ and $p_{2}(\theta)$ of the pooled response probability $\theta$, see the `bbssr-non-inferiority` vignette. `BinaryTypeIErrorBSSR()` and `BinaryAlphaAdjBSSR()` find the largest value over an interval of $\theta$ together with an upper bound, as described in this section.
 
 Let $x_{11}$ and $x_{12}$ be the interim numbers of responders, as in the sum above, $s = x_{11} + x_{12}$ their total, and $N_{1}(s)$ and $N_{2}(s)$ the final sample sizes that $s$ leads to. Given that $X_{1}$ of the $N_{1}(s)$ patients of group 1 respond, the number of responders among the first $n_{11}$ is hypergeometric whatever the response probability,
 $$

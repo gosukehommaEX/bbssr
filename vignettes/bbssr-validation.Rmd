@@ -508,6 +508,13 @@ fk <- BinaryPowerBSSR(
 fm.plan <- BinarySampleSize(0.4, 0.05, 1, 0.05, 0.8, 'Farrington-Manning',
                             method = 'standard', rounding = 'nearest', margin = -0.2)
 fm.power <- BinaryPower(0.4, 0.05, 80, 80, 0.05, 'Farrington-Manning', margin = -0.2)
+# Farrington and Manning (1990), Table I for the relative risk: p1 = p2 = 0.1, the null
+# hypothesis p1 / p2 <= 0.1 and equal groups
+fmr.plan <- BinarySampleSize(0.1, 0.1, 1, 0.05, 0.9, 'Farrington-Manning',
+                             method = 'standard', rounding = 'nearest', margin = 0.1,
+                             margin.scale = 'RR')
+fmr.power <- BinaryPower(0.1, 0.1, 46, 46, 0.05, 'Farrington-Manning', margin = 0.1,
+                         margin.scale = 'RR')
 # Friede, Mitchell and Mueller-Velten (2007), Section 5: margin 0.1 and equal groups
 fmm.bw <- BinarySampleSize(0.7, 0.7, 1, 0.025, 0.8, 'Blackwelder',
                            method = 'alternative.variance', rounding = 'friede-kieser',
@@ -522,6 +529,7 @@ published <- data.frame(
   source = c('Kieser (2020)', 'Kieser (2020)', 'Kieser (2020)',
              'Friede and Kieser (2004)', 'Friede and Kieser (2004)',
              'Friede and Kieser (2004)', 'Farrington and Manning (1990)',
+             'Farrington and Manning (1990)', 'Farrington and Manning (1990)',
              'Farrington and Manning (1990)', 'Friede et al. (2007)',
              'Friede et al. (2007)', 'Boschloo (1970)', 'Boschloo (1970)'),
   quantity = c('initial total sample size, Delta = 0.15',
@@ -529,23 +537,25 @@ published <- data.frame(
                'largest level, re-estimation, Delta = 0.30',
                'initial total sample size', 'expected total sample size', 'power',
                'sample size per group', 'power at 80 patients per group',
+               'sample size per group, relative risk 0.1',
+               'power at 46 patients per group, relative risk 0.1',
                'total sample size, Blackwelder, p = 0.7',
                'total sample size, Farrington-Manning, p = 0.9',
                'power of the Fisher test, 15 per group, p1 = 0.3',
                'power of the Boschloo test, 15 per group, p1 = 0.3'),
-  published = c(314, 0.0268, 0.0273, 166, 162.0, 0.794, 80, 0.813, 660, 310, 0.2558,
-                0.3531),
-  digits = c(0, 4, 4, 0, 1, 3, 0, 3, 0, 0, 4, 4),
+  published = c(314, 0.0268, 0.0273, 166, 162.0, 0.794, 80, 0.813, 46, 0.9225, 660, 310,
+                0.2558, 0.3531),
+  digits = c(0, 4, 4, 0, 1, 3, 0, 3, 0, 4, 0, 0, 4, 4),
   recomputed = c(k.plan$N, max(k.tie$TIE.TRAD), max(k.tie$TIE.BSSR), fk.plan$N, fk$E.N,
-                 fk$power.BSSR, fm.plan$N1, fm.power$Power, fmm.bw$N, fmm.fm$N,
-                 bo.power)
+                 fk$power.BSSR, fm.plan$N1, fm.power$Power, fmr.plan$N1, fmr.power$Power,
+                 fmm.bw$N, fmm.fm$N, bo.power)
 )
 published$agrees <- abs(round(published$recomputed, published$digits) -
                           published$published) < 1e-9
 published
 ```
 
-Of the `r nrow(published)` values above, `r sum(published$agrees)` agree with the publication after rounding. The script reports every value that it does not reproduce, together with the reason when one is known. The vignette 'Validation by Reproducing Published Figures' redraws fifteen figures of the same publications from values computed with the package.
+Of the `r nrow(published)` values above, `r sum(published$agrees)` agree with the publication after rounding. The script reports every value that it does not reproduce, together with the reason when one is known. For the relative risk, the sample sizes and true powers that the script computes for Tables I and II and the second example of Farrington and Manning (1990) agree with an independent computation in Python (`tools/reference/check_farrington_manning_1990_rr.py` in the source repository), which finds the restricted maximum likelihood estimates by bisection on the score equation rather than by formula (13) of the article. The vignette 'Validation by Reproducing Published Figures' redraws fifteen figures of the same publications from values computed with the package.
 
 The two-sided Fisher p-values of the conventions are compared with two published examples: 8 responders out of 14 against 1 out of 7 in Fay and Hunsberger (2021, Section 8), and 8 out of 148 against 1 out of 132 in Mehrotra, Chan and Berger (2003, Section 3.1).
 

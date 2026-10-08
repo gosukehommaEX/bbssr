@@ -150,3 +150,20 @@ test_that("BinaryAlphaAdjBSSR passes search and search.limit to the re-estimatio
   expect_true(all(seen$search == 'stable' & seen$a == 3 & seen$b == 10))
   expect_equal(attr(res, 'search'), 'stable')
 })
+
+test_that("BinaryAlphaAdjBSSR evaluates the boundary of a ratio margin", {
+  seen <- ref_pvalue_calls(res <- BinaryAlphaAdjBSSR(
+    Delta.A = 1, N1 = 100, N2 = 100, n.interim = c(20, 20), r = 1, alpha = 0.025,
+    tar.power = 0.8, Test = 'Farrington-Manning', effect = 'RR', ss.method = 'standard',
+    rounding = 'nearest', N.max = 300, margin = 0.8, margin.scale = 'RR',
+    theta = c(0.3, 0.5, 0.7), maximize = 'grid'
+  ))
+  expect_gt(nrow(seen), 0)
+  expect_true(all(seen$margin.scale == 'RR'))
+  # The largest rates on the grid, see test-BinaryTypeIErrorBSSR.R, and the adjusted
+  # levels control them
+  expect_equal(res$max.TIE, c(0.0260046973465639, 0.025862696947157), tolerance = 1e-10)
+  expect_true(all(res$alpha.adj < 0.025))
+  expect_true(all(res$max.TIE.adj <= 0.025))
+  expect_identical(attr(res, 'margin.scale'), 'RR')
+})

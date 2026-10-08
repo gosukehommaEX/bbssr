@@ -31,9 +31,9 @@ print.bbssr_tie <- function(x, digits = 4, ...) {
   cat(sprintf('  Interim size    : n1 = %d, n2 = %d\n',
               attr(x, 'n1.interim'), attr(x, 'n2.interim')))
   cat(sprintf('  Assumed effect  : %s (%s)\n', format(attr(x, 'Delta.A')), attr(x, 'effect')))
-  margin <- attr(x, 'margin')
-  if (!is.null(margin) && margin != 0) {
-    cat(sprintf('  Margin          : %s\n', format(margin)))
+  margin <- format_margin(attr(x, 'margin'), attr(x, 'margin.scale'))
+  if (!is.null(margin)) {
+    cat(sprintf('  Margin          : %s\n', margin))
   }
   cat(sprintf('  Nominal level   : %s\n', format(attr(x, 'alpha'))))
   cat(sprintf('  Grid            : %d values of theta in [%s, %s]\n', nrow(x),

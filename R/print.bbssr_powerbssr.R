@@ -39,9 +39,9 @@ print.bbssr_powerbssr <- function(x, digits = 4, ...) {
   scale <- c(RD = 'risk difference', RR = 'risk ratio', OR = 'odds ratio')[[effect]]
   cat(sprintf('  Treatment effect: assumed %s, true %s (%s)\n',
               format(attr(x, 'Delta.A')), format(attr(x, 'Delta.T')), scale))
-  margin <- attr(x, 'margin')
-  if (!is.null(margin) && margin != 0) {
-    cat(sprintf('  Margin          : %s\n', format(margin)))
+  margin <- format_margin(attr(x, 'margin'), attr(x, 'margin.scale'))
+  if (!is.null(margin)) {
+    cat(sprintf('  Margin          : %s\n', margin))
   }
   ss.method <- attr(x, 'ss.method')
   if (!is.null(ss.method)) {
