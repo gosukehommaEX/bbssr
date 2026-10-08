@@ -89,17 +89,17 @@ Homma</h4>
 <div class="section level2">
 <h2 id="purpose">Purpose<a class="anchor" aria-label="anchor" href="#purpose"></a>
 </h2>
-<p>This vignette redraws twelve figures of four publications on binary
+<p>This vignette redraws fifteen figures of four publications on binary
 endpoints, blinded sample size re-estimation and exact tests from values
 computed with bbssr: Figures 1 to 4 of Friede and Kieser (2004), Figures
-21.1 to 21.4 of Kieser (2020), Figures 1 to 3 of Friede, Mitchell and
-Mueller-Velten (2007) and Figure 2 of Boschloo (1970). A figure carries
-the operating characteristics of a design over a whole range of
-parameters, so its agreement with the original checks the package at
-many more points than the tables that <code>reproduce-published.R</code>
-compares (see the validation vignette). Where the text of a publication
-states values that are read from a figure, they are compared with the
-recomputed values.</p>
+21.1 to 21.4 and 23.1 to 23.3 of Kieser (2020), Figures 1 to 3 of
+Friede, Mitchell and Mueller-Velten (2007) and Figure 2 of Boschloo
+(1970). A figure carries the operating characteristics of a design over
+a whole range of parameters, so its agreement with the original checks
+the package at many more points than the tables that
+<code>reproduce-published.R</code> compares (see the validation
+vignette). Where the text of a publication states values that are read
+from a figure, they are compared with the recomputed values.</p>
 <p>The original figures are not reproduced here; they are to be compared
 with the publications. The axis ranges, tick marks, line types and
 symbols follow the original figures, so that a figure can be laid next
@@ -230,7 +230,7 @@ and a pilot of 120 patients against the required total
 </div>
 </div>
 <div class="section level2">
-<h2 id="kieser-2020">Kieser (2020)<a class="anchor" aria-label="anchor" href="#kieser-2020"></a>
+<h2 id="kieser-2020-chapter-21">Kieser (2020), Chapter 21<a class="anchor" aria-label="anchor" href="#kieser-2020-chapter-21"></a>
 </h2>
 <p>The figures use the normal approximation test, which is equivalent to
 the chi-squared test, at the one-sided level 0.025 and the target power
@@ -674,6 +674,120 @@ recomputed values are 303, 325 and 315, and 258, 343, 31 and 7.</p>
 </div>
 </div>
 <div class="section level2">
+<h2 id="kieser-2020-chapter-23">Kieser (2020), Chapter 23<a class="anchor" aria-label="anchor" href="#kieser-2020-chapter-23"></a>
+</h2>
+<p>Example 23.1 of the book (the FreezeAF trial) uses the test of
+Farrington and Manning (1990) of the non-inferiority hypothesis
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>E</mi></msub><mo>−</mo><msub><mi>p</mi><mi>C</mi></msub><mo>≤</mo><mi>−</mi><mi>δ</mi></mrow><annotation encoding="application/x-tex">p_E - p_C \le -\delta</annotation></semantics></math>
+with the margin
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>=</mo><mn>0.15</mn></mrow><annotation encoding="application/x-tex">\delta = 0.15</annotation></semantics></math>
+at the one-sided level 0.025, the equal assumed rates
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mrow><mi>C</mi><mo>,</mo><mi>A</mi></mrow></msub><mo>=</mo><msub><mi>p</mi><mrow><mi>E</mi><mo>,</mo><mi>A</mi></mrow></msub><mo>=</mo><mn>0.78</mn></mrow><annotation encoding="application/x-tex">p_{C,A} = p_{E,A} = 0.78</annotation></semantics></math>
+and the target power 0.8. Formula (23.2) gives
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mn>0</mn></msub><mo>=</mo><mn>244</mn></mrow><annotation encoding="application/x-tex">n_0 = 244</annotation></semantics></math>
+patients in total, the pilot has 100 patients, and the recalculation is
+unrestricted. The recalculated total therefore lies between the 100
+patients of the pilot and the 344 patients that formula (23.2) gives at
+the overall rate 0.5, the bounds that the book points out. In bbssr this
+design is <code>Test = 'Farrington-Manning'</code>,
+<code>margin = 0.15</code>, <code>Delta.A = 0</code>,
+<code>ss.method = 'standard'</code> and
+<code>n.interim = c(50, 50)</code>, with group 1 the experimental group
+E and each group rounded up, as in the reproduction of the values of
+Example 23.1 by <code>reproduce-published.R</code>.</p>
+<div class="section level3">
+<h3 id="figure-23-1-p--251">Figure 23.1 (p. 251)<a class="anchor" aria-label="anchor" href="#figure-23-1-p--251"></a>
+</h3>
+<p><img src="bbssr-published-figures_files/figure-html/k23-fig1-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
+<p>Actual level on the boundary of the null hypothesis,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>E</mi></msub><mo>=</mo><mi>p</mi><mo>−</mo><mn>0.075</mn></mrow><annotation encoding="application/x-tex">p_E = p - 0.075</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>C</mi></msub><mo>=</mo><mi>p</mi><mo>+</mo><mn>0.075</mn></mrow><annotation encoding="application/x-tex">p_C = p + 0.075</annotation></semantics></math>,
+against the overall rate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0.075</mn><mo>,</mo><mn>0.925</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0.075, 0.925]</annotation></semantics></math>,
+for the fixed design with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mn>0</mn></msub><annotation encoding="application/x-tex">n_0</annotation></semantics></math>
+patients and the internal pilot study design. The book states that it
+varied
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+in steps of 0.05, but the maximum it reports at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.865</mn></mrow><annotation encoding="application/x-tex">p = 0.865</annotation></semantics></math>
+lies only on a grid with steps of 0.005, which is the grid used
+here.</p>
+<table class="table">
+<thead><tr class="header">
+<th align="left">Value</th>
+<th align="right">Book</th>
+<th align="right">bbssr</th>
+<th align="left">Agrees</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">fixed design: maximum level</td>
+<td align="right">0.0281</td>
+<td align="right">0.028078</td>
+<td align="left">yes</td>
+</tr>
+<tr class="even">
+<td align="left">recalculation design: maximum level</td>
+<td align="right">0.0264</td>
+<td align="right">0.026449</td>
+<td align="left">yes</td>
+</tr>
+<tr class="odd">
+<td align="left">recalculation design: rate of the maximum</td>
+<td align="right">0.8650</td>
+<td align="right">0.865000</td>
+<td align="left">yes</td>
+</tr>
+</tbody>
+</table>
+<p>The level is symmetric about
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">p = 0.5</annotation></semantics></math>,
+so the maximum of the recalculation design is attained at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.135</mn></mrow><annotation encoding="application/x-tex">p = 0.135</annotation></semantics></math>
+as well. 3 of the 3 values agree, and the curves agree with the original
+figure. The adjusted levels that the book derives from this figure are
+reproduced by <code>reproduce-published.R</code>, and the
+<code>bbssr-type1-error</code> vignette uses the example to illustrate
+the control of the type I error rate within a confidence interval.</p>
+</div>
+<div class="section level3">
+<h3 id="figure-23-2-p--252">Figure 23.2 (p. 252)<a class="anchor" aria-label="anchor" href="#figure-23-2-p--252"></a>
+</h3>
+<p><img src="bbssr-published-figures_files/figure-html/k23-fig2-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
+<p>Power for the equal true rates
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>E</mi></msub><mo>=</mo><msub><mi>p</mi><mi>C</mi></msub><mo>=</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">p_E = p_C = p</annotation></semantics></math>.
+The power of the fixed design falls to 0.6729 near
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">p = 0.5</annotation></semantics></math>,
+while the power of the recalculation design lies between 0.7911 and
+0.8517. The figure agrees with the original.</p>
+</div>
+<div class="section level3">
+<h3 id="figure-23-3-p--252">Figure 23.3 (p. 252)<a class="anchor" aria-label="anchor" href="#figure-23-3-p--252"></a>
+</h3>
+<p><img src="bbssr-published-figures_files/figure-html/k23-fig3-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
+<p>Distribution of the recalculated total sample size against the
+overall rate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>,
+drawn from the exact distribution as Figure 21.4. The book does not
+state the true rates, and the figure uses equal rates
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>E</mi></msub><mo>=</mo><msub><mi>p</mi><mi>C</mi></msub><mo>=</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">p_E = p_C = p</annotation></semantics></math>,
+as for the power in Figure 23.2. The caption of the book refers to
+Example 21.1, but its text describes this figure with the bounds of
+Example 23.1, and the recomputed totals lie between 100 and 344. The
+boxes and the asterisks agree with the original to within the accuracy
+with which the figure can be read. At a few rates a whisker ends one
+attainable total nearer to or farther from the box than in the original.
+These are rates at which a total lies close to 1.5 interquartile ranges
+from the box, so that the end of the whisker depends on how the
+quartiles are computed, and the book does not say whether its box plots
+come from simulated trials.</p>
+</div>
+</div>
+<div class="section level2">
 <h2 id="friede-mitchell-and-mueller-velten-2007">Friede, Mitchell and Mueller-Velten (2007)<a class="anchor" aria-label="anchor" href="#friede-mitchell-and-mueller-velten-2007"></a>
 </h2>
 <p>The tests have the one-sided level 0.025 and the margin 0.1, the
@@ -830,18 +944,26 @@ the article in <code>reproduce-published.R</code>.</p>
 <span>  tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Chisq'</span>, alternative <span class="op">=</span> <span class="st">'less'</span>, ss.method <span class="op">=</span> <span class="st">'standard'</span>,</span>
 <span>  theta <span class="op">=</span> <span class="va">k2.row</span><span class="op">$</span><span class="va">p</span>, maximize <span class="op">=</span> <span class="st">'grid'</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co"># Kieser (2020), Figure 23.1: the overall rate 0.865</span></span>
+<span><span class="va">k23.row</span> <span class="op">&lt;-</span> <span class="va">k23.1</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">k23.1</span><span class="op">$</span><span class="va">p</span> <span class="op">-</span> <span class="fl">0.865</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">1e-9</span>, <span class="op">]</span></span>
+<span><span class="va">k23.res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR</a></span><span class="op">(</span></span>
+<span>  Delta.A <span class="op">=</span> <span class="fl">0</span>, N1 <span class="op">=</span> <span class="fl">122</span>, N2 <span class="op">=</span> <span class="fl">122</span>, n.interim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">50</span><span class="op">)</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>,</span>
+<span>  tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Farrington-Manning'</span>, ss.method <span class="op">=</span> <span class="st">'standard'</span>, margin <span class="op">=</span> <span class="fl">0.15</span>,</span>
+<span>  theta <span class="op">=</span> <span class="fl">0.865</span>, maximize <span class="op">=</span> <span class="st">'grid'</span></span>
+<span><span class="op">)</span></span>
 <span><span class="co"># Boschloo (1970), Figure 2: p = 0.5</span></span>
 <span><span class="va">bo.row</span> <span class="op">&lt;-</span> <span class="va">bo</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">bo</span><span class="op">$</span><span class="va">p</span> <span class="op">-</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">1e-9</span>, <span class="op">]</span></span>
 <span><span class="va">check</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  Value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'FK2004 Figure 1'</span>, <span class="st">'FK2004 Figure 4'</span>, <span class="st">'Kieser Figure 21.1, fixed'</span>,</span>
 <span>            <span class="st">'Kieser Figure 21.1, recalculation'</span>, <span class="st">'Kieser Figure 21.2, fixed'</span>,</span>
-<span>            <span class="st">'Kieser Figure 21.2, recalculation'</span>, <span class="st">'Boschloo Figure 2, alpha'</span>,</span>
+<span>            <span class="st">'Kieser Figure 21.2, recalculation'</span>, <span class="st">'Kieser Figure 23.1, fixed'</span>,</span>
+<span>            <span class="st">'Kieser Figure 23.1, recalculation'</span>, <span class="st">'Boschloo Figure 2, alpha'</span>,</span>
 <span>            <span class="st">'Boschloo Figure 2, alpha_gamma'</span><span class="op">)</span>,</span>
 <span>  Stored <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">fk1</span><span class="op">$</span><span class="va">pilot.20</span><span class="op">[</span><span class="va">fk1</span><span class="op">$</span><span class="va">pi</span> <span class="op">==</span> <span class="fl">0.1</span> <span class="op">&amp;</span> <span class="va">fk1</span><span class="op">$</span><span class="va">n</span> <span class="op">==</span> <span class="fl">60</span><span class="op">]</span>, <span class="va">fk4.row</span><span class="op">$</span><span class="va">level</span>, <span class="va">k1.row</span><span class="op">$</span><span class="va">fixed</span>,</span>
-<span>             <span class="va">k1.row</span><span class="op">$</span><span class="va">ips</span>, <span class="va">k2.row</span><span class="op">$</span><span class="va">fixed</span>, <span class="va">k2.row</span><span class="op">$</span><span class="va">recalculation</span>, <span class="va">bo.row</span><span class="op">$</span><span class="va">alpha</span>,</span>
-<span>             <span class="va">bo.row</span><span class="op">$</span><span class="va">alpha.gamma</span><span class="op">)</span>,</span>
+<span>             <span class="va">k1.row</span><span class="op">$</span><span class="va">ips</span>, <span class="va">k2.row</span><span class="op">$</span><span class="va">fixed</span>, <span class="va">k2.row</span><span class="op">$</span><span class="va">recalculation</span>, <span class="va">k23.row</span><span class="op">$</span><span class="va">fixed</span>,</span>
+<span>             <span class="va">k23.row</span><span class="op">$</span><span class="va">recalculation</span>, <span class="va">bo.row</span><span class="op">$</span><span class="va">alpha</span>, <span class="va">bo.row</span><span class="op">$</span><span class="va">alpha.gamma</span><span class="op">)</span>,</span>
 <span>  Recomputed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">fk1.ips</span>, <span class="va">fk4.ips</span>, <span class="va">k1.res</span><span class="op">$</span><span class="va">power.TRAD</span>, <span class="va">k1.res</span><span class="op">$</span><span class="va">power.BSSR</span>,</span>
-<span>                 <span class="va">k2.res</span><span class="op">$</span><span class="va">TIE.TRAD</span>, <span class="va">k2.res</span><span class="op">$</span><span class="va">TIE.BSSR</span>,</span>
+<span>                 <span class="va">k2.res</span><span class="op">$</span><span class="va">TIE.TRAD</span>, <span class="va">k2.res</span><span class="op">$</span><span class="va">TIE.BSSR</span>, <span class="va">k23.res</span><span class="op">$</span><span class="va">TIE.TRAD</span>, <span class="va">k23.res</span><span class="op">$</span><span class="va">TIE.BSSR</span>,</span>
 <span>                 <span class="fu"><a href="../reference/BinaryPower.html">BinaryPower</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">15</span>, <span class="fl">10</span>, <span class="fl">0.05</span>, <span class="st">'Fisher'</span><span class="op">)</span><span class="op">$</span><span class="va">Power</span>,</span>
 <span>                 <span class="fu"><a href="../reference/BinaryPower.html">BinaryPower</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">15</span>, <span class="fl">10</span>, <span class="fl">0.09</span>, <span class="st">'Fisher'</span><span class="op">)</span><span class="op">$</span><span class="va">Power</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
@@ -892,6 +1014,18 @@ the article in <code>reproduce-published.R</code>.</p>
 <td align="right">0</td>
 </tr>
 <tr class="odd">
+<td align="left">Kieser Figure 23.1, fixed</td>
+<td align="right">0.02376426</td>
+<td align="right">0.02376426</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">Kieser Figure 23.1, recalculation</td>
+<td align="right">0.02644929</td>
+<td align="right">0.02644929</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
 <td align="left">Boschloo Figure 2, alpha</td>
 <td align="right">0.02016771</td>
 <td align="right">0.02016771</td>
@@ -914,6 +1048,10 @@ the article in <code>reproduce-published.R</code>.</p>
 <p>Boschloo, R. D. (1970). Raised conditional level of significance for
 the 2 × 2-table when testing the equality of two probabilities.
 <em>Statistica Neerlandica</em>, 24, 1-9.</p>
+<p>Farrington, C. P. and Manning, G. (1990). Test statistics and sample
+size formulae for comparative binomial trials with null hypothesis of
+non-zero risk difference or non-unity relative risk. <em>Statistics in
+Medicine</em>, 9, 1447-1454.</p>
 <p>Friede, T. and Kieser, M. (2004). Sample size recalculation for
 binary data in internal pilot study designs. <em>Pharmaceutical
 Statistics</em>, 3, 269-279.</p>

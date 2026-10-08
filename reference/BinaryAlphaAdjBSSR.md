@@ -313,6 +313,22 @@ values of Section 5 of Friede and Kieser (2004) and of Example 21.1 of
 Kieser (2020) only when the re-estimation also uses the adjusted level,
 as with `adjust = 'both'`.
 
+The type I error rate can also be controlled within a confidence
+interval for the common response probability, or for the pooled response
+probability on the null boundary, instead of over its whole range
+(Kieser, 2020, Section 22.1.3). A value `gamma` between 0 and `alpha` is
+fixed in advance, and the final analysis uses a level at which the
+largest type I error rate over the `1 - gamma` confidence interval
+computed from the data of the completed trial does not exceed
+`alpha - gamma`. The type I error rate is then controlled at `alpha`.
+This level is found when `theta` spans the interval and `alpha` is set
+to `alpha - gamma`. The interval is known only at the end of the trial,
+so the re-estimation keeps the nominal level, with `adjust = 'test'` and
+`ss.alpha` set to the nominal level. Neither search examines levels
+above `alpha - gamma`. The script `reproduce-published.R` reproduces the
+adjusted level of Example 23.1 of Kieser (2020), which uses the
+Clopper-Pearson interval with `gamma = 1e-4`.
+
 With `maximize = 'certified'` the levels are assessed on the grid with
 the refinement of `maximize = 'refined'`, and the level found is then
 certified as in

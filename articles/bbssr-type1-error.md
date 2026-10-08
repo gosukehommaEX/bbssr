@@ -208,6 +208,80 @@ data.frame(p = power.adj$p, power.nominal = round(power.nominal$power.BSSR, 4),
 #> 3 0.5        0.8037         0.7646
 ```
 
+## Control within a confidence interval
+
+The largest type I error rate over the whole range of the nuisance
+parameter can occur at values that the data of the completed trial make
+implausible. Kieser (2020, Section 22.1.3) describes another way to
+control the type I error rate. A value $`0 < \gamma < \alpha`$ is fixed
+in advance, the $`(1 - \gamma)`$ confidence interval for the nuisance
+parameter is computed from the data of the completed trial, and the
+final analysis uses a level at which the largest type I error rate over
+this interval does not exceed $`\alpha - \gamma`$. The type I error rate
+is then controlled at $`\alpha`$.
+[`BinaryAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryAlphaAdjBSSR.md)
+finds this level when `theta` spans the interval and `alpha` is set to
+$`\alpha - \gamma`$. The interval is known only at the end of the trial,
+so the re-estimation keeps the nominal level, through `adjust = 'test'`
+and `ss.alpha`.
+
+Example 23.1 of Kieser (2020) applies the approach to the FreezeAF
+trial, a non-inferiority trial with the margin 0.15 and the test of
+Farrington and Manning (1990), equal assumed rates of 0.78, an initial
+sample size of 122 per group and a pilot of 100 patients. The rate is
+evaluated on the boundary of the null hypothesis against the pooled
+response probability, as described in the `bbssr-non-inferiority`
+vignette, on the grid of the book with steps of 0.005. For control over
+the whole range, the book applies the adjusted level to the
+re-estimation as well, which is `adjust = 'both'`. A step of 0.0001
+keeps the search short.
+
+``` r
+
+freeze <- list(Delta.A = 0, N1 = 122, N2 = 122, n.interim = c(50, 50), r = 1,
+               alpha = 0.025, tar.power = 0.8, Test = 'Farrington-Manning',
+               ss.method = 'standard', margin = 0.15)
+adj.whole <- do.call(BinaryAlphaAdjBSSR,
+                     c(freeze, list(theta = seq(0.075, 0.925, by = 0.005),
+                                    maximize = 'grid', adjust = 'both', step = 1e-4)))
+adj.whole[1, c('Design', 'max.TIE', 'alpha.adj', 'max.TIE.adj', 'theta.adj')]
+#>   Design    max.TIE alpha.adj max.TIE.adj theta.adj
+#> 1   BSSR 0.02644929    0.0241  0.02492749      0.85
+```
+
+The trial observed 210 responders among 291 patients. With
+$`\gamma = 0.0001`$ the interval is the 99.99 per cent Clopper-Pearson
+interval, which
+[`binom.test()`](https://rdrr.io/r/stats/binom.test.html) returns. The
+book calls it a 95 per cent interval, but the interval it gives is the
+99.99 per cent interval. The code below computes the largest type I
+error rate within the interval at the nominal level and the adjusted
+level.
+
+``` r
+
+gamma <- 1e-4
+ci <- binom.test(210, 291, conf.level = 1 - gamma)$conf.int
+ci.grid <- seq(ci[1], ci[2], length.out = 42)
+tie.ci <- do.call(BinaryTypeIErrorBSSR,
+                  c(freeze, list(theta = ci.grid, maximize = 'grid')))
+adj.ci <- do.call(BinaryAlphaAdjBSSR,
+                  c(modifyList(freeze, list(alpha = 0.025 - gamma)),
+                    list(ss.alpha = 0.025, theta = ci.grid, maximize = 'grid')))
+adj.ci[1, c('Design', 'alpha', 'alpha.adj', 'max.TIE.adj', 'theta.adj')]
+#>   Design  alpha alpha.adj max.TIE.adj theta.adj
+#> 1   BSSR 0.0249 0.0241286  0.02489991 0.7662331
+```
+
+Within the interval $`[0.611, 0.816]`$ the largest rate of the
+re-estimation design is 0.026, only slightly below the largest rate
+0.0264 over the whole range, as the book notes. The adjusted level that
+keeps the rate within the interval at or below
+$`\alpha - \gamma = 0.0249`$ is 0.0241, and the level that controls the
+rate over the whole range is 0.0241. The book reports 0.0241 for both,
+and `reproduce-published.R` reproduces these values with a step of
+$`10^{-5}`$ (see the `bbssr-validation` vignette).
+
 ## Conditional rejection probabilities
 
 [`BinaryCondRejectBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryCondRejectBSSR.md)
@@ -312,6 +386,11 @@ non-inferiority hypothesis the two response probabilities differ and the
 conditional distributions of the responder counts depend on them.
 
 ## References
+
+Farrington, C. P. and Manning, G. (1990). Test statistics and sample
+size formulae for comparative binomial trials with null hypothesis of
+non-zero risk difference or non-unity relative risk. *Statistics in
+Medicine*, 9, 1447-1454.
 
 Friede, T. and Kieser, M. (2004). Sample size recalculation for binary
 data in internal pilot study designs. *Pharmaceutical Statistics*, 3,

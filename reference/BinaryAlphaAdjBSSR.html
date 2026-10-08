@@ -346,6 +346,19 @@ bisection, since its sample size does not depend on the level. The script
 <code>system.file('reproduce', package = 'bbssr')</code> reproduces the published values of
 Section 5 of Friede and Kieser (2004) and of Example 21.1 of Kieser (2020) only when the
 re-estimation also uses the adjusted level, as with <code>adjust = 'both'</code>.</p>
+<p>The type I error rate can also be controlled within a confidence interval for the
+common response probability, or for the pooled response probability on the null
+boundary, instead of over its whole range (Kieser, 2020, Section 22.1.3). A value
+<code>gamma</code> between 0 and <code>alpha</code> is fixed in advance, and the final analysis
+uses a level at which the largest type I error rate over the <code>1 - gamma</code>
+confidence interval computed from the data of the completed trial does not exceed
+<code>alpha - gamma</code>. The type I error rate is then controlled at <code>alpha</code>. This
+level is found when <code>theta</code> spans the interval and <code>alpha</code> is set to
+<code>alpha - gamma</code>. The interval is known only at the end of the trial, so the
+re-estimation keeps the nominal level, with <code>adjust = 'test'</code> and <code>ss.alpha</code>
+set to the nominal level. Neither search examines levels above <code>alpha - gamma</code>.
+The script <code>reproduce-published.R</code> reproduces the adjusted level of Example 23.1
+of Kieser (2020), which uses the Clopper-Pearson interval with <code>gamma = 1e-4</code>.</p>
 <p>With <code>maximize = 'certified'</code> the levels are assessed on the grid with the
 refinement of <code>maximize = 'refined'</code>, and the level found is then certified as in
 <code><a href="BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR</a></code>: it is accepted only if the upper bound of the type I
