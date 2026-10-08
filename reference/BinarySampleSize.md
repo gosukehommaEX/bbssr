@@ -26,7 +26,8 @@ BinarySampleSize(
   search = c("crossing", "smallest", "stable"),
   search.limit = c(2, 50),
   margin = 0,
-  ref.pvalue = FALSE
+  ref.pvalue = FALSE,
+  margin.scale = c("RD", "RR")
 )
 ```
 
@@ -64,7 +65,8 @@ BinarySampleSize(
   Direction of the alternative hypothesis. Options: `'greater'`
   (default), which requires `p1 - p2 > -margin`, `'less'`, which
   requires `p1 - p2 < margin`, or `'two.sided'`, which requires
-  `p1 != p2`
+  `p1 != p2`. With `margin.scale = 'RR'`, `'greater'` requires
+  `p1 > margin p2` and `'less'` requires `p1 < margin p2`
 
 - tsmethod:
 
@@ -95,7 +97,7 @@ BinarySampleSize(
   terms, formula (1) of Friede and Kieser (2004).
   `'alternative.variance'` uses the variance under the alternative for
   both terms, as in Blackwelder (1982). See Details for a non-zero
-  `margin`
+  `margin` and for a margin on the scale of the risk ratio
 
 - rounding:
 
@@ -127,14 +129,20 @@ BinarySampleSize(
 
 - margin:
 
-  Non-inferiority margin on the scale of the risk difference. The
-  default of 0 gives a test of superiority. A value other than 0 tests
-  the null hypothesis `p1 - p2 <= -margin` against `p1 - p2 > -margin`
-  when `alternative` is `'greater'`, and `p1 - p2 >= margin` against
-  `p1 - p2 < margin` when it is `'less'`. It requires
-  `Test = 'Blackwelder'` or `'Farrington-Manning'`, see
-  [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
-  A negative value tests for superiority by more than its absolute value
+  Non-inferiority margin, on the scale given by `margin.scale`. On the
+  scale of the risk difference the default of 0 gives a test of
+  superiority, and a value other than 0 tests the null hypothesis
+  `p1 - p2 <= -margin` against `p1 - p2 > -margin` when `alternative` is
+  `'greater'`, and `p1 - p2 >= margin` against `p1 - p2 < margin` when
+  it is `'less'`. A negative value tests for superiority by more than
+  its absolute value. On the scale of the risk ratio the margin is a
+  positive ratio `R0`, and the null hypothesis is `p1 / p2 <= R0`
+  against `p1 / p2 > R0` when `alternative` is `'greater'`, and
+  `p1 / p2 >= R0` against `p1 / p2 < R0` when it is `'less'`. A margin
+  other than 0, and any margin on the scale of the risk ratio, requires
+  `Test = 'Blackwelder'` or `'Farrington-Manning'` and a one-sided
+  alternative, see
+  [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md)
 
 - ref.pvalue:
 
@@ -142,6 +150,11 @@ BinarySampleSize(
   the unconditional tests is refined between the grid points, see
   [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
   Default is `FALSE`
+
+- margin.scale:
+
+  Scale of `margin`. Options: `'RD'` (default) for the risk difference
+  `p1 - p2` or `'RR'` for the risk ratio `p1 / p2`
 
 ## Value
 
@@ -251,6 +264,16 @@ method `'standard'` then gives formula (4) of Farrington and Manning
 is formula (1) of Friede et al. (2007). The exact search starts from the
 formula of Farrington and Manning.
 
+With `margin.scale = 'RR'` and the ratio `R0 = margin`, the difference
+in the normal approximation is the distance `p1 - R0 p2`, or
+`R0 p2 - p1` for `alternative = 'less'`, and the variance of the size of
+group 2 is `p1 (1 - p1) / r + R0^2 p2 (1 - p2)`, evaluated at the large
+sample values of the restricted maximum likelihood estimates under
+`p1 = R0 p2` for the significance term. The method `'standard'` then
+gives formula (8) of Farrington and Manning (1990),
+`'alternative.variance'` gives the formula of their Method 1, and the
+exact search starts from formula (8).
+
 ## References
 
 Friede T, Kieser M (2004). Sample size recalculation for binary data in
@@ -345,5 +368,23 @@ BinarySampleSize(p1 = 0.7, p2 = 0.7, r = 1, alpha = 0.025, tar.power = 0.8,
 #> 
 #>   Required sample size: N1 = 329, N2 = 329, total N = 658
 #>   Attained power      : 0.8006
+
+# Non-inferiority on the scale of the risk ratio: the null hypothesis p1 / p2 <= 0.8
+# with equal response probabilities of 0.6
+BinarySampleSize(p1 = 0.6, p2 = 0.6, r = 1, alpha = 0.025, tar.power = 0.8,
+                 Test = 'Farrington-Manning', margin = 0.8, margin.scale = 'RR')
+#> Sample size for a two-arm trial with a binary endpoint
+#> 
+#>   Test             : Farrington-Manning
+#>   Alternative      : greater
+#>   Response rates   : p1 = 0.6, p2 = 0.6
+#>   Allocation ratio : 1 to 1
+#>   Margin           : 0.8 (risk ratio)
+#>   Alpha            : 0.025
+#>   Target power     : 0.8
+#>   Exact search     : crossing
+#> 
+#>   Required sample size: N1 = 215, N2 = 215, total N = 430
+#>   Attained power      : 0.802
 # }
 ```

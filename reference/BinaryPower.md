@@ -5,8 +5,8 @@ Seven tests are supported (see
 [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md)),
 each of which can be applied with a one-sided or a two-sided
 alternative, and two of them also test non-inferiority with a margin on
-the scale of the risk difference. Vectors of response probabilities are
-accepted.
+the scale of the risk difference or the risk ratio. Vectors of response
+probabilities are accepted.
 
 ## Usage
 
@@ -23,7 +23,8 @@ BinaryPower(
   n.grid = 100,
   bb.gamma = 0,
   margin = 0,
-  ref.pvalue = FALSE
+  ref.pvalue = FALSE,
+  margin.scale = c("RD", "RR")
 )
 ```
 
@@ -80,14 +81,20 @@ BinaryPower(
 
 - margin:
 
-  Non-inferiority margin on the scale of the risk difference. The
-  default of 0 gives a test of superiority. A value other than 0 tests
-  the null hypothesis `p1 - p2 <= -margin` against `p1 - p2 > -margin`
-  when `alternative` is `'greater'`, and `p1 - p2 >= margin` against
-  `p1 - p2 < margin` when it is `'less'`. It requires
-  `Test = 'Blackwelder'` or `'Farrington-Manning'`, see
-  [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
-  A negative value tests for superiority by more than its absolute value
+  Non-inferiority margin, on the scale given by `margin.scale`. On the
+  scale of the risk difference the default of 0 gives a test of
+  superiority, and a value other than 0 tests the null hypothesis
+  `p1 - p2 <= -margin` against `p1 - p2 > -margin` when `alternative` is
+  `'greater'`, and `p1 - p2 >= margin` against `p1 - p2 < margin` when
+  it is `'less'`. A negative value tests for superiority by more than
+  its absolute value. On the scale of the risk ratio the margin is a
+  positive ratio `R0`, and the null hypothesis is `p1 / p2 <= R0`
+  against `p1 / p2 > R0` when `alternative` is `'greater'`, and
+  `p1 / p2 >= R0` against `p1 / p2 < R0` when it is `'less'`. A margin
+  other than 0, and any margin on the scale of the risk ratio, requires
+  `Test = 'Blackwelder'` or `'Farrington-Manning'` and a one-sided
+  alternative, see
+  [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md)
 
 - ref.pvalue:
 
@@ -95,6 +102,11 @@ BinaryPower(
   the unconditional tests is refined between the grid points, see
   [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
   Default is `FALSE`
+
+- margin.scale:
+
+  Scale of `margin`. Options: `'RD'` (default) for the risk difference
+  `p1 - p2` or `'RR'` for the risk ratio `p1 / p2`
 
 ## Value
 

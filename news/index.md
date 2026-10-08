@@ -157,18 +157,46 @@
   evaluate the type I error rate on the boundary of the null hypothesis,
   parametrized by the pooled response probability.
 
+- The new argument `margin.scale` of
+  [`BinaryRR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md),
+  [`BinaryPower()`](https://gosukehommaex.github.io/bbssr/reference/BinaryPower.md),
+  [`BinarySampleSize()`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md),
+  [`BinaryPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryPowerBSSR.md),
+  [`BinaryBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryBSSR.md),
+  [`BinaryTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryTypeIErrorBSSR.md)
+  and
+  [`BinaryAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryAlphaAdjBSSR.md),
+  also available as a column of the designs of
+  [`BinaryGridBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryGridBSSR.md),
+  gives the margin on the scale of the risk ratio with
+  `margin.scale = 'RR'`. The margin is then a ratio `R0 > 0`, and the
+  null hypothesis is `p1 / p2 <= R0` for `alternative = 'greater'` and
+  `p1 / p2 >= R0` for `'less'`. The two tests of non-inferiority refer
+  statistic (5) of Farrington and Manning (1990), `hat.p1 - R0 hat.p2`
+  divided by its standard error, to the standard normal distribution.
+  The standard error of the Blackwelder test uses the observed
+  proportions, which is Method 1 of the article, and that of the
+  Farrington-Manning test the restricted maximum likelihood estimates of
+  formula (13). `method = 'standard'` gives formula (8) of the article
+  and `method = 'alternative.variance'` its Method 1. In the
+  re-estimation designs the effects are risk ratios (`effect = 'RR'`),
+  and the type I error rate is certified on the boundary `p1 = R0 p2`.
+  The argument comes last and defaults to `'RD'`, so existing calls are
+  unchanged.
+
 - `inst/reproduce/reproduce-published.R` reproduces Table I and Section
   5 of Friede and Kieser (2004), Example 21.1, the values stated for
   Figures 21.1 and 21.2, Example 23.1 and Section 23.2 of Kieser (2020),
-  Table I, Table II (Methods 1 and 3 for the difference) and the first
-  example of Farrington and Manning (1990), Table 3 and the examples of
-  Blackwelder (1982), Tables 2 and 3 and Sections 5 and 6 of Friede,
-  Mitchell and Mueller-Velten (2007), the table of power and the example
-  of Boschloo (1970), the example and Tables 1 and 3 of Mehrotra, Chan
-  and Berger (2003), Example 2 of Berger and Boos (1994), and the
-  example and Table 1 of Section 8 of Fay and Hunsberger (2021). A
-  difference from a published value counts as explained only when it is
-  within the tolerance recorded with its reason.
+  Tables I and II (Methods 1 and 3) for the difference and for the
+  relative risk and the two examples of Farrington and Manning (1990),
+  Table 3 and the examples of Blackwelder (1982), Tables 2 and 3 and
+  Sections 5 and 6 of Friede, Mitchell and Mueller-Velten (2007), the
+  table of power and the example of Boschloo (1970), the example and
+  Tables 1 and 3 of Mehrotra, Chan and Berger (2003), Example 2 of
+  Berger and Boos (1994), and the example and Table 1 of Section 8 of
+  Fay and Hunsberger (2021). A difference from a published value counts
+  as explained only when it is within the tolerance recorded with its
+  reason.
 
 - `ref.pvalue = TRUE` refines the maximization over the nuisance
   parameter of the Z-pooled and Boschloo tests, in every function that

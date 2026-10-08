@@ -89,7 +89,7 @@
 <h2 id="what-is-new-since-version-200">What is new since version 2.0.0<a class="anchor" aria-label="anchor" href="#what-is-new-since-version-200"></a>
 </h2>
 <ul>
-<li>Two tests of non-inferiority with a margin on the scale of the risk difference, <code>Test = 'Blackwelder'</code> and <code>Test = 'Farrington-Manning'</code>, and the blinded re-estimation of Friede, Mitchell and Mueller-Velten (2007).</li>
+<li>Two tests of non-inferiority with a margin on the scale of the risk difference or, with <code>margin.scale = 'RR'</code>, of the risk ratio, <code>Test = 'Blackwelder'</code> and <code>Test = 'Farrington-Manning'</code>, and the blinded re-estimation of Friede, Mitchell and Mueller-Velten (2007).</li>
 <li>
 <code><a href="reference/BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR()</a></code> evaluates the type I error rate of a re-estimation design over the nuisance parameter and finds its largest value over the whole range together with an upper bound, <code><a href="reference/BinaryAlphaAdjBSSR.html">BinaryAlphaAdjBSSR()</a></code> finds the adjusted significance level that controls it, and <code><a href="reference/BinaryCondRejectBSSR.html">BinaryCondRejectBSSR()</a></code> decomposes it by the interim outcome.</li>
 <li>
@@ -168,7 +168,7 @@
 </tbody>
 </table>
 <p>The column “Exact level” refers to a fixed-sample design. The two unconditional tests maximize the null tail probability over a grid of the nuisance parameter, which can understate the exact p-value, and <code>ref.pvalue = TRUE</code> refines the maximum between the grid points. Without the Berger-Boos procedure the Boschloo p-value never exceeds the Fisher p-value, so the Boschloo test is at least as powerful as the Fisher test at every pair of response probabilities. The rejection regions, power and sample sizes of all seven tests are computed exactly.</p>
-<p>Every test accepts <code>alternative = 'greater'</code>, <code>'less'</code> or <code>'two.sided'</code>. For the conditional tests and the Boschloo test, <code>tsmethod</code> selects among the <code>'minlike'</code> convention of <code><a href="https://rdrr.io/r/stats/fisher.test.html" class="external-link">stats::fisher.test</a></code>, the <code>'central'</code> convention that doubles the smaller tail, and the <code>'blaker'</code> convention that orders the tables by the smaller of their two tail probabilities. A margin other than 0 requires <code>'Blackwelder'</code> or <code>'Farrington-Manning'</code> and a one-sided alternative.</p>
+<p>Every test accepts <code>alternative = 'greater'</code>, <code>'less'</code> or <code>'two.sided'</code>. For the conditional tests and the Boschloo test, <code>tsmethod</code> selects among the <code>'minlike'</code> convention of <code><a href="https://rdrr.io/r/stats/fisher.test.html" class="external-link">stats::fisher.test</a></code>, the <code>'central'</code> convention that doubles the smaller tail, and the <code>'blaker'</code> convention that orders the tables by the smaller of their two tail probabilities. A margin other than 0, and any margin on the scale of the risk ratio, requires <code>'Blackwelder'</code> or <code>'Farrington-Manning'</code> and a one-sided alternative.</p>
 </div>
 <div class="section level2">
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>

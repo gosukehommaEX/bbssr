@@ -40,7 +40,8 @@ BinaryAlphaAdjBSSR(
   tol = 1e-08,
   step = 1e-05,
   margin = 0,
-  ref.pvalue = FALSE
+  ref.pvalue = FALSE,
+  margin.scale = c("RD", "RR")
 )
 ```
 
@@ -177,9 +178,9 @@ BinaryAlphaAdjBSSR(
 
   Grid of common response probabilities at which the type I error rate
   is evaluated. Default is `seq(0, 1, by = 0.005)`. With a non-zero
-  `margin`, `theta` is the pooled response probability
-  `(r p1 + p2) / (1 + r)` on the boundary of the null hypothesis, see
-  Details
+  `margin`, or a margin on the scale of the risk ratio, `theta` is the
+  pooled response probability `(r p1 + p2) / (1 + r)` on the boundary of
+  the null hypothesis, see Details
 
 - maximize:
 
@@ -211,16 +212,24 @@ BinaryAlphaAdjBSSR(
 
 - margin:
 
-  Non-inferiority margin on the scale of the risk difference. The
-  default of 0 gives a test of superiority. A value other than 0 tests
-  the null hypothesis `p1 - p2 <= -margin` against `p1 - p2 > -margin`
-  when `alternative` is `'greater'`, and `p1 - p2 >= margin` against
-  `p1 - p2 < margin` when it is `'less'`. It requires
-  `Test = 'Blackwelder'` or `'Farrington-Manning'`, see
+  Non-inferiority margin, on the scale given by `margin.scale`. On the
+  scale of the risk difference the default of 0 gives a test of
+  superiority, and a value other than 0 tests the null hypothesis
+  `p1 - p2 <= -margin` against `p1 - p2 > -margin` when `alternative` is
+  `'greater'`, and `p1 - p2 >= margin` against `p1 - p2 < margin` when
+  it is `'less'`. A negative value tests for superiority by more than
+  its absolute value. On the scale of the risk ratio the margin is a
+  positive ratio `R0`, and the null hypothesis is `p1 / p2 <= R0`
+  against `p1 / p2 > R0` when `alternative` is `'greater'`, and
+  `p1 / p2 >= R0` against `p1 / p2 < R0` when it is `'less'`. A margin
+  other than 0, and any margin on the scale of the risk ratio, requires
+  `Test = 'Blackwelder'` or `'Farrington-Manning'` and a one-sided
+  alternative, see
   [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
-  A negative value tests for superiority by more than its absolute
-  value. With a value other than 0 the assumed and the true effects are
-  risk differences (`effect = 'RD'`)
+  With a margin other than 0 on the scale of the risk difference the
+  assumed and the true effects are risk differences (`effect = 'RD'`),
+  and with a margin on the scale of the risk ratio they are risk ratios
+  (`effect = 'RR'`)
 
 - ref.pvalue:
 
@@ -229,6 +238,11 @@ BinaryAlphaAdjBSSR(
   [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
   Default is `FALSE`. It applies to the final analysis, to the
   fixed-sample comparator and to the exact re-estimation
+
+- margin.scale:
+
+  Scale of `margin`. Options: `'RD'` (default) for the risk difference
+  `p1 - p2` or `'RR'` for the risk ratio `p1 / p2`
 
 ## Value
 

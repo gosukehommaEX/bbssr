@@ -18,9 +18,9 @@ exactly rather than by simulation.
 ## What is new since version 2.0.0
 
 - Two tests of non-inferiority with a margin on the scale of the risk
-  difference, `Test = 'Blackwelder'` and `Test = 'Farrington-Manning'`,
-  and the blinded re-estimation of Friede, Mitchell and Mueller-Velten
-  (2007).
+  difference or, with `margin.scale = 'RR'`, of the risk ratio,
+  `Test = 'Blackwelder'` and `Test = 'Farrington-Manning'`, and the
+  blinded re-estimation of Friede, Mitchell and Mueller-Velten (2007).
 - [`BinaryTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryTypeIErrorBSSR.md)
   evaluates the type I error rate of a re-estimation design over the
   nuisance parameter and finds its largest value over the whole range
@@ -97,8 +97,9 @@ among the `'minlike'` convention of
 [`stats::fisher.test`](https://rdrr.io/r/stats/fisher.test.html), the
 `'central'` convention that doubles the smaller tail, and the `'blaker'`
 convention that orders the tables by the smaller of their two tail
-probabilities. A margin other than 0 requires `'Blackwelder'` or
-`'Farrington-Manning'` and a one-sided alternative.
+probabilities. A margin other than 0, and any margin on the scale of the
+risk ratio, requires `'Blackwelder'` or `'Farrington-Manning'` and a
+one-sided alternative.
 
 ## Quick start
 

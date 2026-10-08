@@ -29,9 +29,11 @@ any pair of response probabilities follows from a single sum,
 The type I error rate is the same sum evaluated at
 $`p_{1} = p_{2} = \theta`$, maximized over $`\theta`$. The tests of
 non-inferiority with a margin, `Blackwelder` and `Farrington-Manning`,
-have the null hypothesis $`p_{1} - p_{2} \le -\delta`$ instead, and the
-`bbssr-non-inferiority` vignette describes them. The rest of this
-vignette concerns the hypothesis of equal response probabilities.
+have the null hypothesis $`p_{1} - p_{2} \le -\delta`$ instead, or
+$`p_{1} / p_{2} \le R_{0}`$ with a margin on the scale of the risk
+ratio, and the `bbssr-non-inferiority` vignette describes them. The rest
+of this vignette concerns the hypothesis of equal response
+probabilities.
 
 ## Conditional tests
 
@@ -526,9 +528,10 @@ the rate by the interim outcome.
 
 The largest type I error rate is the largest rejection probability on
 the boundary of the null hypothesis. Without a margin the boundary is
-$`p_{1} = p_{2} = \theta`$. With a margin both response probabilities on
-the boundary are linear functions $`p_{1}(\theta)`$ and
-$`p_{2}(\theta)`$ of the pooled response probability $`\theta`$, see the
+$`p_{1} = p_{2} = \theta`$. With a margin, on the scale of the risk
+difference or of the risk ratio, both response probabilities on the
+boundary are linear functions $`p_{1}(\theta)`$ and $`p_{2}(\theta)`$ of
+the pooled response probability $`\theta`$, see the
 `bbssr-non-inferiority` vignette.
 [`BinaryTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryTypeIErrorBSSR.md)
 and

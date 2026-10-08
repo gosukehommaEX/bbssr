@@ -129,9 +129,12 @@ maximized over
 The tests of non-inferiority with a margin, <code>Blackwelder</code> and
 <code>Farrington-Manning</code>, have the null hypothesis
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>−</mo><msub><mi>p</mi><mn>2</mn></msub><mo>≤</mo><mi>−</mi><mi>δ</mi></mrow><annotation encoding="application/x-tex">p_{1} - p_{2} \le -\delta</annotation></semantics></math>
-instead, and the <code>bbssr-non-inferiority</code> vignette describes
-them. The rest of this vignette concerns the hypothesis of equal
-response probabilities.</p>
+instead, or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mi>/</mi><msub><mi>p</mi><mn>2</mn></msub><mo>≤</mo><msub><mi>R</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">p_{1} / p_{2} \le R_{0}</annotation></semantics></math>
+with a margin on the scale of the risk ratio, and the
+<code>bbssr-non-inferiority</code> vignette describes them. The rest of
+this vignette concerns the hypothesis of equal response
+probabilities.</p>
 </div>
 <div class="section level2">
 <h2 id="conditional-tests">Conditional tests<a class="anchor" aria-label="anchor" href="#conditional-tests"></a>
@@ -647,8 +650,8 @@ outcome.</p>
 <p>The largest type I error rate is the largest rejection probability on
 the boundary of the null hypothesis. Without a margin the boundary is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>=</mo><msub><mi>p</mi><mn>2</mn></msub><mo>=</mo><mi>θ</mi></mrow><annotation encoding="application/x-tex">p_{1} = p_{2} = \theta</annotation></semantics></math>.
-With a margin both response probabilities on the boundary are linear
-functions
+With a margin, on the scale of the risk difference or of the risk ratio,
+both response probabilities on the boundary are linear functions
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_{1}(\theta)</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_{2}(\theta)</annotation></semantics></math>

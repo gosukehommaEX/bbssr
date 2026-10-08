@@ -81,7 +81,8 @@ power of the selected test or from the normal approximation.</p>
 <span>  search <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"crossing"</span>, <span class="st">"smallest"</span>, <span class="st">"stable"</span><span class="op">)</span>,</span>
 <span>  search.limit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">50</span><span class="op">)</span>,</span>
 <span>  margin <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  ref.pvalue <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  ref.pvalue <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  margin.scale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"RD"</span>, <span class="st">"RR"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -119,7 +120,9 @@ r &gt; 0)</p></dd>
 <dt id="arg-alternative">alternative<a class="anchor" aria-label="anchor" href="#arg-alternative"></a></dt>
 <dd><p>Direction of the alternative hypothesis. Options: <code>'greater'</code>
 (default), which requires <code>p1 - p2 &gt; -margin</code>, <code>'less'</code>, which requires
-<code>p1 - p2 &lt; margin</code>, or <code>'two.sided'</code>, which requires <code>p1 != p2</code></p></dd>
+<code>p1 - p2 &lt; margin</code>, or <code>'two.sided'</code>, which requires <code>p1 != p2</code>. With
+<code>margin.scale = 'RR'</code>, <code>'greater'</code> requires <code>p1 &gt; margin p2</code> and
+<code>'less'</code> requires <code>p1 &lt; margin p2</code></p></dd>
 
 
 <dt id="arg-tsmethod">tsmethod<a class="anchor" aria-label="anchor" href="#arg-tsmethod"></a></dt>
@@ -147,7 +150,8 @@ hypothesis for the significance term and the variance under the alternative for 
 power term, formula (21.3) of Kieser (2020). <code>'null.variance'</code> uses the variance
 under the null hypothesis for both terms, formula (1) of Friede and Kieser (2004).
 <code>'alternative.variance'</code> uses the variance under the alternative for both terms,
-as in Blackwelder (1982). See Details for a non-zero <code>margin</code></p></dd>
+as in Blackwelder (1982). See Details for a non-zero <code>margin</code> and for a margin
+on the scale of the risk ratio</p></dd>
 
 
 <dt id="arg-rounding">rounding<a class="anchor" aria-label="anchor" href="#arg-rounding"></a></dt>
@@ -178,20 +182,29 @@ Default is <code>c(2, 50)</code></p></dd>
 
 
 <dt id="arg-margin">margin<a class="anchor" aria-label="anchor" href="#arg-margin"></a></dt>
-<dd><p>Non-inferiority margin on the scale of the risk difference. The
-default of 0 gives a test of superiority. A value other than 0 tests the null
-hypothesis <code>p1 - p2 &lt;= -margin</code> against <code>p1 - p2 &gt; -margin</code> when
-<code>alternative</code> is <code>'greater'</code>, and <code>p1 - p2 &gt;= margin</code> against
-<code>p1 - p2 &lt; margin</code> when it is <code>'less'</code>. It requires
-<code>Test = 'Blackwelder'</code> or <code>'Farrington-Manning'</code>, see
-<code><a href="BinaryRR.html">BinaryRR</a></code>. A negative value tests for superiority by more than its
-absolute value</p></dd>
+<dd><p>Non-inferiority margin, on the scale given by <code>margin.scale</code>. On the
+scale of the risk difference the default of 0 gives a test of superiority, and a
+value other than 0 tests the null hypothesis <code>p1 - p2 &lt;= -margin</code> against
+<code>p1 - p2 &gt; -margin</code> when <code>alternative</code> is <code>'greater'</code>, and
+<code>p1 - p2 &gt;= margin</code> against <code>p1 - p2 &lt; margin</code> when it is <code>'less'</code>. A
+negative value tests for superiority by more than its absolute value. On the scale
+of the risk ratio the margin is a positive ratio <code>R0</code>, and the null hypothesis
+is <code>p1 / p2 &lt;= R0</code> against <code>p1 / p2 &gt; R0</code> when <code>alternative</code> is
+<code>'greater'</code>, and <code>p1 / p2 &gt;= R0</code> against <code>p1 / p2 &lt; R0</code> when it is
+<code>'less'</code>. A margin other than 0, and any margin on the scale of the risk ratio,
+requires <code>Test = 'Blackwelder'</code> or <code>'Farrington-Manning'</code> and a one-sided
+alternative, see <code><a href="BinaryRR.html">BinaryRR</a></code></p></dd>
 
 
 <dt id="arg-ref-pvalue">ref.pvalue<a class="anchor" aria-label="anchor" href="#arg-ref-pvalue"></a></dt>
 <dd><p>Logical. If <code>TRUE</code>, the maximization over the nuisance parameter
 of the unconditional tests is refined between the grid points, see
 <code><a href="BinaryRR.html">BinaryRR</a></code>. Default is <code>FALSE</code></p></dd>
+
+
+<dt id="arg-margin-scale">margin.scale<a class="anchor" aria-label="anchor" href="#arg-margin-scale"></a></dt>
+<dd><p>Scale of <code>margin</code>. Options: <code>'RD'</code> (default) for the
+risk difference <code>p1 - p2</code> or <code>'RR'</code> for the risk ratio <code>p1 / p2</code></p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -273,6 +286,14 @@ Manning (1990), which is formula (2) of Friede et al. (2007), and
 <code>'alternative.variance'</code> gives the formula of Blackwelder (1982), which is formula
 (1) of Friede et al. (2007). The exact search starts from the formula of Farrington and
 Manning.</p>
+<p>With <code>margin.scale = 'RR'</code> and the ratio <code>R0 = margin</code>, the difference in the
+normal approximation is the distance <code>p1 - R0 p2</code>, or <code>R0 p2 - p1</code> for
+<code>alternative = 'less'</code>, and the variance of the size of group 2 is
+<code>p1 (1 - p1) / r + R0^2 p2 (1 - p2)</code>, evaluated at the large sample values of the
+restricted maximum likelihood estimates under <code>p1 = R0 p2</code> for the significance
+term. The method <code>'standard'</code> then gives formula (8) of Farrington and Manning
+(1990), <code>'alternative.variance'</code> gives the formula of their Method 1, and the
+exact search starts from formula (8).</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -362,6 +383,24 @@ non-inferiority trials with binary endpoints. <em>Biometrical Journal</em>, 49(6
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Required sample size: N1 = 329, N2 = 329, total N = 658</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Attained power      : 0.8006</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Non-inferiority on the scale of the risk ratio: the null hypothesis p1 / p2 &lt;= 0.8</span></span></span>
+<span class="r-in"><span><span class="co"># with equal response probabilities of 0.6</span></span></span>
+<span class="r-in"><span><span class="fu">BinarySampleSize</span><span class="op">(</span>p1 <span class="op">=</span> <span class="fl">0.6</span>, p2 <span class="op">=</span> <span class="fl">0.6</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>,</span></span>
+<span class="r-in"><span>                 Test <span class="op">=</span> <span class="st">'Farrington-Manning'</span>, margin <span class="op">=</span> <span class="fl">0.8</span>, margin.scale <span class="op">=</span> <span class="st">'RR'</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample size for a two-arm trial with a binary endpoint</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Test             : Farrington-Manning</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Alternative      : greater</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Response rates   : p1 = 0.6, p2 = 0.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Allocation ratio : 1 to 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Margin           : 0.8 (risk ratio)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Alpha            : 0.025</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Target power     : 0.8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Exact search     : crossing</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Required sample size: N1 = 215, N2 = 215, total N = 430</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Attained power      : 0.802</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

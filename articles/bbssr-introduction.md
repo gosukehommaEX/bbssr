@@ -54,11 +54,12 @@ nuisance parameter by maximizing the null tail probability over the
 common response probability rather than by conditioning on the total
 number of responders. `Blackwelder` and `Farrington-Manning` are the
 tests of non-inferiority of Blackwelder (1982) and of Farrington and
-Manning (1990), which take a margin on the scale of the risk difference
-through the argument `margin`. With `margin = 0` they are tests of
-superiority, and the Farrington-Manning test then coincides with
-`Chisq`. The `bbssr-non-inferiority` vignette covers these two tests,
-and the comparisons below use the other five.
+Manning (1990), which take a margin on the scale of the risk difference,
+or with `margin.scale = 'RR'` on the scale of the risk ratio, through
+the argument `margin`. With `margin = 0` they are tests of superiority,
+and the Farrington-Manning test then coincides with `Chisq`. The
+`bbssr-non-inferiority` vignette covers these two tests, and the
+comparisons below use the other five.
 
 Only `Fisher`, `Z-pool` and `Boschloo` keep the type I error rate of a
 fixed-sample design at or below the nominal level for every value of the

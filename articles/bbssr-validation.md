@@ -446,17 +446,17 @@ microbenchmark::microbenchmark(
 )
 #> Unit: milliseconds
 #>                   expr       min        lq       mean     median        uq
-#>                  Chisq  0.280533  0.283529  0.2973039  0.3005365  0.303476
-#>                 Fisher  2.517389  2.521247  2.5414428  2.5332845  2.553397
-#>                 Z-pool  3.625959  3.655605  3.6956357  3.6776760  3.743720
-#>               Boschloo  6.081565  6.101762  6.1206762  6.1157125  6.148329
-#>  Boschloo, Berger-Boos 12.597359 12.646621 12.7463342 12.6669285 12.778057
+#>                  Chisq  0.284936  0.310029  0.3148653  0.3148595  0.330168
+#>                 Fisher  2.244587  2.264180  2.3002289  2.2990580  2.326065
+#>                 Z-pool  3.322124  3.340277  3.3643084  3.3648970  3.379984
+#>               Boschloo  5.449012  5.465232  5.4863658  5.4880630  5.507674
+#>  Boschloo, Berger-Boos 11.570575 11.606410 11.6786019 11.6124895 11.699444
 #>        max neval
-#>   0.313976    10
-#>   2.604513    10
-#>   3.801557    10
-#>   6.168767    10
-#>  13.155921    10
+#>   0.337085    10
+#>   2.380731    10
+#>   3.423575    10
+#>   5.518212    10
+#>  12.116375    10
 options(old)
 ```
 
@@ -487,11 +487,11 @@ microbenchmark::microbenchmark(
 )
 #> Unit: milliseconds
 #>              expr        min         lq       mean     median         uq
-#>  bbssr.whole.grid   1.941795   2.054165   2.109913   2.073491   2.088058
-#>     Exact.one.row 284.965366 285.205604 286.378961 286.237091 287.354577
+#>  bbssr.whole.grid   1.770007   1.914816   1.953963   1.924171   1.926612
+#>     Exact.one.row 245.822875 247.055691 247.807669 247.304756 248.930245
 #>         max neval
-#>    2.392055     5
-#>  288.132169     5
+#>    2.234208     5
+#>  249.924776     5
 options(old)
 ```
 
@@ -679,6 +679,13 @@ fk <- BinaryPowerBSSR(
 fm.plan <- BinarySampleSize(0.4, 0.05, 1, 0.05, 0.8, 'Farrington-Manning',
                             method = 'standard', rounding = 'nearest', margin = -0.2)
 fm.power <- BinaryPower(0.4, 0.05, 80, 80, 0.05, 'Farrington-Manning', margin = -0.2)
+# Farrington and Manning (1990), Table I for the relative risk: p1 = p2 = 0.1, the null
+# hypothesis p1 / p2 <= 0.1 and equal groups
+fmr.plan <- BinarySampleSize(0.1, 0.1, 1, 0.05, 0.9, 'Farrington-Manning',
+                             method = 'standard', rounding = 'nearest', margin = 0.1,
+                             margin.scale = 'RR')
+fmr.power <- BinaryPower(0.1, 0.1, 46, 46, 0.05, 'Farrington-Manning', margin = 0.1,
+                         margin.scale = 'RR')
 # Friede, Mitchell and Mueller-Velten (2007), Section 5: margin 0.1 and equal groups
 fmm.bw <- BinarySampleSize(0.7, 0.7, 1, 0.025, 0.8, 'Blackwelder',
                            method = 'alternative.variance', rounding = 'friede-kieser',
@@ -693,6 +700,7 @@ published <- data.frame(
   source = c('Kieser (2020)', 'Kieser (2020)', 'Kieser (2020)',
              'Friede and Kieser (2004)', 'Friede and Kieser (2004)',
              'Friede and Kieser (2004)', 'Farrington and Manning (1990)',
+             'Farrington and Manning (1990)', 'Farrington and Manning (1990)',
              'Farrington and Manning (1990)', 'Friede et al. (2007)',
              'Friede et al. (2007)', 'Boschloo (1970)', 'Boschloo (1970)'),
   quantity = c('initial total sample size, Delta = 0.15',
@@ -700,16 +708,18 @@ published <- data.frame(
                'largest level, re-estimation, Delta = 0.30',
                'initial total sample size', 'expected total sample size', 'power',
                'sample size per group', 'power at 80 patients per group',
+               'sample size per group, relative risk 0.1',
+               'power at 46 patients per group, relative risk 0.1',
                'total sample size, Blackwelder, p = 0.7',
                'total sample size, Farrington-Manning, p = 0.9',
                'power of the Fisher test, 15 per group, p1 = 0.3',
                'power of the Boschloo test, 15 per group, p1 = 0.3'),
-  published = c(314, 0.0268, 0.0273, 166, 162.0, 0.794, 80, 0.813, 660, 310, 0.2558,
-                0.3531),
-  digits = c(0, 4, 4, 0, 1, 3, 0, 3, 0, 0, 4, 4),
+  published = c(314, 0.0268, 0.0273, 166, 162.0, 0.794, 80, 0.813, 46, 0.9225, 660, 310,
+                0.2558, 0.3531),
+  digits = c(0, 4, 4, 0, 1, 3, 0, 3, 0, 4, 0, 0, 4, 4),
   recomputed = c(k.plan$N, max(k.tie$TIE.TRAD), max(k.tie$TIE.BSSR), fk.plan$N, fk$E.N,
-                 fk$power.BSSR, fm.plan$N1, fm.power$Power, fmm.bw$N, fmm.fm$N,
-                 bo.power)
+                 fk$power.BSSR, fm.plan$N1, fm.power$Power, fmr.plan$N1, fmr.power$Power,
+                 fmm.bw$N, fmm.fm$N, bo.power)
 )
 published$agrees <- abs(round(published$recomputed, published$digits) -
                           published$published) < 1e-9
@@ -723,10 +733,12 @@ published
 #> 6       Friede and Kieser (2004)
 #> 7  Farrington and Manning (1990)
 #> 8  Farrington and Manning (1990)
-#> 9           Friede et al. (2007)
-#> 10          Friede et al. (2007)
-#> 11               Boschloo (1970)
-#> 12               Boschloo (1970)
+#> 9  Farrington and Manning (1990)
+#> 10 Farrington and Manning (1990)
+#> 11          Friede et al. (2007)
+#> 12          Friede et al. (2007)
+#> 13               Boschloo (1970)
+#> 14               Boschloo (1970)
 #>                                              quantity published digits
 #> 1             initial total sample size, Delta = 0.15  314.0000      0
 #> 2           largest level, fixed design, Delta = 0.30    0.0268      4
@@ -736,10 +748,12 @@ published
 #> 6                                               power    0.7940      3
 #> 7                               sample size per group   80.0000      0
 #> 8                      power at 80 patients per group    0.8130      3
-#> 9             total sample size, Blackwelder, p = 0.7  660.0000      0
-#> 10     total sample size, Farrington-Manning, p = 0.9  310.0000      0
-#> 11   power of the Fisher test, 15 per group, p1 = 0.3    0.2558      4
-#> 12 power of the Boschloo test, 15 per group, p1 = 0.3    0.3531      4
+#> 9            sample size per group, relative risk 0.1   46.0000      0
+#> 10  power at 46 patients per group, relative risk 0.1    0.9225      4
+#> 11            total sample size, Blackwelder, p = 0.7  660.0000      0
+#> 12     total sample size, Farrington-Manning, p = 0.9  310.0000      0
+#> 13   power of the Fisher test, 15 per group, p1 = 0.3    0.2558      4
+#> 14 power of the Boschloo test, 15 per group, p1 = 0.3    0.3531      4
 #>      recomputed agrees
 #> 1  314.00000000   TRUE
 #> 2    0.02679047   TRUE
@@ -749,17 +763,26 @@ published
 #> 6    0.79416905   TRUE
 #> 7   80.00000000   TRUE
 #> 8    0.81320091   TRUE
-#> 9  660.00000000   TRUE
-#> 10 310.00000000   TRUE
-#> 11   0.25576535   TRUE
-#> 12   0.35314961   TRUE
+#> 9   46.00000000   TRUE
+#> 10   0.92252876   TRUE
+#> 11 660.00000000   TRUE
+#> 12 310.00000000   TRUE
+#> 13   0.25576535   TRUE
+#> 14   0.35314961   TRUE
 ```
 
-Of the 12 values above, 12 agree with the publication after rounding.
+Of the 14 values above, 14 agree with the publication after rounding.
 The script reports every value that it does not reproduce, together with
-the reason when one is known. The vignette ‘Validation by Reproducing
-Published Figures’ redraws fifteen figures of the same publications from
-values computed with the package.
+the reason when one is known. For the relative risk, the sample sizes
+and true powers that the script computes for Tables I and II and the
+second example of Farrington and Manning (1990) agree with an
+independent computation in Python
+(`tools/reference/check_farrington_manning_1990_rr.py` in the source
+repository), which finds the restricted maximum likelihood estimates by
+bisection on the score equation rather than by formula (13) of the
+article. The vignette ‘Validation by Reproducing Published Figures’
+redraws fifteen figures of the same publications from values computed
+with the package.
 
 The two-sided Fisher p-values of the conventions are compared with two
 published examples: 8 responders out of 14 against 1 out of 7 in Fay and

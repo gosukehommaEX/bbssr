@@ -494,17 +494,17 @@ computation itself.</p>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
 <span><span class="co">#&gt;                   expr       min        lq       mean     median        uq</span></span>
-<span><span class="co">#&gt;                  Chisq  0.280533  0.283529  0.2973039  0.3005365  0.303476</span></span>
-<span><span class="co">#&gt;                 Fisher  2.517389  2.521247  2.5414428  2.5332845  2.553397</span></span>
-<span><span class="co">#&gt;                 Z-pool  3.625959  3.655605  3.6956357  3.6776760  3.743720</span></span>
-<span><span class="co">#&gt;               Boschloo  6.081565  6.101762  6.1206762  6.1157125  6.148329</span></span>
-<span><span class="co">#&gt;  Boschloo, Berger-Boos 12.597359 12.646621 12.7463342 12.6669285 12.778057</span></span>
+<span><span class="co">#&gt;                  Chisq  0.284936  0.310029  0.3148653  0.3148595  0.330168</span></span>
+<span><span class="co">#&gt;                 Fisher  2.244587  2.264180  2.3002289  2.2990580  2.326065</span></span>
+<span><span class="co">#&gt;                 Z-pool  3.322124  3.340277  3.3643084  3.3648970  3.379984</span></span>
+<span><span class="co">#&gt;               Boschloo  5.449012  5.465232  5.4863658  5.4880630  5.507674</span></span>
+<span><span class="co">#&gt;  Boschloo, Berger-Boos 11.570575 11.606410 11.6786019 11.6124895 11.699444</span></span>
 <span><span class="co">#&gt;        max neval</span></span>
-<span><span class="co">#&gt;   0.313976    10</span></span>
-<span><span class="co">#&gt;   2.604513    10</span></span>
-<span><span class="co">#&gt;   3.801557    10</span></span>
-<span><span class="co">#&gt;   6.168767    10</span></span>
-<span><span class="co">#&gt;  13.155921    10</span></span>
+<span><span class="co">#&gt;   0.337085    10</span></span>
+<span><span class="co">#&gt;   2.380731    10</span></span>
+<span><span class="co">#&gt;   3.423575    10</span></span>
+<span><span class="co">#&gt;   5.518212    10</span></span>
+<span><span class="co">#&gt;  12.116375    10</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 <p>The Berger-Boos variant costs more than the plain Boschloo test,
 because the confidence bounds of every possible responder total are
@@ -530,11 +530,11 @@ row.</p>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
 <span><span class="co">#&gt;              expr        min         lq       mean     median         uq</span></span>
-<span><span class="co">#&gt;  bbssr.whole.grid   1.941795   2.054165   2.109913   2.073491   2.088058</span></span>
-<span><span class="co">#&gt;     Exact.one.row 284.965366 285.205604 286.378961 286.237091 287.354577</span></span>
+<span><span class="co">#&gt;  bbssr.whole.grid   1.770007   1.914816   1.953963   1.924171   1.926612</span></span>
+<span><span class="co">#&gt;     Exact.one.row 245.822875 247.055691 247.807669 247.304756 248.930245</span></span>
 <span><span class="co">#&gt;         max neval</span></span>
-<span><span class="co">#&gt;    2.392055     5</span></span>
-<span><span class="co">#&gt;  288.132169     5</span></span>
+<span><span class="co">#&gt;    2.234208     5</span></span>
+<span><span class="co">#&gt;  249.924776     5</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -705,6 +705,13 @@ after rounding to the digits of the publication.</p>
 <span><span class="va">fm.plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinarySampleSize.html">BinarySampleSize</a></span><span class="op">(</span><span class="fl">0.4</span>, <span class="fl">0.05</span>, <span class="fl">1</span>, <span class="fl">0.05</span>, <span class="fl">0.8</span>, <span class="st">'Farrington-Manning'</span>,</span>
 <span>                            method <span class="op">=</span> <span class="st">'standard'</span>, rounding <span class="op">=</span> <span class="st">'nearest'</span>, margin <span class="op">=</span> <span class="op">-</span><span class="fl">0.2</span><span class="op">)</span></span>
 <span><span class="va">fm.power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryPower.html">BinaryPower</a></span><span class="op">(</span><span class="fl">0.4</span>, <span class="fl">0.05</span>, <span class="fl">80</span>, <span class="fl">80</span>, <span class="fl">0.05</span>, <span class="st">'Farrington-Manning'</span>, margin <span class="op">=</span> <span class="op">-</span><span class="fl">0.2</span><span class="op">)</span></span>
+<span><span class="co"># Farrington and Manning (1990), Table I for the relative risk: p1 = p2 = 0.1, the null</span></span>
+<span><span class="co"># hypothesis p1 / p2 &lt;= 0.1 and equal groups</span></span>
+<span><span class="va">fmr.plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinarySampleSize.html">BinarySampleSize</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">1</span>, <span class="fl">0.05</span>, <span class="fl">0.9</span>, <span class="st">'Farrington-Manning'</span>,</span>
+<span>                             method <span class="op">=</span> <span class="st">'standard'</span>, rounding <span class="op">=</span> <span class="st">'nearest'</span>, margin <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>                             margin.scale <span class="op">=</span> <span class="st">'RR'</span><span class="op">)</span></span>
+<span><span class="va">fmr.power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryPower.html">BinaryPower</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">46</span>, <span class="fl">46</span>, <span class="fl">0.05</span>, <span class="st">'Farrington-Manning'</span>, margin <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>                         margin.scale <span class="op">=</span> <span class="st">'RR'</span><span class="op">)</span></span>
 <span><span class="co"># Friede, Mitchell and Mueller-Velten (2007), Section 5: margin 0.1 and equal groups</span></span>
 <span><span class="va">fmm.bw</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinarySampleSize.html">BinarySampleSize</a></span><span class="op">(</span><span class="fl">0.7</span>, <span class="fl">0.7</span>, <span class="fl">1</span>, <span class="fl">0.025</span>, <span class="fl">0.8</span>, <span class="st">'Blackwelder'</span>,</span>
 <span>                           method <span class="op">=</span> <span class="st">'alternative.variance'</span>, rounding <span class="op">=</span> <span class="st">'friede-kieser'</span>,</span>
@@ -719,6 +726,7 @@ after rounding to the digits of the publication.</p>
 <span>  source <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Kieser (2020)'</span>, <span class="st">'Kieser (2020)'</span>, <span class="st">'Kieser (2020)'</span>,</span>
 <span>             <span class="st">'Friede and Kieser (2004)'</span>, <span class="st">'Friede and Kieser (2004)'</span>,</span>
 <span>             <span class="st">'Friede and Kieser (2004)'</span>, <span class="st">'Farrington and Manning (1990)'</span>,</span>
+<span>             <span class="st">'Farrington and Manning (1990)'</span>, <span class="st">'Farrington and Manning (1990)'</span>,</span>
 <span>             <span class="st">'Farrington and Manning (1990)'</span>, <span class="st">'Friede et al. (2007)'</span>,</span>
 <span>             <span class="st">'Friede et al. (2007)'</span>, <span class="st">'Boschloo (1970)'</span>, <span class="st">'Boschloo (1970)'</span><span class="op">)</span>,</span>
 <span>  quantity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'initial total sample size, Delta = 0.15'</span>,</span>
@@ -726,16 +734,18 @@ after rounding to the digits of the publication.</p>
 <span>               <span class="st">'largest level, re-estimation, Delta = 0.30'</span>,</span>
 <span>               <span class="st">'initial total sample size'</span>, <span class="st">'expected total sample size'</span>, <span class="st">'power'</span>,</span>
 <span>               <span class="st">'sample size per group'</span>, <span class="st">'power at 80 patients per group'</span>,</span>
+<span>               <span class="st">'sample size per group, relative risk 0.1'</span>,</span>
+<span>               <span class="st">'power at 46 patients per group, relative risk 0.1'</span>,</span>
 <span>               <span class="st">'total sample size, Blackwelder, p = 0.7'</span>,</span>
 <span>               <span class="st">'total sample size, Farrington-Manning, p = 0.9'</span>,</span>
 <span>               <span class="st">'power of the Fisher test, 15 per group, p1 = 0.3'</span>,</span>
 <span>               <span class="st">'power of the Boschloo test, 15 per group, p1 = 0.3'</span><span class="op">)</span>,</span>
-<span>  published <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">314</span>, <span class="fl">0.0268</span>, <span class="fl">0.0273</span>, <span class="fl">166</span>, <span class="fl">162.0</span>, <span class="fl">0.794</span>, <span class="fl">80</span>, <span class="fl">0.813</span>, <span class="fl">660</span>, <span class="fl">310</span>, <span class="fl">0.2558</span>,</span>
-<span>                <span class="fl">0.3531</span><span class="op">)</span>,</span>
-<span>  digits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">3</span>, <span class="fl">0</span>, <span class="fl">3</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span>,</span>
+<span>  published <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">314</span>, <span class="fl">0.0268</span>, <span class="fl">0.0273</span>, <span class="fl">166</span>, <span class="fl">162.0</span>, <span class="fl">0.794</span>, <span class="fl">80</span>, <span class="fl">0.813</span>, <span class="fl">46</span>, <span class="fl">0.9225</span>, <span class="fl">660</span>, <span class="fl">310</span>,</span>
+<span>                <span class="fl">0.2558</span>, <span class="fl">0.3531</span><span class="op">)</span>,</span>
+<span>  digits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">3</span>, <span class="fl">0</span>, <span class="fl">3</span>, <span class="fl">0</span>, <span class="fl">4</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span>,</span>
 <span>  recomputed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">k.plan</span><span class="op">$</span><span class="va">N</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">k.tie</span><span class="op">$</span><span class="va">TIE.TRAD</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">k.tie</span><span class="op">$</span><span class="va">TIE.BSSR</span><span class="op">)</span>, <span class="va">fk.plan</span><span class="op">$</span><span class="va">N</span>, <span class="va">fk</span><span class="op">$</span><span class="va">E.N</span>,</span>
-<span>                 <span class="va">fk</span><span class="op">$</span><span class="va">power.BSSR</span>, <span class="va">fm.plan</span><span class="op">$</span><span class="va">N1</span>, <span class="va">fm.power</span><span class="op">$</span><span class="va">Power</span>, <span class="va">fmm.bw</span><span class="op">$</span><span class="va">N</span>, <span class="va">fmm.fm</span><span class="op">$</span><span class="va">N</span>,</span>
-<span>                 <span class="va">bo.power</span><span class="op">)</span></span>
+<span>                 <span class="va">fk</span><span class="op">$</span><span class="va">power.BSSR</span>, <span class="va">fm.plan</span><span class="op">$</span><span class="va">N1</span>, <span class="va">fm.power</span><span class="op">$</span><span class="va">Power</span>, <span class="va">fmr.plan</span><span class="op">$</span><span class="va">N1</span>, <span class="va">fmr.power</span><span class="op">$</span><span class="va">Power</span>,</span>
+<span>                 <span class="va">fmm.bw</span><span class="op">$</span><span class="va">N</span>, <span class="va">fmm.fm</span><span class="op">$</span><span class="va">N</span>, <span class="va">bo.power</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">published</span><span class="op">$</span><span class="va">agrees</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">published</span><span class="op">$</span><span class="va">recomputed</span>, <span class="va">published</span><span class="op">$</span><span class="va">digits</span><span class="op">)</span> <span class="op">-</span></span>
 <span>                          <span class="va">published</span><span class="op">$</span><span class="va">published</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">1e-9</span></span>
@@ -749,10 +759,12 @@ after rounding to the digits of the publication.</p>
 <span><span class="co">#&gt; 6       Friede and Kieser (2004)</span></span>
 <span><span class="co">#&gt; 7  Farrington and Manning (1990)</span></span>
 <span><span class="co">#&gt; 8  Farrington and Manning (1990)</span></span>
-<span><span class="co">#&gt; 9           Friede et al. (2007)</span></span>
-<span><span class="co">#&gt; 10          Friede et al. (2007)</span></span>
-<span><span class="co">#&gt; 11               Boschloo (1970)</span></span>
-<span><span class="co">#&gt; 12               Boschloo (1970)</span></span>
+<span><span class="co">#&gt; 9  Farrington and Manning (1990)</span></span>
+<span><span class="co">#&gt; 10 Farrington and Manning (1990)</span></span>
+<span><span class="co">#&gt; 11          Friede et al. (2007)</span></span>
+<span><span class="co">#&gt; 12          Friede et al. (2007)</span></span>
+<span><span class="co">#&gt; 13               Boschloo (1970)</span></span>
+<span><span class="co">#&gt; 14               Boschloo (1970)</span></span>
 <span><span class="co">#&gt;                                              quantity published digits</span></span>
 <span><span class="co">#&gt; 1             initial total sample size, Delta = 0.15  314.0000      0</span></span>
 <span><span class="co">#&gt; 2           largest level, fixed design, Delta = 0.30    0.0268      4</span></span>
@@ -762,10 +774,12 @@ after rounding to the digits of the publication.</p>
 <span><span class="co">#&gt; 6                                               power    0.7940      3</span></span>
 <span><span class="co">#&gt; 7                               sample size per group   80.0000      0</span></span>
 <span><span class="co">#&gt; 8                      power at 80 patients per group    0.8130      3</span></span>
-<span><span class="co">#&gt; 9             total sample size, Blackwelder, p = 0.7  660.0000      0</span></span>
-<span><span class="co">#&gt; 10     total sample size, Farrington-Manning, p = 0.9  310.0000      0</span></span>
-<span><span class="co">#&gt; 11   power of the Fisher test, 15 per group, p1 = 0.3    0.2558      4</span></span>
-<span><span class="co">#&gt; 12 power of the Boschloo test, 15 per group, p1 = 0.3    0.3531      4</span></span>
+<span><span class="co">#&gt; 9            sample size per group, relative risk 0.1   46.0000      0</span></span>
+<span><span class="co">#&gt; 10  power at 46 patients per group, relative risk 0.1    0.9225      4</span></span>
+<span><span class="co">#&gt; 11            total sample size, Blackwelder, p = 0.7  660.0000      0</span></span>
+<span><span class="co">#&gt; 12     total sample size, Farrington-Manning, p = 0.9  310.0000      0</span></span>
+<span><span class="co">#&gt; 13   power of the Fisher test, 15 per group, p1 = 0.3    0.2558      4</span></span>
+<span><span class="co">#&gt; 14 power of the Boschloo test, 15 per group, p1 = 0.3    0.3531      4</span></span>
 <span><span class="co">#&gt;      recomputed agrees</span></span>
 <span><span class="co">#&gt; 1  314.00000000   TRUE</span></span>
 <span><span class="co">#&gt; 2    0.02679047   TRUE</span></span>
@@ -775,15 +789,24 @@ after rounding to the digits of the publication.</p>
 <span><span class="co">#&gt; 6    0.79416905   TRUE</span></span>
 <span><span class="co">#&gt; 7   80.00000000   TRUE</span></span>
 <span><span class="co">#&gt; 8    0.81320091   TRUE</span></span>
-<span><span class="co">#&gt; 9  660.00000000   TRUE</span></span>
-<span><span class="co">#&gt; 10 310.00000000   TRUE</span></span>
-<span><span class="co">#&gt; 11   0.25576535   TRUE</span></span>
-<span><span class="co">#&gt; 12   0.35314961   TRUE</span></span></code></pre></div>
-<p>Of the 12 values above, 12 agree with the publication after rounding.
+<span><span class="co">#&gt; 9   46.00000000   TRUE</span></span>
+<span><span class="co">#&gt; 10   0.92252876   TRUE</span></span>
+<span><span class="co">#&gt; 11 660.00000000   TRUE</span></span>
+<span><span class="co">#&gt; 12 310.00000000   TRUE</span></span>
+<span><span class="co">#&gt; 13   0.25576535   TRUE</span></span>
+<span><span class="co">#&gt; 14   0.35314961   TRUE</span></span></code></pre></div>
+<p>Of the 14 values above, 14 agree with the publication after rounding.
 The script reports every value that it does not reproduce, together with
-the reason when one is known. The vignette ‘Validation by Reproducing
-Published Figures’ redraws fifteen figures of the same publications from
-values computed with the package.</p>
+the reason when one is known. For the relative risk, the sample sizes
+and true powers that the script computes for Tables I and II and the
+second example of Farrington and Manning (1990) agree with an
+independent computation in Python
+(<code>tools/reference/check_farrington_manning_1990_rr.py</code> in the
+source repository), which finds the restricted maximum likelihood
+estimates by bisection on the score equation rather than by formula (13)
+of the article. The vignette ‘Validation by Reproducing Published
+Figures’ redraws fifteen figures of the same publications from values
+computed with the package.</p>
 <p>The two-sided Fisher p-values of the conventions are compared with
 two published examples: 8 responders out of 14 against 1 out of 7 in Fay
 and Hunsberger (2021, Section 8), and 8 out of 148 against 1 out of 132

@@ -129,10 +129,11 @@ common response probability rather than by conditioning on the total
 number of responders. <code>Blackwelder</code> and
 <code>Farrington-Manning</code> are the tests of non-inferiority of
 Blackwelder (1982) and of Farrington and Manning (1990), which take a
-margin on the scale of the risk difference through the argument
-<code>margin</code>. With <code>margin = 0</code> they are tests of
-superiority, and the Farrington-Manning test then coincides with
-<code>Chisq</code>. The <code>bbssr-non-inferiority</code> vignette
+margin on the scale of the risk difference, or with
+<code>margin.scale = 'RR'</code> on the scale of the risk ratio, through
+the argument <code>margin</code>. With <code>margin = 0</code> they are
+tests of superiority, and the Farrington-Manning test then coincides
+with <code>Chisq</code>. The <code>bbssr-non-inferiority</code> vignette
 covers these two tests, and the comparisons below use the other
 five.</p>
 <p>Only <code>Fisher</code>, <code>Z-pool</code> and

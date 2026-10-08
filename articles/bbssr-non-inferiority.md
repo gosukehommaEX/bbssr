@@ -18,7 +18,8 @@ With `alternative = 'less'` the null hypothesis is
 $`p_{1} - p_{2} \ge \delta`$, which suits an endpoint for which a lower
 response probability is better. A negative margin tests superiority by
 more than its absolute value. A margin other than 0 requires one of the
-two tests below and a one-sided alternative.
+two tests below and a one-sided alternative. The last section covers a
+margin on the scale of the risk ratio, `margin.scale = 'RR'`.
 
 ## The two tests
 
@@ -257,6 +258,187 @@ max(abs(on.boundary$power.BSSR - ni.tie$TIE.BSSR[rows]))
 [`BinaryAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryAlphaAdjBSSR.md)
 accepts the margin in the same way and adjusts the nominal level on the
 boundary.
+
+## Margin on the scale of the risk ratio
+
+With `margin.scale = 'RR'` the margin is a ratio $`R_{0} > 0`$, and
+`alternative = 'greater'` tests
+``` math
+H_{0}: p_{1} / p_{2} \le R_{0} \quad \text{against} \quad H_{1}: p_{1} / p_{2} > R_{0} .
+```
+With `alternative = 'less'` the null hypothesis is
+$`p_{1} / p_{2} \ge R_{0}`$, as in the second example of Farrington and
+Manning (1990), where the relative risk of pertussis among recipients of
+an acellular vaccine compared with those of a whole cell vaccine is to
+be shown to be below 1.5. A margin on this scale also requires one of
+the two tests and a one-sided alternative, and in the functions with
+re-estimation the assumed and the true effects are then risk ratios
+(`effect = 'RR'`).
+
+Both tests refer statistic (5) of Farrington and Manning (1990),
+``` math
+Z = \frac{\hat{p}_{1} - R_{0} \hat{p}_{2}}{\widehat{\mathrm{SE}}} , \qquad
+\widehat{\mathrm{SE}}^{2} = \frac{\tilde{p}_{1}(1 - \tilde{p}_{1})}{N_{1}} + R_{0}^{2} \frac{\tilde{p}_{2}(1 - \tilde{p}_{2})}{N_{2}} ,
+```
+to the standard normal distribution. The Blackwelder test takes
+$`\tilde{p}_{1} = \hat{p}_{1}`$ and $`\tilde{p}_{2} = \hat{p}_{2}`$,
+which is Method 1 of the article. The Farrington-Manning test takes the
+maximum likelihood estimates under the restriction
+$`p_{1} = R_{0} p_{2}`$. With $`\theta = N_{2} / N_{1}`$, the estimate
+$`\tilde{p}_{1}`$ is the smaller root of
+``` math
+(1 + \theta) x^{2} - \{R_{0}(1 + \theta \hat{p}_{2}) + \theta + \hat{p}_{1}\} x + R_{0}(\hat{p}_{1} + \theta \hat{p}_{2}) = 0 ,
+```
+formula (13) of the article, and
+$`\tilde{p}_{2} = \tilde{p}_{1} / R_{0}`$. With $`R_{0} = 1`$ the
+restricted estimates are the pooled proportion, so the
+Farrington-Manning test is the chi-squared test.
+
+``` r
+
+rr.ratio <- BinaryRR(N1 = 60, N2 = 60, alpha = 0.025, Test = 'Farrington-Manning',
+                     margin = 0.8, margin.scale = 'RR')
+rr.one <- BinaryRR(N1 = 60, N2 = 60, alpha = 0.025, Test = 'Farrington-Manning',
+                   margin = 1, margin.scale = 'RR')
+rr.chisq <- BinaryRR(N1 = 60, N2 = 60, alpha = 0.025, Test = 'Chisq')
+c(ratio.0.8 = sum(rr.ratio), ratio.1 = sum(rr.one), chisq = sum(rr.chisq))
+#> ratio.0.8   ratio.1     chisq 
+#>      1727      1355      1355
+identical(as.vector(rr.one), as.vector(rr.chisq))
+#> [1] TRUE
+```
+
+[`BinarySampleSize()`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md)
+replaces the difference in the normal approximation by the distance
+$`p_{1} - R_{0} p_{2}`$ from the boundary, or $`R_{0} p_{2} - p_{1}`$
+for `alternative = 'less'`. With the allocation ratio
+$`r = N_{1} / N_{2}`$ the size of group 2 is
+``` math
+N_{2} = \frac{\left(z_{1 - \alpha} \sqrt{v_{0}} + z_{1 - \beta} \sqrt{v_{1}}\right)^{2}}{(p_{1} - R_{0} p_{2})^{2}} , \qquad
+v_{1} = \frac{p_{1}(1 - p_{1})}{r} + R_{0}^{2} p_{2}(1 - p_{2}) ,
+```
+where $`1 - \beta`$ is the target power and $`v_{0}`$ is the same
+expression at the large sample values of the restricted estimates.
+`method = 'standard'` gives formula (8) of Farrington and Manning
+(1990), and `method = 'alternative.variance'`, which sets
+$`v_{0} = v_{1}`$, gives the formula of their Method 1. The table below
+repeats the comparison of the sample sizes for equal response
+probabilities of 0.7 and the margin 0.8.
+
+``` r
+
+rr.ss <- expand.grid(method = c('exact', 'standard', 'alternative.variance'),
+                     Test = c('Blackwelder', 'Farrington-Manning'),
+                     stringsAsFactors = FALSE)
+rr.ss$N <- NA
+rr.ss$Power <- NA
+for (i in seq_len(nrow(rr.ss))) {
+  ss <- BinarySampleSize(p1 = 0.7, p2 = 0.7, r = 1, alpha = 0.025, tar.power = 0.8,
+                         Test = rr.ss$Test[i], method = rr.ss$method[i], margin = 0.8,
+                         margin.scale = 'RR')
+  rr.ss$N[i] <- ss$N
+  rr.ss$Power[i] <- round(ss$Power, 4)
+}
+rr.ss
+#>                 method               Test   N  Power
+#> 1                exact        Blackwelder 278 0.8022
+#> 2             standard        Blackwelder 284 0.8085
+#> 3 alternative.variance        Blackwelder 276 0.7993
+#> 4                exact Farrington-Manning 282 0.8036
+#> 5             standard Farrington-Manning 284 0.8047
+#> 6 alternative.variance Farrington-Manning 276 0.7946
+```
+
+The second example of Farrington and Manning (1990), with
+$`p_{1} = p_{2} = 0.01`$, $`R_{0} = 1.5`$, `alternative = 'less'`, the
+one-sided level 0.025 and the power 0.9, needs 12,890 patients per group
+by formula (8), and its true power is 90.4 per cent. The rejection
+region at this sample size has more than $`1.6 \times 10^{8}`$ outcomes,
+so `inst/reproduce/reproduce-published.R` sums the exact power over the
+outcomes that carry the probability, and reproduces both values together
+with Tables I and II of the article.
+
+The re-estimation of Friede, Mitchell and Mueller-Velten (2007) carries
+over with the assumed ratio `Delta.A = 1`, which recovers the pooled
+proportion for both groups. The design below is planned for a pooled
+response probability of 0.7, re-estimates the sample size by formula (8)
+after half of the patients, and allows at most twice the planned sample
+size.
+
+``` r
+
+plan.rr <- BinarySampleSize(p1 = 0.7, p2 = 0.7, r = 1, alpha = 0.025, tar.power = 0.8,
+                            Test = 'Farrington-Manning', method = 'standard',
+                            margin = 0.8, margin.scale = 'RR')
+ni.rr <- BinaryPowerBSSR(
+  p = seq(0.4, 0.8, by = 0.1), Delta.A = 1, Delta.T = 1,
+  N1 = plan.rr$N1, N2 = plan.rr$N2, omega = 0.5, r = 1, alpha = 0.025, tar.power = 0.8,
+  Test = 'Farrington-Manning', effect = 'RR', ss.method = 'standard',
+  N.max = 2 * plan.rr$N, margin = 0.8, margin.scale = 'RR'
+)
+ni.rr
+#> Blinded sample size re-estimation for a binary endpoint
+#> 
+#>   Test            : Farrington-Manning
+#>   Alternative     : greater
+#>   Design rule     : unrestricted
+#>   Initial size    : N1 = 142, N2 = 142
+#>   Interim fraction: 0.5, giving n1 = 71 and n2 = 71
+#>   Treatment effect: assumed 1, true 1 (risk ratio)
+#>   Margin          : 0.8 (risk ratio)
+#>   Re-estimation   : normal approximation (standard), group rounding at level 0.025, N.max = 568
+#>   Alpha           : 0.025, target power 0.8
+#> 
+#>    p  p1  p2 power.BSSR power.TRAD   E.N
+#>  0.4 0.4 0.4     0.5812     0.3375 568.0
+#>  0.5 0.5 0.5     0.7441     0.4653 555.9
+#>  0.6 0.6 0.6     0.8021     0.6240 433.6
+#>  0.7 0.7 0.7     0.8081     0.8047 286.5
+#>  0.8 0.8 0.8     0.8212     0.9497 179.5
+```
+
+At equal response probabilities $`p`$ the distance from the boundary is
+$`(1 - R_{0}) p`$, so it shrinks with $`p`$, and a lower pooled response
+probability calls for more patients. The planned total sample size is
+284. At a pooled response probability of 0.4 the expected total sample
+size of the re-estimation design is 568.0, close to the upper bound of
+568, and the power is 0.581 with re-estimation and 0.337 without.
+
+On the boundary $`p_{1} = R_{0} p_{2}`$ the pooled response probability
+is $`\theta = (1 + r R_{0}) p_{2} / (1 + r)`$, and both response
+probabilities are linear in $`\theta`$, so
+[`BinaryTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryTypeIErrorBSSR.md)
+certifies the largest type I error rate as on the scale of the risk
+difference. With the default `theta` the interval runs from 0 to
+$`\min(1, 1 / R_{0}) (1 + r R_{0}) / (1 + r)`$, at which the larger
+response probability reaches 1.
+
+``` r
+
+tie.rr <- BinaryTypeIErrorBSSR(
+  Delta.A = 1, N1 = plan.rr$N1, N2 = plan.rr$N2, omega = 0.5, r = 1, alpha = 0.025,
+  tar.power = 0.8, Test = 'Farrington-Manning', effect = 'RR', ss.method = 'standard',
+  N.max = 2 * plan.rr$N, margin = 0.8, margin.scale = 'RR'
+)
+attr(tie.rr, 'interval')
+#> [1] 0.0 0.9
+attr(tie.rr, 'max')
+#>   Design      theta        TIE      bound
+#> 1   BSSR 0.04517183 0.02704639 0.02704639
+#> 2   TRAD 0.14697132 0.03055082 0.03055082
+plot(tie.rr)
+```
+
+![](bbssr-non-inferiority_files/figure-html/ratio-tie-1.png)
+
+The largest type I error rate is 0.0270 for the re-estimation design, at
+$`\theta =`$ 0.045, and 0.0306 for the fixed-sample design, at
+$`\theta =`$ 0.147. Both exceed the nominal level of 0.025, and the
+fixed-sample design exceeds it by more, so the excess comes from the
+asymptotic test rather than from the re-estimation.
+[`BinaryAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryAlphaAdjBSSR.md)
+accepts `margin.scale` in the same way and lowers the nominal level
+until the rate is controlled.
 
 ## References
 

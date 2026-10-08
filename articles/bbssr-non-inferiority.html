@@ -104,7 +104,8 @@ With <code>alternative = 'less'</code> the null hypothesis is
 which suits an endpoint for which a lower response probability is
 better. A negative margin tests superiority by more than its absolute
 value. A margin other than 0 requires one of the two tests below and a
-one-sided alternative.</p>
+one-sided alternative. The last section covers a margin on the scale of
+the risk ratio, <code>margin.scale = 'RR'</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="the-two-tests">The two tests<a class="anchor" aria-label="anchor" href="#the-two-tests"></a>
@@ -329,6 +330,197 @@ to
 <span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
 <p><code><a href="../reference/BinaryAlphaAdjBSSR.html">BinaryAlphaAdjBSSR()</a></code> accepts the margin in the same way
 and adjusts the nominal level on the boundary.</p>
+</div>
+<div class="section level2">
+<h2 id="margin-on-the-scale-of-the-risk-ratio">Margin on the scale of the risk ratio<a class="anchor" aria-label="anchor" href="#margin-on-the-scale-of-the-risk-ratio"></a>
+</h2>
+<p>With <code>margin.scale = 'RR'</code> the margin is a ratio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mn>0</mn></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">R_{0} &gt; 0</annotation></semantics></math>,
+and <code>alternative = 'greater'</code> tests
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub><mo>:</mo><msub><mi>p</mi><mn>1</mn></msub><mi>/</mi><msub><mi>p</mi><mn>2</mn></msub><mo>≤</mo><msub><mi>R</mi><mn>0</mn></msub><mspace width="1.0em"></mspace><mtext mathvariant="normal">against</mtext><mspace width="1.0em"></mspace><msub><mi>H</mi><mn>1</mn></msub><mo>:</mo><msub><mi>p</mi><mn>1</mn></msub><mi>/</mi><msub><mi>p</mi><mn>2</mn></msub><mo>&gt;</mo><msub><mi>R</mi><mn>0</mn></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+H_{0}: p_{1} / p_{2} \le R_{0} \quad \text{against} \quad H_{1}: p_{1} / p_{2} &gt; R_{0} .
+</annotation></semantics></math> With <code>alternative = 'less'</code>
+the null hypothesis is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mi>/</mi><msub><mi>p</mi><mn>2</mn></msub><mo>≥</mo><msub><mi>R</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">p_{1} / p_{2} \ge R_{0}</annotation></semantics></math>,
+as in the second example of Farrington and Manning (1990), where the
+relative risk of pertussis among recipients of an acellular vaccine
+compared with those of a whole cell vaccine is to be shown to be below
+1.5. A margin on this scale also requires one of the two tests and a
+one-sided alternative, and in the functions with re-estimation the
+assumed and the true effects are then risk ratios
+(<code>effect = 'RR'</code>).</p>
+<p>Both tests refer statistic (5) of Farrington and Manning (1990),
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo>=</mo><mfrac><mrow><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mn>1</mn></msub><mo>−</mo><msub><mi>R</mi><mn>0</mn></msub><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mn>2</mn></msub></mrow><mover><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi></mrow><mo accent="true">̂</mo></mover></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msup><mover><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi></mrow><mo accent="true">̂</mo></mover><mn>2</mn></msup><mo>=</mo><mfrac><mrow><msub><mover><mi>p</mi><mo accent="true">̃</mo></mover><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mover><mi>p</mi><mo accent="true">̃</mo></mover><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><msub><mi>N</mi><mn>1</mn></msub></mfrac><mo>+</mo><msubsup><mi>R</mi><mn>0</mn><mn>2</mn></msubsup><mfrac><mrow><msub><mover><mi>p</mi><mo accent="true">̃</mo></mover><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mover><mi>p</mi><mo accent="true">̃</mo></mover><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><msub><mi>N</mi><mn>2</mn></msub></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
+Z = \frac{\hat{p}_{1} - R_{0} \hat{p}_{2}}{\widehat{\mathrm{SE}}} , \qquad
+\widehat{\mathrm{SE}}^{2} = \frac{\tilde{p}_{1}(1 - \tilde{p}_{1})}{N_{1}} + R_{0}^{2} \frac{\tilde{p}_{2}(1 - \tilde{p}_{2})}{N_{2}} ,
+</annotation></semantics></math> to the standard normal distribution.
+The Blackwelder test takes
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>p</mi><mo accent="true">̃</mo></mover><mn>1</mn></msub><mo>=</mo><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\tilde{p}_{1} = \hat{p}_{1}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>p</mi><mo accent="true">̃</mo></mover><mn>2</mn></msub><mo>=</mo><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\tilde{p}_{2} = \hat{p}_{2}</annotation></semantics></math>,
+which is Method 1 of the article. The Farrington-Manning test takes the
+maximum likelihood estimates under the restriction
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>=</mo><msub><mi>R</mi><mn>0</mn></msub><msub><mi>p</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">p_{1} = R_{0} p_{2}</annotation></semantics></math>.
+With
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><msub><mi>N</mi><mn>2</mn></msub><mi>/</mi><msub><mi>N</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\theta = N_{2} / N_{1}</annotation></semantics></math>,
+the estimate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>p</mi><mo accent="true">̃</mo></mover><mn>1</mn></msub><annotation encoding="application/x-tex">\tilde{p}_{1}</annotation></semantics></math>
+is the smaller root of
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><msup><mi>x</mi><mn>2</mn></msup><mo>−</mo><mo stretchy="false" form="prefix">{</mo><msub><mi>R</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mi>θ</mi><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>θ</mi><mo>+</mo><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mn>1</mn></msub><mo stretchy="false" form="postfix">}</mo><mi>x</mi><mo>+</mo><msub><mi>R</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mn>1</mn></msub><mo>+</mo><mi>θ</mi><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0</mn><mo>,</mo></mrow><annotation encoding="application/x-tex">
+(1 + \theta) x^{2} - \{R_{0}(1 + \theta \hat{p}_{2}) + \theta + \hat{p}_{1}\} x + R_{0}(\hat{p}_{1} + \theta \hat{p}_{2}) = 0 ,
+</annotation></semantics></math> formula (13) of the article, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>p</mi><mo accent="true">̃</mo></mover><mn>2</mn></msub><mo>=</mo><msub><mover><mi>p</mi><mo accent="true">̃</mo></mover><mn>1</mn></msub><mi>/</mi><msub><mi>R</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">\tilde{p}_{2} = \tilde{p}_{1} / R_{0}</annotation></semantics></math>.
+With
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mn>0</mn></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">R_{0} = 1</annotation></semantics></math>
+the restricted estimates are the pooled proportion, so the
+Farrington-Manning test is the chi-squared test.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rr.ratio</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span>N1 <span class="op">=</span> <span class="fl">60</span>, N2 <span class="op">=</span> <span class="fl">60</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>, Test <span class="op">=</span> <span class="st">'Farrington-Manning'</span>,</span>
+<span>                     margin <span class="op">=</span> <span class="fl">0.8</span>, margin.scale <span class="op">=</span> <span class="st">'RR'</span><span class="op">)</span></span>
+<span><span class="va">rr.one</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span>N1 <span class="op">=</span> <span class="fl">60</span>, N2 <span class="op">=</span> <span class="fl">60</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>, Test <span class="op">=</span> <span class="st">'Farrington-Manning'</span>,</span>
+<span>                   margin <span class="op">=</span> <span class="fl">1</span>, margin.scale <span class="op">=</span> <span class="st">'RR'</span><span class="op">)</span></span>
+<span><span class="va">rr.chisq</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span>N1 <span class="op">=</span> <span class="fl">60</span>, N2 <span class="op">=</span> <span class="fl">60</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>, Test <span class="op">=</span> <span class="st">'Chisq'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>ratio.0.8 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">rr.ratio</span><span class="op">)</span>, ratio.1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">rr.one</span><span class="op">)</span>, chisq <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">rr.chisq</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ratio.0.8   ratio.1     chisq </span></span>
+<span><span class="co">#&gt;      1727      1355      1355</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">rr.one</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">rr.chisq</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p><code><a href="../reference/BinarySampleSize.html">BinarySampleSize()</a></code> replaces the difference in the normal
+approximation by the distance
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>−</mo><msub><mi>R</mi><mn>0</mn></msub><msub><mi>p</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">p_{1} - R_{0} p_{2}</annotation></semantics></math>
+from the boundary, or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mn>0</mn></msub><msub><mi>p</mi><mn>2</mn></msub><mo>−</mo><msub><mi>p</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">R_{0} p_{2} - p_{1}</annotation></semantics></math>
+for <code>alternative = 'less'</code>. With the allocation ratio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><msub><mi>N</mi><mn>1</mn></msub><mi>/</mi><msub><mi>N</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">r = N_{1} / N_{2}</annotation></semantics></math>
+the size of group 2 is
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mn>2</mn></msub><mo>=</mo><mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>z</mi><mrow><mn>1</mn><mo>−</mo><mi>α</mi></mrow></msub><msqrt><msub><mi>v</mi><mn>0</mn></msub></msqrt><mo>+</mo><msub><mi>z</mi><mrow><mn>1</mn><mo>−</mo><mi>β</mi></mrow></msub><msqrt><msub><mi>v</mi><mn>1</mn></msub></msqrt><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>p</mi><mn>1</mn></msub><mo>−</mo><msub><mi>R</mi><mn>0</mn></msub><msub><mi>p</mi><mn>2</mn></msub><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>v</mi><mn>1</mn></msub><mo>=</mo><mfrac><mrow><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><mi>r</mi></mfrac><mo>+</mo><msubsup><mi>R</mi><mn>0</mn><mn>2</mn></msubsup><msub><mi>p</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>p</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+N_{2} = \frac{\left(z_{1 - \alpha} \sqrt{v_{0}} + z_{1 - \beta} \sqrt{v_{1}}\right)^{2}}{(p_{1} - R_{0} p_{2})^{2}} , \qquad
+v_{1} = \frac{p_{1}(1 - p_{1})}{r} + R_{0}^{2} p_{2}(1 - p_{2}) ,
+</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>β</mi></mrow><annotation encoding="application/x-tex">1 - \beta</annotation></semantics></math>
+is the target power and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>v</mi><mn>0</mn></msub><annotation encoding="application/x-tex">v_{0}</annotation></semantics></math>
+is the same expression at the large sample values of the restricted
+estimates. <code>method = 'standard'</code> gives formula (8) of
+Farrington and Manning (1990), and
+<code>method = 'alternative.variance'</code>, which sets
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mn>0</mn></msub><mo>=</mo><msub><mi>v</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">v_{0} = v_{1}</annotation></semantics></math>,
+gives the formula of their Method 1. The table below repeats the
+comparison of the sample sizes for equal response probabilities of 0.7
+and the margin 0.8.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rr.ss</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'exact'</span>, <span class="st">'standard'</span>, <span class="st">'alternative.variance'</span><span class="op">)</span>,</span>
+<span>                     Test <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Blackwelder'</span>, <span class="st">'Farrington-Manning'</span><span class="op">)</span>,</span>
+<span>                     stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">rr.ss</span><span class="op">$</span><span class="va">N</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span>
+<span><span class="va">rr.ss</span><span class="op">$</span><span class="va">Power</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">rr.ss</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">ss</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinarySampleSize.html">BinarySampleSize</a></span><span class="op">(</span>p1 <span class="op">=</span> <span class="fl">0.7</span>, p2 <span class="op">=</span> <span class="fl">0.7</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>,</span>
+<span>                         Test <span class="op">=</span> <span class="va">rr.ss</span><span class="op">$</span><span class="va">Test</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>, method <span class="op">=</span> <span class="va">rr.ss</span><span class="op">$</span><span class="va">method</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>, margin <span class="op">=</span> <span class="fl">0.8</span>,</span>
+<span>                         margin.scale <span class="op">=</span> <span class="st">'RR'</span><span class="op">)</span></span>
+<span>  <span class="va">rr.ss</span><span class="op">$</span><span class="va">N</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">ss</span><span class="op">$</span><span class="va">N</span></span>
+<span>  <span class="va">rr.ss</span><span class="op">$</span><span class="va">Power</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">ss</span><span class="op">$</span><span class="va">Power</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">rr.ss</span></span>
+<span><span class="co">#&gt;                 method               Test   N  Power</span></span>
+<span><span class="co">#&gt; 1                exact        Blackwelder 278 0.8022</span></span>
+<span><span class="co">#&gt; 2             standard        Blackwelder 284 0.8085</span></span>
+<span><span class="co">#&gt; 3 alternative.variance        Blackwelder 276 0.7993</span></span>
+<span><span class="co">#&gt; 4                exact Farrington-Manning 282 0.8036</span></span>
+<span><span class="co">#&gt; 5             standard Farrington-Manning 284 0.8047</span></span>
+<span><span class="co">#&gt; 6 alternative.variance Farrington-Manning 276 0.7946</span></span></code></pre></div>
+<p>The second example of Farrington and Manning (1990), with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>=</mo><msub><mi>p</mi><mn>2</mn></msub><mo>=</mo><mn>0.01</mn></mrow><annotation encoding="application/x-tex">p_{1} = p_{2} = 0.01</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mn>0</mn></msub><mo>=</mo><mn>1.5</mn></mrow><annotation encoding="application/x-tex">R_{0} = 1.5</annotation></semantics></math>,
+<code>alternative = 'less'</code>, the one-sided level 0.025 and the
+power 0.9, needs 12,890 patients per group by formula (8), and its true
+power is 90.4 per cent. The rejection region at this sample size has
+more than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1.6</mn><mo>×</mo><msup><mn>10</mn><mn>8</mn></msup></mrow><annotation encoding="application/x-tex">1.6 \times 10^{8}</annotation></semantics></math>
+outcomes, so <code>inst/reproduce/reproduce-published.R</code> sums the
+exact power over the outcomes that carry the probability, and reproduces
+both values together with Tables I and II of the article.</p>
+<p>The re-estimation of Friede, Mitchell and Mueller-Velten (2007)
+carries over with the assumed ratio <code>Delta.A = 1</code>, which
+recovers the pooled proportion for both groups. The design below is
+planned for a pooled response probability of 0.7, re-estimates the
+sample size by formula (8) after half of the patients, and allows at
+most twice the planned sample size.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">plan.rr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinarySampleSize.html">BinarySampleSize</a></span><span class="op">(</span>p1 <span class="op">=</span> <span class="fl">0.7</span>, p2 <span class="op">=</span> <span class="fl">0.7</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>,</span>
+<span>                            Test <span class="op">=</span> <span class="st">'Farrington-Manning'</span>, method <span class="op">=</span> <span class="st">'standard'</span>,</span>
+<span>                            margin <span class="op">=</span> <span class="fl">0.8</span>, margin.scale <span class="op">=</span> <span class="st">'RR'</span><span class="op">)</span></span>
+<span><span class="va">ni.rr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryPowerBSSR.html">BinaryPowerBSSR</a></span><span class="op">(</span></span>
+<span>  p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.4</span>, <span class="fl">0.8</span>, by <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>, Delta.A <span class="op">=</span> <span class="fl">1</span>, Delta.T <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  N1 <span class="op">=</span> <span class="va">plan.rr</span><span class="op">$</span><span class="va">N1</span>, N2 <span class="op">=</span> <span class="va">plan.rr</span><span class="op">$</span><span class="va">N2</span>, omega <span class="op">=</span> <span class="fl">0.5</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>,</span>
+<span>  Test <span class="op">=</span> <span class="st">'Farrington-Manning'</span>, effect <span class="op">=</span> <span class="st">'RR'</span>, ss.method <span class="op">=</span> <span class="st">'standard'</span>,</span>
+<span>  N.max <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">plan.rr</span><span class="op">$</span><span class="va">N</span>, margin <span class="op">=</span> <span class="fl">0.8</span>, margin.scale <span class="op">=</span> <span class="st">'RR'</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">ni.rr</span></span>
+<span><span class="co">#&gt; Blinded sample size re-estimation for a binary endpoint</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   Test            : Farrington-Manning</span></span>
+<span><span class="co">#&gt;   Alternative     : greater</span></span>
+<span><span class="co">#&gt;   Design rule     : unrestricted</span></span>
+<span><span class="co">#&gt;   Initial size    : N1 = 142, N2 = 142</span></span>
+<span><span class="co">#&gt;   Interim fraction: 0.5, giving n1 = 71 and n2 = 71</span></span>
+<span><span class="co">#&gt;   Treatment effect: assumed 1, true 1 (risk ratio)</span></span>
+<span><span class="co">#&gt;   Margin          : 0.8 (risk ratio)</span></span>
+<span><span class="co">#&gt;   Re-estimation   : normal approximation (standard), group rounding at level 0.025, N.max = 568</span></span>
+<span><span class="co">#&gt;   Alpha           : 0.025, target power 0.8</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;    p  p1  p2 power.BSSR power.TRAD   E.N</span></span>
+<span><span class="co">#&gt;  0.4 0.4 0.4     0.5812     0.3375 568.0</span></span>
+<span><span class="co">#&gt;  0.5 0.5 0.5     0.7441     0.4653 555.9</span></span>
+<span><span class="co">#&gt;  0.6 0.6 0.6     0.8021     0.6240 433.6</span></span>
+<span><span class="co">#&gt;  0.7 0.7 0.7     0.8081     0.8047 286.5</span></span>
+<span><span class="co">#&gt;  0.8 0.8 0.8     0.8212     0.9497 179.5</span></span></code></pre></div>
+<p>At equal response probabilities
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+the distance from the boundary is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>R</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">(1 - R_{0}) p</annotation></semantics></math>,
+so it shrinks with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>,
+and a lower pooled response probability calls for more patients. The
+planned total sample size is 284. At a pooled response probability of
+0.4 the expected total sample size of the re-estimation design is 568.0,
+close to the upper bound of 568, and the power is 0.581 with
+re-estimation and 0.337 without.</p>
+<p>On the boundary
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>=</mo><msub><mi>R</mi><mn>0</mn></msub><msub><mi>p</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">p_{1} = R_{0} p_{2}</annotation></semantics></math>
+the pooled response probability is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mi>r</mi><msub><mi>R</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><msub><mi>p</mi><mn>2</mn></msub><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\theta = (1 + r R_{0}) p_{2} / (1 + r)</annotation></semantics></math>,
+and both response probabilities are linear in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>,
+so <code><a href="../reference/BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR()</a></code> certifies the largest type I
+error rate as on the scale of the risk difference. With the default
+<code>theta</code> the interval runs from 0 to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>,</mo><mn>1</mn><mi>/</mi><msub><mi>R</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mi>r</mi><msub><mi>R</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\min(1, 1 / R_{0}) (1 + r R_{0}) / (1 + r)</annotation></semantics></math>,
+at which the larger response probability reaches 1.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tie.rr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR</a></span><span class="op">(</span></span>
+<span>  Delta.A <span class="op">=</span> <span class="fl">1</span>, N1 <span class="op">=</span> <span class="va">plan.rr</span><span class="op">$</span><span class="va">N1</span>, N2 <span class="op">=</span> <span class="va">plan.rr</span><span class="op">$</span><span class="va">N2</span>, omega <span class="op">=</span> <span class="fl">0.5</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>,</span>
+<span>  tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Farrington-Manning'</span>, effect <span class="op">=</span> <span class="st">'RR'</span>, ss.method <span class="op">=</span> <span class="st">'standard'</span>,</span>
+<span>  N.max <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">plan.rr</span><span class="op">$</span><span class="va">N</span>, margin <span class="op">=</span> <span class="fl">0.8</span>, margin.scale <span class="op">=</span> <span class="st">'RR'</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">tie.rr</span>, <span class="st">'interval'</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.0 0.9</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">tie.rr</span>, <span class="st">'max'</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   Design      theta        TIE      bound</span></span>
+<span><span class="co">#&gt; 1   BSSR 0.04517183 0.02704639 0.02704639</span></span>
+<span><span class="co">#&gt; 2   TRAD 0.14697132 0.03055082 0.03055082</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tie.rr</span><span class="op">)</span></span></code></pre></div>
+<p><img src="bbssr-non-inferiority_files/figure-html/ratio-tie-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
+<p>The largest type I error rate is 0.0270 for the re-estimation design,
+at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo></mrow><annotation encoding="application/x-tex">\theta =</annotation></semantics></math>
+0.045, and 0.0306 for the fixed-sample design, at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo></mrow><annotation encoding="application/x-tex">\theta =</annotation></semantics></math>
+0.147. Both exceed the nominal level of 0.025, and the fixed-sample
+design exceeds it by more, so the excess comes from the asymptotic test
+rather than from the re-estimation. <code><a href="../reference/BinaryAlphaAdjBSSR.html">BinaryAlphaAdjBSSR()</a></code>
+accepts <code>margin.scale</code> in the same way and lowers the nominal
+level until the rate is controlled.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

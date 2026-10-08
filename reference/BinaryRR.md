@@ -3,7 +3,8 @@
 Provides a rejection region (RR) for two-arm trials with binary
 endpoints. Seven tests are supported. Each can be applied with a
 one-sided or a two-sided alternative, and two of them also test
-non-inferiority with a margin on the scale of the risk difference.
+non-inferiority with a margin on the scale of the risk difference or the
+risk ratio.
 
 ## Usage
 
@@ -18,7 +19,8 @@ BinaryRR(
   n.grid = 100,
   bb.gamma = 0,
   margin = 0,
-  ref.pvalue = FALSE
+  ref.pvalue = FALSE,
+  margin.scale = c("RD", "RR")
 )
 ```
 
@@ -75,19 +77,30 @@ BinaryRR(
 
 - margin:
 
-  Non-inferiority margin on the scale of the risk difference. The
-  default of 0 gives a test of superiority. A value other than 0 tests
-  the null hypothesis `p1 - p2 <= -margin` against `p1 - p2 > -margin`
-  when `alternative` is `'greater'`, and `p1 - p2 >= margin` against
-  `p1 - p2 < margin` when it is `'less'`. It requires
-  `Test = 'Blackwelder'` or `'Farrington-Manning'`, see `BinaryRR`. A
-  negative value tests for superiority by more than its absolute value
+  Non-inferiority margin, on the scale given by `margin.scale`. On the
+  scale of the risk difference the default of 0 gives a test of
+  superiority, and a value other than 0 tests the null hypothesis
+  `p1 - p2 <= -margin` against `p1 - p2 > -margin` when `alternative` is
+  `'greater'`, and `p1 - p2 >= margin` against `p1 - p2 < margin` when
+  it is `'less'`. A negative value tests for superiority by more than
+  its absolute value. On the scale of the risk ratio the margin is a
+  positive ratio `R0`, and the null hypothesis is `p1 / p2 <= R0`
+  against `p1 / p2 > R0` when `alternative` is `'greater'`, and
+  `p1 / p2 >= R0` against `p1 / p2 < R0` when it is `'less'`. A margin
+  other than 0, and any margin on the scale of the risk ratio, requires
+  `Test = 'Blackwelder'` or `'Farrington-Manning'` and a one-sided
+  alternative, see `BinaryRR`
 
 - ref.pvalue:
 
   Logical. If `TRUE`, the maximization over the nuisance parameter of
   the unconditional tests is refined between the grid points, see
   Details. Default is `FALSE`. Ignored by the conditional tests
+
+- margin.scale:
+
+  Scale of `margin`. Options: `'RD'` (default) for the risk difference
+  `p1 - p2` or `'RR'` for the risk ratio `p1 / p2`
 
 ## Value
 
@@ -182,6 +195,19 @@ is 0 as well. These tests are asymptotic, and their rejection regions
 and power are computed exactly, as for the other tests. A margin other
 than 0 is available only with these two tests and a one-sided
 alternative.
+
+With `margin.scale = 'RR'` the margin is a ratio `R0`, and both tests
+refer the statistic `z = (hat.p1 - R0 hat.p2) / SE` of Farrington and
+Manning (1990) to the standard normal distribution, which tests the null
+hypothesis `p1 / p2 <= R0` for `alternative = 'greater'`. The squared
+standard error is `p1 (1 - p1) / N1 + R0^2 p2 (1 - p2) / N2`. The
+Blackwelder test evaluates it at the observed proportions, which is
+Method 1 of Farrington and Manning (1990), and the Farrington-Manning
+test at the maximum likelihood estimates under `p1 = R0 p2`, formula
+(13) of that article. For `alternative = 'less'` the groups are
+exchanged as for the other tests, with the ratio `1 / R0`, which changes
+only the sign of the statistic. A margin on the scale of the risk ratio
+is also available only with these two tests and a one-sided alternative.
 
 The p-values are kept for the rest of the session and reused by later
 calls with the same sample sizes and test, see
@@ -306,6 +332,22 @@ print(RR)
 #>   Margin        : 0.1
 #> 
 #>   Rejected outcomes: 1698 of 3721
+#> 
+#>   Outcome grid suppressed, use print(x, show.map = TRUE) to display it
+
+# Non-inferiority with the margin 0.8 on the scale of the risk ratio
+RR <- BinaryRR(N1 = 60, N2 = 60, alpha = 0.025, Test = 'Farrington-Manning',
+               margin = 0.8, margin.scale = 'RR')
+print(RR)
+#> Rejection region for a two-arm trial with a binary endpoint
+#> 
+#>   Test          : Farrington-Manning
+#>   Alternative   : greater
+#>   Sample sizes  : N1 = 60, N2 = 60
+#>   Alpha         : 0.025
+#>   Margin        : 0.8 (risk ratio)
+#> 
+#>   Rejected outcomes: 1727 of 3721
 #> 
 #>   Outcome grid suppressed, use print(x, show.map = TRUE) to display it
 # }
