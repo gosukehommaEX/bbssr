@@ -11,7 +11,8 @@
 #'
 #' @return A list with the initial sample sizes \code{N1} and \code{N2}, the true effect
 #'   \code{Delta.T}, the result \code{power} of \code{BinaryPowerBSSR}, its
-#'   \code{summary}, and with \code{type1 = TRUE} a one-row data frame \code{type1}
+#'   \code{summary}, and with \code{type1 = TRUE} a one-row data frame \code{type1}, with
+#'   the columns \code{boundary.BSSR} and \code{boundary.TRAD} for a test of equivalence
 #'
 #' @keywords internal
 #' @noRd
@@ -67,6 +68,10 @@ grid_design <- function(a, p, Delta.T, type1) {
     m <- attr(tie, 'max')
     out[['type1']] <- data.frame(TIE.BSSR = m$TIE[1], theta.BSSR = m$theta[1],
                                  TIE.TRAD = m$TIE[2], theta.TRAD = m$theta[2])
+    if (!is.null(m$boundary)) {
+      out[['type1']]$boundary.BSSR <- m$boundary[1]
+      out[['type1']]$boundary.TRAD <- m$boundary[2]
+    }
   }
   out
 }

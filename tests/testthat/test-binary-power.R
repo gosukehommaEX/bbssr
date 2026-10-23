@@ -140,3 +140,21 @@ test_that("BinaryPower computes the power for a margin on the scale of the risk 
                      margin.scale = 'RR')
   expect_identical(attr(res, 'margin.scale'), 'RR')
 })
+
+test_that("BinaryPower computes the power of a test of equivalence", {
+  # Reference values from tools/reference/reference_values.py, whose upper test on the
+  # scale of the risk ratio takes the lower tail of the statistic without exchanging the
+  # groups
+  pw <- c(BinaryPower(0.5, 0.5, 60, 60, 0.05, 'Farrington-Manning',
+                      alternative = 'equivalence', margin = 0.15)$Power,
+          BinaryPower(0.3, 0.35, 80, 70, 0.05, 'Blackwelder', alternative = 'equivalence',
+                      margin = c(0.1, 0.2))$Power,
+          BinaryPower(0.6, 0.6, 100, 100, 0.05, 'Farrington-Manning',
+                      alternative = 'equivalence', margin = c(0.8, 1.25),
+                      margin.scale = 'RR')$Power)
+  expect_equal(pw, c(0.0726850059283456, 0.11089322196458, 0.213291836408297),
+               tolerance = 1e-8)
+  res <- BinaryPower(0.5, 0.5, 60, 60, 0.05, 'Farrington-Manning',
+                     alternative = 'equivalence', margin = 0.15)
+  expect_equal(attr(res, 'margin'), c(0.15, 0.15))
+})

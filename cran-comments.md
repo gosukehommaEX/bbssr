@@ -1,6 +1,7 @@
 ## Submission
 
-This is a minor update of a package already on CRAN, from version 2.0.0 to 2.1.0.
+This is a major update of a package already on CRAN, from version 2.0.0 to 3.0.0.
+Version 2.1.0 was not released.
 
 The release adds two tests of non-inferiority, those of Blackwelder (1982) and of
 Farrington and Manning (1990), with a margin on the scale of the risk difference or the

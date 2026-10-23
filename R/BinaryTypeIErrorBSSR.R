@@ -40,6 +40,17 @@
 #' The attribute \code{reestimation} holds the final sample size for every pooled number
 #' of interim responders.
 #'
+#' For \code{alternative = 'equivalence'} the null hypothesis has two boundaries, the
+#' lower one \code{p1 - p2 = -lower} (\code{p1 = lower p2} on the scale of the risk
+#' ratio) and the upper one \code{p1 - p2 = upper} (\code{p1 = upper p2}). The data
+#' frame then has a first column \code{boundary}, \code{'lower'} or \code{'upper'},
+#' and a row for each element of \code{theta} on each boundary. The rejection
+#' probability is that of the two one-sided tests together. The largest rate of each
+#' design in the attribute \code{max} is the larger of its maxima on the two boundaries,
+#' its bound the larger of the two bounds, and the column \code{boundary} of the
+#' attribute gives the boundary on which it occurs. The attribute \code{interval} is
+#' then a matrix with a row for each boundary.
+#'
 #' @details
 #' Under the null hypothesis both groups share the response probability \code{theta}. The
 #' sample size is re-estimated exactly as in \code{\link{BinaryPowerBSSR}}, from the
@@ -113,7 +124,7 @@
 #' @importFrom stats dbinom
 BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.power, Test,
                                  restricted = FALSE,
-                                 alternative = c('greater', 'less', 'two.sided'),
+                                 alternative = c('greater', 'less', 'two.sided', 'equivalence'),
                                  tsmethod = c('minlike', 'central', 'blaker'),
                                  n.grid = 100, bb.gamma = 0,
                                  effect = c('RD', 'RR', 'OR'),
@@ -137,6 +148,7 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   search <- match.arg(search)
   maximize <- match.arg(maximize)
   margin.scale <- match.arg(margin.scale)
+  margin <- norm_margin(alternative, margin, margin.scale)
   if (length(theta) < 1 || anyNA(theta) || any(theta < 0 | theta > 1)) {
     stop('theta must be a vector of values in [0, 1]')
   }
@@ -146,14 +158,15 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
                   ss.method, ss.Test, ss.alpha, rounding, N.min, N.max, ref.pvalue,
                   margin, search = search, search.limit = search.limit,
                   margin.scale = margin.scale)
-  # Response probabilities on the boundary of the null hypothesis, which are both theta
-  # when the margin is 0
-  if (!any(null_boundary(theta, r, alternative, margin, margin.scale)$ok)) {
-    stop('no value of theta gives response probabilities in [0, 1] on the null boundary')
+  # The null hypothesis has one boundary, or two for a test of equivalence. On each the
+  # response probabilities are functions of the pooled probability theta, both equal to
+  # theta when the margin is 0
+  sides <- null_sides(alternative, margin, margin.scale)
+  for (s in sides) {
+    if (!any(null_boundary(theta, r, s$alternative, s$margin, margin.scale)$ok)) {
+      stop('no value of theta gives response probabilities in [0, 1] on the null boundary')
+    }
   }
-  # Interval over which the largest rate is certified
-  interval <- null_range(theta, r, alternative, margin, margin.scale)
-  theta <- theta[null_boundary(theta, r, alternative, margin, margin.scale)$ok]
   setup <- bssr_setup(map)
   rr.list <- lapply(seq_along(setup$N1), function(k) {
     get_rr(setup$N1[k], setup$N2[k], alpha, Test, alternative, tsmethod, n.grid, bb.gamma,
@@ -161,48 +174,89 @@ BinaryTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.po
   })
   rr.fixed <- get_rr(N1, N2, alpha, Test, alternative, tsmethod, n.grid, bb.gamma,
                      ref.pvalue, margin, margin.scale)
-  f.bssr <- function(t) {
-    b <- null_boundary(t, r, alternative, margin, margin.scale)
-    bssr_reject(setup, rr.list, b$p1, b$p2)
+  # Weights of the certified maximization, which do not depend on the boundary. The
+  # fixed-sample design is certified as a design without an interim stage
+  w.bssr <- w.trad <- NULL
+  if (maximize == 'certified') {
+    w.bssr <- tie_weights(setup, rr.list)
+    w.trad <- tie_weights(fixed_setup(N1, N2), list(rr.fixed))
   }
-  f.trad <- function(t) {
-    b <- null_boundary(t, r, alternative, margin, margin.scale)
-    vapply(seq_along(t), function(i) {
-      power_from_rr(rr.fixed, dbinom(0:N1, N1, b$p1[i]), dbinom(0:N2, N2, b$p2[i]))
-    }, numeric(1))
-  }
-  tie.bssr <- f.bssr(theta)
-  tie.trad <- f.trad(theta)
-  # Largest rate on the grid, refined between the grid points or certified over the
-  # interval. The fixed-sample design is certified as a design without an interim stage
-  locate <- function(f, y, setup, rr.list) {
-    m <- if (maximize == 'refined') {
-      refine_max(f, theta, y)
-    } else {
-      list(x = theta[which.max(y)], y = max(y))
+  per.side <- lapply(sides, function(s) {
+    # Interval over which the largest rate is certified, and the grid on the boundary
+    interval <- null_range(theta, r, s$alternative, s$margin, margin.scale)
+    th <- theta[null_boundary(theta, r, s$alternative, s$margin, margin.scale)$ok]
+    f.bssr <- function(t) {
+      b <- null_boundary(t, r, s$alternative, s$margin, margin.scale)
+      bssr_reject(setup, rr.list, b$p1, b$p2)
     }
-    m$bound <- NA_real_
-    if (maximize == 'certified') {
-      cm <- tie_certify(tie_weights(setup, rr.list), interval, r, alternative, margin,
-                        margin.scale = margin.scale)
-      if (cm$y > m$y) {
-        m$x <- cm$x
-        m$y <- cm$y
+    f.trad <- function(t) {
+      b <- null_boundary(t, r, s$alternative, s$margin, margin.scale)
+      vapply(seq_along(t), function(i) {
+        power_from_rr(rr.fixed, dbinom(0:N1, N1, b$p1[i]), dbinom(0:N2, N2, b$p2[i]))
+      }, numeric(1))
+    }
+    tie.bssr <- f.bssr(th)
+    tie.trad <- f.trad(th)
+    # Largest rate on the grid, refined between the grid points or certified over the
+    # interval
+    locate <- function(f, y, w) {
+      m <- if (maximize == 'refined') {
+        refine_max(f, th, y)
+      } else {
+        list(x = th[which.max(y)], y = max(y))
       }
-      m$bound <- max(cm$bound, m$y)
+      m$bound <- NA_real_
+      if (maximize == 'certified') {
+        cm <- tie_certify(w, interval, r, s$alternative, s$margin,
+                          margin.scale = margin.scale)
+        if (cm$y > m$y) {
+          m$x <- cm$x
+          m$y <- cm$y
+        }
+        m$bound <- max(cm$bound, m$y)
+      }
+      m
     }
+    b <- null_boundary(th, r, s$alternative, s$margin, margin.scale)
+    list(df = data.frame(theta = th, p1 = b$p1, p2 = b$p2, TIE.BSSR = tie.bssr,
+                         TIE.TRAD = tie.trad),
+         m.bssr = locate(f.bssr, tie.bssr, w.bssr),
+         m.trad = locate(f.trad, tie.trad, w.trad),
+         interval = interval, side = s$side)
+  })
+  # The largest rate of a design is the larger of its maxima on the boundaries, and the
+  # bound the larger of their bounds. Maxima that differ by at most 1e-12 count as equal
+  # and the lower boundary is reported, so that the result for a symmetric design does
+  # not depend on rounding
+  pick <- function(d) {
+    y <- vapply(per.side, function(p) p[[d]]$y, numeric(1))
+    k <- if (length(y) == 1) 1L else which(y >= max(y) - 1e-12)[1]
+    m <- per.side[[k]][[d]]
+    m$bound <- max(vapply(per.side, function(p) p[[d]]$bound, numeric(1)))
+    m$side <- per.side[[k]]$side
     m
   }
-  m.bssr <- locate(f.bssr, tie.bssr, setup, rr.list)
-  m.trad <- locate(f.trad, tie.trad, fixed_setup(N1, N2), list(rr.fixed))
-  b <- null_boundary(theta, r, alternative, margin, margin.scale)
-  out <- data.frame(theta = theta, p1 = b$p1, p2 = b$p2, TIE.BSSR = tie.bssr,
-                    TIE.TRAD = tie.trad)
-  attr(out, 'max') <- data.frame(Design = c('BSSR', 'TRAD'),
-                                 theta = c(m.bssr$x, m.trad$x),
-                                 TIE = c(m.bssr$y, m.trad$y),
-                                 bound = c(m.bssr$bound, m.trad$bound),
-                                 stringsAsFactors = FALSE)
+  m.bssr <- pick('m.bssr')
+  m.trad <- pick('m.trad')
+  mx <- data.frame(Design = c('BSSR', 'TRAD'),
+                   theta = c(m.bssr$x, m.trad$x),
+                   TIE = c(m.bssr$y, m.trad$y),
+                   bound = c(m.bssr$bound, m.trad$bound),
+                   stringsAsFactors = FALSE)
+  if (length(per.side) == 1) {
+    out <- per.side[[1]]$df
+    interval <- per.side[[1]]$interval
+  } else {
+    # For a test of equivalence the rates on the two boundaries are stacked
+    out <- do.call(rbind, lapply(per.side, function(p) {
+      data.frame(boundary = p$side, p$df, stringsAsFactors = FALSE)
+    }))
+    rownames(out) <- NULL
+    interval <- t(vapply(per.side, function(p) p$interval, numeric(2)))
+    dimnames(interval) <- list(c('lower', 'upper'), c('from', 'to'))
+    mx$boundary <- c(m.bssr$side, m.trad$side)
+  }
+  attr(out, 'max') <- mx
   attr(out, 'Test') <- Test
   attr(out, 'alternative') <- alternative
   attr(out, 'alpha') <- alpha

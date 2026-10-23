@@ -192,3 +192,21 @@ test_that("BinaryGridBSSR plans and evaluates a design with a ratio margin", {
                          method = 'standard', margin = 0.8, margin.scale = 'RR')
   expect_equal(c(g$N1, g$N2), c(ss$N1, ss$N2))
 })
+
+test_that("type1 reports the boundaries of the largest rates of a test of equivalence", {
+  design <- data.frame(alternative = c('greater', 'equivalence'))
+  res <- BinaryGridBSSR(design, p = 0.4, N1 = 12, N2 = 12, omega = 0.5, r = 1,
+                        alpha = 0.05, tar.power = 0.8, Test = 'Farrington-Manning',
+                        Delta.A = 0, margin = 0.3, ss.method = 'standard', type1 = TRUE)
+  d <- attr(res, 'designs')
+  expect_true(all(c('boundary.BSSR', 'boundary.TRAD') %in% names(d)))
+  # The design with one boundary has NA in these columns
+  expect_true(all(is.na(c(d$boundary.BSSR[1], d$boundary.TRAD[1]))))
+  tie <- BinaryTypeIErrorBSSR(Delta.A = 0, N1 = 12, N2 = 12, omega = 0.5, r = 1,
+                              alpha = 0.05, tar.power = 0.8, Test = 'Farrington-Manning',
+                              alternative = 'equivalence', margin = 0.3,
+                              ss.method = 'standard')
+  m <- attr(tie, 'max')
+  expect_equal(c(d$TIE.BSSR[2], d$TIE.TRAD[2]), m$TIE)
+  expect_identical(c(d$boundary.BSSR[2], d$boundary.TRAD[2]), m$boundary)
+})

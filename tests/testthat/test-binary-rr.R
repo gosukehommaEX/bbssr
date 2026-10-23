@@ -390,3 +390,35 @@ test_that("BinaryRR passes the scale of the margin to the p-value computation", 
   seen <- ref_pvalue_calls(BinaryRR(8, 6, 0.05, 'Farrington-Manning', margin = 0.15))
   expect_identical(seen$margin.scale, 'RD')
 })
+
+test_that("BinaryRR rejects equivalence where both one-sided tests reject", {
+  for (tst in c('Blackwelder', 'Farrington-Manning')) {
+    eq <- BinaryRR(40, 30, 0.05, tst, alternative = 'equivalence', margin = c(0.1, 0.2))
+    lo <- BinaryRR(40, 30, 0.05, tst, alternative = 'greater', margin = 0.1)
+    up <- BinaryRR(40, 30, 0.05, tst, alternative = 'less', margin = 0.2)
+    expect_identical(as.vector(eq), as.vector(lo) & as.vector(up))
+    expect_gt(sum(eq), 0)
+    expect_equal(attr(eq, 'margin'), c(0.1, 0.2))
+  }
+  eq <- BinaryRR(50, 50, 0.05, 'Farrington-Manning', alternative = 'equivalence',
+                 margin = 1.25, margin.scale = 'RR')
+  lo <- BinaryRR(50, 50, 0.05, 'Farrington-Manning', alternative = 'greater',
+                 margin = 0.8, margin.scale = 'RR')
+  up <- BinaryRR(50, 50, 0.05, 'Farrington-Manning', alternative = 'less',
+                 margin = 1.25, margin.scale = 'RR')
+  expect_identical(as.vector(eq), as.vector(lo) & as.vector(up))
+  expect_equal(attr(eq, 'margin'), c(0.8, 1.25))
+  # Exchanging the groups and the two margins mirrors the region
+  a <- BinaryRR(40, 30, 0.05, 'Farrington-Manning', alternative = 'equivalence',
+                margin = c(0.1, 0.2))
+  b <- BinaryRR(30, 40, 0.05, 'Farrington-Manning', alternative = 'equivalence',
+                margin = c(0.2, 0.1))
+  expect_identical(as.vector(a), as.vector(t(matrix(as.vector(b), nrow = 31))))
+})
+
+test_that("BinaryRR requires a test with a margin for equivalence", {
+  expect_error(BinaryRR(30, 30, 0.05, 'Chisq', alternative = 'equivalence', margin = 0.1),
+               'requires Test')
+  expect_error(BinaryRR(30, 30, 0.05, 'Farrington-Manning', alternative = 'equivalence',
+                        margin = 0), 'in \\(0, 1\\)')
+})

@@ -4,8 +4,11 @@
 # difference and the relative risk, and both examples), Blackwelder (1982, Table 3 and the
 # examples), Friede, Mitchell and Mueller-Velten (2007, Tables 2 and 3 and Sections 5 and
 # 6), Boschloo (1970, Sections 2, 3, 4 and 6), Mehrotra, Chan and Berger (2003, Section
-# 3.1 and Tables 1 and 3), Berger and Boos (1994, Example 2) and Fay and Hunsberger (2021,
-# Section 8 and Table 1) with bbssr.
+# 3.1 and Tables 1 and 3), Berger and Boos (1994, Example 2), Fay and Hunsberger (2021,
+# Section 8 and Table 1), and for paired data Berger and Sidik (2003, Tables 3 to 5),
+# Fagerland, Lydersen and Laake (2013, Table 6), Nam (1997, Section 5 and Table 3), Tango
+# (1998, Section 6 and Table I), Connor (1987, Table 1 and p. 210) and Schepers et al.
+# (2026, Tables 1 and 5 and Section 3.4) with bbssr.
 # Run from the package root after devtools::load_all(); the levels of Figure 21.1 of
 # Kieser (2020) under the rule that stops after the pilot and the second example of
 # Farrington and Manning (1990) use internal functions of the package, and the
@@ -1262,6 +1265,197 @@ add(fh.src, paste0('FH2021 Section 8: 8 / 14 against 1 / 7: two-sided p-value, '
 add(fh.src, sprintf('FH2021 Table 1: T_B(x, 1) at x2 = %d', 0:7),
     c(0.007, 0.087, 0.642, 1.000, 0.397, 0.159, 0.016, 0.000),
     fh.p[[1]][cbind(9 - 0:7 + 1, 0:7 + 1)], 3)
+
+# Paired binary data: Berger and Sidik (2003), Fagerland et al. (2013), Nam (1997), --------
+# Tango (1998), Connor (1987) and Schepers et al. (2026)
+# a is the number of pairs in which only treatment 1 responds and b the number in which
+# only treatment 2 responds; the p-value of the outcome (a, b) is in row a + 1 and column
+# b + 1
+pp <- function(N, Test, alternative = 'greater', ...) {
+  attr(PairedRR(N, 0.05, Test, alternative, ...), 'p.value')
+}
+# Exact size of a fixed design: the largest rejection probability on p10 = p01, certified
+psize <- function(N, Test, alpha = 0.05) {
+  rr <- bbssr:::get_paired_rr(N, alpha, Test, 'greater', 100, 0, TRUE, 0)
+  bbssr:::paired_tie_certify(list(rr), N, list(rep(1, N + 1)), c(0, 1), 'greater', 0)$y
+}
+
+# Berger and Sidik (2003), Table 3 and the second illustration: x01 = 4 and x10 = 11
+# among n = 30 pairs, and x01 = 2 and x10 = 10 among n = 20, beta = 0.0005
+bs.src <- 'Berger and Sidik (2003)'
+add(bs.src, 'BS2003 Table 3: test statistic M = Z', 1.8074,
+    bbssr:::paired_score_z(30, 0)[12, 5], 4)
+add(bs.src, paste0('BS2003 Table 3: p-value, ', c('CB', 'M', 'Z', 'Z_C')),
+    c(0.0592, 0.0354, 0.0494, 0.0382),
+    c(pp(30, 'McNemar-exact')[12, 5], pp(30, 'McNemar')[12, 5],
+      pp(30, 'McNemar-uncond', ref.pvalue = TRUE)[12, 5],
+      pp(30, 'McNemar-uncond', ref.pvalue = TRUE, bb.gamma = 5e-4)[12, 5]), 4)
+add(bs.src, paste0('BS2003 Section 4, second illustration: p-value, ', c('Z', 'Z_C')),
+    c(0.01188, 0.01238),
+    c(pp(20, 'McNemar-uncond', ref.pvalue = TRUE)[11, 3],
+      pp(20, 'McNemar-uncond', ref.pvalue = TRUE, bb.gamma = 5e-4)[11, 3]), 5)
+# Table 4: exact sizes at the one-sided level 0.05
+bs.n <- c(10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 150, 200)
+bs.t4 <- list(
+  CB = c(0.0208, 0.0304, 0.0339, 0.0342, 0.0498, 0.0448, 0.0404, 0.0373, 0.0462, 0.0397,
+         0.0465, 0.0401, 0.0443, 0.0439, 0.0441),
+  M = c(0.0652, 0.0592, 0.0577, 0.0539, 0.0558, 0.0528, 0.0527, 0.0595, 0.0524, 0.0598,
+        0.0523, 0.0567, 0.0522, 0.0521, 0.0521),
+  Z = c(0.0265, 0.0369, 0.0393, 0.0382, 0.0494, 0.0499, 0.0499, 0.0495, 0.0493, 0.0492,
+        0.0492, 0.0491, 0.0495, 0.0489, 0.0488)
+)
+bs.test <- c(CB = 'McNemar-exact', M = 'McNemar', Z = 'McNemar-uncond')
+for (k in names(bs.t4)) {
+  add(bs.src, sprintf('BS2003 Table 4: exact size of %s, n = %d', k, bs.n), bs.t4[[k]],
+      vapply(bs.n, psize, numeric(1), Test = bs.test[[k]]), 4)
+}
+explain('BS2003 Table 4: exact size of CB, n = 30', 5e-4, paste(
+  'The conditional size of CB at n = 30 is largest with all 30 pairs discordant, where it',
+  'is P(Bin(30, 1/2) <= 10) = 0.0494; every other number of discordant pairs gives less,',
+  'so the printed 0.0498 is not attained by the test'))
+# The exact sizes of CB with n = 40 (0.0404) and of M with n = 80 (0.0523) are 0.0403 and
+# 0.0522 in the recomputation; they stay FAILs, since no reason has been found
+# Table 5: average power over 100 alternatives
+bs.alt <- do.call(rbind, lapply(seq(0.025, 0.475, by = 0.05), function(q) {
+  data.frame(p01 = q, p10 = seq(q + 0.05, 1 - q + 1e-9, by = 0.05))
+}))
+bs.n5 <- c(10, 25, 35, 50, 60, 80, 100, 150, 200)
+bs.t5 <- list(
+  CB = c(0.287, 0.555, 0.635, 0.700, 0.733, 0.775, 0.804, 0.849, 0.876),
+  M = c(0.439, 0.618, 0.676, 0.733, 0.757, 0.794, 0.820, 0.860, 0.884),
+  Z = c(0.316, 0.577, 0.662, 0.723, 0.751, 0.789, 0.817, 0.858, 0.880)
+)
+for (k in names(bs.t5)) {
+  avg <- vapply(bs.n5, function(n) {
+    pw <- PairedPower(bs.alt$p10, bs.alt$p01, n, 0.05, bs.test[[k]], ref.pvalue = TRUE)
+    mean(pw$Power)
+  }, numeric(1))
+  add(bs.src, sprintf('BS2003 Table 5: average power of %s, n = %d', k, bs.n5), bs.t5[[k]],
+      avg, 3)
+}
+
+# Fagerland, Lydersen and Laake (2013), Table 6: two-sided p-values for Bentur et al.
+# (N = 21, n12 = 1, n21 = 7) and Cavo et al. (N = 161, n12 = 6, n21 = 16). The two-sided
+# exact unconditional p-value of the article is twice the one-sided p-value
+fl.src <- 'Fagerland, Lydersen and Laake (2013)'
+fl.case <- list(Bentur = c(21, 1, 7), Cavo = c(161, 6, 16))
+fl.pub <- list(Bentur = c(0.0339, 0.0703, 0.0391, 0.0353),
+               Cavo = c(0.0330, 0.0525, 0.0347, 0.0342))
+for (k in names(fl.case)) {
+  N <- fl.case[[k]][1]
+  ab <- fl.case[[k]][2:3] + 1
+  rec <- c(pp(N, 'McNemar', 'two.sided')[ab[1], ab[2]],
+           pp(N, 'McNemar-exact', 'two.sided')[ab[1], ab[2]],
+           pp(N, 'McNemar-midP', 'two.sided')[ab[1], ab[2]],
+           2 * pp(N, 'McNemar-uncond', 'less', ref.pvalue = TRUE)[ab[1], ab[2]])
+  add(fl.src, paste0('FLL2013 Table 6: ', k, ', ', c('McNemar asymptotic', 'McNemar exact',
+                                                      'McNemar mid-p',
+                                                      'exact unconditional')),
+      fl.pub[[k]], rec, 4)
+}
+
+# Nam (1997): example of Section 5 (n = 344, x10 = 32, x01 = 27, delta0 = -0.05) and the
+# column n_t of Table 3, formula (9) with z = 1.645 and 0.842 truncated to an integer
+nam.src <- 'Nam (1997)'
+nam.z <- bbssr:::paired_score_z(344, 0.05)[33, 28]
+add(nam.src, 'Nam1997 Section 5: z_s = z_t', 2.795, nam.z, 3)
+add(nam.src, 'Nam1997 Section 5: one-sided p-value', 0.0026,
+    stats::pnorm(nam.z, lower.tail = FALSE), 4)
+nam.parts <- bbssr:::paired_raw_parts(0.05, 0.05, 'greater', 0.05)
+add(nam.src, 'Nam1997 Section 5: p01.bar of formula (5)', 0.0845,
+    (nam.parts$v0 + 0.05 + 0.05^2) / 2, 4)
+add(nam.src, 'Nam1997 Section 5: n_t of formula (9)', 275,
+    ceiling(bbssr:::paired_raw_n(0.05, 0.05, 0.05, 0.8, 'greater', 0.05)), 0,
+    'Exact quantiles and unrounded p01.bar, rounded up')
+explain('Nam1997 Section 5: n_t of formula (9)', 1, paste(
+  'The text value follows from p01.bar rounded to .0845 with z = 1.645 and 0.842,',
+  'which gives 274.06 and 275 when rounded up; Table 3 gives 273 for the same',
+  'configuration by truncation'))
+nam.p01 <- rep(c(0.05, 0.10), c(8, 4))
+nam.d0 <- rep(c(-0.03, -0.05, -0.05), each = 4)
+nam.p10 <- c(0.05, 0.08, 0.10, 0.12, 0.05, 0.08, 0.10, 0.12, 0.10, 0.13, 0.15, 0.17)
+nam.nt <- c(717, 234, 151, 109, 273, 138, 100, 78, 506, 228, 158, 188)
+nam.rec <- floor(mapply(function(p, q, d) {
+  bbssr:::paired_raw_n(p, q, stats::pnorm(-1.645), stats::pnorm(0.842), 'greater', -d)
+}, nam.p10, nam.p01, nam.d0))
+nam.lab <- sprintf('Nam1997 Table 3: n_t, p01 = %.2f, delta0 = %.2f, p10 = %.2f', nam.p01,
+                   nam.d0, c(nam.p10[1:8], 0.05, nam.p10[10:12]))
+add(nam.src, nam.lab, nam.nt, nam.rec, 0,
+    c(rep('', 8), 'Computed with p10 = .10; the printed .05 is a misprint', rep('', 3)),
+    rule = 'truncate')
+explain(nam.lab[12], 70, paste(
+  'Misprint: formula (9) gives 118.8, and n_t cannot exceed the printed corrected value',
+  'n_t\' = 134 of the same row'))
+
+# Tango (1998): examples of Section 6 and the column Z of Table I (b = 0, Delta = 0.1)
+tg.src <- 'Tango (1998)'
+tg.z1 <- bbssr:::paired_score_z(44, 0.1)[1, 2]
+add(tg.src, 'Tango1998 Example 1: Z', 1.709, tg.z1, 3)
+add(tg.src, 'Tango1998 Example 1: one-sided p-value', 0.044,
+    stats::pnorm(tg.z1, lower.tail = FALSE), 3)
+tg.z2 <- bbssr:::paired_score_z(32, 0)[10, 4]
+add(tg.src, 'Tango1998 Example 2: Z', 1.73, tg.z2, 2)
+add(tg.src, 'Tango1998 Example 2: two-sided p-value', 0.08,
+    2 * stats::pnorm(tg.z2, lower.tail = FALSE), 2)
+tg.n <- rep(c(30, 50, 80), each = 3)
+tg.c <- rep(0:2, 3)
+add(tg.src, sprintf('Tango1998 Table I: Z, n = %d, c = %d', tg.n, tg.c),
+    c(1.83, 1.22, 0.61, 2.36, 1.89, 1.41, 2.98, 2.61, 2.24),
+    mapply(function(n, c) bbssr:::paired_score_z(n, 0.1)[1, c + 1], tg.n, tg.c), 2)
+
+# Connor (1987): column n of Table 1, formula (3) with the quantiles 1.645 and 1.282 of the
+# article, and the example of p. 210 with exact quantiles, rounded up
+cn.src <- 'Connor (1987)'
+cn.za <- rep(c(1.645, 1.645, 1.282, 1.282), 2)
+cn.zb <- rep(c(1.282, 1.645), 4)
+cn.p10 <- rep(c(0.45, 0.55), each = 4)
+add(cn.src, sprintf(paste('Connor1987 Table 1: n, delta = %.1f, psi = %.1f,',
+                          'z_alpha = %.3f, z_beta = %.3f'),
+                    cn.p10 - 0.05, cn.p10 + 0.05, cn.za, cn.zb),
+    c(22.82, 28.15, 17.10, 21.76, 16.53, 20.20, 12.27, 15.46),
+    mapply(function(p, a, b) {
+      bbssr:::paired_raw_n(p, 0.05, stats::pnorm(-a), stats::pnorm(b), 'greater', 0)
+    }, cn.p10, cn.za, cn.zb), 2)
+add(cn.src, sprintf('Connor1987 p. 210: n, psi = %.2f', c(0.30, 0.35)), c(254, 296),
+    c(PairedSampleSize(0.2, 0.1, 0.05, 0.9, 'McNemar', method = 'standard')$N,
+      PairedSampleSize(0.225, 0.125, 0.05, 0.9, 'McNemar', method = 'standard')$N), 0)
+
+# Schepers et al. (2026): the fixed designs of Tables 1 and 5 and the re-estimation of
+# Section 3.4. The fixed design is the smallest number of pairs at which the exact
+# conditional McNemar test at the two-sided level 0.05 has power 0.8; the tables give it
+# minus the interim number of pairs
+sc.src <- 'Schepers et al. (2026)'
+sc.n <- function(psi, p10) {
+  PairedSampleSize(p10, psi - p10, 0.05, 0.8, 'McNemar-exact', 'two.sided',
+                   search = 'smallest')$N
+}
+sc.fix <- c(a = sc.n(0.2, 0.175), b = sc.n(0.175, 0.153125), c = sc.n(0.3, 0.2625),
+            d = sc.n(0.175, 0.1625), e = sc.n(0.25, 0.2), f = sc.n(0.3, 0.225))
+add(sc.src, sprintf('Schepers2026 Table 1: fixed design n2, psi = 0.2, n1 = %d',
+                    c(15, 30, 45, 60)), c(57, 42, 27, 12),
+    sc.fix[['a']] - c(15, 30, 45, 60), 0)
+add(sc.src, sprintf('Schepers2026 Table 1: fixed design n2, psi = %s, n1 = 30',
+                    c('0.175', '0.3')), c(52, 18), c(sc.fix[['b']], sc.fix[['c']]) - 30, 0)
+add(sc.src, sprintf('Schepers2026 Table 5: fixed design n2, %s',
+                    c('psi = 0.2, m1 = 38', 'psi = 0.2, m1 = 50',
+                      'Delta = 0.15, psi = 0.175, m1 = 38',
+                      'Delta = 0.15, psi = 0.25, m1 = 38',
+                      'Delta = 0.15, psi = 0.3, m1 = 38')),
+    c(34, 22, 23, 54, 74),
+    c(sc.fix[['a']] - c(38, 50), c(sc.fix[['d']], sc.fix[['e']], sc.fix[['f']]) - 38), 0)
+# Section 3.4: 25 interim pairs with 5 discordant. The second-stage size 51 follows with
+# psi = 0.2113 and p* = 0.8549, the conditional power 0.78 at 51 further pairs with
+# psi = 0.2
+sc.cp <- function(N, psi) {
+  rr <- bbssr:::get_paired_rr(N, 0.05, 'McNemar-exact', 'two.sided', 100, 0, FALSE, 0)
+  bbssr:::paired_cp(rr, 25L, 5L, psi, 0.854916)
+}
+sc.n2 <- 0L
+while (sc.cp(25 + sc.n2, 0.211318) < 0.8) sc.n2 <- sc.n2 + 1L
+add(sc.src, 'Schepers2026 Section 3.4: second-stage size ignoring the surrogate', 51,
+    sc.n2, 0, 'Conditional power (4) with psi = 0.211318 and p* = 0.854916')
+add(sc.src, 'Schepers2026 Section 3.4: conditional power with 51 further pairs', 0.78,
+    sc.cp(76, 0.2), 2, 'Conditional power (4) with psi = 0.2 and p* = 0.854916')
 
 # Verdicts and summary -------------------------------------------------------------------
 tab <- do.call(rbind, cmp)

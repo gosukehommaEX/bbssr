@@ -6,11 +6,15 @@
 #' the null value is \code{-margin} for \code{'greater'} and \code{margin} for
 #' \code{'less'}, and only the risk difference and one-sided alternatives are allowed.
 #' With a margin on the scale of the risk ratio the null value is \code{margin} for both
-#' one-sided alternatives, and only the risk ratio is allowed.
+#' one-sided alternatives, and only the risk ratio is allowed. For a test of equivalence
+#' the effect must lie strictly inside the equivalence region, \code{(-lower, upper)} on
+#' the scale of the risk difference and \code{(lower, upper)} on that of the risk ratio,
+#' and must be on the scale of the margins.
 #'
 #' @param Delta Treatment effect
 #' @param effect \code{'RD'}, \code{'RR'} or \code{'OR'}
-#' @param alternative \code{'greater'}, \code{'less'} or \code{'two.sided'}
+#' @param alternative \code{'greater'}, \code{'less'}, \code{'two.sided'} or
+#'   \code{'equivalence'}
 #' @param name Name of the argument, used in the error messages
 #' @param margin Non-inferiority margin, 0 for a test of superiority on the scale of the
 #'   risk difference
@@ -23,6 +27,25 @@
 check_delta <- function(Delta, effect, alternative, name = 'Delta.A', margin,
                         margin.scale) {
   if (length(Delta) != 1 || is.na(Delta)) stop(name, ' must be a single value')
+  if (alternative == 'equivalence') {
+    m <- norm_margin(alternative, margin, margin.scale)
+    if (margin.scale == 'RR') {
+      if (effect != 'RR') stop("margin.scale = 'RR' requires effect = 'RR'")
+      if (!(Delta > m[1] && Delta < m[2])) {
+        stop(name, ' must lie strictly between the two margins of the risk ratio')
+      }
+    } else {
+      if (effect != 'RD') {
+        stop("a test of equivalence on the scale of the risk difference requires ",
+             "effect = 'RD'")
+      }
+      if (!(Delta > -m[1] && Delta < m[2])) {
+        stop(name, ' must lie strictly between -lower and upper, the margins of ',
+             'equivalence')
+      }
+    }
+    return(invisible(NULL))
+  }
   if (margin.scale == 'RR') {
     if (length(margin) != 1 || !is.numeric(margin) || !is.finite(margin) || margin <= 0) {
       stop("margin must be a single positive value when margin.scale is 'RR'")

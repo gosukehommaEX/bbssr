@@ -8,7 +8,9 @@
 #' no interim patient responds, and the odds ratio when no interim patient or every
 #' interim patient responds. With a non-inferiority margin, a pair on the boundary of the
 #' null hypothesis admits no sample size instead, which with a margin on the scale of the
-#' risk ratio also arises when no interim patient responds. The planned sizes
+#' risk ratio also arises when no interim patient responds. With a test of equivalence,
+#' a pair outside the equivalence region or on its boundary admits no sample size. The
+#' planned sizes
 #' \code{N1.plan} and \code{N2.plan} are returned for such a pair.
 #'
 #' @param hat.p1 Recovered response probabilities of group 1. They must lie in the unit
@@ -18,7 +20,8 @@
 #' @param alpha Level of significance used for the re-estimation
 #' @param tar.power Target power
 #' @param Test Test whose exact power is used when \code{method = 'exact'}
-#' @param alternative \code{'greater'}, \code{'less'} or \code{'two.sided'}
+#' @param alternative \code{'greater'}, \code{'less'}, \code{'two.sided'} or
+#'   \code{'equivalence'}
 #' @param tsmethod \code{'minlike'}, \code{'central'} or \code{'blaker'}
 #' @param n.grid Number of grid points over the nuisance parameter
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
@@ -46,17 +49,27 @@ reestimate <- function(hat.p1, hat.p2, r, alpha, tar.power, Test, alternative, t
                        n.grid, bb.gamma, method, rounding, N1.plan, N2.plan, ref.pvalue,
                        margin, search = 'crossing', search.limit = c(2, 50),
                        margin.scale) {
-  superiority <- margin.scale == 'RD' && margin == 0
+  equivalence <- alternative == 'equivalence'
+  superiority <- !equivalence && margin.scale == 'RD' && margin == 0
   degenerate <- if (superiority) {
     hat.p1 %==% hat.p2
+  } else if (equivalence) {
+    # A test of equivalence admits a sample size only inside the equivalence region
+    m <- norm_margin(alternative, margin, margin.scale)
+    !((null_distance(hat.p1, hat.p2, 'greater', m[1], margin.scale) %>>% 0) &
+        (null_distance(hat.p1, hat.p2, 'less', m[2], margin.scale) %>>% 0))
   } else {
     null_distance(hat.p1, hat.p2, alternative, margin, margin.scale) %==% 0
   }
   if (any(degenerate) && (is.null(N1.plan) || is.null(N2.plan))) {
-    stop(if (superiority) 'the recovered response probabilities coincide' else
-           'the recovered response probabilities lie on the null boundary',
-         ', so no sample size can be re-estimated; supply the planned sample sizes N1 ',
-         'and N2')
+    stop(if (superiority) {
+      'the recovered response probabilities coincide'
+    } else if (equivalence) {
+      'the recovered response probabilities do not lie strictly inside the equivalence region'
+    } else {
+      'the recovered response probabilities lie on the null boundary'
+    }, ', so no sample size can be re-estimated; supply the planned sample sizes N1 ',
+    'and N2')
   }
   n <- length(hat.p1)
   n.raw <- rep(NA_real_, n)

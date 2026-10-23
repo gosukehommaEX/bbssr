@@ -398,3 +398,33 @@ test_that("BinaryPowerBSSR handles a margin on the scale of the risk ratio", {
                tolerance = 1e-10)
   expect_error(run(0.6, 0.8, Delta.A = 0.8), 'exceed margin')
 })
+
+test_that("BinaryPowerBSSR handles a test of equivalence", {
+  # Interim analysis of 30 per group, margins of 0.2, re-estimation by the normal
+  # approximation to the two one-sided tests of Farrington and Manning with each group
+  # rounded to the nearest whole number. Reference values from
+  # tools/reference/reference_values.py
+  run <- function(p, Delta.T) {
+    BinaryPowerBSSR(p = p, Delta.A = 0, Delta.T = Delta.T, N1 = 100, N2 = 100,
+                    n.interim = c(30, 30), r = 1, alpha = 0.05, tar.power = 0.8,
+                    Test = 'Farrington-Manning', alternative = 'equivalence',
+                    ss.method = 'standard', rounding = 'nearest', margin = 0.2)
+  }
+  res <- run(0.4, 0)
+  expect_equal(attr(res, 'margin'), c(0.2, 0.2))
+  expect_equal(c(res$power.BSSR, res$E.N), c(0.796181307260743, 198.637094409409),
+               tolerance = 1e-10)
+  # On the two boundaries the power is the type I error rate, equal by symmetry
+  lo <- run(0.4, -0.2)
+  up <- run(0.4, 0.2)
+  expect_equal(c(lo$p1, lo$p2, up$p1, up$p2), c(0.3, 0.5, 0.5, 0.3))
+  expect_equal(c(lo$power.BSSR, lo$E.N), c(0.052019816581528, 198.763887784364),
+               tolerance = 1e-10)
+  expect_equal(c(up$power.BSSR, up$E.N), c(0.052019816581528, 198.763887784364),
+               tolerance = 1e-10)
+  expect_error(BinaryPowerBSSR(p = 0.4, Delta.A = 0.2, Delta.T = 0, N1 = 100, N2 = 100,
+                               n.interim = c(30, 30), r = 1, alpha = 0.05,
+                               tar.power = 0.8, Test = 'Farrington-Manning',
+                               alternative = 'equivalence', ss.method = 'standard',
+                               margin = 0.2), 'strictly between')
+})

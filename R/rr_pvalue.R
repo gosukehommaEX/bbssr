@@ -12,17 +12,24 @@
 #' inverts the margin: the null hypothesis \code{p1 / p2 >= margin} is
 #' \code{p2 / p1 <= 1 / margin}.
 #'
+#' A test of equivalence combines the test against \code{'greater'} with the margin
+#' \code{margin[1]} and the test against \code{'less'} with the margin \code{margin[2]},
+#' and its p-value is the larger of their p-values, so that it rejects at the level
+#' \code{alpha} exactly when both one-sided tests do.
+#'
 #' @param N1 Sample size for group 1
 #' @param N2 Sample size for group 2
 #' @param Test Full name of the test
-#' @param alternative \code{'greater'}, \code{'less'} or \code{'two.sided'}
+#' @param alternative \code{'greater'}, \code{'less'}, \code{'two.sided'} or
+#'   \code{'equivalence'}
 #' @param tsmethod \code{'minlike'}, \code{'central'} or \code{'blaker'}
 #' @param n.grid Number of grid points over the nuisance parameter
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
 #' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter of the
 #'   unconditional tests is refined between the grid points
 #' @param margin Non-inferiority margin, 0 for a test of superiority on the scale of the
-#'   risk difference
+#'   risk difference, or the pair \code{c(lower, upper)} of margins of a test of
+#'   equivalence
 #' @param margin.scale \code{'RD'} or \code{'RR'}, the scale of the margin
 #'
 #' @return A numeric matrix of dimension \code{(N1 + 1)} by \code{(N2 + 1)}
@@ -32,6 +39,14 @@
 #' @importFrom stats pnorm
 rr_pvalue <- function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue,
                       margin, margin.scale) {
+  if (alternative == 'equivalence') {
+    # Two one-sided tests, each at the level alpha: the null hypothesis is rejected when
+    # both reject, so the p-value is the larger of the two one-sided p-values
+    return(pmax(rr_pvalue(N1, N2, Test, 'greater', tsmethod, n.grid, bb.gamma, ref.pvalue,
+                          margin[1], margin.scale),
+                rr_pvalue(N1, N2, Test, 'less', tsmethod, n.grid, bb.gamma, ref.pvalue,
+                          margin[2], margin.scale)))
+  }
   if (alternative == 'less') {
     m <- if (margin.scale == 'RR') 1 / margin else margin
     return(t(rr_pvalue(N2, N1, Test, 'greater', tsmethod, n.grid, bb.gamma, ref.pvalue,

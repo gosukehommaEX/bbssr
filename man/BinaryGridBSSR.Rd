@@ -27,9 +27,9 @@ effect \code{Delta.A} of each design. It can also be given as a column of
 \item{type1}{Logical. If \code{TRUE}, the largest type I error rate of each design and
 of the corresponding fixed-sample design is added, as computed by
 \code{\link{BinaryTypeIErrorBSSR}} with its default grid of \code{theta} and the
-certified maximum. It is taken over the common response probability, or over
-the boundary of the null hypothesis for a design with a non-inferiority margin.
-Default is \code{FALSE}}
+certified maximum. It is taken over the common response probability, over the
+boundary of the null hypothesis for a design with a non-inferiority margin, or over
+both boundaries for a test of equivalence. Default is \code{FALSE}}
 
 \item{verbose}{Logical. If \code{TRUE}, a message is issued as each design is
 evaluated. Default is \code{FALSE}}
@@ -59,8 +59,11 @@ The attribute \code{designs} has one row per design with its index, the columns 
 \code{design} other than the sample sizes and \code{Delta.T}, the initial and interim
 sample sizes and the true effect and, with \code{type1 = TRUE}, the largest type I
 error rates \code{TIE.BSSR} and \code{TIE.TRAD} and the values \code{theta.BSSR} and
-\code{theta.TRAD} at which they occur. Warnings and errors raised while a design is
-evaluated are prefixed with the index of the design.
+\code{theta.TRAD} at which they occur. When a design tests equivalence, the columns
+\code{boundary.BSSR} and \code{boundary.TRAD} give the boundary, \code{'lower'} or
+\code{'upper'}, of each largest rate, and are \code{NA} for the other designs.
+Warnings and errors raised while a design is evaluated are prefixed with the index of
+the design.
 }
 \description{
 Evaluates a set of designs with blinded sample size re-estimation (BSSR) for a binary

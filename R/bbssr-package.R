@@ -5,7 +5,9 @@
 #' re-estimation relies on. Seven tests are supported, each available with a one-sided or a
 #' two-sided alternative. Two of them also test non-inferiority with a margin on the scale
 #' of the risk difference or the risk ratio, and the exact unconditional tests can be
-#' combined with the Berger-Boos procedure.
+#' combined with the Berger-Boos procedure. The same calculations are available for
+#' matched-pairs designs, such as cross-over trials, with five tests based on the
+#' discordant pairs.
 #'
 #' @section Main functions:
 #' \describe{
@@ -23,6 +25,21 @@
 #'   \item{\code{\link{BinaryGridBSSR}}}{Power and final sample size of several BSSR
 #'     designs over common scenarios, as one data frame}
 #'   \item{\code{\link{BinaryBSSR}}}{Sample size re-estimation from observed interim data}
+#' }
+#'
+#' @section Paired binary data:
+#' \describe{
+#'   \item{\code{\link{PairedRR}}}{Rejection region of a test for matched pairs}
+#'   \item{\code{\link{PairedPower}}}{Exact power at a given number of pairs}
+#'   \item{\code{\link{PairedSampleSize}}}{Number of pairs attaining a target power}
+#'   \item{\code{\link{PairedPowerBSSR}}}{Power and final number of pairs of a
+#'     re-estimation design}
+#'   \item{\code{\link{PairedBSSR}}}{Re-estimation from the interim number of discordant
+#'     pairs}
+#'   \item{\code{\link{PairedTypeIErrorBSSR}}}{Type I error rate of a re-estimation design
+#'     over the probability of a discordant pair}
+#'   \item{\code{\link{PairedAlphaAdjBSSR}}}{Adjusted significance level of a
+#'     re-estimation design}
 #' }
 #'
 #' @section Reuse of computed p-values:
@@ -44,7 +61,7 @@
 # Column names used inside aes() are looked up in the plotted data frame rather than in
 # the enclosing environment, so they are declared here to keep the check quiet
 globalVariables(c('x1', 'x2', 'Reject', 'Power', 'p1', 'N2', 'Design', 'p', 'theta',
-                  'TIE', 's', 's2', 'value', 'TIE.s', 'grp'))
+                  'TIE', 's', 's2', 'value', 'TIE.s', 'grp', 'Boundary', 'a', 'b', 'psi'))
 
 # Session store of p-value matrices used by get_pvalue(). The limit is a number of cells
 # of the outcome grid, each stored as an 8-byte double

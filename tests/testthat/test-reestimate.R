@@ -76,3 +76,17 @@ test_that("reestimate keeps the planned size for pairs on a ratio boundary", {
                           100L, 0, 'standard', 'nearest', NULL, NULL, FALSE, 0.8,
                           margin.scale = 'RR'), 'null boundary')
 })
+
+test_that("reestimate keeps the planned size outside the equivalence region", {
+  re <- reestimate(c(0.4, 0.2, 0.5), c(0.4, 0.5, 0.5), 1, 0.05, 0.8, 'Farrington-Manning',
+                   'equivalence', 'minlike', 100, 0, 'standard', 'group', 60, 60, FALSE,
+                   c(0.2, 0.2), margin.scale = 'RD')
+  # p1 - p2 = -0.3 lies outside (-0.2, 0.2)
+  expect_equal(c(re$N1.re[2], re$N2.re[2]), c(60, 60))
+  expect_equal(re$N2.re[1],
+               ceil_tol(ss_raw_n2_equiv(0.4, 0.4, 1, 0.05, 0.8, 'standard', 0.2, 'RD')))
+  expect_error(reestimate(0.2, 0.5, 1, 0.05, 0.8, 'Farrington-Manning', 'equivalence',
+                          'minlike', 100, 0, 'standard', 'group', NULL, NULL, FALSE,
+                          c(0.2, 0.2), margin.scale = 'RD'),
+               'outside the equivalence region')
+})

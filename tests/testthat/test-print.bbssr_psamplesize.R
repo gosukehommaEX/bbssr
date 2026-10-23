@@ -1,0 +1,10 @@
+test_that("print.bbssr_psamplesize reports the number of pairs", {
+  ss <- PairedSampleSize(0.2, 0.1, 0.05, 0.9, 'McNemar', method = 'standard')
+  out <- utils::capture.output(ret <- print(ss))
+  expect_identical(ret, ss)
+  expect_true(any(grepl('Required number of pairs: N = 254', out, fixed = TRUE)))
+  expect_true(any(grepl('normal approximation', out, fixed = TRUE)))
+  ss <- PairedSampleSize(0.3, 0.1, 0.025, 0.8, 'McNemar-exact', search = 'stable')
+  out <- utils::capture.output(print(ss))
+  expect_true(any(grepl('stable up to N =', out, fixed = TRUE)))
+})

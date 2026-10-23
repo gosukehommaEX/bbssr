@@ -167,3 +167,22 @@ test_that("BinaryAlphaAdjBSSR evaluates the boundary of a ratio margin", {
   expect_true(all(res$max.TIE.adj <= 0.025))
   expect_identical(attr(res, 'margin.scale'), 'RR')
 })
+
+test_that("BinaryAlphaAdjBSSR controls both boundaries of a test of equivalence", {
+  # Interim analysis of 20 per group, margins of 0.3, planned 50 per group. Reference
+  # values from tools/reference/reference_values.py, with every decision certified over
+  # theta in [0.15, 0.85] on both boundaries
+  adj <- BinaryAlphaAdjBSSR(Delta.A = 0, N1 = 50, N2 = 50, n.interim = c(20, 20), r = 1,
+                            alpha = 0.05, tar.power = 0.8, Test = 'Farrington-Manning',
+                            alternative = 'equivalence', ss.method = 'standard',
+                            rounding = 'nearest', margin = 0.3,
+                            theta = seq(0.15, 0.85, by = 0.01))
+  expect_equal(adj$max.TIE, c(0.0563647286203274, 0.0594279333777739), tolerance = 1e-9)
+  expect_equal(adj$alpha.adj, c(0.0452148, 0.0443692), tolerance = 1e-12)
+  expect_equal(adj$max.TIE.adj, c(0.0498570776532867, 0.0489734565120886),
+               tolerance = 1e-7)
+  expect_identical(adj$boundary.adj, c('lower', 'lower'))
+  expect_true(all(adj$theta.adj >= 0.15 & adj$theta.adj <= 0.85))
+  expect_true(all(adj$max.TIE.adj.bound <= 0.05))
+  expect_true(is.matrix(attr(adj, 'interval')))
+})

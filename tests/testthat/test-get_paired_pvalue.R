@@ -1,0 +1,26 @@
+test_that("get_paired_pvalue stores the p-values and returns them again", {
+  clear_rr_cache()
+  p1 <- get_paired_pvalue(11L, 'McNemar-exact', 'greater', 100L, 0, FALSE, 0)
+  expect_equal(.bbssr_cache$cells, 12 * 12)
+  keys <- ls(.bbssr_cache$pv)
+  expect_true(any(startsWith(keys, 'paired|11|McNemar-exact|greater')))
+  p2 <- get_paired_pvalue(11L, 'McNemar-exact', 'greater', 100L, 0, FALSE, 0)
+  expect_identical(p1, p2)
+  expect_equal(.bbssr_cache$cells, 12 * 12)
+  expect_identical(p1, paired_pvalue(11L, 'McNemar-exact', 'greater', 100L, 0, FALSE, 0))
+  # The margins of a test of equivalence enter the key
+  get_paired_pvalue(11L, 'Paired-Score', 'equivalence', 100L, 0, FALSE, c(0.1, 0.2))
+  get_paired_pvalue(11L, 'Paired-Score', 'equivalence', 100L, 0, FALSE, c(0.2, 0.1))
+  expect_equal(sum(grepl('equivalence', ls(.bbssr_cache$pv))), 2)
+  clear_rr_cache()
+})
+
+test_that("get_paired_pvalue bypasses the store when it is switched off", {
+  clear_rr_cache()
+  old <- options(bbssr.cache = FALSE)
+  on.exit(options(old))
+  pv <- get_paired_pvalue(7L, 'McNemar', 'greater', 100L, 0, FALSE, 0)
+  expect_equal(.bbssr_cache$cells, 0)
+  expect_length(ls(.bbssr_cache$pv), 0)
+  expect_identical(pv, paired_pvalue(7L, 'McNemar', 'greater', 100L, 0, FALSE, 0))
+})

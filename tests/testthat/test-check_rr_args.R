@@ -133,3 +133,14 @@ test_that("every exported function with search offers the three searches", {
   # BinaryAlphaAdjBSSR and BinaryCondRejectBSSR
   expect_equal(checked, 6)
 })
+
+test_that("check_rr_args returns the two margins of a test of equivalence", {
+  a <- check_rr_args(20, 20, 0.05, 'Farrington-Manning', 100, 0, FALSE, 'equivalence',
+                     0.1, 'RD')
+  expect_equal(a$margin, c(0.1, 0.1))
+  a <- check_rr_args(20, 20, 0.05, 'Black', 100, 0, FALSE, 'equivalence', 1.25, 'RR')
+  expect_equal(a$margin, c(0.8, 1.25))
+  expect_identical(a$Test, 'Blackwelder')
+  expect_error(check_rr_args(20, 20, 0.05, 'Fisher', 100, 0, FALSE, 'equivalence', 0.1,
+                             'RD'), 'requires Test')
+})

@@ -2,7 +2,8 @@
 #'
 #' Draws the type I error rate of a design with blinded sample size re-estimation and of
 #' the corresponding fixed-sample design against the common response probability, with a
-#' reference line at the nominal level.
+#' reference line at the nominal level. For a test of equivalence the two boundaries of
+#' the null hypothesis are drawn in separate panels.
 #'
 #' @param x An object of class \code{bbssr_tie}
 #' @param main Title. \code{NULL} keeps the default and \code{NA} removes it
@@ -30,7 +31,7 @@
 #'
 #' @export
 #' @importFrom ggplot2 ggplot aes geom_line geom_hline scale_colour_manual
-#' @importFrom ggplot2 coord_cartesian labs theme_bw theme element_text
+#' @importFrom ggplot2 coord_cartesian labs theme_bw theme element_text facet_wrap
 plot.bbssr_tie <- function(x, main = NULL, sub = NULL, xlab = NULL, ylab = NULL,
                            ylim = NULL, ref.line = NULL, legend.title = NULL,
                            legend.labels = NULL, colours = NULL, base_size = 11, ...) {
@@ -44,8 +45,15 @@ plot.bbssr_tie <- function(x, main = NULL, sub = NULL, xlab = NULL, ylab = NULL,
     TIE = c(x$TIE.BSSR, x$TIE.TRAD),
     Design = factor(rep(design.levels, each = nrow(x)), levels = design.levels)
   )
+  # A test of equivalence has a panel for each boundary of the null hypothesis
+  facets <- 'boundary' %in% names(x)
+  if (facets) {
+    df$Boundary <- factor(rep(paste(x$boundary, 'boundary'), 2),
+                          levels = c('lower boundary', 'upper boundary'))
+  }
   out <- ggplot(df, aes(x = theta, y = TIE, colour = Design)) +
     geom_line(linewidth = 0.8)
+  if (facets) out <- out + facet_wrap(~ Boundary)
   if (!is.null(line.y)) {
     out <- out + geom_hline(yintercept = line.y, linetype = 'dashed', colour = 'grey40')
   }
@@ -57,7 +65,7 @@ plot.bbssr_tie <- function(x, main = NULL, sub = NULL, xlab = NULL, ylab = NULL,
       title = resolve_label(main, sprintf('Type I error rate, %s test', attr(x, 'Test'))),
       subtitle = resolve_label(sub, sprintf('Dashed line at the nominal level of %s',
                                             format(alpha))),
-      x = resolve_label(xlab, if (isTRUE(attr(x, 'margin') != 0)) {
+      x = resolve_label(xlab, if (isTRUE(any(attr(x, 'margin') != 0))) {
         'Pooled response probability on the null boundary'
       } else {
         'Common response probability'

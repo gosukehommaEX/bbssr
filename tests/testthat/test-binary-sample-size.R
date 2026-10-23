@@ -258,3 +258,20 @@ test_that("BinarySampleSize checks the direction of the effect against a ratio m
                                    method = 'alternative.variance', margin = 0.8,
                                    margin.scale = 'RR'))
 })
+
+test_that("BinarySampleSize finds the exact sample size of a test of equivalence", {
+  # Reference values from tools/reference/reference_values.py
+  ss <- BinarySampleSize(0.5, 0.5, 1, 0.05, 0.8, 'Farrington-Manning',
+                         alternative = 'equivalence', margin = 0.15)
+  bw <- BinarySampleSize(0.3, 0.32, 1, 0.05, 0.8, 'Blackwelder',
+                         alternative = 'equivalence', margin = c(0.15, 0.2))
+  expect_equal(c(ss$N2, bw$N2), c(184, 158))
+  expect_equal(attr(ss, 'margin'), c(0.15, 0.15))
+  # The normal approximation rounds the size of ss_raw_n2_equiv up
+  st <- BinarySampleSize(0.5, 0.5, 1, 0.05, 0.8, 'Farrington-Manning',
+                         alternative = 'equivalence', margin = 0.15, method = 'standard')
+  expect_equal(st$N2, 188)
+  expect_error(BinarySampleSize(0.5, 0.3, 1, 0.05, 0.8, 'Farrington-Manning',
+                                alternative = 'equivalence', margin = 0.15),
+               'inside the margins')
+})

@@ -9,9 +9,9 @@
 #' upper bound \code{bound} of the largest rate is available, so is the bound. The nominal
 #' level \code{alpha} is assessed and, with \code{certify}, certified first. If it fails,
 #' the interval from 0 to \code{alpha} is bisected until its width is at most
-#' \code{tol * alpha}, with each level assessed by \code{assess}. The value of the
-#' response probability at which the last failing level exceeded \code{alpha} is passed
-#' to \code{assess} as a probe. With \code{certify}, the level found is then certified.
+#' \code{tol * alpha}, with each level assessed by \code{assess}. The point of the null
+#' hypothesis at which the last failing level exceeded \code{alpha} is passed to
+#' \code{assess} as a probe. With \code{certify}, the level found is then certified.
 #' If the certified maximum or its upper bound exceeds \code{alpha}, the assessment has
 #' missed a value of the response probability at which the level fails, or the maximum
 #' lies within the tolerance of the bound below \code{alpha}, and the bisection is
@@ -20,9 +20,9 @@
 #'
 #' @param make Function of the level returning a design, which is passed to
 #'   \code{assess} and \code{certify}
-#' @param assess Function of a design and a probe (a value of the response probability,
-#'   or \code{NULL}) returning a list with the location \code{x}, the largest rate
-#'   \code{y} and \code{bound = NA}
+#' @param assess Function of a design and a probe (a point of the null hypothesis, as
+#'   returned in \code{x}, or \code{NULL}) returning a list with the location \code{x}
+#'   of the largest rate, the largest rate \code{y} and \code{bound = NA}
 #' @param certify \code{NULL}, or a function of a design and the result of \code{assess}
 #'   returning that result with the certified maximum and its upper bound \code{bound}
 #' @param alpha Target level

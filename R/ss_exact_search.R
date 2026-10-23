@@ -83,7 +83,7 @@ ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsme
     (qnorm(alpha.eff) * sqrt(p * (1 - p)) +
        qnorm(1 - tar.power) * sqrt((p1 * (1 - p1) / r + p2 * (1 - p2)) / (1 + 1 / r))) ^ 2
   )
-  if (margin.scale == 'RR' || margin != 0) {
+  if (alternative == 'equivalence' || margin.scale == 'RR' || margin != 0) {
     init.N2 <- ss_raw_n2(p1, p2, r, alpha, tar.power, alternative, 'standard', margin,
                          margin.scale)
   }

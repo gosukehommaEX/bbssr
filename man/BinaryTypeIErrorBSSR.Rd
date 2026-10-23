@@ -14,7 +14,7 @@ BinaryTypeIErrorBSSR(
   tar.power,
   Test,
   restricted = FALSE,
-  alternative = c("greater", "less", "two.sided"),
+  alternative = c("greater", "less", "two.sided", "equivalence"),
   tsmethod = c("minlike", "central", "blaker"),
   n.grid = 100,
   bb.gamma = 0,
@@ -63,7 +63,9 @@ by \code{alternative}}
 to fall below the initial sample size. Default is \code{FALSE}}
 
 \item{alternative}{Direction of the alternative hypothesis. Options: \code{'greater'}
-(default), \code{'less'} or \code{'two.sided'}}
+(default), \code{'less'}, \code{'two.sided'}, or \code{'equivalence'} for the
+alternative that the effect lies between the margins of a test of equivalence, see
+\code{margin}}
 
 \item{tsmethod}{Convention used to construct the two-sided version of the conditional
 tests, see \code{\link{BinaryRR}}. Options: \code{'minlike'} (default),
@@ -136,10 +138,20 @@ is \code{p1 / p2 <= R0} against \code{p1 / p2 > R0} when \code{alternative} is
 \code{'greater'}, and \code{p1 / p2 >= R0} against \code{p1 / p2 < R0} when it is
 \code{'less'}. A margin other than 0, and any margin on the scale of the risk ratio,
 requires \code{Test = 'Blackwelder'} or \code{'Farrington-Manning'} and a one-sided
-alternative, see \code{\link{BinaryRR}}. With a margin other than 0 on the scale of
-the risk difference the assumed and the true effects are risk differences
-(\code{effect = 'RD'}), and with a margin on the scale of the risk ratio they are
-risk ratios (\code{effect = 'RR'})}
+alternative or \code{'equivalence'}, see \code{\link{BinaryRR}}. With a margin other
+than 0 on the scale of the risk difference the assumed and the true effects are risk
+differences (\code{effect = 'RD'}), and with a margin on the scale of the risk ratio
+they are risk ratios (\code{effect = 'RR'}).
+For \code{alternative = 'equivalence'} the margin is the pair \code{c(lower, upper)}
+of margins of a test of equivalence, or a single value used for both. On the scale
+of the risk difference both margins lie in (0, 1), and the null hypothesis
+\code{p1 - p2 <= -lower} or \code{p1 - p2 >= upper} is tested against
+\code{-lower < p1 - p2 < upper}. On the scale of the risk ratio the pair satisfies
+\code{0 < lower < 1 < upper}, a single ratio \code{R} gives the pair of \code{R} and
+\code{1 / R}, the smaller as \code{lower}, and the null hypothesis is
+\code{p1 / p2 <= lower} or \code{p1 / p2 >= upper}. The
+null hypothesis is rejected when both one-sided tests reject, each at the level
+\code{alpha}}
 
 \item{ref.pvalue}{Logical. If \code{TRUE}, the maximization over the nuisance parameter
 of the unconditional tests is refined between the grid points, see
@@ -169,6 +181,17 @@ null boundary, \code{theta} at which it occurs and, with
 over the interval given by the attribute \code{interval} (otherwise \code{NA}).
 The attribute \code{reestimation} holds the final sample size for every pooled number
 of interim responders.
+
+For \code{alternative = 'equivalence'} the null hypothesis has two boundaries, the
+lower one \code{p1 - p2 = -lower} (\code{p1 = lower p2} on the scale of the risk
+ratio) and the upper one \code{p1 - p2 = upper} (\code{p1 = upper p2}). The data
+frame then has a first column \code{boundary}, \code{'lower'} or \code{'upper'},
+and a row for each element of \code{theta} on each boundary. The rejection
+probability is that of the two one-sided tests together. The largest rate of each
+design in the attribute \code{max} is the larger of its maxima on the two boundaries,
+its bound the larger of the two bounds, and the column \code{boundary} of the
+attribute gives the boundary on which it occurs. The attribute \code{interval} is
+then a matrix with a row for each boundary.
 }
 \description{
 Evaluates the type I error rate of a two-arm trial with a binary endpoint and blinded

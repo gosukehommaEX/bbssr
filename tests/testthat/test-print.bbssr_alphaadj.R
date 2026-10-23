@@ -22,3 +22,16 @@ test_that("print.bbssr_alphaadj rounds the adjusted levels down", {
   expect_false(any(grepl('0.0204376', out, fixed = TRUE)))
   expect_true(any(grepl('0.02077', out, fixed = TRUE)))
 })
+
+test_that("print.bbssr_alphaadj shows the boundary of a test of equivalence", {
+  res <- BinaryAlphaAdjBSSR(Delta.A = 0.3, N1 = 12, N2 = 12, omega = 0.5, r = 1,
+                            alpha = 0.025, tar.power = 0.8, Test = 'Chisq',
+                            ss.method = 'standard', theta = seq(0.1, 0.9, by = 0.1),
+                            tol = 1e-4)
+  out <- utils::capture.output(print(res))
+  expect_false(any(grepl('Boundary', out, fixed = TRUE)))
+  res$boundary.adj <- c('lower', 'upper')
+  out <- utils::capture.output(print(res))
+  expect_true(any(grepl('Boundary', out, fixed = TRUE)))
+  expect_true(any(grepl('upper', out, fixed = TRUE)))
+})

@@ -14,7 +14,9 @@
 #' @param alternative Direction of the alternative hypothesis. Options: \code{'greater'}
 #'   (default) for the one-sided alternative that the response probability of group 1
 #'   exceeds that of group 2, \code{'less'} for the one-sided alternative that it falls
-#'   below that of group 2, or \code{'two.sided'}
+#'   below that of group 2, \code{'two.sided'}, or \code{'equivalence'} for the
+#'   alternative that the effect lies between the margins of a test of equivalence, see
+#'   \code{margin}
 #' @param tsmethod Convention used to construct the two-sided version of the conditional
 #'   tests, see Details. Options: \code{'minlike'} (default), \code{'central'} or
 #'   \code{'blaker'}. The Boschloo test orders the outcomes by the two-sided Fisher
@@ -40,7 +42,17 @@
 #'   \code{'greater'}, and \code{p1 / p2 >= R0} against \code{p1 / p2 < R0} when it is
 #'   \code{'less'}. A margin other than 0, and any margin on the scale of the risk ratio,
 #'   requires \code{Test = 'Blackwelder'} or \code{'Farrington-Manning'} and a one-sided
-#'   alternative, see \code{\link{BinaryRR}}
+#'   alternative or \code{'equivalence'}, see \code{\link{BinaryRR}}.
+#'   For \code{alternative = 'equivalence'} the margin is the pair \code{c(lower, upper)}
+#'   of margins of a test of equivalence, or a single value used for both. On the scale
+#'   of the risk difference both margins lie in (0, 1), and the null hypothesis
+#'   \code{p1 - p2 <= -lower} or \code{p1 - p2 >= upper} is tested against
+#'   \code{-lower < p1 - p2 < upper}. On the scale of the risk ratio the pair satisfies
+#'   \code{0 < lower < 1 < upper}, a single ratio \code{R} gives the pair of \code{R} and
+#'   \code{1 / R}, the smaller as \code{lower}, and the null hypothesis is
+#'   \code{p1 / p2 <= lower} or \code{p1 / p2 >= upper}. The
+#'   null hypothesis is rejected when both one-sided tests reject, each at the level
+#'   \code{alpha}
 #' @param margin.scale Scale of \code{margin}. Options: \code{'RD'} (default) for the
 #'   risk difference \code{p1 - p2} or \code{'RR'} for the risk ratio \code{p1 / p2}
 #' @param ref.pvalue Logical. If \code{TRUE}, the maximization over the nuisance parameter
@@ -135,6 +147,16 @@
 #' the statistic. A margin on the scale of the risk ratio is also available only with
 #' these two tests and a one-sided alternative.
 #'
+#' With \code{alternative = 'equivalence'} the null hypothesis \code{p1 - p2 <= -lower}
+#' or \code{p1 - p2 >= upper} (\code{p1 / p2 <= lower} or \code{p1 / p2 >= upper} on the
+#' scale of the risk ratio) is tested by two one-sided tests of the same kind, the test
+#' against \code{'greater'} with the margin \code{lower} and the test against
+#' \code{'less'} with the margin \code{upper}, each at the level \code{alpha}. The null
+#' hypothesis is rejected when both reject, so the rejection region is the intersection
+#' of the two one-sided regions and the p-value of an outcome is the larger of its two
+#' one-sided p-values. Tests of equivalence are available with the tests of Blackwelder
+#' and of Farrington and Manning.
+#'
 #' The p-values are kept for the rest of the session and reused by later calls with the
 #' same sample sizes and test, see \code{\link{bbssr-package}}.
 #'
@@ -187,13 +209,18 @@
 #' RR <- BinaryRR(N1 = 60, N2 = 60, alpha = 0.025, Test = 'Farrington-Manning',
 #'                margin = 0.8, margin.scale = 'RR')
 #' print(RR)
+#'
+#' # Equivalence with the margins -0.15 and 0.15 of the risk difference
+#' RR <- BinaryRR(N1 = 100, N2 = 100, alpha = 0.05, Test = 'Farrington-Manning',
+#'                alternative = 'equivalence', margin = c(0.15, 0.15))
+#' print(RR)
 #' }
 #'
 #' @author Gosuke Homma (\email{my.name.is.gosuke@@gmail.com})
 #' @export
 #' @import fpCompare
 BinaryRR <- function(N1, N2, alpha, Test,
-                     alternative = c('greater', 'less', 'two.sided'),
+                     alternative = c('greater', 'less', 'two.sided', 'equivalence'),
                      tsmethod = c('minlike', 'central', 'blaker'),
                      n.grid = 100, bb.gamma = 0, margin = 0, ref.pvalue = FALSE,
                      margin.scale = c('RD', 'RR')) {

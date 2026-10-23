@@ -58,3 +58,14 @@ test_that("check_delta accepts a ratio margin with the risk ratio and one-sided 
                  'positive value', info = paste(m, collapse = ' '))
   }
 })
+
+test_that("check_delta validates the effect of a test of equivalence", {
+  expect_null(check_delta(0, 'RD', 'equivalence', 'Delta.A', 0.2, 'RD'))
+  expect_null(check_delta(0.1, 'RD', 'equivalence', 'Delta.A', c(0.2, 0.15), 'RD'))
+  expect_error(check_delta(0.2, 'RD', 'equivalence', 'Delta.A', 0.2, 'RD'),
+               'strictly between')
+  expect_error(check_delta(0, 'RR', 'equivalence', 'Delta.A', 0.2, 'RD'), "effect = 'RD'")
+  expect_null(check_delta(1, 'RR', 'equivalence', 'Delta.A', 1.25, 'RR'))
+  expect_error(check_delta(1.3, 'RR', 'equivalence', 'Delta.A', 1.25, 'RR'),
+               'strictly between')
+})

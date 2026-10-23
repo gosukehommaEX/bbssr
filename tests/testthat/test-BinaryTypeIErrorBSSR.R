@@ -229,3 +229,44 @@ test_that("the certified maximum on a ratio boundary agrees with a dense grid", 
   expect_true(all(md$TIE <= mc$bound + 1e-15))
   expect_true(all(mc$bound - mc$TIE <= 1e-12 + 1e-15))
 })
+
+test_that("BinaryTypeIErrorBSSR evaluates both boundaries of a test of equivalence", {
+  # Design of the test of equivalence of test-binary-power-bssr.R. Reference values from
+  # tools/reference/reference_values.py, for theta = 0.3, 0.5 and 0.7 in turn, each with
+  # the BSSR and the fixed design on the lower and then on the upper boundary
+  tie <- BinaryTypeIErrorBSSR(
+    Delta.A = 0, N1 = 100, N2 = 100, n.interim = c(30, 30), r = 1, alpha = 0.05,
+    tar.power = 0.8, Test = 'Farrington-Manning', alternative = 'equivalence',
+    ss.method = 'standard', rounding = 'nearest', margin = 0.2,
+    theta = c(0.3, 0.5, 0.7), maximize = 'grid')
+  expect_identical(names(tie)[1], 'boundary')
+  expect_identical(tie$boundary, rep(c('lower', 'upper'), each = 3))
+  expect_equal(tie$p1 - tie$p2, rep(c(-0.2, 0.2), each = 3))
+  v <- as.vector(rbind(tie$TIE.BSSR[1:3], tie$TIE.TRAD[1:3], tie$TIE.BSSR[4:6],
+                       tie$TIE.TRAD[4:6]))
+  expect_equal(v, c(0.0521544641157349, 0.0509851976691597, 0.0521544641157349,
+                    0.0509851976691597, 0.0535470253159915, 0.0491641046395729,
+                    0.0535470253159914, 0.0491641046395729, 0.052154464115735,
+                    0.0509851976691598, 0.052154464115735, 0.0509851976691598),
+               tolerance = 1e-10)
+  expect_identical(attr(tie, 'max')$boundary, c('lower', 'lower'))
+})
+
+test_that("the largest type I error rate of a test of equivalence is certified", {
+  # The same design over the default grid. The certified maxima over theta in [0.1, 0.9]
+  # on both boundaries come from tools/reference/reference_values.py
+  tie <- BinaryTypeIErrorBSSR(
+    Delta.A = 0, N1 = 100, N2 = 100, n.interim = c(30, 30), r = 1, alpha = 0.05,
+    tar.power = 0.8, Test = 'Farrington-Manning', alternative = 'equivalence',
+    ss.method = 'standard', rounding = 'nearest', margin = 0.2)
+  m <- attr(tie, 'max')
+  expect_equal(m$TIE, c(0.0555228050024925, 0.0531252853841842), tolerance = 1e-10)
+  expect_true(all(m$bound >= m$TIE & m$bound - m$TIE <= 1e-12 + 1e-15))
+  # The design is symmetric, so the maxima on the two boundaries are equal and the lower
+  # boundary is reported
+  expect_identical(m$boundary, c('lower', 'lower'))
+  iv <- attr(tie, 'interval')
+  expect_equal(unname(iv), rbind(c(0.1, 0.9), c(0.1, 0.9)))
+  expect_identical(rownames(iv), c('lower', 'upper'))
+  expect_match(maximize_label(tie), 'on the lower boundary')
+})

@@ -120,6 +120,81 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// paired_tail_max
+NumericVector paired_tail_max(NumericMatrix dbinomD, IntegerVector D, NumericVector w, IntegerVector idx_last, IntegerVector g_lo, IntegerVector g_hi, NumericVector theta, bool refine);
+RcppExport SEXP _bbssr_paired_tail_max(SEXP dbinomDSEXP, SEXP DSEXP, SEXP wSEXP, SEXP idx_lastSEXP, SEXP g_loSEXP, SEXP g_hiSEXP, SEXP thetaSEXP, SEXP refineSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type dbinomD(dbinomDSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type D(DSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type w(wSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type idx_last(idx_lastSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type g_lo(g_loSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type g_hi(g_hiSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< bool >::type refine(refineSEXP);
+    rcpp_result_gen = Rcpp::wrap(paired_tail_max(dbinomD, D, w, idx_last, g_lo, g_hi, theta, refine));
+    return rcpp_result_gen;
+END_RCPP
+}
+// paired_power
+NumericVector paired_power(LogicalMatrix R, NumericVector p10, NumericVector p01);
+RcppExport SEXP _bbssr_paired_power(SEXP RSEXP, SEXP p10SEXP, SEXP p01SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< LogicalMatrix >::type R(RSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type p10(p10SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type p01(p01SEXP);
+    rcpp_result_gen = Rcpp::wrap(paired_power(R, p10, p01));
+    return rcpp_result_gen;
+END_RCPP
+}
+// paired_bssr_power
+NumericVector paired_bssr_power(List rr_list, IntegerVector rr_id, int n1, NumericVector p10, NumericVector p01);
+RcppExport SEXP _bbssr_paired_bssr_power(SEXP rr_listSEXP, SEXP rr_idSEXP, SEXP n1SEXP, SEXP p10SEXP, SEXP p01SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type rr_list(rr_listSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type rr_id(rr_idSEXP);
+    Rcpp::traits::input_parameter< int >::type n1(n1SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type p10(p10SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type p01(p01SEXP);
+    rcpp_result_gen = Rcpp::wrap(paired_bssr_power(rr_list, rr_id, n1, p10, p01));
+    return rcpp_result_gen;
+END_RCPP
+}
+// paired_cp
+NumericVector paired_cp(LogicalMatrix R, int n1, IntegerVector D1, NumericVector psi, NumericVector pi_dir);
+RcppExport SEXP _bbssr_paired_cp(SEXP RSEXP, SEXP n1SEXP, SEXP D1SEXP, SEXP psiSEXP, SEXP pi_dirSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< LogicalMatrix >::type R(RSEXP);
+    Rcpp::traits::input_parameter< int >::type n1(n1SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type D1(D1SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type psi(psiSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type pi_dir(pi_dirSEXP);
+    rcpp_result_gen = Rcpp::wrap(paired_cp(R, n1, D1, psi, pi_dir));
+    return rcpp_result_gen;
+END_RCPP
+}
+// paired_bern_coef
+NumericVector paired_bern_coef(LogicalMatrix R, NumericVector W, int type, double m);
+RcppExport SEXP _bbssr_paired_bern_coef(SEXP RSEXP, SEXP WSEXP, SEXP typeSEXP, SEXP mSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< LogicalMatrix >::type R(RSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type W(WSEXP);
+    Rcpp::traits::input_parameter< int >::type type(typeSEXP);
+    Rcpp::traits::input_parameter< double >::type m(mSEXP);
+    rcpp_result_gen = Rcpp::wrap(paired_bern_coef(R, W, type, m));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_bbssr_max_tail_prob", (DL_FUNC) &_bbssr_max_tail_prob, 7},
@@ -129,6 +204,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_bbssr_bssr_cond_reject", (DL_FUNC) &_bbssr_bssr_cond_reject, 6},
     {"_bbssr_bssr_power", (DL_FUNC) &_bbssr_bssr_power, 10},
     {"_bbssr_max_tail_prob_refined", (DL_FUNC) &_bbssr_max_tail_prob_refined, 8},
+    {"_bbssr_paired_tail_max", (DL_FUNC) &_bbssr_paired_tail_max, 8},
+    {"_bbssr_paired_power", (DL_FUNC) &_bbssr_paired_power, 3},
+    {"_bbssr_paired_bssr_power", (DL_FUNC) &_bbssr_paired_bssr_power, 5},
+    {"_bbssr_paired_cp", (DL_FUNC) &_bbssr_paired_cp, 5},
+    {"_bbssr_paired_bern_coef", (DL_FUNC) &_bbssr_paired_bern_coef, 4},
     {NULL, NULL, 0}
 };
 

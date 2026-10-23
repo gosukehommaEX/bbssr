@@ -1,7 +1,7 @@
 Package: bbssr
 Type: Package
 Title: Blinded Sample Size Re-Estimation for Binary Endpoints
-Version: 2.1.0
+Version: 3.0.0
 Authors@R: person("Gosuke", "Homma", email = "my.name.is.gosuke@gmail.com", 
                   role = c("aut", "cre"))
 Description: Tools for blinded sample size re-estimation (BSSR) in two-arm clinical 

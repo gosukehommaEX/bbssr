@@ -61,7 +61,9 @@ by \code{alternative}}
 to fall below the initial sample size. Default is \code{FALSE}}
 
 \item{alternative}{Direction of the alternative hypothesis. Options: \code{'greater'}
-(default), \code{'less'} or \code{'two.sided'}}
+(default), \code{'less'}, \code{'two.sided'}, or \code{'equivalence'} for the
+alternative that the effect lies between the margins of a test of equivalence, see
+\code{margin}}
 
 \item{tsmethod}{Convention used to construct the two-sided version of the conditional
 tests, see \code{\link{BinaryRR}}. Options: \code{'minlike'} (default),

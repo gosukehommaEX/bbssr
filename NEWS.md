@@ -1,6 +1,49 @@
-# bbssr 2.1.0
+# bbssr 3.0.0
+
+Version 2.1.0 was not released, and its changes are included in this version.
 
 ## New features
+
+* Paired binary data. `PairedRR()`, `PairedPower()`, `PairedSampleSize()`,
+  `PairedPowerBSSR()`, `PairedBSSR()`, `PairedTypeIErrorBSSR()` and
+  `PairedAlphaAdjBSSR()` provide the fixed-design and re-estimation calculations for a
+  matched-pairs design, such as a cross-over trial, with the probabilities `p10` and
+  `p01` of the two kinds of discordant pairs. Five tests are available: the asymptotic
+  McNemar test (`'McNemar'`), the exact conditional McNemar test (`'McNemar-exact'`), its
+  mid-p version (`'McNemar-midP'`), the exact unconditional test of Suissa and Shuster
+  (`'McNemar-uncond'`), with the Berger-Boos procedure and the refinement of
+  `ref.pvalue`, and the score test of Nam and Tango (`'Paired-Score'`), which also tests
+  non-inferiority with a margin and equivalence. The normal approximation to the number
+  of pairs is formula (9) of Nam (1997), formula (3) of Connor (1987) for a margin of 0,
+  and the exact search follows `BinarySampleSize()`. The re-estimation uses the blinded
+  number of discordant pairs at the interim analysis, with the assumed difference kept,
+  and re-estimates the number of pairs by the normal approximation, by the exact search,
+  or by the conditional power rule of Schepers et al. (2026), which takes the smallest
+  number of pairs at which the conditional power given the interim number of discordant
+  pairs reaches the target, up to `N.max`. Power and type I error rate are computed
+  exactly, and the largest type I error rate over the probability of a discordant pair
+  on the null boundary is certified as for two groups. The p-values of the examples of
+  Berger and Sidik (2003), Fagerland et al. (2013), Nam (1997) and Tango (1998), the
+  sample sizes of Connor (1987, Table 1) and Nam (1997, Table 3), and the exact sizes
+  and average powers of Berger and Sidik (2003, Tables 4 and 5) are reproduced in the
+  tests. A new vignette, `vignette('bbssr-paired')`, describes the functions.
+
+* Tests of equivalence. `alternative = 'equivalence'` in `BinaryRR()`, `BinaryPower()`,
+  `BinarySampleSize()`, `BinaryPowerBSSR()`, `BinaryBSSR()`, `BinaryTypeIErrorBSSR()` and
+  `BinaryAlphaAdjBSSR()` tests the null hypothesis `p1 - p2 <= -lower` or
+  `p1 - p2 >= upper` against `-lower < p1 - p2 < upper` by two one-sided tests of
+  Blackwelder or of Farrington and Manning, each at the level `alpha`. The margins are
+  given as `margin = c(lower, upper)`, or as a single value for both. With
+  `margin.scale = 'RR'` they are ratios with `0 < lower < 1 < upper`, and a single ratio
+  `R` gives the pair of `R` and `1 / R`, the smaller as the lower margin. The rejection
+  region is the intersection of the two one-sided regions, and the p-value of an outcome
+  is the larger of its two one-sided p-values. The normal approximation to the sample
+  size finds the size at which the sum of the approximate powers of the two one-sided
+  tests, minus 1, reaches the target power, and the exact search starts from it. The type I error rate of a re-estimation
+  design is evaluated on both boundaries of the null hypothesis, its largest value is
+  certified on each, and the adjusted level controls both. `BinaryTypeIErrorBSSR()` then
+  stacks the two boundaries with the column `boundary`, and `BinaryAlphaAdjBSSR()`
+  reports the boundary of the largest rate in the column `boundary.adj`.
 
 * `BinaryTypeIErrorBSSR()` evaluates the type I error rate of a re-estimation design and
   of the corresponding fixed-sample design over a grid of the common response

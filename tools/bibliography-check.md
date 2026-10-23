@@ -18,6 +18,15 @@ Boos (1994), Boschloo (1970) and Fay and Hunsberger (2021), which were checked o
 | Fay and Hunsberger (2021) | Statistics Surveys 15, 72-110, doi:10.1214/21-SS131 | PDF p. 72: Statistics Surveys, Vol. 15 (2021) 72-110, ISSN 1935-7516, https://doi.org/10.1214/21-SS131 | Crossref: volume 15, no issue, no pages, print 2021, same DOI. The DOI resolves at doi.org to the article at projecteuclid.org | Agrees |
 | Berger and Boos (1994) | Journal of the American Statistical Association 89, 1012-1016, doi:10.1080/01621459.1994.10476836 | PDF p. 1012: Journal of the American Statistical Association, September 1994, Vol. 89, No. 427, Theory and Methods; the article ends on p. 1016. The cover page of the publisher gives 89:427, 1012-1016 and the same DOI | Crossref not checked (HTTP 429, twice on 2026-10-06). The DOI resolves at doi.org to the article at tandfonline.com | Agrees |
 | Boschloo (1970) | Statistica Neerlandica 24(1), 1-9, doi:10.1111/j.1467-9574.1970.tb00104.x | PDF p. 1: Statistica Neerlandica 24 (1970) nr. 1; the references end on p. 9 | Crossref: volume 24, issue 1, pages 1-9, print March 1970, DOI 10.1111/j.1467-9574.1970.tb00104.x | Agrees |
+| Glimm, Yau and Woehling (2021) | Statistics in Biopharmaceutical Research 13, 156-169 (vignette `bbssr-non-inferiority`) | PDF p. 156: Statistics in Biopharmaceutical Research, 2021, Vol. 13, No. 2, 156-169, DOI 10.1080/19466315.2020.1845232 | Crossref (2026-10-22): volume 13, issue 2, pages 156-169, print 2021-04-03, online 2020-12-23, same title and authors | Agrees |
+| Berger and Sidik (2003) | Statistical Methods in Medical Research 12(2), 91-108 (help pages of the paired functions, vignette `bbssr-paired`) | PDF: Statistical Methods in Medical Research 2003; 12: 91-108, DOI 10.1191/0962280203sm312ra (the issue is not printed) | Crossref (2026-10-22): volume 12, issue 2, pages 91-108, print 2003-04, same title and authors | Agrees. The issue was first written as 1 and corrected to 2 after the check |
+| Connor (1987) | Biometrics 43(1), 207-211 | PDF p. 207: Biometrics 43, 207-211, March 1987; JSTOR cover Vol. 43, No. 1, pp. 207-211 | Crossref (2026-10-22): volume 43, issue 1, first page 207, print 1987-03, DOI 10.2307/2531961 | Agrees |
+| Fagerland, Lydersen and Laake (2013) | BMC Medical Research Methodology 13, 91 | PDF: BMC Medical Research Methodology 2013, 13:91, doi:10.1186/1471-2288-13-91 | Crossref (2026-10-22): volume 13, issue 1, article number 91, online 2013-07-13, same authors | Agrees |
+| Nam (1997) | Biometrics 53(4), 1422-1430 | PDF p. 1422: Biometrics 53, 1422-1430, December 1997; JSTOR cover Vol. 53, No. 4 | Crossref (2026-10-22): volume 53, issue 4, first page 1422, print 1997-12, DOI 10.2307/2533508 | Agrees |
+| Suissa and Shuster (1991) | Biometrics 47(2), 361-372 | PDF p. 361: Biometrics 47, 361-372, June 1991; JSTOR cover Vol. 47, No. 2 | Crossref (2026-10-22): volume 47, issue 2, first page 361, print 1991-06, DOI 10.2307/2532131 | Agrees |
+| Tango (1998) | Statistics in Medicine 17(8), 891-908 | PDF p. 891: Statistics in Medicine 17, 891-908 (1998); the issue is not printed on the article pages | Crossref (2026-10-22): volume 17, issue 8, pages 891-908, print 1998-04-30 | Agrees |
+| Xu and Yu (2013) | Biometrical Journal 55(3), 430-443 (help page of `PairedPowerBSSR()`) | PDF p. 430: Biometrical Journal 55 (2013) 3, 430-443, DOI 10.1002/bimj.201100231, authors Jin Xu and Menggang Yu | Crossref (2026-10-22): volume 55, issue 3, pages 430-443, print 2013-05, same authors | Agrees. The initials of the authors were first written wrongly and corrected to J and M after the check |
+| Schepers, Brannath, Hoffmann, Stingl and Schmidtmann (2026) | arXiv:2608.17784 (help pages of the paired re-estimation functions, vignette `bbssr-paired`) | PDF p. 1: arXiv:2608.17784v1 [stat.ME] 18 Aug 2026; a preprint without journal data | arXiv abstract page (2026-10-22): same title and authors, 2608.17784v1 submitted 2026-08-18 | Agrees. A preprint; to be replaced by the published version when it appears |
 
 Berger and Boos (1994) has been cited in DESCRIPTION, README.md and the vignette
 `bbssr-statistical-methods` since version 2.0.0, and Boschloo (1970) in README.md and the
@@ -81,3 +90,11 @@ were compared with the originals.
   terms and illustrated with the one-sided conditional p-value of equation (9.1), and
   Table 2 lists the mid-p adjustment as applying to any method. The package applies this
   definition to the orderings of the minlike and blaker conventions.
+
+Glimm, Yau and Woehling (2021) is cited from version 3.0.0 in the vignette
+`bbssr-non-inferiority` for two statements, compared with the original on 2026-10-22: for
+normally distributed outcomes blinded re-estimation can inflate the type I error rate of
+a test of equivalence more than that of a test of superiority (abstract, p. 156, and
+Section 6, p. 165), and the reason is that on a boundary away from no difference the
+expectation of the blinded variance estimate depends on the true difference (Section 2,
+p. 157, and Appendix B, pp. 167-168).

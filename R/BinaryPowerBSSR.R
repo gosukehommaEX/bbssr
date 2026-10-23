@@ -27,7 +27,9 @@
 #' @param restricted Logical. If \code{TRUE}, the re-estimated sample size is not allowed
 #'   to fall below the initial sample size. Default is \code{FALSE}
 #' @param alternative Direction of the alternative hypothesis. Options: \code{'greater'}
-#'   (default), \code{'less'} or \code{'two.sided'}
+#'   (default), \code{'less'}, \code{'two.sided'}, or \code{'equivalence'} for the
+#'   alternative that the effect lies between the margins of a test of equivalence, see
+#'   \code{margin}
 #' @param tsmethod Convention used to construct the two-sided version of the conditional
 #'   tests, see \code{\link{BinaryRR}}. Options: \code{'minlike'} (default),
 #'   \code{'central'} or \code{'blaker'}
@@ -72,10 +74,20 @@
 #'   \code{'greater'}, and \code{p1 / p2 >= R0} against \code{p1 / p2 < R0} when it is
 #'   \code{'less'}. A margin other than 0, and any margin on the scale of the risk ratio,
 #'   requires \code{Test = 'Blackwelder'} or \code{'Farrington-Manning'} and a one-sided
-#'   alternative, see \code{\link{BinaryRR}}. With a margin other than 0 on the scale of
-#'   the risk difference the assumed and the true effects are risk differences
-#'   (\code{effect = 'RD'}), and with a margin on the scale of the risk ratio they are
-#'   risk ratios (\code{effect = 'RR'})
+#'   alternative or \code{'equivalence'}, see \code{\link{BinaryRR}}. With a margin other
+#'   than 0 on the scale of the risk difference the assumed and the true effects are risk
+#'   differences (\code{effect = 'RD'}), and with a margin on the scale of the risk ratio
+#'   they are risk ratios (\code{effect = 'RR'}).
+#'   For \code{alternative = 'equivalence'} the margin is the pair \code{c(lower, upper)}
+#'   of margins of a test of equivalence, or a single value used for both. On the scale
+#'   of the risk difference both margins lie in (0, 1), and the null hypothesis
+#'   \code{p1 - p2 <= -lower} or \code{p1 - p2 >= upper} is tested against
+#'   \code{-lower < p1 - p2 < upper}. On the scale of the risk ratio the pair satisfies
+#'   \code{0 < lower < 1 < upper}, a single ratio \code{R} gives the pair of \code{R} and
+#'   \code{1 / R}, the smaller as \code{lower}, and the null hypothesis is
+#'   \code{p1 / p2 <= lower} or \code{p1 / p2 >= upper}. The
+#'   null hypothesis is rejected when both one-sided tests reject, each at the level
+#'   \code{alpha}
 #' @param margin.scale Scale of \code{margin}. Options: \code{'RD'} (default) for the
 #'   risk difference \code{p1 - p2} or \code{'RR'} for the risk ratio \code{p1 / p2}
 #' @param ref.pvalue Logical. If \code{TRUE}, the maximization over the nuisance parameter
@@ -222,7 +234,7 @@
 #' @importFrom stats dbinom
 BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
                             alpha, tar.power, Test, restricted = FALSE,
-                            alternative = c('greater', 'less', 'two.sided'),
+                            alternative = c('greater', 'less', 'two.sided', 'equivalence'),
                             tsmethod = c('minlike', 'central', 'blaker'),
                             n.grid = 100, bb.gamma = 0,
                             effect = c('RD', 'RR', 'OR'),
@@ -241,6 +253,7 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
   rounding <- match.arg(rounding)
   search <- match.arg(search)
   margin.scale <- match.arg(margin.scale)
+  margin <- norm_margin(alternative, margin, margin.scale)
   if (rounding == 'group' && N1 != ceiling(r * N2)) {
     warning('N1 differs from ceiling(r * N2), the fixed-sample comparator is not ',
             'allocated in the ratio r to 1')

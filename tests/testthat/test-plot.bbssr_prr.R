@@ -1,0 +1,10 @@
+test_that("plot.bbssr_prr returns a ggplot object of the possible outcomes", {
+  RR <- PairedRR(N = 10, alpha = 0.05, Test = 'McNemar-exact')
+  p <- plot(RR)
+  expect_s3_class(p, 'ggplot')
+  expect_no_error(ggplot2::ggplot_build(p))
+  expect_equal(nrow(p$data), 66)
+  expect_equal(sum(p$data$Reject == 'reject'), sum(RR))
+  p2 <- plot(RR, main = NA, legend.labels = c('keep', 'reject'), colours = c('white', 'red'))
+  expect_no_error(ggplot2::ggplot_build(p2))
+})

@@ -36,7 +36,7 @@ get_pvalue <- function(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma,
   }
   num <- function(x) sprintf('%.17g', as.double(x))
   key <- paste(num(N1), num(N2), Test, alternative, tsmethod, num(n.grid), num(bb.gamma),
-               ref.pvalue, num(margin), margin.scale, sep = '|')
+               ref.pvalue, paste(num(margin), collapse = ','), margin.scale, sep = '|')
   hit <- .bbssr_cache$pv[[key]]
   if (!is.null(hit)) return(hit)
   pv <- rr_pvalue(N1, N2, Test, alternative, tsmethod, n.grid, bb.gamma, ref.pvalue,

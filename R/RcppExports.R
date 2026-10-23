@@ -29,3 +29,23 @@ max_tail_prob_refined <- function(dbinom1, dbinom2, x1, x2, idx_last, g_lo, g_hi
     .Call(`_bbssr_max_tail_prob_refined`, dbinom1, dbinom2, x1, x2, idx_last, g_lo, g_hi, theta)
 }
 
+paired_tail_max <- function(dbinomD, D, w, idx_last, g_lo, g_hi, theta, refine) {
+    .Call(`_bbssr_paired_tail_max`, dbinomD, D, w, idx_last, g_lo, g_hi, theta, refine)
+}
+
+paired_power <- function(R, p10, p01) {
+    .Call(`_bbssr_paired_power`, R, p10, p01)
+}
+
+paired_bssr_power <- function(rr_list, rr_id, n1, p10, p01) {
+    .Call(`_bbssr_paired_bssr_power`, rr_list, rr_id, n1, p10, p01)
+}
+
+paired_cp <- function(R, n1, D1, psi, pi_dir) {
+    .Call(`_bbssr_paired_cp`, R, n1, D1, psi, pi_dir)
+}
+
+paired_bern_coef <- function(R, W, type, m) {
+    .Call(`_bbssr_paired_bern_coef`, R, W, type, m)
+}
+

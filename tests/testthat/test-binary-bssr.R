@@ -195,3 +195,14 @@ test_that("BinaryBSSR re-estimates under a margin on the scale of the risk ratio
   expect_error(run(0), 'null boundary')
   expect_equal(run(0, N1 = 100, N2 = 100)$N.final, 200)
 })
+
+test_that("BinaryBSSR re-estimates the sample size of a test of equivalence", {
+  # 24 responders among 60 interim patients give hat.p = 0.4, and the normal
+  # approximation to the two one-sided tests needs 100.72 per group, rounded to 101
+  res <- BinaryBSSR(n1 = 30, n2 = 30, S = 24, Delta.A = 0, r = 1, alpha = 0.05,
+                    tar.power = 0.8, Test = 'Farrington-Manning',
+                    alternative = 'equivalence', ss.method = 'standard',
+                    rounding = 'nearest', margin = 0.2, N1 = 100, N2 = 100)
+  expect_equal(c(res$N1.final, res$N2.final), c(101, 101))
+  expect_equal(attr(res, 'margin'), c(0.2, 0.2))
+})

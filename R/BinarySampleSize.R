@@ -2,8 +2,9 @@
 #'
 #' Calculates the required sample size for two-arm trials with binary endpoints. Seven
 #' tests are supported (see \code{\link{BinaryRR}}), each of which can be applied with a
-#' one-sided or a two-sided alternative. The sample size can be obtained from the exact
-#' power of the selected test or from the normal approximation.
+#' one-sided or a two-sided alternative. The Blackwelder and Farrington-Manning tests also
+#' allow a non-inferiority margin and a test of equivalence. The sample size can be
+#' obtained from the exact power of the selected test or from the normal approximation.
 #'
 #' @param p1 True probability of responders for group 1
 #' @param p2 True probability of responders for group 2
@@ -18,7 +19,9 @@
 #'   (default), which requires \code{p1 - p2 > -margin}, \code{'less'}, which requires
 #'   \code{p1 - p2 < margin}, or \code{'two.sided'}, which requires \code{p1 != p2}. With
 #'   \code{margin.scale = 'RR'}, \code{'greater'} requires \code{p1 > margin p2} and
-#'   \code{'less'} requires \code{p1 < margin p2}
+#'   \code{'less'} requires \code{p1 < margin p2}. \code{'equivalence'} requires
+#'   \code{-lower < p1 - p2 < upper}, or \code{lower < p1 / p2 < upper} on the scale of
+#'   the risk ratio
 #' @param tsmethod Convention used to construct the two-sided version of the conditional
 #'   tests, see \code{\link{BinaryRR}}. Options: \code{'minlike'} (default),
 #'   \code{'central'} or \code{'blaker'}
@@ -65,7 +68,17 @@
 #'   \code{'greater'}, and \code{p1 / p2 >= R0} against \code{p1 / p2 < R0} when it is
 #'   \code{'less'}. A margin other than 0, and any margin on the scale of the risk ratio,
 #'   requires \code{Test = 'Blackwelder'} or \code{'Farrington-Manning'} and a one-sided
-#'   alternative, see \code{\link{BinaryRR}}
+#'   alternative or \code{'equivalence'}, see \code{\link{BinaryRR}}.
+#'   For \code{alternative = 'equivalence'} the margin is the pair \code{c(lower, upper)}
+#'   of margins of a test of equivalence, or a single value used for both. On the scale
+#'   of the risk difference both margins lie in (0, 1), and the null hypothesis
+#'   \code{p1 - p2 <= -lower} or \code{p1 - p2 >= upper} is tested against
+#'   \code{-lower < p1 - p2 < upper}. On the scale of the risk ratio the pair satisfies
+#'   \code{0 < lower < 1 < upper}, a single ratio \code{R} gives the pair of \code{R} and
+#'   \code{1 / R}, the smaller as \code{lower}, and the null hypothesis is
+#'   \code{p1 / p2 <= lower} or \code{p1 / p2 >= upper}. The
+#'   null hypothesis is rejected when both one-sided tests reject, each at the level
+#'   \code{alpha}
 #' @param margin.scale Scale of \code{margin}. Options: \code{'RD'} (default) for the
 #'   risk difference \code{p1 - p2} or \code{'RR'} for the risk ratio \code{p1 / p2}
 #' @param ref.pvalue Logical. If \code{TRUE}, the maximization over the nuisance parameter
@@ -103,8 +116,9 @@
 #' }
 #'
 #' The normal approximation of the first step uses \code{alpha} for a one-sided
-#' alternative and \code{alpha / 2} for a two-sided alternative. Only the starting value of
-#' the search is affected, so the returned sample size is exact in either case.
+#' alternative, \code{alpha / 2} for a two-sided alternative, and \code{alpha} for each
+#' of the two one-sided tests of equivalence. Only the starting value of the search is
+#' affected, so the returned sample size is exact in every case.
 #'
 #' The search stops where the exact power crosses the target: the returned size of
 #' group 2 attains the target power and the size one unit smaller does not, unless the
@@ -145,6 +159,13 @@
 #' term. The method \code{'standard'} then gives formula (8) of Farrington and Manning
 #' (1990), \code{'alternative.variance'} gives the formula of their Method 1, and the
 #' exact search starts from formula (8).
+#'
+#' For \code{alternative = 'equivalence'} the approximate power of each one-sided test is
+#' obtained as above for its own margin, at the level \code{alpha}, and the sample size
+#' of the normal approximation is the smallest unrounded size of group 2 at which the sum
+#' of the two approximate powers minus 1 attains the target power. The sum minus 1 is a
+#' lower bound of the approximate probability that both tests reject. The exact search
+#' starts from this size.
 #'
 #' @references
 #' Friede T, Kieser M (2004). Sample size recalculation for binary data in internal pilot
@@ -196,7 +217,7 @@
 #' @import fpCompare
 #' @importFrom stats dbinom
 BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
-                             alternative = c('greater', 'less', 'two.sided'),
+                             alternative = c('greater', 'less', 'two.sided', 'equivalence'),
                              tsmethod = c('minlike', 'central', 'blaker'),
                              n.grid = 100, bb.gamma = 0,
                              method = c('exact', 'standard', 'null.variance',
@@ -223,26 +244,35 @@ BinarySampleSize <- function(p1, p2, r, alpha, tar.power, Test,
   Test <- a$Test
   ref.pvalue <- a$ref.pvalue
   margin <- a$margin
-  if (margin == 0 && p1 %==% p2) stop('p1 and p2 must differ for a sample size to exist')
+  equivalence <- alternative == 'equivalence'
+  if (!equivalence && margin == 0 && p1 %==% p2) {
+    stop('p1 and p2 must differ for a sample size to exist')
+  }
   if (p1 < 0 || p1 > 1 || p2 < 0 || p2 > 1) stop('p1 and p2 must lie in [0, 1]')
-  if (margin == 0 && alternative == 'greater' && p1 < p2) {
-    stop("p1 must exceed p2 when alternative is 'greater'")
-  }
-  if (margin == 0 && alternative == 'less' && p1 > p2) {
-    stop("p1 must fall below p2 when alternative is 'less'")
-  }
   rd <- margin.scale == 'RD'
-  if (rd && margin != 0 && alternative == 'greater' && !((p1 - p2 + margin) %>>% 0)) {
-    stop("p1 - p2 must exceed -margin when alternative is 'greater'")
-  }
-  if (rd && margin != 0 && alternative == 'less' && !((p2 - p1 + margin) %>>% 0)) {
-    stop("p1 - p2 must fall below margin when alternative is 'less'")
-  }
-  if (!rd && alternative == 'greater' && !((p1 - margin * p2) %>>% 0)) {
-    stop("p1 must exceed margin * p2 when alternative is 'greater'")
-  }
-  if (!rd && alternative == 'less' && !((margin * p2 - p1) %>>% 0)) {
-    stop("p1 must fall below margin * p2 when alternative is 'less'")
+  if (equivalence) {
+    inside <- (null_distance(p1, p2, 'greater', margin[1], margin.scale) %>>% 0) &&
+      (null_distance(p1, p2, 'less', margin[2], margin.scale) %>>% 0)
+    if (!inside) stop('p1 and p2 must lie strictly inside the margins of equivalence')
+  } else {
+    if (margin == 0 && alternative == 'greater' && p1 < p2) {
+      stop("p1 must exceed p2 when alternative is 'greater'")
+    }
+    if (margin == 0 && alternative == 'less' && p1 > p2) {
+      stop("p1 must fall below p2 when alternative is 'less'")
+    }
+    if (rd && margin != 0 && alternative == 'greater' && !((p1 - p2 + margin) %>>% 0)) {
+      stop("p1 - p2 must exceed -margin when alternative is 'greater'")
+    }
+    if (rd && margin != 0 && alternative == 'less' && !((p2 - p1 + margin) %>>% 0)) {
+      stop("p1 - p2 must fall below margin when alternative is 'less'")
+    }
+    if (!rd && alternative == 'greater' && !((p1 - margin * p2) %>>% 0)) {
+      stop("p1 must exceed margin * p2 when alternative is 'greater'")
+    }
+    if (!rd && alternative == 'less' && !((margin * p2 - p1) %>>% 0)) {
+      stop("p1 must fall below margin * p2 when alternative is 'less'")
+    }
   }
   if (method == 'exact' && rounding != 'group') {
     stop("rounding must be 'group' when method is 'exact'")

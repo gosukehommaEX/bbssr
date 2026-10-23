@@ -7,7 +7,8 @@ then check that the test files carry these values:
 
 The computations follow the definitions of the designs directly (binomial sums over the
 interim and second-stage outcomes) and share no code with the package. Each block names
-the test file whose expected values it produces.
+the test file whose expected values it produces. The blocks of the paired designs are in
+reference_paired.py.
 """
 import math
 import sys
@@ -1151,6 +1152,196 @@ def block_ni_rr():
         assert abs(bernstein_value(coef["TRAD"], t) - rr_power(0.8 * b, b, 100, 100, "FM", 0.8, "greater", 0.025)) < 1e-13
     emit(f, "ratio margin certified max", [checked_max(coef[d]) for d in ("BSSR", "TRAD")])
 
+# ---------------------------------------------------------------------------------------
+# Tests of equivalence: two one-sided tests, each at the level alpha (item E)
+@lru_cache(maxsize=None)
+def eq_pvalues(N1, N2, test, lower, upper, scale="RD"):
+    """Larger of the two one-sided p-values. On the scale of the risk difference the upper
+    test is the 'greater' test of the exchanged groups, and on the scale of the risk ratio
+    it is the lower tail of the statistic (hat.p1 - upper hat.p2) / SE, without exchange."""
+    if scale == "RD":
+        lo = ni_pvalues(N1, N2, test, lower)
+        up = ni_pvalues(N2, N1, test, upper).T
+    else:
+        lo = rr_pvalues(N1, N2, test, lower, "greater")
+        up = rr_pvalues(N1, N2, test, upper, "less")
+    return np.maximum(lo, up)
+
+
+def eq_reject(N1, N2, test, lower, upper, alpha, scale="RD"):
+    return eq_pvalues(N1, N2, test, lower, upper, scale) < alpha - TOL
+
+
+def eq_power(p1, p2, N1, N2, test, lower, upper, alpha, scale="RD"):
+    R = eq_reject(N1, N2, test, lower, upper, alpha, scale).astype(float)
+    return binom.pmf(np.arange(N1 + 1), N1, p1) @ R @ binom.pmf(np.arange(N2 + 1), N2, p2)
+
+
+def eq_parts(p1, p2, r, side, margin, method, scale="RD"):
+    """Difference d and variances v0, v1 per unit of the size of group 2 on one boundary."""
+    q1, q2 = min(1, max(0, p1)), min(1, max(0, p2))
+    if scale == "RD":
+        if side == "lower":
+            t1, t2 = large_sample_restricted(q1, q2, 1 / r, -margin)
+            d = p1 - p2 + margin
+        else:
+            t2, t1 = large_sample_restricted(q2, q1, r, -margin)
+            d = p2 - p1 + margin
+        v0 = t1 * (1 - t1) / r + t2 * (1 - t2)
+        v1 = max(p1 * (1 - p1), 0) / r + max(p2 * (1 - p2), 0)
+    else:
+        t1, t2 = large_sample_rr(q1, q2, 1 / r, margin)
+        v0 = t1 * (1 - t1) / r + margin ** 2 * t2 * (1 - t2)
+        v1 = max(p1 * (1 - p1), 0) / r + margin ** 2 * max(p2 * (1 - p2), 0)
+        d = p1 - margin * p2 if side == "lower" else margin * p2 - p1
+    if method == "null.variance":
+        v1 = v0
+    if method == "alternative.variance":
+        v0 = v1
+    return d, v0, v1
+
+
+def eq_raw_n2(p1, p2, r, alpha, tp, lower, upper, method, scale="RD"):
+    """Root in n of Phi((dL sqrt(n) - za sqrt(v0L)) / sqrt(v1L)) + Phi(same for the upper
+    boundary) - 1 - tp."""
+    za = norm.ppf(1 - alpha)
+    parts = [eq_parts(p1, p2, r, "lower", lower, method, scale),
+             eq_parts(p1, p2, r, "upper", upper, method, scale)]
+    def gap(n):
+        tot = -1.0 - tp
+        for d, v0, v1 in parts:
+            num = d * math.sqrt(n) - za * math.sqrt(v0)
+            tot += norm.cdf(num / math.sqrt(v1)) if v1 > 0 else float(num > 0)
+        return tot
+    hi = 1.0
+    while gap(hi) < 0:
+        hi *= 2
+    return brentq(gap, 0.0, hi, xtol=1e-13, rtol=4 * np.finfo(float).eps)
+
+
+def eq_exact_n2(p1, p2, r, alpha, tp, test, lower, upper, scale="RD"):
+    pa = lambda n2: eq_power(p1, p2, math.ceil(r * n2), n2, test, lower, upper, alpha, scale)
+    ge = lambda a, b: a - b > -TOL
+    lt = lambda a, b: b - a > TOL
+    n2 = max(1, math.ceil(eq_raw_n2(p1, p2, r, alpha, tp, lower, upper, "standard", scale)))
+    P = pa(n2)
+    if ge(P, tp):
+        while ge(P, tp) and n2 > 1:
+            n2 -= 1
+            P = pa(n2)
+        if lt(P, tp):
+            n2 += 1
+    else:
+        while lt(P, tp):
+            n2 += 1
+            P = pa(n2)
+    return n2
+
+
+def eq_bssr_sizes(n11, n12, r, DA, lower, upper, alpha, tp, method):
+    """Unrestricted design on the scale of the risk difference, each group rounded to the
+    nearest whole number, as ni_bssr."""
+    n = n11 + n12
+    sizes = {}
+    for s in range(n + 1):
+        ph = s / n
+        a, b = ph + DA / (1 + r), ph - r * DA / (1 + r)
+        n2 = eq_raw_n2(a, b, r, alpha, tp, lower, upper, method)
+        tot = max(n, (1 + r) * n2)
+        sizes[s] = (max(n11, math.floor(r * tot / (1 + r) + 0.5)), max(n12, math.floor(tot / (1 + r) + 0.5)))
+    return sizes
+
+
+def eq_bssr(sizes, n11, n12, test, lower, upper, alpha, p1, p2):
+    w1 = binom.pmf(np.arange(n11 + 1), n11, p1); w2 = binom.pmf(np.arange(n12 + 1), n12, p2)
+    power = 0.0
+    for x11 in range(n11 + 1):
+        for x12 in range(n12 + 1):
+            N1, N2 = sizes[x11 + x12]; m1, m2 = N1 - n11, N2 - n12
+            R = eq_reject(N1, N2, test, lower, upper, alpha)[x11:x11 + m1 + 1, x12:x12 + m2 + 1]
+            power += w1[x11] * w2[x12] * (binom.pmf(np.arange(m1 + 1), m1, p1) @ R.astype(float)
+                                           @ binom.pmf(np.arange(m2 + 1), m2, p2))
+    ps = interim_total_pmf(n11, n12, p1, p2)
+    EN = float(sum(ps[s] * (N1 + N2) for s, (N1, N2) in sizes.items()))
+    return power, EN
+
+
+def block_equiv():
+    f = "test-binary-power.R"
+    emit(f, "equivalence power", [eq_power(0.5, 0.5, 60, 60, "FM", 0.15, 0.15, 0.05),
+                                  eq_power(0.3, 0.35, 80, 70, "Blackwelder", 0.1, 0.2, 0.05),
+                                  eq_power(0.6, 0.6, 100, 100, "FM", 0.8, 1.25, 0.05, "RR")], rtol=1e-8)
+    f = "test-ss_raw_n2_equiv.R"
+    emit(f, "equivalence raw n2", [eq_raw_n2(0.5, 0.5, 1, 0.05, 0.8, 0.15, 0.15, "standard"),
+                                   eq_raw_n2(0.3, 0.35, 2, 0.025, 0.9, 0.1, 0.2, "alternative.variance"),
+                                   eq_raw_n2(0.3, 0.35, 2, 0.025, 0.9, 0.1, 0.2, "null.variance"),
+                                   eq_raw_n2(0.6, 0.6, 1, 0.05, 0.8, 0.8, 1.25, "standard", "RR")], rtol=1e-8)
+    f = "test-binary-sample-size.R"
+    emit(f, "exact equivalence N2", [eq_exact_n2(0.5, 0.5, 1, 0.05, 0.8, "FM", 0.15, 0.15),
+                                     eq_exact_n2(0.3, 0.32, 1, 0.05, 0.8, "Blackwelder", 0.15, 0.2)], rtol=0)
+    f = "test-binary-power-bssr.R"
+    sizes = eq_bssr_sizes(30, 30, 1, 0, 0.2, 0.2, 0.05, 0.8, "standard")
+    emit(f, "equivalence power and E.N", eq_bssr(sizes, 30, 30, "FM", 0.2, 0.2, 0.05, 0.4, 0.4))
+    emit(f, "equivalence lower boundary", eq_bssr(sizes, 30, 30, "FM", 0.2, 0.2, 0.05, 0.3, 0.5))
+    emit(f, "equivalence upper boundary", eq_bssr(sizes, 30, 30, "FM", 0.2, 0.2, 0.05, 0.5, 0.3))
+    f = "test-BinaryTypeIErrorBSSR.R"
+    tie = []
+    for th in (0.3, 0.5, 0.7):
+        for a, b in ((th - 0.1, th + 0.1), (th + 0.1, th - 0.1)):
+            tie.append(eq_bssr(sizes, 30, 30, "FM", 0.2, 0.2, 0.05, a, b)[0])
+            tie.append(eq_power(a, b, 100, 100, "FM", 0.2, 0.2, 0.05))
+    emit(f, "equivalence type I error", tie)
+    # Certified maxima over theta in [0.1, 0.9] on each boundary: t = (theta - 0.1) / 0.8,
+    # on the lower boundary p1 runs from 0 to 0.8 and p2 from 0.2 to 1, and on the upper
+    # boundary the other way round
+    hyp = {"BSSR": interim_hyper(sizes, 30, 30), "TRAD": interim_hyper({0: (100, 100)}, 0, 0)}
+    rej = lambda lev: (lambda N1, N2: eq_reject(N1, N2, "FM", 0.2, 0.2, lev))
+    ends = {"lower": (0.0, 0.8, 0.2, 1.0), "upper": (0.2, 1.0, 0.0, 0.8)}
+    def coefs(d, lev):
+        return {k: tie_coefficients(hyp[d], rej(lev), *ends[k]) for k in ends}
+    c = {d: coefs(d, 0.05) for d in hyp}
+    for th in (0.3, 0.6):
+        t = (th - 0.1) / 0.8
+        assert abs(bernstein_value(c["BSSR"]["lower"], t)
+                   - eq_bssr(sizes, 30, 30, "FM", 0.2, 0.2, 0.05, th - 0.1, th + 0.1)[0]) < 1e-13
+        assert abs(bernstein_value(c["TRAD"]["upper"], t) - eq_power(th + 0.1, th - 0.1, 100, 100, "FM", 0.2, 0.2, 0.05)) < 1e-13
+    mx = {d: [checked_max(c[d][k]) for k in ("lower", "upper")] for d in hyp}
+    emit(f, "equivalence certified max", [max(mx[d]) for d in ("BSSR", "TRAD")])
+    return sizes
+
+
+def block_equiv_adj():
+    # Smaller design for BinaryAlphaAdjBSSR: interim 20 + 20, margins 0.3, planned 50 + 50
+    f = "test-BinaryAlphaAdjBSSR.R"
+    sizes = eq_bssr_sizes(20, 20, 1, 0, 0.3, 0.3, 0.05, 0.8, "standard")
+    hyp = {"BSSR": interim_hyper(sizes, 20, 20), "TRAD": interim_hyper({0: (50, 50)}, 0, 0)}
+    rej = lambda lev: (lambda N1, N2: eq_reject(N1, N2, "FM", 0.3, 0.3, lev))
+    # theta in [0.15, 0.85] on each boundary: t = (theta - 0.15) / 0.7
+    ends = {"lower": (0.0, 0.7, 0.3, 1.0), "upper": (0.3, 1.0, 0.0, 0.7)}
+    def cert(d, lev):
+        r = [certified_max(tie_coefficients(hyp[d], rej(lev), *ends[k])) for k in ends]
+        return max(x[0] for x in r), max(x[1] for x in r)
+    pv = {"BSSR": [eq_pvalues(N1, N2, "FM", 0.3, 0.3) for N1, N2 in set(sizes.values())],
+          "TRAD": [eq_pvalues(50, 50, "FM", 0.3, 0.3)]}
+    res = []
+    for d in ("BSSR", "TRAD"):
+        m = cert(d, 0.05)
+        if m[1] <= 0.05:
+            res.append((0.05, m[0], m[0]))
+            continue
+        lo, hi = 0.0, 0.05
+        while hi - lo > 1e-10 * 0.05:
+            mid = (lo + hi) / 2
+            if cert(d, mid)[1] <= 0.05:
+                lo = mid
+            else:
+                hi = mid
+        res.append((reported_level(pv[d], lo), cert(d, lo)[0], m[0]))
+    emit(f, "equivalence max at nominal level", [r[2] for r in res], rtol=1e-9)
+    emit(f, "equivalence adjusted level", [r[0] for r in res], rtol=1e-12)
+    emit(f, "equivalence max at adjusted level", [r[1] for r in res], rtol=1e-7)
+
+
 if __name__ == "__main__":
     print("# test file\tkey\trelative tolerance\tvalues (15 significant digits)")
     block_split_pooled()
@@ -1165,3 +1356,8 @@ if __name__ == "__main__":
     block_certified()
     block_search()
     block_ni_rr()
+    block_equiv()
+    block_equiv_adj()
+    # Paired designs, in a module of their own
+    import reference_paired
+    reference_paired.blocks(emit, reported_level)

@@ -6,7 +6,9 @@
 #' conditional test, and returns the arguments in the form used by the computation. A
 #' margin other than 0 on the scale of the risk difference, and any margin on the scale of
 #' the risk ratio, requires the Blackwelder or the Farrington-Manning test and a one-sided
-#' alternative. A margin on the scale of the risk ratio must be positive. The refinement
+#' alternative. A margin on the scale of the risk ratio must be positive. A test of
+#' equivalence also requires one of these two tests, and its margin is validated and
+#' returned as the pair \code{c(lower, upper)} by \code{norm_margin}. The refinement
 #' flag is set
 #' to \code{FALSE} for the conditional tests, which have no nuisance parameter, so that
 #' their p-values are stored only once.
@@ -19,9 +21,10 @@
 #' @param bb.gamma Confidence level parameter of the Berger-Boos procedure
 #' @param ref.pvalue Logical. Whether the maximum over the nuisance parameter is refined
 #'   between the grid points
-#' @param alternative \code{'greater'}, \code{'less'} or \code{'two.sided'}
+#' @param alternative \code{'greater'}, \code{'less'}, \code{'two.sided'} or
+#'   \code{'equivalence'}
 #' @param margin Non-inferiority margin, 0 for a test of superiority on the scale of the
-#'   risk difference
+#'   risk difference, or the margins of a test of equivalence
 #' @param margin.scale \code{'RD'} for a margin on the scale of the risk difference or
 #'   \code{'RR'} for a margin on the scale of the risk ratio
 #'
@@ -54,7 +57,13 @@ check_rr_args <- function(N1, N2, alpha, Test, n.grid, bb.gamma, ref.pvalue, alt
   if (length(margin.scale) != 1 || !(margin.scale %in% c('RD', 'RR'))) {
     stop("margin.scale must be 'RD' or 'RR'")
   }
-  if (margin.scale == 'RR') {
+  if (alternative == 'equivalence') {
+    if (!(Test %in% c('Blackwelder', 'Farrington-Manning'))) {
+      stop("alternative = 'equivalence' requires Test = 'Blackwelder' or ",
+           "'Farrington-Manning'")
+    }
+    margin <- norm_margin(alternative, margin, margin.scale)
+  } else if (margin.scale == 'RR') {
     if (length(margin) != 1 || !is.numeric(margin) || !is.finite(margin) || margin <= 0) {
       stop("margin must be a single positive value when margin.scale is 'RR'")
     }

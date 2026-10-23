@@ -52,6 +52,7 @@ print.bbssr_alphaadj <- function(x, digits = 6, ...) {
     alpha.adj = floor_digits(x$alpha.adj),
     max.TIE.adj = signif(x$max.TIE.adj, digits)
   )
+  if (!is.null(x$boundary.adj)) tab$Boundary <- x$boundary.adj
   print(tab, row.names = FALSE)
   invisible(x)
 }

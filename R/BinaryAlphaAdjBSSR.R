@@ -45,6 +45,10 @@
 #'   \item{max.TIE.adj.bound}{Upper bound of the type I error rate at the adjusted level
 #'     with \code{maximize = 'certified'}, otherwise \code{NA}}
 #' }
+#' For \code{alternative = 'equivalence'} the largest rates are taken over both
+#' boundaries of the null hypothesis, see \code{\link{BinaryTypeIErrorBSSR}}, and the
+#' column \code{boundary.adj} gives the boundary, \code{'lower'} or \code{'upper'}, on
+#' which \code{max.TIE.adj} occurs.
 #'
 #' @details
 #' Following Kieser and Friede (2000) and Friede and Kieser (2004), the nominal level of
@@ -144,7 +148,7 @@
 #' @importFrom stats dbinom
 BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.power, Test,
                                restricted = FALSE,
-                               alternative = c('greater', 'less', 'two.sided'),
+                               alternative = c('greater', 'less', 'two.sided', 'equivalence'),
                                tsmethod = c('minlike', 'central', 'blaker'),
                                n.grid = 100, bb.gamma = 0,
                                effect = c('RD', 'RR', 'OR'),
@@ -169,6 +173,7 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   adjust <- match.arg(adjust)
   maximize <- match.arg(maximize)
   margin.scale <- match.arg(margin.scale)
+  margin <- norm_margin(alternative, margin, margin.scale)
   if (length(theta) < 1 || anyNA(theta) || any(theta < 0 | theta > 1)) {
     stop('theta must be a vector of values in [0, 1]')
   }
@@ -181,15 +186,34 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   theta <- sort(unique(theta))
   Test <- check_rr_args(N1, N2, alpha, Test, n.grid, bb.gamma, ref.pvalue, alternative,
                         margin, margin.scale)$Test
-  # Response probabilities on the boundary of the null hypothesis, which are both theta
-  # when the margin is 0
-  ok <- null_boundary(theta, r, alternative, margin, margin.scale)$ok
-  if (!any(ok)) {
-    stop('no value of theta gives response probabilities in [0, 1] on the null boundary')
+  # The null hypothesis has one boundary, or two for a test of equivalence. A point of the
+  # null hypothesis is the pair c(theta, k) of the pooled probability theta and the number
+  # k of the boundary, so that the probe passed by bisect_level() carries both. On each
+  # boundary the response probabilities are functions of theta, both equal to theta when
+  # the margin is 0
+  sides <- null_sides(alternative, margin, margin.scale)
+  grids <- lapply(sides, function(s) {
+    ok <- null_boundary(theta, r, s$alternative, s$margin, margin.scale)$ok
+    if (!any(ok)) {
+      stop('no value of theta gives response probabilities in [0, 1] on the null boundary')
+    }
+    # Grid on the boundary, and interval over which the largest rate is certified
+    list(theta = theta[ok],
+         interval = null_range(theta, r, s$alternative, s$margin, margin.scale))
+  })
+  # Response probabilities at the values t of theta on boundary k
+  boundary_at <- function(t, k) {
+    s <- sides[[k]]
+    null_boundary(t, r, s$alternative, s$margin, margin.scale)
   }
-  # Interval over which the largest rate is certified
-  interval <- null_range(theta, r, alternative, margin, margin.scale)
-  theta <- theta[ok]
+  # Whether the rate y on boundary k replaces the largest rate m found so far. Rates on
+  # the two boundaries that differ by at most tie.tol count as equal and the lower
+  # boundary is kept, so that the boundary reported for a symmetric design does not depend
+  # on rounding
+  tie.tol <- if (length(sides) == 2) 1e-12 else 0
+  better <- function(y, k, m) {
+    is.null(m) || y > m$y + tie.tol || isTRUE(y >= m$y - tie.tol && k < m$x[2])
+  }
   # p-values of a rejection region, from which the region at any level follows
   pvalues <- function(n1, n2) {
     a <- check_rr_args(n1, n2, alpha, Test, n.grid, bb.gamma, ref.pvalue, alternative,
@@ -200,19 +224,24 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   # A design at a given level is a list with its type I error rate f as a function of
   # theta, its interim setup and its rejection regions. max_tie returns the largest rate
   # over the grid, refined between the grid points unless maximize = 'grid'. With a probe,
-  # a value of theta, the rate is first evaluated there, and a value above alpha is
+  # a point c(theta, k), the rate is first evaluated there, and a value above alpha is
   # returned at once: the largest rate is at least this value, so the level fails either
   # way
   max_tie <- function(des, probe = NULL) {
     if (!is.null(probe)) {
-      v <- des$f(probe)
+      v <- des$f(probe[1], probe[2])
       if (isTRUE(v > alpha)) return(list(x = probe, y = v, bound = NA_real_))
     }
-    y <- des$f(theta)
-    m <- if (maximize == 'grid') {
-      list(x = theta[which.max(y)], y = max(y))
-    } else {
-      refine_max(des$f, theta, y)
+    m <- NULL
+    for (k in seq_along(grids)) {
+      th <- grids[[k]]$theta
+      y <- des$f(th, k)
+      mk <- if (maximize == 'grid') {
+        list(x = th[which.max(y)], y = max(y))
+      } else {
+        refine_max(function(t) des$f(t, k), th, y)
+      }
+      if (better(mk$y, k, m)) m <- list(x = c(mk$x, k), y = mk$y)
     }
     m$bound <- NA_real_
     m
@@ -220,13 +249,19 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   # Certified maximum over the interval, combined with the result m of max_tie
   certify <- if (maximize == 'certified') {
     function(des, m) {
-      cm <- tie_certify(tie_weights(des$setup, des$rr.list), interval, r, alternative,
-                        margin, margin.scale = margin.scale)
-      if (cm$y > m$y) {
-        m$x <- cm$x
-        m$y <- cm$y
+      w <- tie_weights(des$setup, des$rr.list)
+      bound <- m$y
+      for (k in seq_along(sides)) {
+        s <- sides[[k]]
+        cm <- tie_certify(w, grids[[k]]$interval, r, s$alternative, s$margin,
+                          margin.scale = margin.scale)
+        if (better(cm$y, k, m)) {
+          m$x <- c(cm$x, k)
+          m$y <- cm$y
+        }
+        bound <- max(bound, cm$bound)
       }
-      m$bound <- max(cm$bound, m$y)
+      m$bound <- max(bound, m$y)
       m
     }
   }
@@ -236,8 +271,8 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   setup.fixed <- fixed_setup(N1, N2)
   make_trad <- function(level) {
     rr <- pv.fixed %<<% level
-    f <- function(t) {
-      b <- null_boundary(t, r, alternative, margin, margin.scale)
+    f <- function(t, k) {
+      b <- boundary_at(t, k)
       vapply(seq_along(t), function(i) {
         power_from_rr(rr, dbinom(0:N1, N1, b$p1[i]), dbinom(0:N2, N2, b$p2[i]))
       }, numeric(1))
@@ -259,8 +294,8 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
   }
   make_bssr <- function(d, level) {
     rr.list <- lapply(d$pv.list, function(m) m %<<% level)
-    f <- function(t) {
-      b <- null_boundary(t, r, alternative, margin, margin.scale)
+    f <- function(t, k) {
+      b <- boundary_at(t, k)
       bssr_reject(d$setup, rr.list, b$p1, b$p2)
     }
     list(f = f, setup = d$setup, rr.list = rr.list)
@@ -296,17 +331,27 @@ BinaryAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.powe
             paste(names(zero)[zero], collapse = ' and '),
             ' design, and the adjusted level is reported as 0')
   }
+  interval <- if (length(sides) == 1) {
+    grids[[1]]$interval
+  } else {
+    iv <- t(vapply(grids, function(g) g$interval, numeric(2)))
+    dimnames(iv) <- list(c('lower', 'upper'), c('from', 'to'))
+    iv
+  }
   out <- data.frame(
     Design = c('BSSR', 'TRAD'),
     alpha = alpha,
     max.TIE = c(res.bssr$m0$y, res.trad$m0$y),
     alpha.adj = c(res.bssr$level, res.trad$level),
     max.TIE.adj = c(res.bssr$m$y, res.trad$m$y),
-    theta.adj = c(res.bssr$m$x, res.trad$m$x),
+    theta.adj = c(res.bssr$m$x[1], res.trad$m$x[1]),
     max.TIE.bound = c(res.bssr$m0$bound, res.trad$m0$bound),
     max.TIE.adj.bound = c(res.bssr$m$bound, res.trad$m$bound),
     stringsAsFactors = FALSE
   )
+  if (length(sides) == 2) {
+    out$boundary.adj <- c('lower', 'upper')[c(res.bssr$m$x[2], res.trad$m$x[2])]
+  }
   attr(out, 'Test') <- Test
   attr(out, 'alternative') <- alternative
   attr(out, 'adjust') <- adjust
