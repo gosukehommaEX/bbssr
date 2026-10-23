@@ -495,18 +495,18 @@ computation itself.</p>
 <span>  unit <span class="op">=</span> <span class="st">'ms'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
-<span><span class="co">#&gt;                   expr       min        lq       mean     median        uq</span></span>
-<span><span class="co">#&gt;                  Chisq  0.300690  0.314416  0.3217106  0.3195505  0.328052</span></span>
-<span><span class="co">#&gt;                 Fisher  2.511192  2.525950  2.5675301  2.5715845  2.614726</span></span>
-<span><span class="co">#&gt;                 Z-pool  3.651277  3.665675  3.6911600  3.6793150  3.718282</span></span>
-<span><span class="co">#&gt;               Boschloo  6.087430  6.118399  6.1925523  6.1360055  6.165486</span></span>
-<span><span class="co">#&gt;  Boschloo, Berger-Boos 12.631752 12.730706 12.7931991 12.7431550 12.847875</span></span>
+<span><span class="co">#&gt;                   expr      min       lq       mean     median        uq</span></span>
+<span><span class="co">#&gt;                  Chisq 0.230331 0.234927  0.2577835  0.2616825  0.272273</span></span>
+<span><span class="co">#&gt;                 Fisher 1.807916 1.855346  1.8788777  1.8732225  1.901624</span></span>
+<span><span class="co">#&gt;                 Z-pool 2.989355 3.001041  3.0125168  3.0078070  3.018067</span></span>
+<span><span class="co">#&gt;               Boschloo 4.747397 4.752434  4.7950961  4.7948815  4.830159</span></span>
+<span><span class="co">#&gt;  Boschloo, Berger-Boos 9.927954 9.968725 10.1017451 10.0280370 10.165245</span></span>
 <span><span class="co">#&gt;        max neval</span></span>
-<span><span class="co">#&gt;   0.344312    10</span></span>
-<span><span class="co">#&gt;   2.630094    10</span></span>
-<span><span class="co">#&gt;   3.748068    10</span></span>
-<span><span class="co">#&gt;   6.669356    10</span></span>
-<span><span class="co">#&gt;  13.086891    10</span></span>
+<span><span class="co">#&gt;   0.299163    10</span></span>
+<span><span class="co">#&gt;   1.975433    10</span></span>
+<span><span class="co">#&gt;   3.053950    10</span></span>
+<span><span class="co">#&gt;   4.854555    10</span></span>
+<span><span class="co">#&gt;  10.514732    10</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 <p>The Berger-Boos variant costs more than the plain Boschloo test,
 because the confidence bounds of every possible responder total are
@@ -531,12 +531,12 @@ row.</p>
 <span>  unit <span class="op">=</span> <span class="st">'ms'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
-<span><span class="co">#&gt;              expr        min         lq      mean     median         uq</span></span>
-<span><span class="co">#&gt;  bbssr.whole.grid   1.904442   2.068697   2.12357   2.074418   2.099535</span></span>
-<span><span class="co">#&gt;     Exact.one.row 285.481994 285.617096 288.65683 285.740326 290.020567</span></span>
+<span><span class="co">#&gt;              expr        min         lq       mean     median         uq</span></span>
+<span><span class="co">#&gt;  bbssr.whole.grid   1.426661   1.642771   1.693182   1.656562   1.661469</span></span>
+<span><span class="co">#&gt;     Exact.one.row 200.407654 202.779916 202.879447 202.945951 203.497648</span></span>
 <span><span class="co">#&gt;         max neval</span></span>
-<span><span class="co">#&gt;    2.470757     5</span></span>
-<span><span class="co">#&gt;  296.424166     5</span></span>
+<span><span class="co">#&gt;    2.078447     5</span></span>
+<span><span class="co">#&gt;  204.766065     5</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">

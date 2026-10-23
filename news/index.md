@@ -349,9 +349,9 @@ version.
 - [`print()`](https://rdrr.io/r/base/print.html) of the result of
   [`BinaryAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryAlphaAdjBSSR.md)
   stopped with an error when the attributes of the result had been
-  removed by selecting some of its rows or columns; such an object is
-  now printed as a data frame. The print methods of the results for
-  matched pairs and stratified designs do the same.
+  removed by selecting some of its columns; such an object is now
+  printed as a data frame. The print methods of the results for matched
+  pairs and stratified designs do the same.
 
 - Sizes obtained by rounding up a product are rounded up with a
   tolerance for floating-point error: the interim sizes

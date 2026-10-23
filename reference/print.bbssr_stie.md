@@ -32,7 +32,7 @@ print(x, digits = 6, ...)
 ## Details
 
 An object whose attributes were removed, for example by selecting some
-of its rows or columns, is printed as a data frame.
+of its columns, is printed as a data frame.
 
 ## Examples
 
