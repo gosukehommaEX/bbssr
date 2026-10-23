@@ -20,8 +20,8 @@
 Prints the exact power of a stratified test returned by \code{\link{StratPower}}.
 }
 \details{
-An object whose attributes were removed, for example by selecting some of its rows
-or columns, is printed as a data frame.
+An object whose attributes were removed, for example by selecting some of its
+columns, is printed as a data frame.
 }
 \examples{
 pw <- StratPower(p1 = c(0.5, 0.7), p2 = c(0.3, 0.5), N1 = c(40, 40), N2 = c(40, 40),

@@ -8,7 +8,8 @@ test_that("print.bbssr_spower prints the settings and the power", {
 
 test_that("print.bbssr_spower prints a subset without its attributes as a data frame", {
   res <- StratPower(c(0.6, 0.45), c(0.35, 0.3), c(8, 6), c(7, 9), 0.05, 'CMH')
-  sub <- res[1, ]
+  # Selecting columns removes the attributes; selecting rows keeps them
+  sub <- res[, names(res)]
   expect_null(attr(sub, 'Test'))
   out <- capture.output(print(sub))
   expect_false(any(grepl('Exact power of a stratified test', out)))

@@ -20,8 +20,8 @@
 Prints the critical values of a stratified test returned by \code{\link{StratRR}}.
 }
 \details{
-An object whose attributes were removed, for example by selecting some of its rows
-or columns, is printed as a data frame.
+An object whose attributes were removed, for example by selecting some of its
+columns, is printed as a data frame.
 }
 \examples{
 rr <- StratRR(N1 = c(10, 12), N2 = c(10, 12), alpha = 0.025, Test = 'CMH')

@@ -2,8 +2,8 @@
 #'
 #' Prints the critical values of a stratified test returned by \code{\link{StratRR}}.
 #'
-#' An object whose attributes were removed, for example by selecting some of its rows
-#' or columns, is printed as a data frame.
+#' An object whose attributes were removed, for example by selecting some of its
+#' columns, is printed as a data frame.
 #'
 #' @param x An object of class \code{bbssr_srr}
 #' @param n Number of rows of the table to print. Default is 20

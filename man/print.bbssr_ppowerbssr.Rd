@@ -22,8 +22,8 @@ Prints the power and the expected final number of pairs of a matched-pairs desig
 blinded sample size re-estimation.
 }
 \details{
-An object whose attributes were removed, for example by selecting some of its rows
-or columns, is printed as a data frame.
+An object whose attributes were removed, for example by selecting some of its
+columns, is printed as a data frame.
 }
 \examples{
 res <- PairedPowerBSSR(psi = c(0.2, 0.3), Delta.T = 0.15, Delta.A = 0.15, N = 72,

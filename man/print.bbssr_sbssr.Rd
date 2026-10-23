@@ -21,8 +21,8 @@ Prints the re-estimated group sizes of a stratified trial returned by
 \code{\link{StratBSSR}}.
 }
 \details{
-An object whose attributes were removed, for example by selecting some of its rows
-or columns, is printed as a data frame.
+An object whose attributes were removed, for example by selecting some of its
+columns, is printed as a data frame.
 }
 \examples{
 re <- StratBSSR(n1 = c(15, 15), n2 = c(15, 15), S = c(12, 18), Delta.A = 0.2, r = 1,

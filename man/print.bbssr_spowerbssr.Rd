@@ -21,8 +21,8 @@ Prints the power and the expected final total sample size of a stratified design
 blinded sample size re-estimation returned by \code{\link{StratPowerBSSR}}.
 }
 \details{
-An object whose attributes were removed, for example by selecting some of its rows
-or columns, is printed as a data frame.
+An object whose attributes were removed, for example by selecting some of its
+columns, is printed as a data frame.
 }
 \examples{
 res <- StratPowerBSSR(p = c(0.3, 0.5), Delta.A = 0.2, Delta.T = 0.2,

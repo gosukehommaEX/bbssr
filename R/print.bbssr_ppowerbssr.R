@@ -3,8 +3,8 @@
 #' Prints the power and the expected final number of pairs of a matched-pairs design with
 #' blinded sample size re-estimation.
 #'
-#' An object whose attributes were removed, for example by selecting some of its rows
-#' or columns, is printed as a data frame.
+#' An object whose attributes were removed, for example by selecting some of its
+#' columns, is printed as a data frame.
 #'
 #' @param x An object of class \code{bbssr_ppowerbssr} returned by
 #'   \code{\link{PairedPowerBSSR}}

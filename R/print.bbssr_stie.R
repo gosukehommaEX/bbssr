@@ -3,8 +3,8 @@
 #' Prints the largest type I error rates of a stratified design with blinded sample size
 #' re-estimation and of the fixed design, returned by \code{\link{StratTypeIErrorBSSR}}.
 #'
-#' An object whose attributes were removed, for example by selecting some of its rows
-#' or columns, is printed as a data frame.
+#' An object whose attributes were removed, for example by selecting some of its
+#' columns, is printed as a data frame.
 #'
 #' @param x An object of class \code{bbssr_stie}
 #' @param digits Number of significant digits. Default is 6

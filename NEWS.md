@@ -240,7 +240,7 @@ Version 2.1.0 was not released, and its changes are included in this version.
   any level is obtained without recomputing them.
 
 * `print()` of the result of `BinaryAlphaAdjBSSR()` stopped with an error when the
-  attributes of the result had been removed by selecting some of its rows or columns;
+  attributes of the result had been removed by selecting some of its columns;
   such an object is now printed as a data frame. The print methods of the results for
   matched pairs and stratified designs do the same.
 

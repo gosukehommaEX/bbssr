@@ -3,8 +3,8 @@
 #' Prints the power and the expected final total sample size of a stratified design with
 #' blinded sample size re-estimation returned by \code{\link{StratPowerBSSR}}.
 #'
-#' An object whose attributes were removed, for example by selecting some of its rows
-#' or columns, is printed as a data frame.
+#' An object whose attributes were removed, for example by selecting some of its
+#' columns, is printed as a data frame.
 #'
 #' @param x An object of class \code{bbssr_spowerbssr}
 #' @param digits Number of decimal places. Default is 4

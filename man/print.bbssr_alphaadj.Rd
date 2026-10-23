@@ -21,8 +21,8 @@ Prints the adjusted nominal significance levels of a design with blinded sample 
 re-estimation and of the corresponding fixed-sample design.
 }
 \details{
-An object whose attributes were removed, for example by selecting some of its rows
-or columns, is printed as a data frame.
+An object whose attributes were removed, for example by selecting some of its
+columns, is printed as a data frame.
 
 The adjusted levels are rounded down to \code{digits} significant digits, so that a
 printed level does not reject more outcomes than the level it stands for.

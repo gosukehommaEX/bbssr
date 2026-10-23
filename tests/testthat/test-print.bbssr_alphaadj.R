@@ -41,7 +41,8 @@ test_that("print.bbssr_alphaadj prints a subset without its attributes as a data
                             alpha = 0.025, tar.power = 0.8, Test = 'Chisq',
                             ss.method = 'standard', theta = seq(0.1, 0.9, by = 0.1),
                             tol = 1e-4)
-  sub <- res[1, ]
+  # Selecting columns removes the attributes; selecting rows keeps them
+  sub <- res[, names(res)]
   expect_null(attr(sub, 'adjust'))
   out <- utils::capture.output(print(sub))
   expect_false(any(grepl('Adjusted significance level', out, fixed = TRUE)))

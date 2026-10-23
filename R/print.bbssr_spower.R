@@ -2,8 +2,8 @@
 #'
 #' Prints the exact power of a stratified test returned by \code{\link{StratPower}}.
 #'
-#' An object whose attributes were removed, for example by selecting some of its rows
-#' or columns, is printed as a data frame.
+#' An object whose attributes were removed, for example by selecting some of its
+#' columns, is printed as a data frame.
 #'
 #' @param x An object of class \code{bbssr_spower}
 #' @param digits Number of decimal places. Default is 4

@@ -10,7 +10,8 @@ test_that("print.bbssr_srr prints the settings and the rows with a rejection", {
 
 test_that("print.bbssr_srr prints a subset without its attributes as a data frame", {
   rr <- StratRR(c(3, 4), c(2, 5), 0.05, 'Strat-Fisher', 'two.sided', 'central')
-  sub <- rr[1:2, ]
+  # Selecting columns removes the attributes; selecting rows keeps them
+  sub <- rr[, names(rr)]
   expect_null(attr(sub, 'Test'))
   out <- capture.output(print(sub))
   expect_false(any(grepl('Rejection region of a stratified test', out)))
