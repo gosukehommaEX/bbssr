@@ -195,6 +195,133 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// strat_crit
+List strat_crit(IntegerVector N1, IntegerVector N2, int type, int alternative, int tsmethod, double alpha);
+RcppExport SEXP _bbssr_strat_crit(SEXP N1SEXP, SEXP N2SEXP, SEXP typeSEXP, SEXP alternativeSEXP, SEXP tsmethodSEXP, SEXP alphaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type N1(N1SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type N2(N2SEXP);
+    Rcpp::traits::input_parameter< int >::type type(typeSEXP);
+    Rcpp::traits::input_parameter< int >::type alternative(alternativeSEXP);
+    Rcpp::traits::input_parameter< int >::type tsmethod(tsmethodSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    rcpp_result_gen = Rcpp::wrap(strat_crit(N1, N2, type, alternative, tsmethod, alpha));
+    return rcpp_result_gen;
+END_RCPP
+}
+// strat_power
+NumericVector strat_power(IntegerVector N1, IntegerVector N2, NumericMatrix p1, NumericMatrix p2, int type, int alternative, int tsmethod, double alpha);
+RcppExport SEXP _bbssr_strat_power(SEXP N1SEXP, SEXP N2SEXP, SEXP p1SEXP, SEXP p2SEXP, SEXP typeSEXP, SEXP alternativeSEXP, SEXP tsmethodSEXP, SEXP alphaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type N1(N1SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type N2(N2SEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type p1(p1SEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type p2(p2SEXP);
+    Rcpp::traits::input_parameter< int >::type type(typeSEXP);
+    Rcpp::traits::input_parameter< int >::type alternative(alternativeSEXP);
+    Rcpp::traits::input_parameter< int >::type tsmethod(tsmethodSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    rcpp_result_gen = Rcpp::wrap(strat_power(N1, N2, p1, p2, type, alternative, tsmethod, alpha));
+    return rcpp_result_gen;
+END_RCPP
+}
+// strat_bssr_power
+NumericVector strat_bssr_power(IntegerVector n1, IntegerVector n2, List designs, IntegerVector id, NumericMatrix p1, NumericMatrix p2);
+RcppExport SEXP _bbssr_strat_bssr_power(SEXP n1SEXP, SEXP n2SEXP, SEXP designsSEXP, SEXP idSEXP, SEXP p1SEXP, SEXP p2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type n1(n1SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type n2(n2SEXP);
+    Rcpp::traits::input_parameter< List >::type designs(designsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type id(idSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type p1(p1SEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type p2(p2SEXP);
+    rcpp_result_gen = Rcpp::wrap(strat_bssr_power(n1, n2, designs, id, p1, p2));
+    return rcpp_result_gen;
+END_RCPP
+}
+// strat_tie_coef
+NumericMatrix strat_tie_coef(IntegerVector n1, IntegerVector n2, List designs, IntegerVector id);
+RcppExport SEXP _bbssr_strat_tie_coef(SEXP n1SEXP, SEXP n2SEXP, SEXP designsSEXP, SEXP idSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type n1(n1SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type n2(n2SEXP);
+    Rcpp::traits::input_parameter< List >::type designs(designsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type id(idSEXP);
+    rcpp_result_gen = Rcpp::wrap(strat_tie_coef(n1, n2, designs, id));
+    return rcpp_result_gen;
+END_RCPP
+}
+// strat_bern_max
+List strat_bern_max(NumericMatrix coef, double a1, double b1, double a2, double b2, double tol, int max_pieces);
+RcppExport SEXP _bbssr_strat_bern_max(SEXP coefSEXP, SEXP a1SEXP, SEXP b1SEXP, SEXP a2SEXP, SEXP b2SEXP, SEXP tolSEXP, SEXP max_piecesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type coef(coefSEXP);
+    Rcpp::traits::input_parameter< double >::type a1(a1SEXP);
+    Rcpp::traits::input_parameter< double >::type b1(b1SEXP);
+    Rcpp::traits::input_parameter< double >::type a2(a2SEXP);
+    Rcpp::traits::input_parameter< double >::type b2(b2SEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< int >::type max_pieces(max_piecesSEXP);
+    rcpp_result_gen = Rcpp::wrap(strat_bern_max(coef, a1, b1, a2, b2, tol, max_pieces));
+    return rcpp_result_gen;
+END_RCPP
+}
+// strat_bern_eval
+NumericVector strat_bern_eval(NumericMatrix coef, NumericVector x, NumericVector y);
+RcppExport SEXP _bbssr_strat_bern_eval(SEXP coefSEXP, SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type coef(coefSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(strat_bern_eval(coef, x, y));
+    return rcpp_result_gen;
+END_RCPP
+}
+// strat_pvalue_cases
+NumericVector strat_pvalue_cases(IntegerMatrix N1, IntegerMatrix N2, IntegerMatrix x1, IntegerMatrix x2, int type, int alternative, int tsmethod);
+RcppExport SEXP _bbssr_strat_pvalue_cases(SEXP N1SEXP, SEXP N2SEXP, SEXP x1SEXP, SEXP x2SEXP, SEXP typeSEXP, SEXP alternativeSEXP, SEXP tsmethodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerMatrix >::type N1(N1SEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type N2(N2SEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type x1(x1SEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type x2(x2SEXP);
+    Rcpp::traits::input_parameter< int >::type type(typeSEXP);
+    Rcpp::traits::input_parameter< int >::type alternative(alternativeSEXP);
+    Rcpp::traits::input_parameter< int >::type tsmethod(tsmethodSEXP);
+    rcpp_result_gen = Rcpp::wrap(strat_pvalue_cases(N1, N2, x1, x2, type, alternative, tsmethod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// strat_level_bracket
+NumericVector strat_level_bracket(IntegerVector N1, IntegerVector N2, int type, int alternative, int tsmethod, double alpha);
+RcppExport SEXP _bbssr_strat_level_bracket(SEXP N1SEXP, SEXP N2SEXP, SEXP typeSEXP, SEXP alternativeSEXP, SEXP tsmethodSEXP, SEXP alphaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type N1(N1SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type N2(N2SEXP);
+    Rcpp::traits::input_parameter< int >::type type(typeSEXP);
+    Rcpp::traits::input_parameter< int >::type alternative(alternativeSEXP);
+    Rcpp::traits::input_parameter< int >::type tsmethod(tsmethodSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    rcpp_result_gen = Rcpp::wrap(strat_level_bracket(N1, N2, type, alternative, tsmethod, alpha));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_bbssr_max_tail_prob", (DL_FUNC) &_bbssr_max_tail_prob, 7},
@@ -209,6 +336,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_bbssr_paired_bssr_power", (DL_FUNC) &_bbssr_paired_bssr_power, 5},
     {"_bbssr_paired_cp", (DL_FUNC) &_bbssr_paired_cp, 5},
     {"_bbssr_paired_bern_coef", (DL_FUNC) &_bbssr_paired_bern_coef, 4},
+    {"_bbssr_strat_crit", (DL_FUNC) &_bbssr_strat_crit, 6},
+    {"_bbssr_strat_power", (DL_FUNC) &_bbssr_strat_power, 8},
+    {"_bbssr_strat_bssr_power", (DL_FUNC) &_bbssr_strat_bssr_power, 6},
+    {"_bbssr_strat_tie_coef", (DL_FUNC) &_bbssr_strat_tie_coef, 4},
+    {"_bbssr_strat_bern_max", (DL_FUNC) &_bbssr_strat_bern_max, 7},
+    {"_bbssr_strat_bern_eval", (DL_FUNC) &_bbssr_strat_bern_eval, 3},
+    {"_bbssr_strat_pvalue_cases", (DL_FUNC) &_bbssr_strat_pvalue_cases, 7},
+    {"_bbssr_strat_level_bracket", (DL_FUNC) &_bbssr_strat_level_bracket, 6},
     {NULL, NULL, 0}
 };
 

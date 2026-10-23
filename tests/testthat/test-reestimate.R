@@ -88,5 +88,5 @@ test_that("reestimate keeps the planned size outside the equivalence region", {
   expect_error(reestimate(0.2, 0.5, 1, 0.05, 0.8, 'Farrington-Manning', 'equivalence',
                           'minlike', 100, 0, 'standard', 'group', NULL, NULL, FALSE,
                           c(0.2, 0.2), margin.scale = 'RD'),
-               'outside the equivalence region')
+               'strictly inside the equivalence region')
 })

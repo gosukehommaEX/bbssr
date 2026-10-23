@@ -8,7 +8,7 @@ then check that the test files carry these values:
 The computations follow the definitions of the designs directly (binomial sums over the
 interim and second-stage outcomes) and share no code with the package. Each block names
 the test file whose expected values it produces. The blocks of the paired designs are in
-reference_paired.py.
+reference_paired.py and those of the stratified designs in reference_strat.py.
 """
 import math
 import sys
@@ -1361,3 +1361,7 @@ if __name__ == "__main__":
     # Paired designs, in a module of their own
     import reference_paired
     reference_paired.blocks(emit, reported_level)
+    # Stratified designs, in a module of their own
+    import reference_strat
+    reference_strat.blocks(emit, reported_level)
+    reference_strat.blocks_bssr(emit, reported_level)

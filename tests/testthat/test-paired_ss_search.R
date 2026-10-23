@@ -1,13 +1,16 @@
 test_that("paired_ss_search finds the crossing of the target power", {
-  s <- paired_ss_search(c(0.3, 0.1), c(0.1, 0.1), 0.025, 0.8,
-                        c('McNemar-exact'), 'greater', 100, 0, FALSE, 0)
-  expect_equal(s$N[1], 84)
+  # Two pairs of probabilities share the rejection regions of one search
+  s <- paired_ss_search(c(0.3, 0.35), c(0.1, 0.1), 0.025, 0.8, 'McNemar-exact',
+                        'greater', 100, 0, FALSE, 0)
+  expect_equal(s$N, c(84, 60))
   expect_true(all(is.na(s$limit)))
   pw <- function(N, p10, p01, ...) {
     paired_power(get_paired_rr(N, 0.025, ..., 'greater', 100, 0, FALSE, 0), p10, p01)
   }
   expect_gte(pw(84, 0.3, 0.1, 'McNemar-exact'), 0.8)
   expect_lt(pw(83, 0.3, 0.1, 'McNemar-exact'), 0.8)
+  expect_gte(pw(60, 0.35, 0.1, 'McNemar-exact'), 0.8)
+  expect_lt(pw(59, 0.35, 0.1, 'McNemar-exact'), 0.8)
 })
 
 test_that("paired_ss_search supports the three searches", {

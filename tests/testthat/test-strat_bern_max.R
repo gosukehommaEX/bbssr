@@ -1,0 +1,20 @@
+test_that("strat_bern_max finds the maximum over a rectangle with a valid bound", {
+  set.seed(11)
+  coef <- matrix(stats::runif(8 * 6), 8, 6)
+  m <- strat_bern_max(coef, 0, 1, 0, 1, 1e-12, 100000L)
+  g <- seq(0, 1, length.out = 201)
+  grid <- outer(g, g, function(x, y) strat_bern_eval(coef, x, y))
+  expect_true(m$complete)
+  expect_gte(m$value, max(grid) - 1e-12)
+  expect_gte(m$bound, m$value)
+  expect_lte(m$bound - m$value, 1e-12)
+  expect_equal(strat_bern_eval(coef, m$x, m$y), m$value, tolerance = 1e-12)
+  # Over a smaller rectangle
+  r <- strat_bern_max(coef, 0.2, 0.6, 0.5, 0.9, 1e-12, 100000L)
+  expect_true(r$x >= 0.2 && r$x <= 0.6 && r$y >= 0.5 && r$y <= 0.9)
+  sub <- outer(seq(0.2, 0.6, length.out = 101), seq(0.5, 0.9, length.out = 101),
+               function(x, y) strat_bern_eval(coef, x, y))
+  expect_gte(r$value, max(sub) - 1e-12)
+  expect_lte(r$value, m$value + 1e-12)
+  expect_error(strat_bern_max(coef, 0.6, 0.2, 0, 1, 1e-12, 100000L), 'rectangle')
+})

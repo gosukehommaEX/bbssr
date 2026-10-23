@@ -23,7 +23,7 @@ test_that("paired_pvalue of the asymptotic tests refers Z to the normal distribu
   expect_equal(paired_pvalue(10, 'McNemar', 'greater', 30, 0, FALSE, 0),
                stats::pnorm(Z, lower.tail = FALSE))
   expect_equal(paired_pvalue(10, 'McNemar', 'two.sided', 30, 0, FALSE, 0),
-               pmin(1, 2 * stats::pnorm(abs(Z), lower.tail = FALSE)))
+               pmin(2 * stats::pnorm(abs(Z), lower.tail = FALSE), 1))
   # The score test with margin 0 is the McNemar test
   expect_equal(paired_pvalue(10, 'Paired-Score', 'greater', 30, 0, FALSE, 0),
                paired_pvalue(10, 'McNemar', 'greater', 30, 0, FALSE, 0))

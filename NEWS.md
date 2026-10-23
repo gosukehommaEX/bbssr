@@ -4,6 +4,34 @@ Version 2.1.0 was not released, and its changes are included in this version.
 
 ## New features
 
+* Stratified designs. `StratRR()`, `StratPower()`, `StratSampleSize()`,
+  `StratPowerBSSR()`, `StratBSSR()`, `StratTypeIErrorBSSR()` and `StratAlphaAdjBSSR()`
+  provide the fixed-design and re-estimation calculations for a trial stratified into two
+  or more strata with fixed group sizes in each stratum. Five tests are available, all
+  based on the number of responders of group 1 summed over the strata: the
+  Cochran-Mantel-Haenszel test (`'CMH'`) and Cochran's test (`'Cochran'`), each also with
+  the continuity correction of `stats::mantelhaen.test()` (`'CMH-cc'`, `'Cochran-cc'`),
+  and the stratified exact conditional test of Jung (2014) (`'Strat-Fisher'`), with the
+  two-sided conventions of the Fisher exact test. The exact power is computed for any
+  number of strata and any response probabilities of the strata. The normal
+  approximation to the total sample size is formula (2.8) of Woolson et al. (1986), and
+  formula (2.3) of Nam (1992) for the tests with a continuity correction, and the exact
+  search follows `BinarySampleSize()` within the family of designs given by the fractions
+  of the strata and the allocation ratio. The re-estimation divides the blinded pooled
+  response probability of every stratum between the groups with an assumed effect
+  common to the strata, on the scale of the risk difference, the risk ratio or the odds
+  ratio. With two strata the power is computed exactly, the type I error rate is a
+  polynomial in the response probabilities of the two strata whose largest value over a
+  rectangle is certified by subdividing its bivariate Bernstein coefficients, and the
+  significance level can be adjusted. With three or more strata the power and the type I
+  error rate of the re-estimation design are estimated by simulation, with Monte Carlo
+  standard errors. The sample sizes of Woolson et al. (1986, Table 1) and Nam (1992,
+  Tables 1 and 2), and the p-values of the example, the exact sample sizes of Table 4 and
+  the design example of Jung (2014) are compared with the published values in
+  `inst/reproduce/reproduce-published.R`, and the p-values agree with
+  `stats::mantelhaen.test()`. A new vignette, `vignette('bbssr-stratified')`, describes
+  the functions.
+
 * Paired binary data. `PairedRR()`, `PairedPower()`, `PairedSampleSize()`,
   `PairedPowerBSSR()`, `PairedBSSR()`, `PairedTypeIErrorBSSR()` and
   `PairedAlphaAdjBSSR()` provide the fixed-design and re-estimation calculations for a

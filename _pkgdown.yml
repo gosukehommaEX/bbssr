@@ -32,6 +32,16 @@ reference:
       - PairedBSSR
       - PairedTypeIErrorBSSR
       - PairedAlphaAdjBSSR
+  - title: Stratified designs
+    desc: Fixed-design and re-estimation calculations for a trial stratified into two or more strata.
+    contents:
+      - StratRR
+      - StratPower
+      - StratSampleSize
+      - StratPowerBSSR
+      - StratBSSR
+      - StratTypeIErrorBSSR
+      - StratAlphaAdjBSSR
   - title: Printing, summaries and plots
     contents:
       - starts_with("print.")
@@ -54,6 +64,7 @@ articles:
       - bbssr-design-grid
       - bbssr-non-inferiority
       - bbssr-paired
+      - bbssr-stratified
   - title: Type I error rate
     navbar: Type I error rate
     contents:

@@ -413,6 +413,9 @@ def blocks(emit, reported_level):
                       exact_n(0.3, 0.1, 0.025, 0.8, "McNemar", "greater"),
                       exact_n(0.1, 0.1, 0.025, 0.8, "Score", "greater", 0.1)], rtol=0)
     emit(f, "smallest", [smallest_n(0.3, 0.1, 0.025, 0.8, "midP", "greater")], rtol=0)
+    emit("test-paired_ss_search.R", "crossing for two pairs",
+         [exact_n(0.3, 0.1, 0.025, 0.8, "exact", "greater"),
+          exact_n(0.35, 0.1, 0.025, 0.8, "exact", "greater")], rtol=0)
 
     # Equivalence: root of the approximate power
     f = "test-paired_raw_n.R"

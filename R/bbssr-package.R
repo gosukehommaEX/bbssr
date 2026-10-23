@@ -7,7 +7,8 @@
 #' of the risk difference or the risk ratio, and the exact unconditional tests can be
 #' combined with the Berger-Boos procedure. The same calculations are available for
 #' matched-pairs designs, such as cross-over trials, with five tests based on the
-#' discordant pairs.
+#' discordant pairs, and for designs stratified into two or more strata, with the
+#' Cochran-Mantel-Haenszel test, Cochran's test and the stratified exact conditional test.
 #'
 #' @section Main functions:
 #' \describe{
@@ -42,6 +43,21 @@
 #'     re-estimation design}
 #' }
 #'
+#' @section Stratified designs:
+#' \describe{
+#'   \item{\code{\link{StratRR}}}{Critical values of a stratified test}
+#'   \item{\code{\link{StratPower}}}{Exact power of a stratified test}
+#'   \item{\code{\link{StratSampleSize}}}{Total sample size attaining a target power}
+#'   \item{\code{\link{StratPowerBSSR}}}{Power and final sample size of a re-estimation
+#'     design}
+#'   \item{\code{\link{StratBSSR}}}{Re-estimation from the interim pooled numbers of
+#'     responders of the strata}
+#'   \item{\code{\link{StratTypeIErrorBSSR}}}{Type I error rate of a re-estimation
+#'     design over the common response probabilities of the strata}
+#'   \item{\code{\link{StratAlphaAdjBSSR}}}{Adjusted significance level of a
+#'     re-estimation design with two strata}
+#' }
+#'
 #' @section Reuse of computed p-values:
 #' The p-values of a test over the outcome grid depend only on the sample sizes and the
 #' test, and a rejection region at any level follows from them by comparison. The
@@ -61,7 +77,8 @@
 # Column names used inside aes() are looked up in the plotted data frame rather than in
 # the enclosing environment, so they are declared here to keep the check quiet
 globalVariables(c('x1', 'x2', 'Reject', 'Power', 'p1', 'N2', 'Design', 'p', 'theta',
-                  'TIE', 's', 's2', 'value', 'TIE.s', 'grp', 'Boundary', 'a', 'b', 'psi'))
+                  'TIE', 's', 's2', 'value', 'TIE.s', 'grp', 'Boundary', 'a', 'b', 'psi',
+                  'theta1', 'theta2'))
 
 # Session store of p-value matrices used by get_pvalue(). The limit is a number of cells
 # of the outcome grid, each stored as an 8-byte double

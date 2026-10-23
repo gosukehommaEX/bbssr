@@ -1,0 +1,53 @@
+tie <- function(...) {
+  args <- list(Delta.A = 0.3, N1 = c(10, 10), N2 = c(10, 10), omega = 0.5, r = 1,
+               alpha = 0.05, tar.power = 0.8, Test = 'CMH', ss.method = 'standard')
+  new <- list(...)
+  args[names(new)] <- new
+  do.call(StratTypeIErrorBSSR, args)
+}
+
+test_that("StratTypeIErrorBSSR agrees with the reference values", {
+  res <- tie(theta = rbind(c(0.1, 0.3), c(0.5, 0.5), c(0.9, 0.2)), maximize = 'grid')
+  expect_equal(res$TIE.BSSR, c(0.0476476903414493, 0.0512792925484029, 0.0431103731434614),
+               tolerance = 1e-10)
+  expect_equal(res$TIE.TRAD, c(0.0511555543032792, 0.0445454693253851, 0.0529149719952471),
+               tolerance = 1e-10)
+  # Largest values over the unit square: grid with local optimization in the reference
+  cert <- tie(theta = seq(0, 1, by = 0.1))
+  mx <- attr(cert, 'max')
+  expect_equal(mx$TIE, c(0.051279292548403, 0.0578880310058594), tolerance = 1e-8)
+  expect_true(all(mx$bound >= mx$TIE & mx$bound - mx$TIE <= 1e-12))
+  expect_true(all(mx$TIE >= c(max(cert$TIE.BSSR), max(cert$TIE.TRAD)) - 1e-15))
+})
+
+test_that("StratTypeIErrorBSSR returns the grid and the settings", {
+  res <- tie(theta = c(0.2, 0.5, 0.8))
+  expect_s3_class(res, 'bbssr_stie')
+  expect_named(res, c('theta.S1', 'theta.S2', 'TIE.BSSR', 'TIE.TRAD'))
+  expect_identical(nrow(res), 9L)
+  expect_equal(attr(res, 'interval'),
+               matrix(c(0.2, 0.2, 0.8, 0.8), 2,
+                      dimnames = list(c('theta.S1', 'theta.S2'), NULL)))
+  # The fixed design agrees with StratPower under the null hypothesis
+  expect_equal(res$TIE.TRAD, StratPower(as.matrix(res[, 1:2]), as.matrix(res[, 1:2]),
+                                        c(10, 10), c(10, 10), 0.05, 'CMH')$Power,
+               tolerance = 1e-13)
+  # The stratified exact test keeps its level in the fixed design
+  ex <- tie(Test = 'Strat-Fisher', theta = seq(0, 1, by = 0.25))
+  expect_lte(attr(ex, 'max')$bound[2], 0.05)
+  expect_error(tie(theta = rbind(c(0.2, 0.3))), 'span an interval')
+})
+
+test_that("StratTypeIErrorBSSR simulates designs with three strata", {
+  set.seed(3)
+  res <- tie(N1 = c(6, 6, 6), N2 = c(6, 6, 6), theta = c(0.3, 0.6), maximize = 'grid',
+             nsim = 1000)
+  expect_named(res, c('theta.S1', 'theta.S2', 'theta.S3', 'TIE.BSSR', 'TIE.TRAD',
+                      'se.BSSR'))
+  expect_identical(nrow(res), 2L)
+  expect_equal(res$TIE.TRAD, StratPower(rbind(rep(0.3, 3), rep(0.6, 3)),
+                                        rbind(rep(0.3, 3), rep(0.6, 3)), c(6, 6, 6),
+                                        c(6, 6, 6), 0.05, 'CMH')$Power)
+  expect_true(all(is.na(attr(res, 'max')$bound)))
+  expect_error(tie(N1 = c(6, 6, 6), N2 = c(6, 6, 6)), 'two strata')
+})

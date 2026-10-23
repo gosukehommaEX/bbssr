@@ -169,6 +169,7 @@ test-PairedSampleSize.R	standard	0	77 312 171 95
 test-paired_raw_n.R	raw	1e-10	76.0874844931802 170.132474774384 13574.6280828215
 test-PairedSampleSize.R	exact	0	84 72 165
 test-PairedSampleSize.R	smallest	0	76
+test-paired_ss_search.R	crossing for two pairs	0	84 60
 test-paired_raw_n.R	equivalence	1e-10	68.3571399132853 115.160052104942
 test-paired_reestimate.R	sizes McNemar standard	0	23 23 23 28 38 48 58 68 78 87 97
 test-PairedPowerBSSR.R	power and E.N McNemar standard	1e-10	0.842667723200926 31.6893289541 0.779391115235398 48.3798828125
@@ -185,3 +186,62 @@ test-PairedTypeIErrorBSSR.R	certified max score standard	1e-09	0.100021274533563
 test-PairedAlphaAdjBSSR.R	McNemar max at nominal level	1e-09	0.0525269607489134 0.0558117064555376
 test-PairedAlphaAdjBSSR.R	McNemar adjusted level	1e-12	0.0421657 0.0416322
 test-PairedAlphaAdjBSSR.R	McNemar max at adjusted level	1e-08	0.049970120597453 0.0493685733526942
+test-strat_pvalue_cases.R	CMH greater minlike	1e-10	0.0112617092803826 0.980916090262173 0.000266002752569626 0.289529653097993 0.010215560681726
+test-strat_pvalue_cases.R	CMH less minlike	1e-10	0.988738290719617 0.019083909737827 0.99973399724743 0.710470346902007 0.989784439318274
+test-strat_pvalue_cases.R	CMH two.sided minlike	1e-10	0.0225234185607653 0.0381678194756539 0.000532005505139252 0.579059306195985 0.0204311213634519
+test-strat_pvalue_cases.R	CMH-cc greater minlike	1e-10	0.0294481502545263 0.954817528549904 0.00170580151718186 0.430466290997207 0.0312536838324566
+test-strat_pvalue_cases.R	CMH-cc less minlike	1e-10	0.970551849745474 0.0451824714500955 0.998294198482818 0.569533709002793 0.968746316167543
+test-strat_pvalue_cases.R	CMH-cc two.sided minlike	1e-10	0.0588963005090525 0.0903649429001911 0.00341160303436371 0.860932581994413 0.0625073676649133
+test-strat_pvalue_cases.R	Cochran greater minlike	1e-10	0.00886695039356853 0.984399554405416 0.000155745488383693 0.282119495929975 0.00798651767764384
+test-strat_pvalue_cases.R	Cochran less minlike	1e-10	0.991133049606431 0.0156004455945835 0.999844254511616 0.717880504070025 0.992013482322356
+test-strat_pvalue_cases.R	Cochran two.sided minlike	1e-10	0.0177339007871371 0.031200891189167 0.000311490976767385 0.56423899185995 0.0159730353552877
+test-strat_pvalue_cases.R	Cochran-cc greater minlike	1e-10	0.0248091477906745 0.960797370983855 0.00115357841581769 0.427763691643765 0.0264368182089764
+test-strat_pvalue_cases.R	Cochran-cc less minlike	1e-10	0.975190852209325 0.0392026290161454 0.998846421584182 0.572236308356235 0.973563181791024
+test-strat_pvalue_cases.R	Cochran-cc two.sided minlike	1e-10	0.0496182955813491 0.0784052580322908 0.00230715683163538 0.85552738328753 0.0528736364179528
+test-strat_pvalue_cases.R	Strat-Fisher greater minlike	1e-10	0.0271488418341565 0.994531109915725 0.000582750582750583 0.429360848941269 0.0292976254514716
+test-strat_pvalue_cases.R	Strat-Fisher less minlike	1e-10	0.997016969044941 0.0414119679853946 1 0.829007530930608 0.99807884423269
+test-strat_pvalue_cases.R	Strat-Fisher two.sided minlike	1e-10	0.0435799631603827 0.056416776696497 0.000582750582750583 0.706165338158345 0.0292976254514716
+test-strat_pvalue_cases.R	Strat-Fisher two.sided central	1e-10	0.054297683668313 0.0828239359707891 0.00116550116550117 0.858721697882537 0.0585952509029432
+test-strat_pvalue_cases.R	Strat-Fisher two.sided blaker	1e-10	0.0435799631603827 0.056416776696497 0.000582750582750583 0.706165338158345 0.0575386152309229
+test-StratRR.R	rejected outcomes CMH greater	0	253
+test-StratRR.R	rejected outcomes CMH two.sided	0	396
+test-StratRR.R	rejected outcomes CMH-cc greater	0	179
+test-StratRR.R	rejected outcomes CMH-cc two.sided	0	266
+test-StratRR.R	rejected outcomes Cochran greater	0	256
+test-StratRR.R	rejected outcomes Cochran two.sided	0	420
+test-StratRR.R	rejected outcomes Cochran-cc greater	0	187
+test-StratRR.R	rejected outcomes Cochran-cc two.sided	0	294
+test-StratRR.R	rejected outcomes Strat-Fisher greater	0	186
+test-StratRR.R	rejected outcomes Strat-Fisher two.sided	0	342
+test-StratPower.R	power CMH greater	1e-10	0.303344073443283 0.288160817883127
+test-StratPower.R	power CMH less	1e-10	0.00281539830312937 0.0231946703751953
+test-StratPower.R	power CMH two.sided	1e-10	0.21361470669462 0.183714391259765
+test-StratPower.R	power CMH-cc greater	1e-10	0.175986004477007 0.157304458861354
+test-StratPower.R	power CMH-cc less	1e-10	0.000750915604308426 0.0077223886922672
+test-StratPower.R	power CMH-cc two.sided	1e-10	0.116205630058535 0.0810268845923619
+test-StratPower.R	power Cochran greater	1e-10	0.340718272696192 0.322681717131867
+test-StratPower.R	power Cochran less	1e-10	0.00344534812589269 0.0264725126160019
+test-StratPower.R	power Cochran two.sided	1e-10	0.215932581835288 0.21722570075209
+test-StratPower.R	power Cochran-cc greater	1e-10	0.211447975910345 0.177704777618129
+test-StratPower.R	power Cochran-cc less	1e-10	0.000912709420274477 0.00836511632673804
+test-StratPower.R	power Cochran-cc two.sided	1e-10	0.1204093750041 0.104361445463374
+test-StratPower.R	power Strat-Fisher greater	1e-10	0.199384613187037 0.161792083831048
+test-StratPower.R	power Strat-Fisher less	1e-10	0.000912316604662701 0.00781548628788537
+test-StratPower.R	power Strat-Fisher two.sided	1e-10	0.119332788853109 0.0925061420069531
+test-strat_raw_n.R	Woolson and Nam	1e-10	185.997689655091 205.511097928377 566.558428740696 402.041885184174
+test-StratSampleSize.R	standard	0	186 206
+test-StratSampleSize.R	exact	0	57 69
+test-StratSampleSize.R	smallest	0	57
+test-StratPowerBSSR.R	power and E.N CMH standard	1e-10	0.770441457550367 59.7402124907309 0.0502722588565529 59.1902574387837
+test-strat_reestimate.R	final sizes CMH standard	0	5 5 5 5 14 14 14 14 16 16 16 16 5 5 5 5
+test-StratPowerBSSR.R	power and E.N Fisher exact	1e-10	0.567315336728504 32.6818367739194 0.0543980782427035 32.6534657362279
+test-strat_reestimate.R	final sizes Fisher exact	0	11 13 11 13 7 9 7 9 7 9 7 9 11 13 11 13
+test-StratTypeIErrorBSSR.R	grid CMH standard	1e-10	0.0476476903414493 0.0512792925484029 0.0431103731434614
+test-StratTypeIErrorBSSR.R	fixed CMH standard	1e-10	0.0511555543032792 0.0445454693253851 0.0529149719952471
+test-StratTypeIErrorBSSR.R	certified max CMH standard	1e-08	0.051279292548403 0.0578880310058594
+test-StratBSSR.R	final sizes CMH	0	42 50 42 50
+test-StratBSSR.R	power CMH	1e-10	0.809417719209081
+test-StratAlphaAdjBSSR.R	grid max at nominal level	1e-10	0.108801399881486 0.109288192949331
+test-StratAlphaAdjBSSR.R	grid adjusted level	1e-12	0.0947488 0.0786496
+test-StratAlphaAdjBSSR.R	grid max at adjusted level	1e-10	0.0954459061613307 0.0905266881854914
+test-strat_simulate.R	exact power and E.N three strata	1e-10	0.547956295988924 22.297028016

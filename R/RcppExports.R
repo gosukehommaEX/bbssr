@@ -49,3 +49,35 @@ paired_bern_coef <- function(R, W, type, m) {
     .Call(`_bbssr_paired_bern_coef`, R, W, type, m)
 }
 
+strat_crit <- function(N1, N2, type, alternative, tsmethod, alpha) {
+    .Call(`_bbssr_strat_crit`, N1, N2, type, alternative, tsmethod, alpha)
+}
+
+strat_power <- function(N1, N2, p1, p2, type, alternative, tsmethod, alpha) {
+    .Call(`_bbssr_strat_power`, N1, N2, p1, p2, type, alternative, tsmethod, alpha)
+}
+
+strat_bssr_power <- function(n1, n2, designs, id, p1, p2) {
+    .Call(`_bbssr_strat_bssr_power`, n1, n2, designs, id, p1, p2)
+}
+
+strat_tie_coef <- function(n1, n2, designs, id) {
+    .Call(`_bbssr_strat_tie_coef`, n1, n2, designs, id)
+}
+
+strat_bern_max <- function(coef, a1, b1, a2, b2, tol, max_pieces) {
+    .Call(`_bbssr_strat_bern_max`, coef, a1, b1, a2, b2, tol, max_pieces)
+}
+
+strat_bern_eval <- function(coef, x, y) {
+    .Call(`_bbssr_strat_bern_eval`, coef, x, y)
+}
+
+strat_pvalue_cases <- function(N1, N2, x1, x2, type, alternative, tsmethod) {
+    .Call(`_bbssr_strat_pvalue_cases`, N1, N2, x1, x2, type, alternative, tsmethod)
+}
+
+strat_level_bracket <- function(N1, N2, type, alternative, tsmethod, alpha) {
+    .Call(`_bbssr_strat_level_bracket`, N1, N2, type, alternative, tsmethod, alpha)
+}
+

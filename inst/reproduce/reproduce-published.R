@@ -8,7 +8,9 @@
 # Section 8 and Table 1), and for paired data Berger and Sidik (2003, Tables 3 to 5),
 # Fagerland, Lydersen and Laake (2013, Table 6), Nam (1997, Section 5 and Table 3), Tango
 # (1998, Section 6 and Table I), Connor (1987, Table 1 and p. 210) and Schepers et al.
-# (2026, Tables 1 and 5 and Section 3.4) with bbssr.
+# (2026, Tables 1 and 5 and Section 3.4), and for stratified data Woolson, Bean and Rojas
+# (1986, Table 1 and p. 929), Nam (1992, Section 2.1 and Tables 1 and 2) and Jung (2014,
+# Tables 2 and 4 and p. 139) with bbssr.
 # Run from the package root after devtools::load_all(); the levels of Figure 21.1 of
 # Kieser (2020) under the rule that stops after the pilot and the second example of
 # Farrington and Manning (1990) use internal functions of the package, and the
@@ -1456,6 +1458,204 @@ add(sc.src, 'Schepers2026 Section 3.4: second-stage size ignoring the surrogate'
     sc.n2, 0, 'Conditional power (4) with psi = 0.211318 and p* = 0.854916')
 add(sc.src, 'Schepers2026 Section 3.4: conditional power with 51 further pairs', 0.78,
     sc.cp(76, 0.2), 2, 'Conditional power (4) with psi = 0.2 and p* = 0.854916')
+
+# Stratified designs: Woolson et al. (1986), Nam (1992) and Jung (2014) -------------------
+# Woolson et al. (1986), Table 1: total sample sizes N_B of formula (2.8) and N_U of
+# formula (3.3) for two strata with t = (0.5, 0.5), s2 = 1 - s1, pi22 = 1 - pi21, one-sided
+# alpha = 0.05 and power 0.8. The table is printed as a staircase: in the row
+# pi21 = k / 10, column c <= k holds the odds ratio 4 with s1 = c / 10 and column c > k the
+# odds ratio 2 with s1 = (c - 1) / 10. The values are reproduced with the quantiles 1.645
+# and 0.841 and rounding to the nearest integer. N_U is the size of the comparison of two
+# proportions on the table of totals, formula (2.8) with one stratum, with the crude rates
+# of formulas (3.1) and (3.2)
+st.or <- function(p, theta) p * theta / (1 - p + p * theta)
+wo.src <- 'Woolson et al. (1986)'
+wo.NB <- rbind(c(318, 1442, 832, 648, 578, 565, 598, 693, 920, 1652),
+               c(205, 121, 486, 376, 334, 325, 342, 395, 523, 935),
+               c(172, 100, 79, 294, 260, 252, 264, 303, 400, 713),
+               c(161, 93, 72, 64, 231, 222, 232, 266, 349, 620),
+               c(160, 92, 71, 63, 60, 214, 223, 254, 332, 588),
+               c(169, 96, 74, 65, 62, 64, 231, 262, 341, 600),
+               c(190, 108, 82, 72, 68, 70, 79, 294, 381, 668),
+               c(240, 135, 102, 89, 84, 86, 95, 121, 486, 847),
+               c(401, 225, 169, 146, 137, 138, 152, 190, 318, 1442))
+wo.NU <- rbind(c(63, 288, 235, 213, 208, 214, 232, 266, 327, 449),
+               c(55, 54, 217, 209, 208, 214, 226, 247, 278, 327),
+               c(54, 54, 55, 208, 210, 214, 222, 232, 247, 266),
+               c(55, 56, 57, 59, 212, 214, 218, 222, 226, 232),
+               c(60, 60, 60, 60, 60, 214, 214, 214, 214, 214),
+               c(69, 66, 64, 62, 60, 59, 212, 210, 208, 208),
+               c(83, 75, 69, 64, 60, 57, 55, 208, 209, 213),
+               c(107, 88, 75, 66, 60, 56, 54, 54, 217, 235),
+               c(153, 107, 83, 69, 60, 55, 54, 55, 63, 288))
+st.cells <- expand.grid(c = 1:10, k = 1:9)
+st.cells$theta <- ifelse(st.cells$c <= st.cells$k, 4, 2)
+st.cells$s1 <- ifelse(st.cells$c <= st.cells$k, st.cells$c, st.cells$c - 1) / 10
+st.lab <- sprintf('pi21 = %.1f, theta = %g, s1 = %.1f', st.cells$k / 10, st.cells$theta,
+                  st.cells$s1)
+# Total size of formula (2.8) for one cell of the table, with the given quantiles and
+# continuity correction; strat = FALSE gives the unstratified size of the totals
+st.size <- function(i, z.a, z.b, cc = FALSE, strat = TRUE) {
+  s <- c(st.cells$s1[i], 1 - st.cells$s1[i])
+  p2 <- c(st.cells$k[i] / 10, 1 - st.cells$k[i] / 10)
+  p1 <- st.or(p2, st.cells$theta[i])
+  if (!strat) {
+    w <- 0.5 * (1 - s)
+    p2 <- sum(w * p2) / sum(w)
+    p1 <- st.or(p2, st.cells$theta[i])
+    s <- sum(0.5 * s)
+  }
+  bbssr:::strat_raw_n(p1, p2, rep(1 / length(s), length(s)), s / (1 - s),
+                      stats::pnorm(-z.a), stats::pnorm(z.b), 'greater', cc)
+}
+add(wo.src, paste0('Woolson1986 Table 1: N_B, ', st.lab), as.vector(t(wo.NB)),
+    vapply(seq_len(nrow(st.cells)), st.size, numeric(1), z.a = 1.645, z.b = 0.841), 0,
+    'Formula (2.8) with the quantiles 1.645 and 0.841, rounded to the nearest integer')
+add(wo.src, paste0('Woolson1986 Table 1: N_U, ', st.lab), as.vector(t(wo.NU)),
+    vapply(seq_len(nrow(st.cells)), st.size, numeric(1), z.a = 1.645, z.b = 0.841,
+           strat = FALSE), 0,
+    'Formula (3.3), equal to (2.8) with one stratum, quantiles 1.645 and 0.841')
+# The Iowa example of p. 929: four strata, s = 0.5, one-sided alpha = 0.05, odds ratio 3
+# and power 0.95. Nam (1992) recomputes the same design at the powers 0.9 and 0.7 with
+# formula (2.8), and those values are reproduced below. The size 200 of p. 929 is not
+# reproduced and stays a FAIL, since no reason has been found
+iowa <- list(t = c(0.1, 0.4, 0.35, 0.15), p0 = c(0.75, 0.7, 0.65, 0.6))
+iowa$p1 <- st.or(iowa$p0, 3)
+iowa_n <- function(power, cc) {
+  bbssr:::strat_raw_n(iowa$p1, iowa$p0, iowa$t, rep(1, 4), 0.05, power, 'greater', cc)
+}
+add(wo.src, 'Woolson1986 p. 929: N_B of the Iowa example, power 0.95', 200,
+    iowa_n(0.95, FALSE), 0,
+    'Formula (2.8) gives 215.1 with the stated inputs; the power giving 200 is about 0.94')
+
+# Nam (1992): the Iowa example of Section 2.1 and Tables 1 and 2, the corrected size N of
+# formula (2.3) and the uncorrected size N* of formula (2.4), one-sided alpha = 0.05.
+# Table 1 has the layout of Table 1 of Woolson et al. (1986) with power 0.8, and Table 2
+# three strata and the odds ratio 3. The tables are reproduced with the quantiles 1.645,
+# 0.842 and 1.282 and rounding to the nearest integer
+nam.src <- 'Nam (1992)'
+add(nam.src, sprintf('Nam1992 Section 2.1: Iowa example, %s, power %.1f',
+                     rep(c('N', 'N*'), 2), rep(c(0.9, 0.7), each = 2)),
+    c(192, 171, 115, 95),
+    c(iowa_n(0.9, TRUE), iowa_n(0.9, FALSE), iowa_n(0.7, TRUE), iowa_n(0.7, FALSE)), 0)
+nam.N <- rbind(c(394, 1611, 927, 720, 642, 626, 661, 765, 1015, 1821),
+               c(253, 148, 541, 418, 371, 360, 379, 437, 578, 1033),
+               c(212, 123, 96, 327, 289, 279, 293, 336, 443, 789),
+               c(197, 114, 88, 78, 256, 247, 258, 295, 387, 688),
+               c(196, 112, 86, 76, 73, 238, 248, 282, 369, 653),
+               c(205, 117, 90, 78, 75, 78, 256, 291, 379, 668),
+               c(230, 130, 99, 87, 83, 85, 96, 327, 424, 744),
+               c(288, 162, 123, 107, 101, 104, 116, 148, 541, 945),
+               c(478, 267, 202, 174, 164, 167, 184, 233, 394, 1611))
+nam.Ns <- rbind(c(319, 1443, 832, 649, 579, 566, 598, 693, 921, 1653),
+                c(205, 121, 486, 377, 335, 325, 343, 395, 523, 936),
+                c(172, 100, 79, 294, 260, 252, 264, 304, 400, 713),
+                c(161, 93, 72, 64, 231, 223, 233, 266, 349, 620),
+                c(161, 92, 71, 63, 60, 214, 223, 254, 333, 588),
+                c(169, 96, 74, 65, 62, 64, 231, 262, 341, 601),
+                c(190, 108, 82, 72, 68, 70, 79, 294, 381, 668),
+                c(240, 135, 103, 89, 84, 86, 95, 121, 486, 847),
+                c(402, 225, 169, 146, 137, 138, 152, 190, 319, 1443))
+nam.lab1 <- sprintf('p01 = %.1f, psi = %g, s1 = %.1f', st.cells$k / 10, st.cells$theta,
+                    st.cells$s1)
+add(nam.src, paste0('Nam1992 Table 1: N, ', nam.lab1), as.vector(t(nam.N)),
+    vapply(seq_len(nrow(st.cells)), st.size, numeric(1), z.a = 1.645, z.b = 0.842,
+           cc = TRUE), 0)
+add(nam.src, paste0('Nam1992 Table 1: N*, ', nam.lab1), as.vector(t(nam.Ns)),
+    vapply(seq_len(nrow(st.cells)), st.size, numeric(1), z.a = 1.645, z.b = 0.842), 0)
+nam.t2 <- data.frame(
+  set = rep(1:3, each = 3),
+  t = rep(c('0.1, 0.3, 0.6', '0.1, 0.3, 0.6', '0.25, 0.5, 0.25'), 3),
+  s = rep(c('0.2, 0.5, 0.8', '0.5, 0.5, 0.5', '0.5, 0.5, 0.5'), 3),
+  N90 = c(200, 151, 165, 178, 134, 136, 214, 169, 147),
+  Ns90 = c(177, 134, 147, 158, 119, 121, 190, 150, 130),
+  N80 = c(149, 114, 125, 134, 101, 103, 160, 128, 111),
+  Ns80 = c(127, 97, 107, 115, 86, 88, 136, 109, 95),
+  stringsAsFactors = FALSE)
+nam.p0 <- list(c(0.1, 0.2, 0.5), c(0.3, 0.5, 0.4), c(0.5, 0.4, 0.7))
+num <- function(x) as.numeric(strsplit(x, ', ')[[1]])
+nam_t2 <- function(i, z.b, cc) {
+  s <- num(nam.t2$s[i])
+  p0 <- nam.p0[[nam.t2$set[i]]]
+  bbssr:::strat_raw_n(st.or(p0, 3), p0, num(nam.t2$t[i]), s / (1 - s),
+                      stats::pnorm(-1.645), stats::pnorm(z.b), 'greater', cc)
+}
+nam.lab2 <- sprintf('p0 = (%s), t = (%s), s = (%s)',
+                    vapply(nam.p0[nam.t2$set], paste, character(1), collapse = ', '),
+                    nam.t2$t, nam.t2$s)
+for (v in list(list('N, power 0.9', 'N90', 1.282, TRUE),
+               list('N*, power 0.9', 'Ns90', 1.282, FALSE),
+               list('N, power 0.8', 'N80', 0.842, TRUE),
+               list('N*, power 0.8', 'Ns80', 0.842, FALSE))) {
+  add(nam.src, paste0('Nam1992 Table 2: ', v[[1]], ', ', nam.lab2), nam.t2[[v[[2]]]],
+      vapply(seq_len(nrow(nam.t2)), nam_t2, numeric(1), z.b = v[[3]], cc = v[[4]]), 0)
+}
+explain(c(paste0('Nam1992 Table 1: N, ', nam.lab1[st.cells$k == 4 & st.cells$c == 2]),
+          paste0('Nam1992 Table 2: N*, power 0.8, ', nam.lab2[4]),
+          paste0('Nam1992 Table 2: N, power 0.8, ', nam.lab2[8])), 0.51, paste(
+  'The unrounded size lies within 0.005 of a half integer (113.495, 114.496 and',
+  '127.499), so its rounding depends on the precision of the quantiles behind the',
+  'printed constants'))
+
+# Jung (2014): the example of Table 2, Table 4 for the design with fixed stratum and group
+# sizes, and the design example of p. 139
+jung.src <- 'Jung (2014)'
+jung.x <- list(N1 = c(11, 9, 8), N2 = c(13, 12, 10), x1 = c(10, 9, 8), x2 = c(12, 11, 7))
+jung_p <- function(Test) {
+  a <- bbssr:::check_strat_args(jung.x$N1, jung.x$N2, 0.05, Test, 'greater', 'minlike')
+  bbssr:::strat_pvalue_cases(matrix(a$N1, 1), matrix(a$N2, 1),
+                             matrix(as.integer(jung.x$x1), 1),
+                             matrix(as.integer(jung.x$x2), 1), a$type, a$alt, a$ts)
+}
+add(jung.src, 'Jung2014 Table 2: one-sided p-value, stratified exact test', 0.1563,
+    jung_p('Strat-Fisher'), 4)
+add(jung.src, 'Jung2014 Table 2: one-sided p-value, Mantel-Haenszel test', 0.0760,
+    jung_p('CMH'), 4)
+add(jung.src, 'Jung2014 Table 2: one-sided p-value, unstratified Fisher test', 0.1577,
+    bbssr:::fisher_pvalue(28, 35, 'greater', 'minlike', FALSE)[28, 31], 4)
+# Table 4, column (m, n) fixed: the first N from the printed size of the Mantel-Haenszel
+# test upwards at which the stratified exact test at the one-sided level 0.05 has power
+# 0.9, with (q1, q2) = (0.1, 0.3), n1 = floor(N a1), n2 = N - n1 and the group 1 sizes
+# floor(N a_j b_j)
+jung.t4 <- expand.grid(th = 1:3, b = 1:5, a1 = c(0.25, 0.5, 0.75))
+jung.b <- list(c(0.25, 0.25), c(0.25, 0.75), c(0.5, 0.5), c(0.75, 0.25), c(0.75, 0.75))
+jung.th <- list(c(5, 10), c(7.5, 7.5), c(10, 5))
+jung.mh <- c(46, 51, 65, 45, 50, 65, 36, 39, 50, 46, 51, 65, 46, 51, 65,
+             58, 55, 58, 58, 54, 58, 45, 43, 45, 59, 56, 59, 59, 55, 59,
+             78, 59, 52, 77, 59, 52, 61, 47, 41, 80, 61, 53, 80, 61, 53)
+jung.pub <- c(59, 64, 80, 53, 62, 79, 43, 48, 59, 59, 64, 80, 53, 60, 76,
+              72, 72, 72, 65, 65, 72, 53, 50, 54, 72, 66, 72, 69, 63, 68,
+              96, 75, 64, 89, 69, 64, 70, 55, 49, 96, 75, 65, 85, 69, 62)
+jung_n <- function(i) {
+  a <- c(jung.t4$a1[i], 1 - jung.t4$a1[i])
+  b <- jung.b[[jung.t4$b[i]]]
+  q <- c(0.1, 0.3)
+  p <- st.or(q, jung.th[[jung.t4$th[i]]])
+  N <- jung.mh[i]
+  repeat {
+    n1 <- floor(N * a[1])
+    m <- floor(N * a * b)
+    pw <- StratPower(p, q, m, c(n1, N - n1) - m, 0.05, 'Strat-Fisher')$Power
+    if (pw >= 0.9) return(N)
+    N <- N + 1
+  }
+}
+add(jung.src, sprintf('Jung2014 Table 4: N, (m, n) fixed, a1 = %.2f, b = (%s), theta = (%s)',
+                      jung.t4$a1,
+                      vapply(jung.b[jung.t4$b], paste, character(1), collapse = ', '),
+                      vapply(jung.th[jung.t4$th], paste, character(1), collapse = ', ')),
+    jung.pub, vapply(seq_len(nrow(jung.t4)), jung_n, numeric(1)), 0,
+    'Sizes rounded down, the remainder in the last stratum')
+# Design example of p. 139: three strata of sizes (20, 20, 22) with half of each in group
+# 1, rounded down, q = (0.9, 0.75, 0.6), odds ratios (1, 30, 30), one-sided level 0.1
+jung.q <- c(0.9, 0.75, 0.6)
+jung.m <- c(10, 10, 11)
+add(jung.src, 'Jung2014 p. 139: marginal type I error rate at N = 62', 0.0565,
+    StratPower(jung.q, jung.q, jung.m, c(20, 20, 22) - jung.m, 0.1, 'Strat-Fisher')$Power,
+    4)
+add(jung.src, 'Jung2014 p. 139: power at N = 62', 0.8105,
+    StratPower(st.or(jung.q, c(1, 30, 30)), jung.q, jung.m, c(20, 20, 22) - jung.m, 0.1,
+               'Strat-Fisher')$Power, 4)
 
 # Verdicts and summary -------------------------------------------------------------------
 tab <- do.call(rbind, cmp)

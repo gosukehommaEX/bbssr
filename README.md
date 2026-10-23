@@ -26,11 +26,29 @@ the data by treatment group.
 
 `bbssr` covers the whole chain of calculations that this requires, from
 the rejection region of a test to the enrolment decision at an interim
-analysis. Power, sample sizes and type I error rates are computed
-exactly rather than by simulation.
+analysis, for two independent groups, for matched pairs and for
+stratified designs. Power, sample sizes and type I error rates are
+computed exactly rather than by simulation, except for re-estimation
+designs with three or more strata.
 
 ## What is new since version 2.0.0
 
+- Stratified designs: `StratRR()`, `StratPower()`, `StratSampleSize()`,
+  `StratPowerBSSR()`, `StratBSSR()`, `StratTypeIErrorBSSR()` and
+  `StratAlphaAdjBSSR()` with the Cochran-Mantel-Haenszel test, Cochran’s
+  test and the stratified exact conditional test, the sample size
+  formulas of Woolson, Bean and Rojas (1986) and Nam (1992), and a
+  certified largest type I error rate over the response probabilities of
+  two strata.
+- Paired binary data: `PairedRR()`, `PairedPower()`,
+  `PairedSampleSize()`, `PairedPowerBSSR()`, `PairedBSSR()`,
+  `PairedTypeIErrorBSSR()` and `PairedAlphaAdjBSSR()` with five tests
+  for matched pairs and the re-estimation from the blinded number of
+  discordant pairs, including the conditional power rule of Schepers et
+  al. (2026).
+- Tests of equivalence with `alternative = 'equivalence'` and two
+  margins, by two one-sided tests of Blackwelder or of Farrington and
+  Manning.
 - Two tests of non-inferiority with a margin on the scale of the risk
   difference or, with `margin.scale = 'RR'`, of the risk ratio,
   `Test = 'Blackwelder'` and `Test = 'Farrington-Manning'`, and the
@@ -337,6 +355,13 @@ the database, so the analysis stays blinded.
 | `BinaryCondRejectBSSR()` | Conditional rejection probabilities and the type I error rate by interim outcome |
 | `BinaryBSSR()` | Sample size re-estimation from observed interim data |
 
+The functions `PairedRR()`, `PairedPower()`, `PairedSampleSize()`,
+`PairedPowerBSSR()`, `PairedBSSR()`, `PairedTypeIErrorBSSR()` and
+`PairedAlphaAdjBSSR()` provide the same calculations for matched pairs,
+and the functions `StratRR()`, `StratPower()`, `StratSampleSize()`,
+`StratPowerBSSR()`, `StratBSSR()`, `StratTypeIErrorBSSR()` and
+`StratAlphaAdjBSSR()` for stratified designs.
+
 Each returns a classed object with a `print()`, `summary()` or `plot()`
 method where one is useful.
 
@@ -359,7 +384,9 @@ the [package website](https://gosukehommaex.github.io/bbssr/).
 - `bbssr-reestimation-rules`: the options of the re-estimation
 - `bbssr-design-grid`: comparing designs with `BinaryGridBSSR()`
 - `bbssr-non-inferiority`: tests with a margin and re-estimation in
-  non-inferiority trials
+  non-inferiority and equivalence trials
+- `bbssr-paired`: matched pairs, such as cross-over trials
+- `bbssr-stratified`: stratified designs with two or more strata
 - `bbssr-type1-error`: type I error rate, adjusted level and conditional
   rejection probabilities
 - `bbssr-statistical-methods`: the tests and the re-estimation
@@ -381,11 +408,15 @@ over the nuisance parameter. The script
 of Berger and Boos (1994), Blackwelder (1982), Boschloo (1970),
 Farrington and Manning (1990), Fay and Hunsberger (2021), Friede and
 Kieser (2004), Friede, Mitchell and Mueller-Velten (2007), Kieser (2020)
-and Mehrotra, Chan and Berger (2003), and the unit tests compare the
-package with independent implementations. Details are in the validation
-vignette, and the `bbssr-published-figures` vignette redraws fifteen
-published figures of Friede and Kieser (2004), Kieser (2020), Friede,
-Mitchell and Mueller-Velten (2007) and Boschloo (1970).
+and Mehrotra, Chan and Berger (2003), for matched pairs those of Berger
+and Sidik (2003), Connor (1987), Fagerland, Lydersen and Laake (2013),
+Nam (1997), Schepers et al. (2026) and Tango (1998), and for stratified
+designs those of Jung (2014), Nam (1992) and Woolson, Bean and Rojas
+(1986), and the unit tests compare the package with independent
+implementations and with `stats::mantelhaen.test`. Details are in the
+validation vignette, and the `bbssr-published-figures` vignette redraws
+fifteen published figures of Friede and Kieser (2004), Kieser (2020),
+Friede, Mitchell and Mueller-Velten (2007) and Boschloo (1970).
 
 ## References
 
@@ -396,12 +427,23 @@ Berger, R. L. and Boos, D. D. (1994). P values maximized over a
 confidence set for the nuisance parameter. *Journal of the American
 Statistical Association*, 89, 1012-1016.
 
+Berger, R. L. and Sidik, K. (2003). Exact unconditional tests for a 2 ×
+2 matched-pairs design. *Statistical Methods in Medical Research*, 12,
+91-108.
+
 Blackwelder, W. C. (1982). “Proving the null hypothesis” in clinical
 trials. *Controlled Clinical Trials*, 3, 345-353.
 
 Boschloo, R. D. (1970). Raised conditional level of significance for the
 2 × 2-table when testing the equality of two probabilities. *Statistica
 Neerlandica*, 24, 1-9.
+
+Connor, R. J. (1987). Sample size for testing differences in proportions
+for the paired-sample design. *Biometrics*, 43, 207-211.
+
+Fagerland, M. W., Lydersen, S. and Laake, P. (2013). The McNemar test
+for binary matched-pairs data: mid-p and asymptotic are better than
+exact conditional. *BMC Medical Research Methodology*, 13, 91.
 
 Farrington, C. P. and Manning, G. (1990). Test statistics and sample
 size formulae for comparative binomial trials with null hypothesis of
@@ -419,6 +461,9 @@ Friede, T., Mitchell, C. and Mueller-Velten, G. (2007). Blinded sample
 size reestimation in non-inferiority trials with binary endpoints.
 *Biometrical Journal*, 49, 903-916.
 
+Jung, S. H. (2014). Stratified Fisher’s exact test and its sample size
+calculation. *Biometrical Journal*, 56, 129-140.
+
 Kieser, M. (2020). *Methods and Applications of Sample Size Calculation
 and Recalculation in Clinical Trials*. Springer.
 
@@ -429,6 +474,32 @@ internal pilot study designs with control of the type I error rate.
 Mehrotra, D. V., Chan, I. S. F. and Berger, R. L. (2003). A cautionary
 note on exact unconditional inference for a difference between two
 independent binomial proportions. *Biometrics*, 59, 441-450.
+
+Nam, J. (1992). Sample size determination for case-control studies and
+the comparison of stratified and unstratified analyses. *Biometrics*,
+48, 389-395.
+
+Nam, J. (1997). Establishing equivalence of two treatments and sample
+size requirements in matched-pairs design. *Biometrics*, 53, 1422-1430.
+
+Schepers, M., Brannath, W., Hoffmann, E., Stingl, J. and Schmidtmann, I.
+(2026). Blinded sample size review for McNemar’s test based on primary
+and surrogate endpoints. arXiv:2608.17784.
+
+Suissa, S. and Shuster, J. J. (1991). The 2 x 2 matched-pairs trial:
+exact unconditional design and analysis. *Biometrics*, 47, 361-372.
+
+Tango, T. (1998). Equivalence test and confidence interval for the
+difference in proportions for the paired-sample design. *Statistics in
+Medicine*, 17, 891-908.
+
+Woolson, R. F., Bean, J. A. and Rojas, P. B. (1986). Sample size for
+case-control studies using Cochran’s statistic. *Biometrics*, 42,
+927-932.
+
+Xu, J. and Yu, M. (2013). Sample size determination and re-estimation
+for matched pair designs with multiple binary endpoints. *Biometrical
+Journal*, 55, 430-443.
 
 ## License
 
