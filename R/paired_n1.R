@@ -29,5 +29,7 @@ paired_n1 <- function(N, omega, n.interim) {
   if (is.null(N) || length(N) != 1 || is.na(N) || N < 1 || N != round(N)) {
     stop('N must be a single positive integer when omega is given')
   }
-  as.integer(ceiling(omega * N))
+  # ceil_tol() keeps a product such as 0.55 * 100, which exceeds 55 by a rounding error,
+  # from being rounded up to 56
+  as.integer(ceil_tol(omega * N))
 }

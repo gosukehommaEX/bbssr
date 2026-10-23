@@ -2,6 +2,9 @@
 #'
 #' Prints the result of a blinded sample size re-estimation from paired interim data.
 #'
+#' An object whose attributes were removed, for example by selecting some of its rows
+#' or columns, is printed as a data frame.
+#'
 #' @param x An object of class \code{bbssr_pbssr} returned by \code{\link{PairedBSSR}}
 #' @param digits Number of decimal places. Default is 4
 #' @param ... Further arguments, ignored
@@ -15,7 +18,8 @@
 #'
 #' @export
 print.bbssr_pbssr <- function(x, digits = 4, ...) {
-  if (!all(c('n1', 'D1', 'psi.hat', 'psi.plan', 'p10.plan', 'p01.plan', 'N.re',
+  if (is.null(attr(x, 'ss.method')) ||
+      !all(c('n1', 'D1', 'psi.hat', 'psi.plan', 'p10.plan', 'p01.plan', 'N.re',
              'n.stage2', 'N.final', 'Power', 'CP') %in% names(x))) return(NextMethod())
   rule <- c(exact = 'exact sample size', standard = 'normal approximation',
             conditional.power = 'conditional power')[[attr(x, 'ss.method')]]

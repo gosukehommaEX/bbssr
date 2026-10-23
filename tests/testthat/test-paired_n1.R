@@ -11,3 +11,8 @@ test_that("paired_n1 checks its arguments", {
   expect_error(paired_n1(30, NULL, 2.5), 'n.interim must be')
   expect_error(paired_n1(NULL, 0.5, NULL), 'N must be')
 })
+
+test_that("paired_n1 is not raised by a rounding error of the product", {
+  # 0.55 * 100 exceeds 55 by a rounding error
+  expect_identical(paired_n1(100, 0.55, NULL), 55L)
+})

@@ -3,6 +3,9 @@
 #' Prints the re-estimated group sizes of a stratified trial returned by
 #' \code{\link{StratBSSR}}.
 #'
+#' An object whose attributes were removed, for example by selecting some of its rows
+#' or columns, is printed as a data frame.
+#'
 #' @param x An object of class \code{bbssr_sbssr}
 #' @param digits Number of decimal places. Default is 4
 #' @param ... Further arguments, ignored
@@ -17,7 +20,9 @@
 #'
 #' @export
 print.bbssr_sbssr <- function(x, digits = 4, ...) {
-  if (!all(c('N1.final', 'N2.final') %in% names(x))) return(NextMethod())
+  if (is.null(attr(x, 'ss.method')) || !all(c('N1.final', 'N2.final') %in% names(x))) {
+    return(NextMethod())
+  }
   rule <- c(exact = 'exact sample size', standard = 'normal approximation')[[
     attr(x, 'ss.method')]]
   cat('Blinded sample size re-estimation for a stratified trial\n\n')

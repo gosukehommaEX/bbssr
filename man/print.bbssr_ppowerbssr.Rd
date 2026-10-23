@@ -21,6 +21,10 @@
 Prints the power and the expected final number of pairs of a matched-pairs design with
 blinded sample size re-estimation.
 }
+\details{
+An object whose attributes were removed, for example by selecting some of its rows
+or columns, is printed as a data frame.
+}
 \examples{
 res <- PairedPowerBSSR(psi = c(0.2, 0.3), Delta.T = 0.15, Delta.A = 0.15, N = 72,
                        n.interim = 30, alpha = 0.05, tar.power = 0.8,

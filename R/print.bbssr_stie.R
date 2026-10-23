@@ -3,6 +3,9 @@
 #' Prints the largest type I error rates of a stratified design with blinded sample size
 #' re-estimation and of the fixed design, returned by \code{\link{StratTypeIErrorBSSR}}.
 #'
+#' An object whose attributes were removed, for example by selecting some of its rows
+#' or columns, is printed as a data frame.
+#'
 #' @param x An object of class \code{bbssr_stie}
 #' @param digits Number of significant digits. Default is 6
 #' @param ... Further arguments, ignored
@@ -17,7 +20,9 @@
 #'
 #' @export
 print.bbssr_stie <- function(x, digits = 6, ...) {
-  if (!all(c('TIE.BSSR', 'TIE.TRAD') %in% names(x))) return(NextMethod())
+  if (is.null(attr(x, 'max')) || !all(c('TIE.BSSR', 'TIE.TRAD') %in% names(x))) {
+    return(NextMethod())
+  }
   cat('Type I error rate of blinded sample size re-estimation for a stratified design\n\n')
   cat(sprintf('  Test             : %s\n', attr(x, 'Test')))
   cat(sprintf('  Alternative      : %s\n', attr(x, 'alternative')))

@@ -55,7 +55,8 @@ strat_reestimate <- function(s, n1, n2, Delta.A, effect, frac, r, ss.method, ss.
   J <- length(n1)
   s <- matrix(as.double(s), ncol = J)
   check_delta(Delta.A, effect, alternative, 'Delta.A', 0, 'RD')
-  if (length(tar.power) != 1 || is.na(tar.power) || tar.power <= 0 || tar.power >= 1) {
+  if (length(tar.power) != 1 || !is.numeric(tar.power) || is.na(tar.power) ||
+      tar.power <= 0 || tar.power >= 1) {
     stop('tar.power must be a single value in (0, 1)')
   }
   if (restricted && (is.null(N1.plan) || is.null(N2.plan))) {

@@ -35,3 +35,15 @@ test_that("print.bbssr_alphaadj shows the boundary of a test of equivalence", {
   expect_true(any(grepl('Boundary', out, fixed = TRUE)))
   expect_true(any(grepl('upper', out, fixed = TRUE)))
 })
+
+test_that("print.bbssr_alphaadj prints a subset without its attributes as a data frame", {
+  res <- BinaryAlphaAdjBSSR(Delta.A = 0.3, N1 = 12, N2 = 12, omega = 0.5, r = 1,
+                            alpha = 0.025, tar.power = 0.8, Test = 'Chisq',
+                            ss.method = 'standard', theta = seq(0.1, 0.9, by = 0.1),
+                            tol = 1e-4)
+  sub <- res[1, ]
+  expect_null(attr(sub, 'adjust'))
+  out <- utils::capture.output(print(sub))
+  expect_false(any(grepl('Adjusted significance level', out, fixed = TRUE)))
+  expect_true(any(grepl('alpha.adj', out, fixed = TRUE)))
+})

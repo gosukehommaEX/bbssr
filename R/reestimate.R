@@ -90,7 +90,7 @@ reestimate <- function(hat.p1, hat.p2, r, alpha, tar.power, Test, alternative, t
                          search, search.limit, margin.scale)
     N2.u <- s$N2
     L.u <- s$limit
-    N1.u <- as.integer(ceiling(r * N2.u))
+    N1.u <- as.integer(ceil_tol(r * N2.u))
   } else if (length(first) > 0) {
     n.u <- vapply(first, function(u) {
       sample_size_n(hat.p1[u], hat.p2[u], r, alpha, tar.power, Test, alternative,

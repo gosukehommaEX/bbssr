@@ -42,7 +42,9 @@ the strata and used to divide the blinded estimate of the pooled response probab
 of each stratum between the groups at the re-estimation}
 
 \item{r}{Allocation ratio of group 1 to group 2 within the strata, a single value or one
-value per stratum}
+value per stratum. The blinded estimate of the pooled response probability of a
+stratum is divided between the groups with this ratio, also when the interim sizes
+are not in this ratio}
 
 \item{alpha}{Level of significance of the final analysis}
 
@@ -52,9 +54,10 @@ value per stratum}
 with the hypergeometric variance, without continuity correction), \code{'CMH-cc'}
 (the same with the continuity correction of \code{\link[stats]{mantelhaen.test}}),
 \code{'Cochran'} (Cochran's test with the binomial variance, the test of Woolson et
-al. (1986)), \code{'Cochran-cc'} (the same with the continuity correction of Nam
-(1992)) or \code{'Strat-Fisher'} (the stratified exact conditional test of Jung
-(2014)). See Details}
+al. (1986)), \code{'Cochran-cc'} (the same with the continuity correction, which
+rejects the same outcomes as that of Nam (1992) at one-sided levels up to 0.078) or
+\code{'Strat-Fisher'} (the stratified exact conditional test of Jung (2014)). See
+Details}
 
 \item{restricted}{Logical. If \code{TRUE}, the final group sizes are at least the planned
 sizes. Default is \code{FALSE}}
@@ -114,7 +117,9 @@ interval}
 }
 The attributes \code{n.raw} (unrounded total of the normal approximation),
 \code{N.final} (final total sample size) and \code{Power} (exact power of the final
-design at the planning probabilities) summarize the re-estimation.
+design at the planning probabilities) summarize the re-estimation, and the attribute
+\code{search.limit} holds the limit of the nominal total examined by
+\code{search = 'stable'} (otherwise \code{NA}).
 }
 \description{
 Re-estimates the final group sizes of the strata of an ongoing two-arm trial with a

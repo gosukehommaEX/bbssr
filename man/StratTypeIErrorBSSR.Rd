@@ -45,7 +45,9 @@ the interim size of group 2 is \code{ceiling(omega N2[j])} and that of group 1 i
 \code{ceiling(r[j] n2[j])}. Supply either \code{omega} or \code{n.interim}}
 
 \item{r}{Allocation ratio of group 1 to group 2 within the strata, a single value or one
-value per stratum}
+value per stratum. The blinded estimate of the pooled response probability of a
+stratum is divided between the groups with this ratio, also when the interim sizes
+are not in this ratio}
 
 \item{alpha}{Level of significance of the final analysis}
 
@@ -55,9 +57,10 @@ value per stratum}
 with the hypergeometric variance, without continuity correction), \code{'CMH-cc'}
 (the same with the continuity correction of \code{\link[stats]{mantelhaen.test}}),
 \code{'Cochran'} (Cochran's test with the binomial variance, the test of Woolson et
-al. (1986)), \code{'Cochran-cc'} (the same with the continuity correction of Nam
-(1992)) or \code{'Strat-Fisher'} (the stratified exact conditional test of Jung
-(2014)). See Details}
+al. (1986)), \code{'Cochran-cc'} (the same with the continuity correction, which
+rejects the same outcomes as that of Nam (1992) at one-sided levels up to 0.078) or
+\code{'Strat-Fisher'} (the stratified exact conditional test of Jung (2014)). See
+Details}
 
 \item{restricted}{Logical. If \code{TRUE}, the final group sizes are at least the planned
 sizes. Default is \code{FALSE}}
@@ -107,9 +110,10 @@ column per stratum gives the points directly. Default is
 \code{seq(0, 1, by = 0.05)}}
 
 \item{maximize}{How the largest type I error rate is located. With
-\code{'certified'} (default, two strata only) it is certified over the rectangle from
-the smallest to the largest value of \code{theta} in each stratum, see Details. With
-\code{'grid'} it is the largest value at the points of \code{theta}}
+\code{'certified'} (the default with two strata, and available only with two) it is
+certified over the rectangle from the smallest to the largest value of \code{theta} in
+each stratum, see Details. With \code{'grid'} (the default with three or more strata)
+it is the largest value at the points of \code{theta}}
 
 \item{nsim}{Number of simulated trials at each point with three or more strata. Default
 is \code{1e5}. Ignored with two strata}

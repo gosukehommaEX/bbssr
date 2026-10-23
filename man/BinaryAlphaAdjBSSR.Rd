@@ -183,7 +183,8 @@ BSSR design and one for the fixed-sample design containing:
 \item{max.TIE}{Largest type I error rate at the nominal level \code{alpha}}
 \item{alpha.adj}{Adjusted nominal level, see Details. It is \code{alpha} when the
 nominal level already controls the type I error rate, and 0, with a warning, when
-no level examined does}
+no level examined by the bisection does. The search of \code{adjust = 'both'} for
+the BSSR design stops with an error instead when it reaches 0}
 \item{max.TIE.adj}{Largest type I error rate at the adjusted level, 0 when
 \code{alpha.adj} is 0}
 \item{theta.adj}{Common response probability, or pooled response probability on the

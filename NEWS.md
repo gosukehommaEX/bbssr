@@ -239,6 +239,21 @@ Version 2.1.0 was not released, and its changes are included in this version.
 * The p-values of each test are stored instead of its rejection regions, so a region at
   any level is obtained without recomputing them.
 
+* `print()` of the result of `BinaryAlphaAdjBSSR()` stopped with an error when the
+  attributes of the result had been removed by selecting some of its rows or columns;
+  such an object is now printed as a data frame. The print methods of the results for
+  matched pairs and stratified designs do the same.
+
+* Sizes obtained by rounding up a product are rounded up with a tolerance for
+  floating-point error: the interim sizes `ceiling(omega * N2)` and
+  `ceiling(r * ceiling(omega * N2))` of the re-estimation functions and the size
+  `ceiling(r * N2)` of group 1. For example, `omega = 0.55` with `N2 = 100` now gives 55
+  interim patients in group 2 instead of 56, and `r = 1.1` with 50 patients in group 2 gives 55
+  patients in group 1 instead of 56.
+
+* `N.min` and `N.max` must be finite numbers. `N.max = Inf` made `BinaryBSSR()` and
+  `BinaryPowerBSSR()` run without end with the default rounding.
+
 ## Performance
 
 * `BinaryAlphaAdjBSSR()` evaluates the type I error rate at a new level first at the

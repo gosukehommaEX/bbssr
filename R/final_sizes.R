@@ -46,6 +46,14 @@
 #' @noRd
 final_sizes <- function(re, n11, n12, r, rounding, restricted, N1.plan, N2.plan,
                         N.min, N.max) {
+  # BinaryBSSR() calls this function directly. An infinite N.max would make the search for
+  # the largest admissible size below run without end
+  if (!is.null(N.min) && (length(N.min) != 1 || !is.numeric(N.min) || !is.finite(N.min))) {
+    stop('N.min must be a single finite number')
+  }
+  if (!is.null(N.max) && (length(N.max) != 1 || !is.numeric(N.max) || !is.finite(N.max))) {
+    stop('N.max must be a single finite number')
+  }
   n1 <- n11 + n12
   if (rounding == 'group') {
     lo2 <- max(n12, if (restricted) N2.plan else 0,
@@ -53,14 +61,14 @@ final_sizes <- function(re, n11, n12, r, rounding, restricted, N1.plan, N2.plan,
     hi2 <- Inf
     if (!is.null(N.max)) {
       hi2 <- floor(N.max / (1 + r))
-      while ((hi2 + 1) + ceiling(r * (hi2 + 1)) <= N.max) hi2 <- hi2 + 1
-      while (hi2 > 0 && hi2 + ceiling(r * hi2) > N.max) hi2 <- hi2 - 1
+      while ((hi2 + 1) + ceil_tol(r * (hi2 + 1)) <= N.max) hi2 <- hi2 + 1
+      while (hi2 > 0 && hi2 + ceil_tol(r * hi2) > N.max) hi2 <- hi2 - 1
     }
     if (hi2 < lo2) {
       stop('N.max is smaller than the smallest final sample size the design allows')
     }
     N2 <- pmax(lo2, pmin(hi2, re$N2.re))
-    N1 <- pmax(n11, ceiling(r * N2))
+    N1 <- pmax(n11, ceil_tol(r * N2))
     return(list(N1 = as.integer(N1), N2 = as.integer(N2)))
   }
   lo <- max(n1, if (restricted) N1.plan + N2.plan else 0,

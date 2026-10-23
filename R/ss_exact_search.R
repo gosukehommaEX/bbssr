@@ -64,7 +64,7 @@ ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsme
     key <- as.character(N2)
     hit <- store[[key]]
     if (is.null(hit)) {
-      hit <- get_rr(ceiling(r * N2), N2, alpha, Test, alternative, tsmethod, n.grid,
+      hit <- get_rr(ceil_tol(r * N2), N2, alpha, Test, alternative, tsmethod, n.grid,
                     bb.gamma, ref.pvalue, margin, margin.scale)
       assign(key, hit, envir = store)
     }
@@ -72,7 +72,7 @@ ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsme
   }
   # Exact power of pair k at a given size of group 2
   power_at <- function(N2, k) {
-    N1 <- ceiling(r * N2)
+    N1 <- ceil_tol(r * N2)
     power_from_rr(rr_at(N2), dbinom(0:N1, N1, p1[k]), dbinom(0:N2, N2, p2[k]))
   }
   # Step 0 (initial sample size from the normal approximation to the chi-squared test)

@@ -59,7 +59,7 @@ sample_size_n <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsmeth
                     margin.scale)
     if (rounding == 'group') {
       N2 <- ceil_tol(n2)
-      N1 <- ceiling(r * N2)
+      N1 <- ceil_tol(r * N2)
     } else if (rounding == 'friede-kieser') {
       N2 <- ceil_tol(n2)
       N1 <- ceil_tol(r * n2)
@@ -75,7 +75,7 @@ sample_size_n <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsmeth
   }
   s <- ss_exact_search(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod, n.grid,
                        bb.gamma, ref.pvalue, margin, search, search.limit, margin.scale)
-  out <- c(N1 = as.integer(ceiling(r * s$N2)), N2 = as.integer(s$N2))
+  out <- c(N1 = as.integer(ceil_tol(r * s$N2)), N2 = as.integer(s$N2))
   attr(out, 'limit') <- s$limit
   out
 }

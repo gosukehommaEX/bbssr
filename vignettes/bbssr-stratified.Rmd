@@ -34,7 +34,7 @@ The functions follow those for two independent groups: `StratRR()`, `StratPower(
 
 ## Tests
 
-Five tests are available. `'CMH'` is the Cochran-Mantel-Haenszel statistic $(S - E) / \sqrt{V}$ with the hypergeometric variance $V = \sum_j N_{1j} N_{2j} z_j (N_j - z_j) / \{N_j^2 (N_j - 1)\}$, and `'Cochran'` is Cochran's statistic with the binomial variance $\sum_j N_{1j} N_{2j} z_j (N_j - z_j) / N_j^3$, the statistic of Woolson et al. (1986). `'CMH-cc'` and `'Cochran-cc'` reduce $|S - E|$ by 0.5, the continuity correction of `stats::mantelhaen.test()` and of Nam (1992). `'Strat-Fisher'` is the stratified exact conditional test of Jung (2014), which refers $S$ to its distribution given $z$, the convolution of the hypergeometric distributions of the strata.
+Five tests are available. `'CMH'` is the Cochran-Mantel-Haenszel statistic $(S - E) / \sqrt{V}$ with the hypergeometric variance $V = \sum_j N_{1j} N_{2j} z_j (N_j - z_j) / \{N_j^2 (N_j - 1)\}$, and `'Cochran'` is Cochran's statistic with the binomial variance $\sum_j N_{1j} N_{2j} z_j (N_j - z_j) / N_j^3$, the statistic of Woolson et al. (1986). `'CMH-cc'` and `'Cochran-cc'` reduce $|S - E|$ by 0.5 when it is at least 0.5, the continuity correction of `stats::mantelhaen.test()`. Nam (1992) reduces $S - E$ by 0.5 in every outcome; the two corrections reject the same outcomes at one-sided levels up to 0.078, since an outcome with $|S - E| < 0.5$ has a larger one-sided p-value. `'Strat-Fisher'` is the stratified exact conditional test of Jung (2014), which refers $S$ to its distribution given $z$, the convolution of the hypergeometric distributions of the strata.
 
 Jung (2014, Table 2) analyses the response to thymosin in three strata of patients with bronchogenic carcinoma.
 

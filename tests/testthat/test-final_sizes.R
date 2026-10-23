@@ -54,3 +54,19 @@ test_that("final_sizes rounds each group to the nearest whole number under 'near
   expect_equal(fin$N1, c(33L, 40L, 30L))
   expect_equal(fin$N2, c(17L, 20L, 15L))
 })
+
+test_that("the group rule is not raised by a rounding error of r times the size", {
+  # 1.1 * 50 exceeds 55 by a rounding error
+  fin <- final_sizes(re_of(NA, 0, 50), 1, 1, 1.1, 'group', FALSE, NULL, NULL, NULL, NULL)
+  expect_identical(c(fin$N1, fin$N2), c(55L, 50L))
+  fin <- final_sizes(re_of(NA, 0, 1000), 1, 1, 1.1, 'group', FALSE, NULL, NULL, NULL, 105)
+  expect_identical(c(fin$N1, fin$N2), c(55L, 50L))
+})
+
+test_that("final_sizes requires finite bounds", {
+  re <- re_of(NA, 10, 10)
+  expect_error(final_sizes(re, 4, 4, 1, 'group', FALSE, NULL, NULL, NULL, Inf),
+               'N.max must be a single finite number')
+  expect_error(final_sizes(re, 4, 4, 1, 'group', FALSE, NULL, NULL, Inf, NULL),
+               'N.min must be a single finite number')
+})

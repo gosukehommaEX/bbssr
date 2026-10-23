@@ -19,11 +19,11 @@
 #' @keywords internal
 #' @noRd
 strat_bounds <- function(frac, r, low1, low2, N.min, N.max) {
-  if (!is.null(N.min) && (length(N.min) != 1 || !is.numeric(N.min) || is.na(N.min))) {
-    stop('N.min must be a single value')
+  if (!is.null(N.min) && (length(N.min) != 1 || !is.numeric(N.min) || !is.finite(N.min))) {
+    stop('N.min must be a single finite number')
   }
-  if (!is.null(N.max) && (length(N.max) != 1 || !is.numeric(N.max) || is.na(N.max))) {
-    stop('N.max must be a single value')
+  if (!is.null(N.max) && (length(N.max) != 1 || !is.numeric(N.max) || !is.finite(N.max))) {
+    stop('N.max must be a single finite number')
   }
   total <- function(n) {
     sz <- strat_sizes(n, frac, r)

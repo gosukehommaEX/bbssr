@@ -3,6 +3,9 @@
 #' Prints the power and the expected final number of pairs of a matched-pairs design with
 #' blinded sample size re-estimation.
 #'
+#' An object whose attributes were removed, for example by selecting some of its rows
+#' or columns, is printed as a data frame.
+#'
 #' @param x An object of class \code{bbssr_ppowerbssr} returned by
 #'   \code{\link{PairedPowerBSSR}}
 #' @param digits Number of decimal places. Default is 4
@@ -19,7 +22,8 @@
 #'
 #' @export
 print.bbssr_ppowerbssr <- function(x, digits = 4, ...) {
-  if (!all(c('psi', 'p10', 'p01', 'power.BSSR', 'power.TRAD', 'E.N') %in% names(x))) {
+  if (is.null(attr(x, 'ss.method')) ||
+      !all(c('psi', 'p10', 'p01', 'power.BSSR', 'power.TRAD', 'E.N') %in% names(x))) {
     return(NextMethod())
   }
   rule <- c(exact = 'exact sample size', standard = 'normal approximation',

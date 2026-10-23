@@ -10,3 +10,10 @@ test_that("strat_bounds rejects bounds that leave no design", {
   expect_error(strat_bounds(c(0.5, 0.5), c(1, 1), c(1, 1), c(1, 1), c(1, 2), NULL),
                'N.min')
 })
+
+test_that("strat_bounds requires finite bounds", {
+  expect_error(strat_bounds(c(0.5, 0.5), c(1, 1), c(5, 3), c(5, 3), NULL, Inf),
+               'N.max must be a single finite number')
+  expect_error(strat_bounds(c(0.5, 0.5), c(1, 1), c(5, 3), c(5, 3), Inf, NULL),
+               'N.min must be a single finite number')
+})

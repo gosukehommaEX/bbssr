@@ -479,9 +479,21 @@ def blocks_bssr(emit, reported_level):
             res += [pw, EN]
         emit(f, "power and E.N " + key, res)
         # Final sizes of a few interim outcomes
-        cells = [(0, 0), (3, 7), (6, 4), (10, 10)]
+        # Interim outcomes that are possible in both designs (stratum 1 of the second
+        # design has 8 patients at the interim analysis)
+        cells = [(0, 0), (3, 7), (6, 4), (8, 10)]
         emit("test-strat_reestimate.R", "final sizes " + key,
              [v for s in cells for part in fin(s) for v in part], rtol=0)
+    # Final sizes with the assumed effect on the scale of the risk ratio and of the odds
+    # ratio, where the pooled probability is divided by a root search
+    for key, DA, effect in (("CMH standard RR", 1.5, "RR"), ("CMH standard OR", 3.0, "OR")):
+        d = dict(designs["CMH standard"], DA=DA, effect=effect)
+        emit("test-strat_reestimate.R", "final sizes " + key,
+             [v for s in cells
+              for part in reestimate(s, d["n1"], d["n2"], d["DA"], d["effect"], d["frac"],
+                                     d["r"], d["method"], d["test"], d["alpha"], 0.8,
+                                     d["alt"], d["ts"], d["N1p"], d["N2p"])
+              for v in part], rtol=0)
     # Type I error rate on a grid and its largest value
     f = "test-StratTypeIErrorBSSR.R"
     d = designs["CMH standard"]

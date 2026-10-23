@@ -48,14 +48,15 @@
 paired_reestimate <- function(n1, D1, Delta.A, N, tar.power, restricted, alternative,
                               n.grid, bb.gamma, ss.method, ss.Test, ss.alpha, N.min,
                               N.max, ref.pvalue, margin, search, search.limit) {
-  if (length(tar.power) != 1 || is.na(tar.power) || tar.power <= 0 || tar.power >= 1) {
+  if (length(tar.power) != 1 || !is.numeric(tar.power) || is.na(tar.power) ||
+      tar.power <= 0 || tar.power >= 1) {
     stop('tar.power must be a single value in (0, 1)')
   }
-  if (!is.null(N.min) && (length(N.min) != 1 || is.na(N.min))) {
-    stop('N.min must be a single value')
+  if (!is.null(N.min) && (length(N.min) != 1 || !is.numeric(N.min) || !is.finite(N.min))) {
+    stop('N.min must be a single finite number')
   }
-  if (!is.null(N.max) && (length(N.max) != 1 || is.na(N.max))) {
-    stop('N.max must be a single value')
+  if (!is.null(N.max) && (length(N.max) != 1 || !is.numeric(N.max) || !is.finite(N.max))) {
+    stop('N.max must be a single finite number')
   }
   check_delta(Delta.A, 'RD', alternative, 'Delta.A', margin, 'RD')
   # The test and the level of the re-estimation are validated as for a rejection region

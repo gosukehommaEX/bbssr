@@ -254,7 +254,7 @@ BinaryPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r,
   search <- match.arg(search)
   margin.scale <- match.arg(margin.scale)
   margin <- norm_margin(alternative, margin, margin.scale)
-  if (rounding == 'group' && N1 != ceiling(r * N2)) {
+  if (rounding == 'group' && N1 != ceil_tol(r * N2)) {
     warning('N1 differs from ceiling(r * N2), the fixed-sample comparator is not ',
             'allocated in the ratio r to 1')
   }

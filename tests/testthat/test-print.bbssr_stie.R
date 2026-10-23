@@ -9,3 +9,14 @@ test_that("print.bbssr_stie prints the largest rates and how they were located",
   expect_true(any(grepl('Fixed sample', out)))
   expect_true(any(grepl('bound', out)))
 })
+
+test_that("print.bbssr_stie prints a subset without its attributes as a data frame", {
+  tie <- StratTypeIErrorBSSR(Delta.A = 0.3, N1 = c(6, 6), N2 = c(6, 6), omega = 0.5, r = 1,
+                             alpha = 0.05, tar.power = 0.8, Test = 'CMH',
+                             ss.method = 'standard', theta = c(0.2, 0.5, 0.8))
+  sub <- tie[1:2, ]
+  expect_null(attr(sub, 'max'))
+  out <- capture.output(print(sub))
+  expect_false(any(grepl('Type I error rate of blinded', out)))
+  expect_true(any(grepl('TIE.BSSR', out, fixed = TRUE)))
+})

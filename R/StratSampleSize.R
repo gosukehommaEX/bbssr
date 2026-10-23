@@ -27,8 +27,9 @@
 #'   \code{p1}, \code{p2}, \code{frac}, \code{r}, \code{alpha}, \code{tar.power},
 #'   \code{Test} and \code{alternative}, the group sizes \code{N1} and \code{N2} of the
 #'   strata, their total \code{N}, and the exact power \code{Power} of the design. The
-#'   attribute \code{n.raw} holds the unrounded total of the normal approximation and
-#'   \code{n} the nominal total of the design.
+#'   attribute \code{n.raw} holds the unrounded total of the normal approximation,
+#'   \code{n} the nominal total of the design and \code{search.limit} the limit of the
+#'   nominal total examined by \code{search = 'stable'} (otherwise \code{NA}).
 #'
 #' @details
 #' A design is described by the fractions \code{frac} of the strata and the allocation
@@ -52,8 +53,9 @@
 #' Cochran-Mantel-Haenszel statistic differs from Cochran's only by the factors
 #' \code{(N_j - 1) / N_j} of the variance, and it serves as the starting value of the exact
 #' search. The nominal total is \code{ceiling(N*)}, or \code{ceiling(N)}; the published
-#' tables of Woolson et al. (1986) and Nam (1992) round \code{N*} and \code{N} to the
-#' nearest integer instead.
+#' tables of Woolson et al. (1986) and Nam (1992) compute \code{N*} and \code{N} with the
+#' quantiles rounded to three decimals, such as 1.645 for the level 0.05 and 0.841 or 0.842
+#' for the power 0.8, and round them to the nearest integer instead.
 #'
 #' The exact power is not monotone in the sample size, so the result depends on
 #' \code{search}, as described in \code{\link{BinarySampleSize}}.
@@ -89,6 +91,7 @@ StratSampleSize <- function(p1, p2, frac, r = 1, alpha, tar.power, Test,
   method <- match.arg(method)
   search <- match.arg(search)
   J <- length(frac)
+  if (J < 2) stop('frac must have one element per stratum, for at least two strata')
   fr <- check_strat_frac(frac, r, J)
   a <- check_strat_args(rep(1, J), rep(1, J), alpha, Test, alternative, tsmethod)
   q1 <- check_strat_probs(p1, J, 'p1')

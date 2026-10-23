@@ -30,7 +30,9 @@
 #' }
 #' The attributes \code{n.raw} (unrounded total of the normal approximation),
 #' \code{N.final} (final total sample size) and \code{Power} (exact power of the final
-#' design at the planning probabilities) summarize the re-estimation.
+#' design at the planning probabilities) summarize the re-estimation, and the attribute
+#' \code{search.limit} holds the limit of the nominal total examined by
+#' \code{search = 'stable'} (otherwise \code{NA}).
 #'
 #' @details
 #' The re-estimation is that of \code{\link{StratPowerBSSR}}: in each stratum the blinded

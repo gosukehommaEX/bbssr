@@ -31,7 +31,8 @@
 #'   \item{max.TIE}{Largest type I error rate at the nominal level \code{alpha}}
 #'   \item{alpha.adj}{Adjusted nominal level. It is \code{alpha} when the nominal level
 #'     already controls the type I error rate, and 0, with a warning, when no level
-#'     examined does}
+#'     examined by the bisection does. The search of \code{adjust = 'both'} for the BSSR
+#'     design stops with an error instead when it reaches 0}
 #'   \item{max.TIE.adj}{Largest type I error rate at the adjusted level}
 #'   \item{psi.adj}{Probability of a discordant pair at which \code{max.TIE.adj} occurs,
 #'     \code{NA} when \code{alpha.adj} is 0}

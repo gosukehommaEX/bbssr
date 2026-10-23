@@ -14,9 +14,10 @@
 #'   with the hypergeometric variance, without continuity correction), \code{'CMH-cc'}
 #'   (the same with the continuity correction of \code{\link[stats]{mantelhaen.test}}),
 #'   \code{'Cochran'} (Cochran's test with the binomial variance, the test of Woolson et
-#'   al. (1986)), \code{'Cochran-cc'} (the same with the continuity correction of Nam
-#'   (1992)) or \code{'Strat-Fisher'} (the stratified exact conditional test of Jung
-#'   (2014)). See Details
+#'   al. (1986)), \code{'Cochran-cc'} (the same with the continuity correction, which
+#'   rejects the same outcomes as that of Nam (1992) at one-sided levels up to 0.078) or
+#'   \code{'Strat-Fisher'} (the stratified exact conditional test of Jung (2014)). See
+#'   Details
 #' @param alternative Direction of the alternative hypothesis. Options:
 #'   \code{'greater'} (default), under which group 1 responds more often than group 2,
 #'   \code{'less'} or \code{'two.sided'}
@@ -48,7 +49,13 @@
 #' \code{V = sum_j N1[j] N2[j] z_j (N_j - z_j) / (N_j^2 (N_j - 1))}, and Cochran's
 #' statistic uses the binomial variance \code{sum_j N1[j] N2[j] z_j (N_j - z_j) / N_j^3}
 #' instead. The continuity correction reduces \code{|S - E|} by 0.5 when it is at least 0.5,
-#' as in \code{\link[stats]{mantelhaen.test}}. The statistics are referred to the standard
+#' as in \code{\link[stats]{mantelhaen.test}}. Nam (1992) reduces \code{S - E} by 0.5 in
+#' every outcome, which makes a difference only where \code{|S - E| < 0.5}. There \code{S}
+#' is the integer next to \code{E}, and since the hypergeometric variance is at least
+#' \code{f (1 - f)}, with \code{f} the fractional part of \code{E}, and the binomial
+#' variance at least half of it, the one-sided p-value of \code{'Cochran-cc'} exceeds
+#' 0.078. The two corrections therefore reject the same outcomes at one-sided levels up to
+#' 0.078. The statistics are referred to the standard
 #' normal distribution, with the absolute value for a two-sided alternative, and an
 #' outcome whose variance is 0 is not rejected. The stratified exact conditional test uses
 #' the distribution of \code{S} given \code{z}, the convolution of the hypergeometric

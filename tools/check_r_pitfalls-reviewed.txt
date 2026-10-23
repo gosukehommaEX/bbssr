@@ -1,0 +1,46 @@
+# Lines found by tools/check_r_pitfalls.py that were looked at and are correct as they
+# stand. Tab-separated: kind, file, code of the line, reason.
+pminmax	R/BinaryBSSR.R	hat.p1 <- pmin(1, pmax(0, sp$p1))	vector argument
+pminmax	R/BinaryBSSR.R	hat.p2 <- pmin(1, pmax(0, sp$p2))	vector argument
+pminmax	R/BinaryPowerBSSR.R	p1 <- pmin(1, pmax(0, p1))	vector argument
+pminmax	R/BinaryPowerBSSR.R	p2 <- pmin(1, pmax(0, p2))	vector argument
+pminmax	R/PairedPower.R	Power <- paired_power(rr, pmin(1, as.double(p10)), pmin(1, as.double(p01)))	vector argument
+pminmax	R/PairedPowerBSSR.R	p10 <- pmax(0, p10[keep])	vector argument
+pminmax	R/PairedPowerBSSR.R	p01 <- pmax(0, p01[keep])	vector argument
+pminmax	R/PairedPowerBSSR.R	dD1 <- outer(0:n1, psi, function(x, t) dbinom(x, n1, pmin(1, t)))	vector argument (outer() passes vectors to its function)
+pminmax	R/bssr_map.R	hat.p1 <- pmin(1, pmax(0, sp$p1))	vector argument
+pminmax	R/bssr_map.R	hat.p2 <- pmin(1, pmax(0, sp$p2))	vector argument
+pminmax	R/fisher_pvalue.R	p.val[cbind(k + 1L, s - k + 1L)] <- pmin(1, p.k)	vector argument
+pminmax	R/fm_restricted.R	w <- (pi + acos(pmin(1, pmax(-1, ratio)))) / 3	vector argument
+pminmax	R/fm_restricted_rr.R	t1 <- pmin(min(1, R0), pmax(0, t1))	vector argument
+null	R/grid_design.R	a[['n1.interim']] <- NULL	removes the element on purpose before do.call()
+null	R/grid_design.R	a[['n2.interim']] <- NULL	removes the element on purpose before do.call()
+null	R/grid_design.R	a[['Delta.T']] <- NULL	removes the element on purpose before do.call()
+null	R/grid_design.R	a[['p.plan']] <- NULL	removes the element on purpose before do.call()
+pminmax	R/null_boundary.R	list(p1 = pmin(1, pmax(0, sp$p1)), p2 = pmin(1, pmax(0, sp$p2)), ok = ok)	vector argument
+pminmax	R/paired_boundary.R	p10 <- pmin(1, pmax(0, (psi + d0) / 2))	vector argument
+pminmax	R/paired_boundary.R	p01 <- pmin(1, pmax(0, (psi - d0) / 2))	vector argument
+pminmax	R/paired_boundary.R	t <- pmin(1, pmax(0, (psi - m) / (1 - m)))	vector argument
+pminmax	R/paired_cond_pvalue.R	p <- pmin(1, 2 * pmin(lo, up))	vector argument
+pminmax	R/paired_raw_parts.R	p01.bar <- (sqrt(pmax(0, b ^ 2 - 8 * c)) - b) / 4	vector argument
+pminmax	R/paired_raw_parts.R	list(d = d1 - d0, v0 = pmax(0, 2 * p01.bar + d0 - d0 ^ 2),	vector argument
+pminmax	R/paired_raw_parts.R	v1 = pmax(0, p10 + p01 - d1 ^ 2))	vector argument
+pminmax	R/paired_reestimate.R	N.re <- as.integer(pmax(1, ceil_tol(n.raw)))	vector argument
+pminmax	R/paired_score_z.R	q01 <- (sqrt(pmax(0, B ^ 2 - 8 * N * C)) - B) / (4 * N)	vector argument
+pminmax	R/paired_uncond_pvalue.R	p.val[ok[ord]] <- pmin(1, p.ord)	vector argument
+pminmax	R/ss_raw_parts.R	q1 <- pmin(1, pmax(0, p1))	vector argument
+pminmax	R/ss_raw_parts.R	q2 <- pmin(1, pmax(0, p2))	vector argument
+pminmax	R/ss_raw_parts.R	q1 <- pmin(1, pmax(0, p1))	vector argument
+pminmax	R/ss_raw_parts.R	q2 <- pmin(1, pmax(0, p2))	vector argument
+pminmax	R/strat_reestimate.R	n.re[ok] <- pmax(1, ceil_tol(n.raw[ok]))	vector argument
+pminmax	R/unconditional_pvalue.R	p.val[ord] <- pmin(1, p.ord)	vector argument
+null	tests/testthat/test-BinaryTypeIErrorBSSR.R	args$n.interim <- NULL	removes the element on purpose, since omega is given instead
+pminmax	tests/testthat/test-StratRR.R	sum(pmax(0, rr$lower - rr$S.min + 1), na.rm = TRUE) +	vector argument
+pminmax	tests/testthat/test-StratRR.R	sum(pmax(0, rr$S.max - rr$upper + 1), na.rm = TRUE)	vector argument
+pminmax	tests/testthat/test-StratRR.R	expect_identical(rr$S.min, as.integer(pmax(0, rr$z.S1 - 2) + pmax(0, rr$z.S2 - 5)))	vector argument
+pminmax	tests/testthat/test-internal.R	pmin(1, 2 * pmin(lower, upper))	vector argument (outer() passes vectors to its function)
+pminmax	tests/testthat/test-paired_reestimate.R	expect_equal(r$N, pmin(60, pmax(30, re()$N)))	vector argument
+pminmax	tests/testthat/test-paired_reestimate.R	expect_equal(re(N.min = 40)$N, pmax(40, re()$N))	vector argument
+pminmax	tests/testthat/test-strat_crit.R	lo <- pmax(0, z[k, ] - N2)	vector argument
+pminmax	vignettes/bbssr-validation.Rmd	pmin(1, 2 * pmin(stats::phyper(i, N1, N2, s),	vector argument (outer() passes vectors to its function)
+pminmax	vignettes/bbssr-validation.Rmd	p[ord] <- pmin(1, out)	vector argument

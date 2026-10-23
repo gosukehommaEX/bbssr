@@ -3,6 +3,9 @@
 #' Prints the power and the expected final total sample size of a stratified design with
 #' blinded sample size re-estimation returned by \code{\link{StratPowerBSSR}}.
 #'
+#' An object whose attributes were removed, for example by selecting some of its rows
+#' or columns, is printed as a data frame.
+#'
 #' @param x An object of class \code{bbssr_spowerbssr}
 #' @param digits Number of decimal places. Default is 4
 #' @param ... Further arguments, ignored
@@ -18,7 +21,10 @@
 #'
 #' @export
 print.bbssr_spowerbssr <- function(x, digits = 4, ...) {
-  if (!all(c('power.BSSR', 'power.TRAD', 'E.N') %in% names(x))) return(NextMethod())
+  if (is.null(attr(x, 'ss.method')) ||
+      !all(c('power.BSSR', 'power.TRAD', 'E.N') %in% names(x))) {
+    return(NextMethod())
+  }
   rule <- c(exact = 'exact sample size', standard = 'normal approximation')[[
     attr(x, 'ss.method')]]
   sizes <- function(n1, n2) {

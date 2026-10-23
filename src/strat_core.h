@@ -279,12 +279,18 @@ inline Crit critical(const Design& d, const Test& t, const int* z,
   auto rej = [&](int S) {
     return rejects(asymptotic_pvalue(S, E, V, cc, t.alternative), t.alpha);
   };
-  // Values above E can only be rejected in favour of 'greater' and values below E in
-  // favour of 'less'. Above E the rejected values are closed upwards and below E
-  // downwards, also with the continuity correction of mantelhaen.test(), so each boundary
-  // is found by bisection
-  const int Su = std::max(Smin, static_cast<int>(std::floor(E)) + 1);
-  const int Sl = std::min(Smax, static_cast<int>(std::ceil(E)) - 1);
+  // A one-sided p-value does not increase in S for 'greater' and does not decrease for
+  // 'less' over the whole range of S, also with the continuity correction of
+  // mantelhaen.test(), so its rejected values are closed upwards or downwards and the
+  // boundary is found by bisection over [Smin, Smax]; with a level above 0.5 it can lie on
+  // the other side of E. A two-sided p-value rejects values above E, closed upwards, and
+  // values below E, closed downwards, and the two boundaries are found separately
+  const int Su = t.alternative == GREATER
+                     ? Smin
+                     : std::max(Smin, static_cast<int>(std::floor(E)) + 1);
+  const int Sl = t.alternative == LESS
+                     ? Smax
+                     : std::min(Smax, static_cast<int>(std::ceil(E)) - 1);
   if (t.alternative != LESS && Su <= Smax && rej(Smax)) {
     int b = Smax;  // rejected
     if (rej(Su)) {

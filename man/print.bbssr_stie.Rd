@@ -20,6 +20,10 @@
 Prints the largest type I error rates of a stratified design with blinded sample size
 re-estimation and of the fixed design, returned by \code{\link{StratTypeIErrorBSSR}}.
 }
+\details{
+An object whose attributes were removed, for example by selecting some of its rows
+or columns, is printed as a data frame.
+}
 \examples{
 tie <- StratTypeIErrorBSSR(Delta.A = 0.2, N1 = c(20, 20), N2 = c(20, 20), omega = 0.5,
                            r = 1, alpha = 0.025, tar.power = 0.8, Test = 'CMH',

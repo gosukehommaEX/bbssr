@@ -38,9 +38,10 @@ value per stratum. Default is 1}
 with the hypergeometric variance, without continuity correction), \code{'CMH-cc'}
 (the same with the continuity correction of \code{\link[stats]{mantelhaen.test}}),
 \code{'Cochran'} (Cochran's test with the binomial variance, the test of Woolson et
-al. (1986)), \code{'Cochran-cc'} (the same with the continuity correction of Nam
-(1992)) or \code{'Strat-Fisher'} (the stratified exact conditional test of Jung
-(2014)). See Details}
+al. (1986)), \code{'Cochran-cc'} (the same with the continuity correction, which
+rejects the same outcomes as that of Nam (1992) at one-sided levels up to 0.078) or
+\code{'Strat-Fisher'} (the stratified exact conditional test of Jung (2014)). See
+Details}
 
 \item{alternative}{Direction of the alternative hypothesis. Options:
 \code{'greater'} (default), under which group 1 responds more often than group 2,
@@ -69,8 +70,9 @@ An object of class \code{bbssr_ssamplesize}, a list containing the arguments
 \code{p1}, \code{p2}, \code{frac}, \code{r}, \code{alpha}, \code{tar.power},
 \code{Test} and \code{alternative}, the group sizes \code{N1} and \code{N2} of the
 strata, their total \code{N}, and the exact power \code{Power} of the design. The
-attribute \code{n.raw} holds the unrounded total of the normal approximation and
-\code{n} the nominal total of the design.
+attribute \code{n.raw} holds the unrounded total of the normal approximation,
+\code{n} the nominal total of the design and \code{search.limit} the limit of the
+nominal total examined by \code{search = 'stable'} (otherwise \code{NA}).
 }
 \description{
 Calculates the total sample size of a two-arm trial with a binary endpoint stratified
@@ -99,8 +101,9 @@ correction it is \code{N = (1 + sqrt(1 + 2 / (D N*)))^2 N* / 4}, formula (2.3) o
 Cochran-Mantel-Haenszel statistic differs from Cochran's only by the factors
 \code{(N_j - 1) / N_j} of the variance, and it serves as the starting value of the exact
 search. The nominal total is \code{ceiling(N*)}, or \code{ceiling(N)}; the published
-tables of Woolson et al. (1986) and Nam (1992) round \code{N*} and \code{N} to the
-nearest integer instead.
+tables of Woolson et al. (1986) and Nam (1992) compute \code{N*} and \code{N} with the
+quantiles rounded to three decimals, such as 1.645 for the level 0.05 and 0.841 or 0.842
+for the power 0.8, and round them to the nearest integer instead.
 
 The exact power is not monotone in the sample size, so the result depends on
 \code{search}, as described in \code{\link{BinarySampleSize}}.

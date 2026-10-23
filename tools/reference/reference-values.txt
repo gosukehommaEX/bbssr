@@ -233,9 +233,11 @@ test-StratSampleSize.R	standard	0	186 206
 test-StratSampleSize.R	exact	0	57 69
 test-StratSampleSize.R	smallest	0	57
 test-StratPowerBSSR.R	power and E.N CMH standard	1e-10	0.770441457550367 59.7402124907309 0.0502722588565529 59.1902574387837
-test-strat_reestimate.R	final sizes CMH standard	0	5 5 5 5 14 14 14 14 16 16 16 16 5 5 5 5
+test-strat_reestimate.R	final sizes CMH standard	0	5 5 5 5 14 14 14 14 16 16 16 16 6 6 6 6
 test-StratPowerBSSR.R	power and E.N Fisher exact	1e-10	0.567315336728504 32.6818367739194 0.0543980782427035 32.6534657362279
 test-strat_reestimate.R	final sizes Fisher exact	0	11 13 11 13 7 9 7 9 7 9 7 9 11 13 11 13
+test-strat_reestimate.R	final sizes CMH standard RR	0	10 10 10 10 32 32 32 32 37 37 37 37 5 5 5 5
+test-strat_reestimate.R	final sizes CMH standard OR	0	10 10 10 10 26 26 26 26 23 23 23 23 70 70 70 70
 test-StratTypeIErrorBSSR.R	grid CMH standard	1e-10	0.0476476903414493 0.0512792925484029 0.0431103731434614
 test-StratTypeIErrorBSSR.R	fixed CMH standard	1e-10	0.0511555543032792 0.0445454693253851 0.0529149719952471
 test-StratTypeIErrorBSSR.R	certified max CMH standard	1e-08	0.051279292548403 0.0578880310058594

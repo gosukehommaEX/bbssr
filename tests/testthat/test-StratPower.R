@@ -61,3 +61,30 @@ test_that("StratPower of the stratified exact test does not exceed the level und
                     'Strat-Fisher', 'two.sided', 'minlike')
   expect_true(all(res$Power <= 0.05))
 })
+
+test_that("StratPower reproduces the design example and Table 4 of Jung (2014)", {
+  # Design example (p. 139): three strata with the control probabilities
+  # (0.9, 0.75, 0.6), the odds ratios (1, 30, 30), 10, 10 and 11 patients per group and
+  # the one-sided level 0.1: marginal type I error rate 0.0565 and power 0.8105
+  q <- c(0.9, 0.75, 0.6)
+  p <- q * c(1, 30, 30) / (1 - q + q * c(1, 30, 30))
+  m <- c(10, 10, 11)
+  expect_equal(round(StratPower(q, q, m, m, 0.1, 'Strat-Fisher')$Power, 4), 0.0565)
+  expect_equal(round(StratPower(p, q, m, m, 0.1, 'Strat-Fisher')$Power, 4), 0.8105)
+  # Table 4, both allocations fixed: the smallest N from the size of the Mantel-Haenszel
+  # test upwards with power 0.9 at the one-sided level 0.05, with the stratum fractions
+  # (0.25, 0.75), the fractions b of group 1 and the odds ratios (5, 10)
+  jung_n <- function(b, N) {
+    q <- c(0.1, 0.3)
+    p <- q * c(5, 10) / (1 - q + q * c(5, 10))
+    repeat {
+      n1 <- floor(N * 0.25)
+      m <- floor(N * c(0.25, 0.75) * b)
+      if (StratPower(p, q, m, c(n1, N - n1) - m, 0.05, 'Strat-Fisher')$Power >= 0.9) {
+        return(N)
+      }
+      N <- N + 1
+    }
+  }
+  expect_equal(c(jung_n(c(0.25, 0.25), 46), jung_n(c(0.5, 0.5), 36)), c(59, 43))
+})

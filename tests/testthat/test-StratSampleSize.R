@@ -36,4 +36,5 @@ test_that("StratSampleSize checks its arguments", {
   expect_error(ss(p1 = rbind(c(0.5, 0.7), c(0.5, 0.7))), 'one element per stratum')
   expect_error(ss(tar.power = 1), 'tar.power')
   expect_error(ss(frac = c(0.4, 0.3, 0.3)), 'one element per stratum')
+  expect_error(ss(p1 = 0.5, p2 = 0.3, frac = 1), 'at least two strata')
 })

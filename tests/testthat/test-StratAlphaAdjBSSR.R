@@ -43,3 +43,19 @@ test_that("StratAlphaAdjBSSR supports the adjustment of the re-estimation and ch
   expect_error(adj(step = 0.2), 'step')
   expect_error(adj(tol = 0), 'tol')
 })
+
+test_that("StratAlphaAdjBSSR reports 0 with a warning when the bisection finds no level", {
+  # With the whole design observed at the interim analysis and N.max equal to its total,
+  # the re-estimation keeps the planned sizes. The largest type I error rate of Cochran's
+  # test on the grid is 0.0586 at the level 0.005 and 0.0110 at 0.0025, both above
+  # alpha = 0.01, so with tol = 0.3 the bisection ends at the level 0
+  expect_warning(
+    res <- StratAlphaAdjBSSR(Delta.A = 0.3, N1 = c(6, 6), N2 = c(1, 1), omega = 0.5,
+                             r = 6, alpha = 0.01, tar.power = 0.8, Test = 'Cochran',
+                             ss.method = 'standard', N.max = 14, maximize = 'grid',
+                             theta = seq(0.05, 0.95, by = 0.05), tol = 0.3),
+    'reported as 0')
+  expect_equal(res$alpha.adj, c(0, 0))
+  expect_equal(res$max.TIE.adj, c(0, 0))
+  expect_true(all(is.na(res$theta.S1.adj)))
+})

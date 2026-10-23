@@ -2,6 +2,9 @@
 #'
 #' Prints the exact power of a stratified test returned by \code{\link{StratPower}}.
 #'
+#' An object whose attributes were removed, for example by selecting some of its rows
+#' or columns, is printed as a data frame.
+#'
 #' @param x An object of class \code{bbssr_spower}
 #' @param digits Number of decimal places. Default is 4
 #' @param ... Further arguments, ignored
@@ -15,7 +18,7 @@
 #'
 #' @export
 print.bbssr_spower <- function(x, digits = 4, ...) {
-  if (!('Power' %in% names(x))) return(NextMethod())
+  if (is.null(attr(x, 'Test')) || !('Power' %in% names(x))) return(NextMethod())
   cat('Exact power of a stratified test\n\n')
   cat(sprintf('  Test             : %s\n', attr(x, 'Test')))
   cat(sprintf('  Alternative      : %s\n', attr(x, 'alternative')))

@@ -36,3 +36,20 @@ test_that("bssr_map rejects an exact re-estimation with another rounding rule", 
                         'minlike', 100L, 0, 'RD', 'exact', 'Chisq', 0.025, 'total', NULL,
                         NULL, FALSE, 0, margin.scale = 'RD'), 'rounding')
 })
+
+test_that("the interim sizes are not raised by a rounding error of the products", {
+  args <- list(Delta.A = 0.3, n.interim = NULL, alpha = 0.025, tar.power = 0.8,
+               Test = 'Chisq', restricted = FALSE, alternative = 'greater',
+               tsmethod = 'minlike', n.grid = 100L, bb.gamma = 0, effect = 'RD',
+               ss.method = 'standard', ss.Test = 'Chisq', ss.alpha = 0.025,
+               rounding = 'group', N.min = NULL, N.max = NULL, ref.pvalue = FALSE,
+               margin = 0, margin.scale = 'RD')
+  # 0.55 * 100 exceeds 55, and 1.1 * 50 exceeds 55, by a rounding error
+  a <- do.call(bssr_map, c(args, list(N1 = 100, N2 = 100, omega = 0.55, r = 1)))
+  expect_identical(c(attr(a, 'n11'), attr(a, 'n12')), c(55L, 55L))
+  b <- do.call(bssr_map, c(args, list(N1 = 55, N2 = 50, omega = 1, r = 1.1)))
+  expect_identical(c(attr(b, 'n11'), attr(b, 'n12')), c(55L, 50L))
+  args$N.max <- Inf
+  expect_error(do.call(bssr_map, c(args, list(N1 = 20, N2 = 20, omega = 0.5, r = 1))),
+               'N.max must be a single finite number')
+})

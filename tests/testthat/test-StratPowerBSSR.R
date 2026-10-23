@@ -60,3 +60,23 @@ test_that("StratPowerBSSR simulates designs with three strata", {
                               N1 = c(8, 8, 8), N2 = c(8, 8, 8), omega = 0.5, r = 1,
                               alpha = 0.05, tar.power = 0.8, Test = 'CMH'), 'standard')
 })
+
+test_that("StratPowerBSSR satisfies the symmetry of the groups and the two-sided union", {
+  pw <- function(...) {
+    pb(p = rbind(c(0.4, 0.6), c(0.3, 0.5)), ...)
+  }
+  # Exchanging the groups turns 'less' with the effects -0.3 into 'greater' with 0.3 and
+  # leaves the distribution of the pooled interim responders unchanged
+  greater <- pw(Delta.A = 0.3, Delta.T = 0.3)
+  less <- pw(Delta.A = -0.3, Delta.T = -0.3, alternative = 'less')
+  expect_equal(less$power.BSSR, greater$power.BSSR, tolerance = 1e-12)
+  expect_equal(less$E.N, greater$E.N, tolerance = 1e-12)
+  # The two-sided CMH test at 0.1 rejects where one of the one-sided tests at 0.05 rejects,
+  # and its re-estimation uses the same quantile as the one-sided re-estimation at 0.05.
+  # The lower tail under the effect 0.3 is the upper tail under -0.3 after the exchange
+  two <- pw(Delta.A = 0.3, Delta.T = 0.3, alpha = 0.1, alternative = 'two.sided')
+  rev <- pw(Delta.A = 0.3, Delta.T = -0.3)
+  expect_gt(rev$power.BSSR[1], 0)
+  expect_equal(two$power.BSSR, greater$power.BSSR + rev$power.BSSR, tolerance = 1e-12)
+  expect_equal(two$E.N, greater$E.N, tolerance = 1e-12)
+})

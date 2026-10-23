@@ -21,7 +21,9 @@
 #'   the interim size of group 2 is \code{ceiling(omega N2[j])} and that of group 1 is
 #'   \code{ceiling(r[j] n2[j])}. Supply either \code{omega} or \code{n.interim}
 #' @param r Allocation ratio of group 1 to group 2 within the strata, a single value or one
-#'   value per stratum
+#'   value per stratum. The blinded estimate of the pooled response probability of a
+#'   stratum is divided between the groups with this ratio, also when the interim sizes
+#'   are not in this ratio
 #' @param alpha Level of significance of the final analysis
 #' @param tar.power Target power of the re-estimation
 #' @param restricted Logical. If \code{TRUE}, the final group sizes are at least the planned
@@ -75,12 +77,13 @@
 #' group sizes are at least the interim sizes, at least the planned sizes when
 #' \code{restricted = TRUE}, with a total of at least \code{N.min} and at most
 #' \code{N.max}. When the probabilities of every stratum show no effect in the direction of
-#' the alternative, which happens with \code{effect = 'RR'} or \code{'OR'} when no interim
-#' patient or every interim patient of each stratum responds, the planned group sizes are
-#' kept. With \code{effect = 'RR'} or \code{'OR'} the planning probabilities of a stratum
-#' whose pooled estimate is close to 0 or 1 are close to each other, so the re-estimated
-#' size can be very large, and the time of the exact computation grows with it; an upper
-#' bound \code{N.max} keeps both in check.
+#' the alternative, which happens with \code{effect = 'RR'} when no interim patient
+#' responds and with \code{effect = 'OR'} when in each stratum no interim patient or every
+#' interim patient responds, the planned group sizes are kept. A stratum whose pooled
+#' estimate is close to 0 with \code{effect = 'RR'}, or close to 0 or 1 with
+#' \code{effect = 'OR'}, has planning probabilities close to each other, so the
+#' re-estimated size can be very large, and the time of the exact computation grows with
+#' it; an upper bound \code{N.max} keeps both in check.
 #'
 #' With two strata the final group sizes depend on the interim data only through
 #' \code{(s_1, s_2)}. Given \code{s_j}, the number of interim responders of group 1 in

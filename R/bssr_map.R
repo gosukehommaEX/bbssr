@@ -33,22 +33,25 @@ bssr_map <- function(Delta.A, N1, N2, omega, n.interim, r, alpha, tar.power, Tes
       stop('omega must be a single value in (0, 1]')
     }
     # The experimental group is obtained from the control group by a single rounding, so
-    # the interim allocation is as close to r to 1 as integers allow
-    N12 <- as.integer(ceiling(omega * N2))
-    N11 <- as.integer(ceiling(r * N12))
+    # the interim allocation is as close to r to 1 as integers allow. ceil_tol() keeps a
+    # product such as 0.55 * 100, which exceeds 55 by a rounding error, from being rounded
+    # up to 56
+    N12 <- as.integer(ceil_tol(omega * N2))
+    N11 <- as.integer(ceil_tol(r * N12))
   }
   if (length(r) != 1 || is.na(r) || r <= 0) stop('r must be a single positive value')
-  if (length(tar.power) != 1 || is.na(tar.power) || tar.power <= 0 || tar.power >= 1) {
+  if (length(tar.power) != 1 || !is.numeric(tar.power) || is.na(tar.power) ||
+      tar.power <= 0 || tar.power >= 1) {
     stop('tar.power must be a single value in (0, 1)')
   }
   if (ss.method == 'exact' && rounding != 'group') {
     stop("rounding must be 'group' when ss.method is 'exact'")
   }
-  if (!is.null(N.min) && (length(N.min) != 1 || is.na(N.min))) {
-    stop('N.min must be a single value')
+  if (!is.null(N.min) && (length(N.min) != 1 || !is.numeric(N.min) || !is.finite(N.min))) {
+    stop('N.min must be a single finite number')
   }
-  if (!is.null(N.max) && (length(N.max) != 1 || is.na(N.max))) {
-    stop('N.max must be a single value')
+  if (!is.null(N.max) && (length(N.max) != 1 || !is.numeric(N.max) || !is.finite(N.max))) {
+    stop('N.max must be a single finite number')
   }
   check_delta(Delta.A, effect, alternative, 'Delta.A', margin, margin.scale)
   n1 <- N11 + N12

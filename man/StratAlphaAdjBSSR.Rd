@@ -47,7 +47,9 @@ the interim size of group 2 is \code{ceiling(omega N2[j])} and that of group 1 i
 \code{ceiling(r[j] n2[j])}. Supply either \code{omega} or \code{n.interim}}
 
 \item{r}{Allocation ratio of group 1 to group 2 within the strata, a single value or one
-value per stratum}
+value per stratum. The blinded estimate of the pooled response probability of a
+stratum is divided between the groups with this ratio, also when the interim sizes
+are not in this ratio}
 
 \item{alpha}{Target level of significance, which the type I error rate must not exceed}
 
@@ -57,9 +59,10 @@ value per stratum}
 with the hypergeometric variance, without continuity correction), \code{'CMH-cc'}
 (the same with the continuity correction of \code{\link[stats]{mantelhaen.test}}),
 \code{'Cochran'} (Cochran's test with the binomial variance, the test of Woolson et
-al. (1986)), \code{'Cochran-cc'} (the same with the continuity correction of Nam
-(1992)) or \code{'Strat-Fisher'} (the stratified exact conditional test of Jung
-(2014)). See Details}
+al. (1986)), \code{'Cochran-cc'} (the same with the continuity correction, which
+rejects the same outcomes as that of Nam (1992) at one-sided levels up to 0.078) or
+\code{'Strat-Fisher'} (the stratified exact conditional test of Jung (2014)). See
+Details}
 
 \item{restricted}{Logical. If \code{TRUE}, the final group sizes are at least the planned
 sizes. Default is \code{FALSE}}
@@ -135,7 +138,8 @@ BSSR design and one for the fixed design containing:
 \item{max.TIE}{Largest type I error rate at the nominal level \code{alpha}}
 \item{alpha.adj}{Adjusted nominal level. It is \code{alpha} when the nominal level
 already controls the type I error rate, and 0, with a warning, when no level
-examined does}
+examined by the bisection does. The search of \code{adjust = 'both'} for the BSSR
+design stops with an error instead when it reaches 0}
 \item{max.TIE.adj}{Largest type I error rate at the adjusted level}
 \item{theta.S1.adj, theta.S2.adj}{Common response probabilities of the strata at
 which \code{max.TIE.adj} occurs, \code{NA} when \code{alpha.adj} is 0}

@@ -49,5 +49,29 @@ test_that("StratTypeIErrorBSSR simulates designs with three strata", {
                                         rbind(rep(0.3, 3), rep(0.6, 3)), c(6, 6, 6),
                                         c(6, 6, 6), 0.05, 'CMH')$Power)
   expect_true(all(is.na(attr(res, 'max')$bound)))
-  expect_error(tie(N1 = c(6, 6, 6), N2 = c(6, 6, 6)), 'two strata')
+})
+
+test_that("StratTypeIErrorBSSR satisfies the symmetry of the groups and the two-sided rule", {
+  th <- rbind(c(0.1, 0.3), c(0.5, 0.5), c(0.9, 0.2))
+  g <- tie(theta = th, maximize = 'grid')
+  l <- tie(theta = th, maximize = 'grid', Delta.A = -0.3, alternative = 'less')
+  expect_equal(l$TIE.BSSR, g$TIE.BSSR, tolerance = 1e-12)
+  expect_equal(l$TIE.TRAD, g$TIE.TRAD, tolerance = 1e-12)
+  # Under the null hypothesis the two tails have the same probability with equal groups
+  two <- tie(theta = th, maximize = 'grid', alpha = 0.1, alternative = 'two.sided')
+  expect_equal(two$TIE.BSSR, 2 * g$TIE.BSSR, tolerance = 1e-12)
+  expect_equal(two$TIE.TRAD, 2 * g$TIE.TRAD, tolerance = 1e-12)
+})
+
+test_that("StratTypeIErrorBSSR simulates three strata in agreement with the exact rate", {
+  # With N.min = N.max = 36 every final design is the planned one, so the simulated rate
+  # of the re-estimation design estimates the exact rate of the fixed design
+  set.seed(4)
+  res <- tie(N1 = c(6, 6, 6), N2 = c(6, 6, 6), theta = c(0.3, 0.6), N.min = 36,
+             N.max = 36, nsim = 2e4)
+  expect_identical(attr(res, 'maximize'), 'grid')
+  expect_equal(res$se.BSSR, sqrt(res$TIE.BSSR * (1 - res$TIE.BSSR) / 2e4))
+  expect_true(all(abs(res$TIE.BSSR - res$TIE.TRAD) <= 4 * res$se.BSSR))
+  expect_error(tie(N1 = c(6, 6, 6), N2 = c(6, 6, 6), maximize = 'certified'),
+               'two strata')
 })

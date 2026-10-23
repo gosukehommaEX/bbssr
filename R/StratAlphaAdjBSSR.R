@@ -31,7 +31,8 @@
 #'   \item{max.TIE}{Largest type I error rate at the nominal level \code{alpha}}
 #'   \item{alpha.adj}{Adjusted nominal level. It is \code{alpha} when the nominal level
 #'     already controls the type I error rate, and 0, with a warning, when no level
-#'     examined does}
+#'     examined by the bisection does. The search of \code{adjust = 'both'} for the BSSR
+#'     design stops with an error instead when it reaches 0}
 #'   \item{max.TIE.adj}{Largest type I error rate at the adjusted level}
 #'   \item{theta.S1.adj, theta.S2.adj}{Common response probabilities of the strata at
 #'     which \code{max.TIE.adj} occurs, \code{NA} when \code{alpha.adj} is 0}
@@ -151,7 +152,8 @@ StratAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.power
   plan <- list(list(N1 = a$N1, N2 = a$N2))
   make_trad <- function(level) make_design(c(0L, 0L), c(0L, 0L), plan, 0L, level)
   res.trad <- bisect_level(make_trad, assess, certify, alpha, tol)
-  if (res.trad$level < alpha) {
+  # The level 0 of a bisection that found no level is reported as it is
+  if (res.trad$level > 0 && res.trad$level < alpha) {
     res.trad$level <- report_level(brackets(plan, res.trad$level), res.trad$level)
   }
   # Design with re-estimation
@@ -164,7 +166,7 @@ StratAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.power
     lay <- layout_at(ss.alpha)
     make_bssr <- function(level) make_design(d$n1, d$n2, lay$sizes, lay$id, level)
     res.bssr <- bisect_level(make_bssr, assess, certify, alpha, tol)
-    if (res.bssr$level < alpha) {
+    if (res.bssr$level > 0 && res.bssr$level < alpha) {
       res.bssr$level <- report_level(brackets(lay$sizes, res.bssr$level), res.bssr$level)
     }
   } else {

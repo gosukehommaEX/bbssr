@@ -1335,6 +1335,12 @@ for (k in names(bs.t5)) {
   add(bs.src, sprintf('BS2003 Table 5: average power of %s, n = %d', k, bs.n5), bs.t5[[k]],
       avg, 3)
 }
+explain(c('BS2003 Table 5: average power of CB, n = 60',
+          'BS2003 Table 5: average power of Z, n = 150'), 6e-4, paste(
+  'The recomputed average power lies less than 3e-5 below the boundary for rounding to',
+  'three decimals (0.732479 and 0.857495), so that rounding to four decimals first gives',
+  'the printed value. Rounding to four decimals and then to three agrees with all 27',
+  'printed values of CB, M and Z, and ordinary rounding with 25 of them'))
 
 # Fagerland, Lydersen and Laake (2013), Table 6: two-sided p-values for Bentur et al.
 # (N = 21, n12 = 1, n21 = 7) and Cavo et al. (N = 161, n12 = 6, n21 = 16). The two-sided

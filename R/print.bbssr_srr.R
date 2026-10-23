@@ -2,6 +2,9 @@
 #'
 #' Prints the critical values of a stratified test returned by \code{\link{StratRR}}.
 #'
+#' An object whose attributes were removed, for example by selecting some of its rows
+#' or columns, is printed as a data frame.
+#'
 #' @param x An object of class \code{bbssr_srr}
 #' @param n Number of rows of the table to print. Default is 20
 #' @param ... Further arguments, ignored
@@ -14,7 +17,10 @@
 #'
 #' @export
 print.bbssr_srr <- function(x, n = 20, ...) {
-  if (!all(c('S.min', 'S.max', 'lower', 'upper') %in% names(x))) return(NextMethod())
+  if (is.null(attr(x, 'Test')) ||
+      !all(c('S.min', 'S.max', 'lower', 'upper') %in% names(x))) {
+    return(NextMethod())
+  }
   cat('Rejection region of a stratified test\n\n')
   cat(sprintf('  Test             : %s\n', attr(x, 'Test')))
   cat(sprintf('  Alternative      : %s\n', attr(x, 'alternative')))

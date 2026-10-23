@@ -13,9 +13,10 @@
 #'   column per stratum gives the points directly. Default is
 #'   \code{seq(0, 1, by = 0.05)}
 #' @param maximize How the largest type I error rate is located. With
-#'   \code{'certified'} (default, two strata only) it is certified over the rectangle from
-#'   the smallest to the largest value of \code{theta} in each stratum, see Details. With
-#'   \code{'grid'} it is the largest value at the points of \code{theta}
+#'   \code{'certified'} (the default with two strata, and available only with two) it is
+#'   certified over the rectangle from the smallest to the largest value of \code{theta} in
+#'   each stratum, see Details. With \code{'grid'} (the default with three or more strata)
+#'   it is the largest value at the points of \code{theta}
 #' @param nsim Number of simulated trials at each point with three or more strata. Default
 #'   is \code{1e5}. Ignored with two strata
 #' @inheritParams StratPowerBSSR
@@ -67,6 +68,8 @@ StratTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.pow
                                 n.interim = NULL, frac = NULL,
                                 theta = seq(0, 1, by = 0.05),
                                 maximize = c('certified', 'grid'), nsim = 1e5) {
+  # Without an explicit choice, 'grid' is used with three or more strata
+  maximize.given <- !missing(maximize)
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
@@ -77,6 +80,7 @@ StratTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.pow
                     ss.method, nsim)
   a <- d$a
   J <- d$J
+  if (J > 2 && !maximize.given) maximize <- 'grid'
   if (J > 2 && maximize == 'certified') {
     stop("maximize = 'certified' requires two strata; use maximize = 'grid'")
   }

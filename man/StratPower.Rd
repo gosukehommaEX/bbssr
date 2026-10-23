@@ -32,9 +32,10 @@ per stratum, or a matrix with one row per scenario and one column per stratum}
 with the hypergeometric variance, without continuity correction), \code{'CMH-cc'}
 (the same with the continuity correction of \code{\link[stats]{mantelhaen.test}}),
 \code{'Cochran'} (Cochran's test with the binomial variance, the test of Woolson et
-al. (1986)), \code{'Cochran-cc'} (the same with the continuity correction of Nam
-(1992)) or \code{'Strat-Fisher'} (the stratified exact conditional test of Jung
-(2014)). See Details}
+al. (1986)), \code{'Cochran-cc'} (the same with the continuity correction, which
+rejects the same outcomes as that of Nam (1992) at one-sided levels up to 0.078) or
+\code{'Strat-Fisher'} (the stratified exact conditional test of Jung (2014)). See
+Details}
 
 \item{alternative}{Direction of the alternative hypothesis. Options:
 \code{'greater'} (default), under which group 1 responds more often than group 2,

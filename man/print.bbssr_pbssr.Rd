@@ -19,6 +19,10 @@
 \description{
 Prints the result of a blinded sample size re-estimation from paired interim data.
 }
+\details{
+An object whose attributes were removed, for example by selecting some of its rows
+or columns, is printed as a data frame.
+}
 \examples{
 res <- PairedBSSR(n1 = 25, D1 = 5, Delta.A = 0.15, alpha = 0.05, tar.power = 0.8,
                   Test = 'McNemar', alternative = 'two.sided', ss.method = 'standard')

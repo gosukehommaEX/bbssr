@@ -3,6 +3,9 @@
 #' Prints the adjusted nominal significance levels of a design with blinded sample size
 #' re-estimation and of the corresponding fixed-sample design.
 #'
+#' An object whose attributes were removed, for example by selecting some of its rows
+#' or columns, is printed as a data frame.
+#'
 #' @param x An object of class \code{bbssr_alphaadj}
 #' @param digits Number of significant digits. Default is 6
 #' @param ... Further arguments, ignored
@@ -25,7 +28,8 @@
 #'
 #' @export
 print.bbssr_alphaadj <- function(x, digits = 6, ...) {
-  if (!all(c('Design', 'alpha', 'max.TIE', 'alpha.adj', 'max.TIE.adj') %in% names(x))) {
+  if (is.null(attr(x, 'adjust')) ||
+      !all(c('Design', 'alpha', 'max.TIE', 'alpha.adj', 'max.TIE.adj') %in% names(x))) {
     return(NextMethod())
   }
   cat('Adjusted significance level for blinded sample size re-estimation\n\n')

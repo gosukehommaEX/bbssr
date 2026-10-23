@@ -33,6 +33,8 @@ strat_n1 <- function(N2, r, omega, n.interim) {
       omega > 1) {
     stop('omega must be a single value in (0, 1]')
   }
-  n2 <- ceiling(omega * N2)
-  list(n1 = as.integer(ceiling(r * n2)), n2 = as.integer(n2))
+  # ceil_tol() keeps a product such as 0.55 * 100, which exceeds 55 by a rounding error,
+  # from being rounded up to 56
+  n2 <- ceil_tol(omega * N2)
+  list(n1 = as.integer(ceil_tol(r * n2)), n2 = as.integer(n2))
 }
