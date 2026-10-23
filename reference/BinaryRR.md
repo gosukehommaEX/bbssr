@@ -14,7 +14,7 @@ BinaryRR(
   N2,
   alpha,
   Test,
-  alternative = c("greater", "less", "two.sided"),
+  alternative = c("greater", "less", "two.sided", "equivalence"),
   tsmethod = c("minlike", "central", "blaker"),
   n.grid = 100,
   bb.gamma = 0,
@@ -49,7 +49,9 @@ BinaryRR(
   Direction of the alternative hypothesis. Options: `'greater'`
   (default) for the one-sided alternative that the response probability
   of group 1 exceeds that of group 2, `'less'` for the one-sided
-  alternative that it falls below that of group 2, or `'two.sided'`
+  alternative that it falls below that of group 2, `'two.sided'`, or
+  `'equivalence'` for the alternative that the effect lies between the
+  margins of a test of equivalence, see `margin`
 
 - tsmethod:
 
@@ -89,7 +91,17 @@ BinaryRR(
   `p1 / p2 >= R0` against `p1 / p2 < R0` when it is `'less'`. A margin
   other than 0, and any margin on the scale of the risk ratio, requires
   `Test = 'Blackwelder'` or `'Farrington-Manning'` and a one-sided
-  alternative, see `BinaryRR`
+  alternative or `'equivalence'`, see `BinaryRR`. For
+  `alternative = 'equivalence'` the margin is the pair `c(lower, upper)`
+  of margins of a test of equivalence, or a single value used for both.
+  On the scale of the risk difference both margins lie in (0, 1), and
+  the null hypothesis `p1 - p2 <= -lower` or `p1 - p2 >= upper` is
+  tested against `-lower < p1 - p2 < upper`. On the scale of the risk
+  ratio the pair satisfies `0 < lower < 1 < upper`, a single ratio `R`
+  gives the pair of `R` and `1 / R`, the smaller as `lower`, and the
+  null hypothesis is `p1 / p2 <= lower` or `p1 / p2 >= upper`. The null
+  hypothesis is rejected when both one-sided tests reject, each at the
+  level `alpha`
 
 - ref.pvalue:
 
@@ -208,6 +220,17 @@ test at the maximum likelihood estimates under `p1 = R0 p2`, formula
 exchanged as for the other tests, with the ratio `1 / R0`, which changes
 only the sign of the statistic. A margin on the scale of the risk ratio
 is also available only with these two tests and a one-sided alternative.
+
+With `alternative = 'equivalence'` the null hypothesis
+`p1 - p2 <= -lower` or `p1 - p2 >= upper` (`p1 / p2 <= lower` or
+`p1 / p2 >= upper` on the scale of the risk ratio) is tested by two
+one-sided tests of the same kind, the test against `'greater'` with the
+margin `lower` and the test against `'less'` with the margin `upper`,
+each at the level `alpha`. The null hypothesis is rejected when both
+reject, so the rejection region is the intersection of the two one-sided
+regions and the p-value of an outcome is the larger of its two one-sided
+p-values. Tests of equivalence are available with the tests of
+Blackwelder and of Farrington and Manning.
 
 The p-values are kept for the rest of the session and reused by later
 calls with the same sample sizes and test, see
@@ -348,6 +371,22 @@ print(RR)
 #>   Margin        : 0.8 (risk ratio)
 #> 
 #>   Rejected outcomes: 1727 of 3721
+#> 
+#>   Outcome grid suppressed, use print(x, show.map = TRUE) to display it
+
+# Equivalence with the margins -0.15 and 0.15 of the risk difference
+RR <- BinaryRR(N1 = 100, N2 = 100, alpha = 0.05, Test = 'Farrington-Manning',
+               alternative = 'equivalence', margin = c(0.15, 0.15))
+print(RR)
+#> Rejection region for a two-arm trial with a binary endpoint
+#> 
+#>   Test          : Farrington-Manning
+#>   Alternative   : equivalence
+#>   Sample sizes  : N1 = 100, N2 = 100
+#>   Alpha         : 0.05
+#>   Margin        : -0.15 to 0.15 (risk difference)
+#> 
+#>   Rejected outcomes: 1047 of 10201
 #> 
 #>   Outcome grid suppressed, use print(x, show.map = TRUE) to display it
 # }

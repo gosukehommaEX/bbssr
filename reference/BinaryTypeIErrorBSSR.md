@@ -20,7 +20,7 @@ BinaryTypeIErrorBSSR(
   tar.power,
   Test,
   restricted = FALSE,
-  alternative = c("greater", "less", "two.sided"),
+  alternative = c("greater", "less", "two.sided", "equivalence"),
   tsmethod = c("minlike", "central", "blaker"),
   n.grid = 100,
   bb.gamma = 0,
@@ -91,7 +91,9 @@ BinaryTypeIErrorBSSR(
 - alternative:
 
   Direction of the alternative hypothesis. Options: `'greater'`
-  (default), `'less'` or `'two.sided'`
+  (default), `'less'`, `'two.sided'`, or `'equivalence'` for the
+  alternative that the effect lies between the margins of a test of
+  equivalence, see `margin`
 
 - tsmethod:
 
@@ -202,12 +204,21 @@ BinaryTypeIErrorBSSR(
   `p1 / p2 >= R0` against `p1 / p2 < R0` when it is `'less'`. A margin
   other than 0, and any margin on the scale of the risk ratio, requires
   `Test = 'Blackwelder'` or `'Farrington-Manning'` and a one-sided
-  alternative, see
+  alternative or `'equivalence'`, see
   [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
   With a margin other than 0 on the scale of the risk difference the
   assumed and the true effects are risk differences (`effect = 'RD'`),
   and with a margin on the scale of the risk ratio they are risk ratios
-  (`effect = 'RR'`)
+  (`effect = 'RR'`). For `alternative = 'equivalence'` the margin is the
+  pair `c(lower, upper)` of margins of a test of equivalence, or a
+  single value used for both. On the scale of the risk difference both
+  margins lie in (0, 1), and the null hypothesis `p1 - p2 <= -lower` or
+  `p1 - p2 >= upper` is tested against `-lower < p1 - p2 < upper`. On
+  the scale of the risk ratio the pair satisfies
+  `0 < lower < 1 < upper`, a single ratio `R` gives the pair of `R` and
+  `1 / R`, the smaller as `lower`, and the null hypothesis is
+  `p1 / p2 <= lower` or `p1 / p2 >= upper`. The null hypothesis is
+  rejected when both one-sided tests reject, each at the level `alpha`
 
 - ref.pvalue:
 
@@ -257,6 +268,18 @@ probability on the null boundary, `theta` at which it occurs and, with
 rate over the interval given by the attribute `interval` (otherwise
 `NA`). The attribute `reestimation` holds the final sample size for
 every pooled number of interim responders.
+
+For `alternative = 'equivalence'` the null hypothesis has two
+boundaries, the lower one `p1 - p2 = -lower` (`p1 = lower p2` on the
+scale of the risk ratio) and the upper one `p1 - p2 = upper`
+(`p1 = upper p2`). The data frame then has a first column `boundary`,
+`'lower'` or `'upper'`, and a row for each element of `theta` on each
+boundary. The rejection probability is that of the two one-sided tests
+together. The largest rate of each design in the attribute `max` is the
+larger of its maxima on the two boundaries, its bound the larger of the
+two bounds, and the column `boundary` of the attribute gives the
+boundary on which it occurs. The attribute `interval` is then a matrix
+with a row for each boundary.
 
 ## Details
 

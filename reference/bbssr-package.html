@@ -4,12 +4,16 @@ binary endpoints, together with the exact power and sample size calculations the
 re-estimation relies on. Seven tests are supported, each available with a one-sided or a
 two-sided alternative. Two of them also test non-inferiority with a margin on the scale
 of the risk difference or the risk ratio, and the exact unconditional tests can be
-combined with the Berger-Boos procedure."><meta property="og:description" content="Tools for blinded sample size re-estimation (BSSR) in two-arm clinical trials with
+combined with the Berger-Boos procedure. The same calculations are available for
+matched-pairs designs, such as cross-over trials, with five tests based on the
+discordant pairs."><meta property="og:description" content="Tools for blinded sample size re-estimation (BSSR) in two-arm clinical trials with
 binary endpoints, together with the exact power and sample size calculations the
 re-estimation relies on. Seven tests are supported, each available with a one-sided or a
 two-sided alternative. Two of them also test non-inferiority with a margin on the scale
 of the risk difference or the risk ratio, and the exact unconditional tests can be
-combined with the Berger-Boos procedure."><meta property="og:image" content="https://gosukehommaex.github.io/bbssr/logo.png"></head><body>
+combined with the Berger-Boos procedure. The same calculations are available for
+matched-pairs designs, such as cross-over trials, with five tests based on the
+discordant pairs."><meta property="og:image" content="https://gosukehommaex.github.io/bbssr/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -17,7 +21,7 @@ combined with the Berger-Boos procedure."><meta property="og:image" content="htt
 
     <a class="navbar-brand me-2" href="../index.html">bbssr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,7 +38,8 @@ combined with the Berger-Boos procedure."><meta property="og:image" content="htt
     <li><a class="dropdown-item" href="../articles/bbssr-interim-reestimation.html">Re-estimating the Sample Size from Interim Data</a></li>
     <li><a class="dropdown-item" href="../articles/bbssr-reestimation-rules.html">Options of the Sample Size Re-estimation</a></li>
     <li><a class="dropdown-item" href="../articles/bbssr-design-grid.html">Comparing Designs with BinaryGridBSSR</a></li>
-    <li><a class="dropdown-item" href="../articles/bbssr-non-inferiority.html">Non-inferiority Trials</a></li>
+    <li><a class="dropdown-item" href="../articles/bbssr-non-inferiority.html">Non-inferiority and Equivalence Trials</a></li>
+    <li><a class="dropdown-item" href="../articles/bbssr-paired.html">Paired Binary Data</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Type I error rate</h6></li>
     <li><a class="dropdown-item" href="../articles/bbssr-type1-error.html">Type I Error Rate of a Re-estimation Design</a></li>
@@ -66,7 +71,9 @@ binary endpoints, together with the exact power and sample size calculations the
 re-estimation relies on. Seven tests are supported, each available with a one-sided or a
 two-sided alternative. Two of them also test non-inferiority with a margin on the scale
 of the risk difference or the risk ratio, and the exact unconditional tests can be
-combined with the Berger-Boos procedure.</p>
+combined with the Berger-Boos procedure. The same calculations are available for
+matched-pairs designs, such as cross-over trials, with five tests based on the
+discordant pairs.</p>
     </div>
 
 
@@ -105,6 +112,37 @@ designs over common scenarios, as one data frame</p></dd>
 
 <dt><code><a href="BinaryBSSR.html">BinaryBSSR</a></code></dt>
 <dd><p>Sample size re-estimation from observed interim data</p></dd>
+
+
+</dl></div>
+    <div class="section level2">
+    <h2 id="paired-binary-data">Paired binary data<a class="anchor" aria-label="anchor" href="#paired-binary-data"></a></h2>
+
+
+<dl><dt><code><a href="PairedRR.html">PairedRR</a></code></dt>
+<dd><p>Rejection region of a test for matched pairs</p></dd>
+
+<dt><code><a href="PairedPower.html">PairedPower</a></code></dt>
+<dd><p>Exact power at a given number of pairs</p></dd>
+
+<dt><code><a href="PairedSampleSize.html">PairedSampleSize</a></code></dt>
+<dd><p>Number of pairs attaining a target power</p></dd>
+
+<dt><code><a href="PairedPowerBSSR.html">PairedPowerBSSR</a></code></dt>
+<dd><p>Power and final number of pairs of a
+re-estimation design</p></dd>
+
+<dt><code><a href="PairedBSSR.html">PairedBSSR</a></code></dt>
+<dd><p>Re-estimation from the interim number of discordant
+pairs</p></dd>
+
+<dt><code><a href="PairedTypeIErrorBSSR.html">PairedTypeIErrorBSSR</a></code></dt>
+<dd><p>Type I error rate of a re-estimation design
+over the probability of a discordant pair</p></dd>
+
+<dt><code><a href="PairedAlphaAdjBSSR.html">PairedAlphaAdjBSSR</a></code></dt>
+<dd><p>Adjusted significance level of a
+re-estimation design</p></dd>
 
 
 </dl></div>

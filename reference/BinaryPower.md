@@ -18,7 +18,7 @@ BinaryPower(
   N2,
   alpha,
   Test,
-  alternative = c("greater", "less", "two.sided"),
+  alternative = c("greater", "less", "two.sided", "equivalence"),
   tsmethod = c("minlike", "central", "blaker"),
   n.grid = 100,
   bb.gamma = 0,
@@ -60,7 +60,9 @@ BinaryPower(
 - alternative:
 
   Direction of the alternative hypothesis. Options: `'greater'`
-  (default), `'less'` or `'two.sided'`
+  (default), `'less'`, `'two.sided'`, or `'equivalence'` for the
+  alternative that the effect lies between the margins of a test of
+  equivalence, see `margin`
 
 - tsmethod:
 
@@ -93,8 +95,18 @@ BinaryPower(
   `p1 / p2 >= R0` against `p1 / p2 < R0` when it is `'less'`. A margin
   other than 0, and any margin on the scale of the risk ratio, requires
   `Test = 'Blackwelder'` or `'Farrington-Manning'` and a one-sided
-  alternative, see
-  [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md)
+  alternative or `'equivalence'`, see
+  [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
+  For `alternative = 'equivalence'` the margin is the pair
+  `c(lower, upper)` of margins of a test of equivalence, or a single
+  value used for both. On the scale of the risk difference both margins
+  lie in (0, 1), and the null hypothesis `p1 - p2 <= -lower` or
+  `p1 - p2 >= upper` is tested against `-lower < p1 - p2 < upper`. On
+  the scale of the risk ratio the pair satisfies
+  `0 < lower < 1 < upper`, a single ratio `R` gives the pair of `R` and
+  `1 / R`, the smaller as `lower`, and the null hypothesis is
+  `p1 / p2 <= lower` or `p1 / p2 >= upper`. The null hypothesis is
+  rejected when both one-sided tests reject, each at the level `alpha`
 
 - ref.pvalue:
 

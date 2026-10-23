@@ -3,6 +3,8 @@
 Draws the type I error rate of a design with blinded sample size
 re-estimation and of the corresponding fixed-sample design against the
 common response probability, with a reference line at the nominal level.
+For a test of equivalence the two boundaries of the null hypothesis are
+drawn in separate panels.
 
 ## Usage
 

@@ -4,8 +4,10 @@ Calculates the required sample size for two-arm trials with binary
 endpoints. Seven tests are supported (see
 [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md)),
 each of which can be applied with a one-sided or a two-sided
-alternative. The sample size can be obtained from the exact power of the
-selected test or from the normal approximation.
+alternative. The Blackwelder and Farrington-Manning tests also allow a
+non-inferiority margin and a test of equivalence. The sample size can be
+obtained from the exact power of the selected test or from the normal
+approximation.
 
 ## Usage
 
@@ -17,7 +19,7 @@ BinarySampleSize(
   alpha,
   tar.power,
   Test,
-  alternative = c("greater", "less", "two.sided"),
+  alternative = c("greater", "less", "two.sided", "equivalence"),
   tsmethod = c("minlike", "central", "blaker"),
   n.grid = 100,
   bb.gamma = 0,
@@ -66,7 +68,9 @@ BinarySampleSize(
   (default), which requires `p1 - p2 > -margin`, `'less'`, which
   requires `p1 - p2 < margin`, or `'two.sided'`, which requires
   `p1 != p2`. With `margin.scale = 'RR'`, `'greater'` requires
-  `p1 > margin p2` and `'less'` requires `p1 < margin p2`
+  `p1 > margin p2` and `'less'` requires `p1 < margin p2`.
+  `'equivalence'` requires `-lower < p1 - p2 < upper`, or
+  `lower < p1 / p2 < upper` on the scale of the risk ratio
 
 - tsmethod:
 
@@ -141,8 +145,18 @@ BinarySampleSize(
   `p1 / p2 >= R0` against `p1 / p2 < R0` when it is `'less'`. A margin
   other than 0, and any margin on the scale of the risk ratio, requires
   `Test = 'Blackwelder'` or `'Farrington-Manning'` and a one-sided
-  alternative, see
-  [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md)
+  alternative or `'equivalence'`, see
+  [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
+  For `alternative = 'equivalence'` the margin is the pair
+  `c(lower, upper)` of margins of a test of equivalence, or a single
+  value used for both. On the scale of the risk difference both margins
+  lie in (0, 1), and the null hypothesis `p1 - p2 <= -lower` or
+  `p1 - p2 >= upper` is tested against `-lower < p1 - p2 < upper`. On
+  the scale of the risk ratio the pair satisfies
+  `0 < lower < 1 < upper`, a single ratio `R` gives the pair of `R` and
+  `1 / R`, the smaller as `lower`, and the null hypothesis is
+  `p1 / p2 <= lower` or `p1 / p2 >= upper`. The null hypothesis is
+  rejected when both one-sided tests reject, each at the level `alpha`
 
 - ref.pvalue:
 
@@ -224,9 +238,10 @@ approach:
     otherwise raise it one unit at a time until the power attains it
 
 The normal approximation of the first step uses `alpha` for a one-sided
-alternative and `alpha / 2` for a two-sided alternative. Only the
-starting value of the search is affected, so the returned sample size is
-exact in either case.
+alternative, `alpha / 2` for a two-sided alternative, and `alpha` for
+each of the two one-sided tests of equivalence. Only the starting value
+of the search is affected, so the returned sample size is exact in every
+case.
 
 The search stops where the exact power crosses the target: the returned
 size of group 2 attains the target power and the size one unit smaller
@@ -273,6 +288,14 @@ sample values of the restricted maximum likelihood estimates under
 gives formula (8) of Farrington and Manning (1990),
 `'alternative.variance'` gives the formula of their Method 1, and the
 exact search starts from formula (8).
+
+For `alternative = 'equivalence'` the approximate power of each
+one-sided test is obtained as above for its own margin, at the level
+`alpha`, and the sample size of the normal approximation is the smallest
+unrounded size of group 2 at which the sum of the two approximate powers
+minus 1 attains the target power. The sum minus 1 is a lower bound of
+the approximate probability that both tests reject. The exact search
+starts from this size.
 
 ## References
 

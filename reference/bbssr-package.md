@@ -6,7 +6,9 @@ size calculations the re-estimation relies on. Seven tests are
 supported, each available with a one-sided or a two-sided alternative.
 Two of them also test non-inferiority with a margin on the scale of the
 risk difference or the risk ratio, and the exact unconditional tests can
-be combined with the Berger-Boos procedure.
+be combined with the Berger-Boos procedure. The same calculations are
+available for matched-pairs designs, such as cross-over trials, with
+five tests based on the discordant pairs.
 
 ## Main functions
 
@@ -50,6 +52,37 @@ be combined with the Berger-Boos procedure.
 - [`BinaryBSSR`](https://gosukehommaex.github.io/bbssr/reference/BinaryBSSR.md):
 
   Sample size re-estimation from observed interim data
+
+## Paired binary data
+
+- [`PairedRR`](https://gosukehommaex.github.io/bbssr/reference/PairedRR.md):
+
+  Rejection region of a test for matched pairs
+
+- [`PairedPower`](https://gosukehommaex.github.io/bbssr/reference/PairedPower.md):
+
+  Exact power at a given number of pairs
+
+- [`PairedSampleSize`](https://gosukehommaex.github.io/bbssr/reference/PairedSampleSize.md):
+
+  Number of pairs attaining a target power
+
+- [`PairedPowerBSSR`](https://gosukehommaex.github.io/bbssr/reference/PairedPowerBSSR.md):
+
+  Power and final number of pairs of a re-estimation design
+
+- [`PairedBSSR`](https://gosukehommaex.github.io/bbssr/reference/PairedBSSR.md):
+
+  Re-estimation from the interim number of discordant pairs
+
+- [`PairedTypeIErrorBSSR`](https://gosukehommaex.github.io/bbssr/reference/PairedTypeIErrorBSSR.md):
+
+  Type I error rate of a re-estimation design over the probability of a
+  discordant pair
+
+- [`PairedAlphaAdjBSSR`](https://gosukehommaex.github.io/bbssr/reference/PairedAlphaAdjBSSR.md):
+
+  Adjusted significance level of a re-estimation design
 
 ## Reuse of computed p-values
 

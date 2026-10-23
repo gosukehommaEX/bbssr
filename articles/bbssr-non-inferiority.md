@@ -1,4 +1,4 @@
-# Non-inferiority Trials
+# Non-inferiority and Equivalence Trials
 
 ``` r
 
@@ -440,6 +440,120 @@ asymptotic test rather than from the re-estimation.
 accepts `margin.scale` in the same way and lowers the nominal level
 until the rate is controlled.
 
+## Tests of equivalence
+
+With `alternative = 'equivalence'` the null hypothesis
+$`p_{1} - p_{2} \le -\delta_{L}`$ or $`p_{1} - p_{2} \ge \delta_{U}`$ is
+tested against $`-\delta_{L} < p_{1} - p_{2} < \delta_{U}`$ by two
+one-sided tests, the test against `'greater'` with the margin
+$`\delta_{L}`$ and the test against `'less'` with the margin
+$`\delta_{U}`$, each at the level $`\alpha`$. The margins are given as
+`margin = c(lower, upper)`, or as a single value for both. The null
+hypothesis is rejected when both tests reject, so the rejection region
+is the intersection of the two one-sided regions.
+
+``` r
+
+eq <- BinaryRR(N1 = 80, N2 = 80, alpha = 0.05, Test = 'Farrington-Manning',
+               alternative = 'equivalence', margin = 0.2)
+lo <- BinaryRR(N1 = 80, N2 = 80, alpha = 0.05, Test = 'Farrington-Manning',
+               alternative = 'greater', margin = 0.2)
+up <- BinaryRR(N1 = 80, N2 = 80, alpha = 0.05, Test = 'Farrington-Manning',
+               alternative = 'less', margin = 0.2)
+identical(as.vector(eq), as.vector(lo) & as.vector(up))
+#> [1] TRUE
+```
+
+The normal approximation to the sample size adds the approximate powers
+of the two one-sided tests and subtracts 1, which gives a lower bound
+for the approximate probability that both reject, and solves for the
+size at which this bound reaches the target power. The exact search of
+[`BinarySampleSize()`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md)
+starts from that size.
+
+``` r
+
+plan.eq <- BinarySampleSize(p1 = 0.4, p2 = 0.4, r = 1, alpha = 0.05, tar.power = 0.8,
+                            Test = 'Farrington-Manning', alternative = 'equivalence',
+                            margin = 0.2)
+plan.eq
+#> Sample size for a two-arm trial with a binary endpoint
+#> 
+#>   Test             : Farrington-Manning
+#>   Alternative      : equivalence
+#>   Response rates   : p1 = 0.4, p2 = 0.4
+#>   Allocation ratio : 1 to 1
+#>   Margin           : -0.2 to 0.2 (risk difference)
+#>   Alpha            : 0.05
+#>   Target power     : 0.8
+#>   Exact search     : crossing
+#> 
+#>   Required sample size: N1 = 101, N2 = 101, total N = 202
+#>   Attained power      : 0.8005
+```
+
+In a re-estimation design the assumed difference `Delta.A` must lie
+between the margins, and is usually 0. The type I error rate is
+evaluated on both boundaries of the null hypothesis,
+$`p_{1} - p_{2} = -\delta_{L}`$ and $`p_{1} - p_{2} = \delta_{U}`$, and
+its largest value is certified on each. For normally distributed
+outcomes, Glimm, Yau and Woehling (2021) found that blinded
+re-estimation can inflate the type I error rate of a test of equivalence
+more than that of a test of superiority, because on a boundary away from
+no difference the blinded estimate of the variance depends on the true
+difference. For binary outcomes the rate can be computed exactly.
+
+``` r
+
+tie.eq <- BinaryTypeIErrorBSSR(
+  Delta.A = 0, N1 = plan.eq$N1, N2 = plan.eq$N2, omega = 0.3, r = 1, alpha = 0.05,
+  tar.power = 0.8, Test = 'Farrington-Manning', alternative = 'equivalence',
+  ss.method = 'standard', margin = 0.2
+)
+attr(tie.eq, 'max')
+#>   Design     theta        TIE      bound boundary
+#> 1   BSSR 0.5000000 0.05400202 0.05400202    lower
+#> 2   TRAD 0.6342773 0.05352131 0.05352131    lower
+plot(tie.eq)
+```
+
+![](bbssr-non-inferiority_files/figure-html/equiv-tie-1.png)
+
+The largest type I error rate is 0.0540 for the re-estimation design and
+0.0535 for the fixed-sample design of 202 patients. The re-estimation
+design exceeds the fixed-sample design, and both rates are computed for
+the same test of Farrington and Manning, whose fixed-sample rate already
+exceeds the level of 0.05. With equal margins and equal allocation the
+two boundaries are mirror images and give the same rates.
+[`BinaryAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryAlphaAdjBSSR.md)
+lowers the level of both one-sided tests until the rate is controlled on
+both boundaries.
+
+``` r
+
+adj.eq <- BinaryAlphaAdjBSSR(
+  Delta.A = 0, N1 = plan.eq$N1, N2 = plan.eq$N2, omega = 0.3, r = 1, alpha = 0.05,
+  tar.power = 0.8, Test = 'Farrington-Manning', alternative = 'equivalence',
+  ss.method = 'standard', margin = 0.2
+)
+adj.eq
+#> Adjusted significance level for blinded sample size re-estimation
+#> 
+#>   Test            : Farrington-Manning
+#>   Alternative     : equivalence
+#>   Adjusted part   : final analysis only
+#>   Margin          : -0.2 to 0.2 (risk difference)
+#>   Maximum         : certified over theta in [0.1, 0.9] on the lower boundary and [0.1, 0.9] on the upper boundary
+#>   Target level    : 0.05
+#> 
+#>        Design   max.TIE alpha.adj max.TIE.adj Boundary
+#>          BSSR 0.0540020 0.0467474   0.0496199    lower
+#>  Fixed sample 0.0535213 0.0474232   0.0492922    lower
+```
+
+The adjusted level of each one-sided test is 0.0467474 for the
+re-estimation design and 0.0474232 for the fixed-sample design.
+
 ## References
 
 Blackwelder, W. C. (1982). “Proving the null hypothesis” in clinical
@@ -453,3 +567,7 @@ Medicine*, 9, 1447-1454.
 Friede, T., Mitchell, C. and Mueller-Velten, G. (2007). Blinded sample
 size reestimation in non-inferiority trials with binary endpoints.
 *Biometrical Journal*, 49, 903-916.
+
+Glimm, E., Yau, L. and Woehling, H. (2021). Type I error inflation of
+blinded sample size re-estimation in equivalence testing. *Statistics in
+Biopharmaceutical Research*, 13, 156-169.

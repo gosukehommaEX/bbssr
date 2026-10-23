@@ -92,7 +92,9 @@ BinaryCondRejectBSSR(
 - alternative:
 
   Direction of the alternative hypothesis. Options: `'greater'`
-  (default), `'less'` or `'two.sided'`
+  (default), `'less'`, `'two.sided'`, or `'equivalence'` for the
+  alternative that the effect lies between the margins of a test of
+  equivalence, see `margin`
 
 - tsmethod:
 

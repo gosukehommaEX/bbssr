@@ -41,6 +41,28 @@ level that controls it, and its decomposition by the interim outcome.
   : Conditional Rejection Probabilities of a Blinded Sample Size
   Re-estimation Design
 
+## Paired binary data
+
+Fixed-design and re-estimation calculations for a matched-pairs design,
+such as a cross-over trial.
+
+- [`PairedRR()`](https://gosukehommaex.github.io/bbssr/reference/PairedRR.md)
+  : Rejection Region for Paired Binary Data
+- [`PairedPower()`](https://gosukehommaex.github.io/bbssr/reference/PairedPower.md)
+  : Power for Paired Binary Data
+- [`PairedSampleSize()`](https://gosukehommaex.github.io/bbssr/reference/PairedSampleSize.md)
+  : Sample Size for Paired Binary Data
+- [`PairedPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/PairedPowerBSSR.md)
+  : Power of Blinded Sample Size Re-Estimation for Paired Binary Data
+- [`PairedBSSR()`](https://gosukehommaex.github.io/bbssr/reference/PairedBSSR.md)
+  : Blinded Sample Size Re-Estimation from Paired Interim Data
+- [`PairedTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/PairedTypeIErrorBSSR.md)
+  : Type I Error Rate of Blinded Sample Size Re-Estimation for Paired
+  Binary Data
+- [`PairedAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/PairedAlphaAdjBSSR.md)
+  : Adjusted Significance Level of Blinded Sample Size Re-Estimation for
+  Paired Binary Data
+
 ## Printing, summaries and plots
 
 - [`print(`*`<bbssr_alphaadj>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_alphaadj.md)
@@ -49,10 +71,22 @@ level that controls it, and its decomposition by the interim outcome.
   : Print a Sample Size Re-estimation from Interim Data
 - [`print(`*`<bbssr_crp>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_crp.md)
   : Print Method for bbssr_crp Objects
+- [`print(`*`<bbssr_pbssr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_pbssr.md)
+  : Print Method for bbssr_pbssr Objects
 - [`print(`*`<bbssr_power>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_power.md)
   : Print Exact Power Results
 - [`print(`*`<bbssr_powerbssr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_powerbssr.md)
   : Print the Operating Characteristics of a BSSR Design
+- [`print(`*`<bbssr_ppower>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_ppower.md)
+  : Print Method for bbssr_ppower Objects
+- [`print(`*`<bbssr_ppowerbssr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_ppowerbssr.md)
+  : Print Method for bbssr_ppowerbssr Objects
+- [`print(`*`<bbssr_prr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_prr.md)
+  : Print Method for bbssr_prr Objects
+- [`print(`*`<bbssr_psamplesize>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_psamplesize.md)
+  : Print Method for bbssr_psamplesize Objects
+- [`print(`*`<bbssr_ptie>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_ptie.md)
+  : Print Method for bbssr_ptie Objects
 - [`print(`*`<bbssr_rr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_rr.md)
   : Print a Rejection Region
 - [`print(`*`<bbssr_samplesize>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_samplesize.md)
@@ -71,6 +105,10 @@ level that controls it, and its decomposition by the interim outcome.
   : Plot Exact Power against the Response Probability of Group 1
 - [`plot(`*`<bbssr_powerbssr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_powerbssr.md)
   : Plot the Power of a BSSR Design against the Fixed-Sample Design
+- [`plot(`*`<bbssr_prr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_prr.md)
+  : Plot a Rejection Region for Paired Binary Data
+- [`plot(`*`<bbssr_ptie>`*`)`](https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_ptie.md)
+  : Plot Method for bbssr_ptie Objects
 - [`plot(`*`<bbssr_rr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_rr.md)
   : Plot a Rejection Region
 - [`plot(`*`<bbssr_samplesize>`*`)`](https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_samplesize.md)

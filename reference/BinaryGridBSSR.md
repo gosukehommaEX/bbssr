@@ -46,9 +46,9 @@ BinaryGridBSSR(design, p, Delta.T = NULL, type1 = FALSE, verbose = FALSE, ...)
   of the corresponding fixed-sample design is added, as computed by
   [`BinaryTypeIErrorBSSR`](https://gosukehommaex.github.io/bbssr/reference/BinaryTypeIErrorBSSR.md)
   with its default grid of `theta` and the certified maximum. It is
-  taken over the common response probability, or over the boundary of
-  the null hypothesis for a design with a non-inferiority margin.
-  Default is `FALSE`
+  taken over the common response probability, over the boundary of the
+  null hypothesis for a design with a non-inferiority margin, or over
+  both boundaries for a test of equivalence. Default is `FALSE`
 
 - verbose:
 
@@ -105,9 +105,12 @@ The attribute `designs` has one row per design with its index, the
 columns of `design` other than the sample sizes and `Delta.T`, the
 initial and interim sample sizes and the true effect and, with
 `type1 = TRUE`, the largest type I error rates `TIE.BSSR` and `TIE.TRAD`
-and the values `theta.BSSR` and `theta.TRAD` at which they occur.
-Warnings and errors raised while a design is evaluated are prefixed with
-the index of the design.
+and the values `theta.BSSR` and `theta.TRAD` at which they occur. When a
+design tests equivalence, the columns `boundary.BSSR` and
+`boundary.TRAD` give the boundary, `'lower'` or `'upper'`, of each
+largest rate, and are `NA` for the other designs. Warnings and errors
+raised while a design is evaluated are prefixed with the index of the
+design.
 
 ## Details
 

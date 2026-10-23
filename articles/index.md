@@ -13,8 +13,10 @@
   Re-estimation](https://gosukehommaex.github.io/bbssr/articles/bbssr-reestimation-rules.md):
 - [Comparing Designs with
   BinaryGridBSSR](https://gosukehommaex.github.io/bbssr/articles/bbssr-design-grid.md):
-- [Non-inferiority
+- [Non-inferiority and Equivalence
   Trials](https://gosukehommaex.github.io/bbssr/articles/bbssr-non-inferiority.md):
+- [Paired Binary
+  Data](https://gosukehommaex.github.io/bbssr/articles/bbssr-paired.md):
 
 ### Type I error rate
 

@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Non-inferiority Trials • bbssr</title>
+<title>Non-inferiority and Equivalence Trials • bbssr</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -15,7 +15,7 @@
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Non-inferiority Trials">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Non-inferiority and Equivalence Trials">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bbssr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,7 +44,8 @@
     <li><a class="dropdown-item" href="../articles/bbssr-interim-reestimation.html">Re-estimating the Sample Size from Interim Data</a></li>
     <li><a class="dropdown-item" href="../articles/bbssr-reestimation-rules.html">Options of the Sample Size Re-estimation</a></li>
     <li><a class="dropdown-item" href="../articles/bbssr-design-grid.html">Comparing Designs with BinaryGridBSSR</a></li>
-    <li><a class="dropdown-item" href="../articles/bbssr-non-inferiority.html">Non-inferiority Trials</a></li>
+    <li><a class="dropdown-item" href="../articles/bbssr-non-inferiority.html">Non-inferiority and Equivalence Trials</a></li>
+    <li><a class="dropdown-item" href="../articles/bbssr-paired.html">Paired Binary Data</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Type I error rate</h6></li>
     <li><a class="dropdown-item" href="../articles/bbssr-type1-error.html">Type I Error Rate of a Re-estimation Design</a></li>
@@ -74,11 +75,11 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Non-inferiority Trials</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Non-inferiority and Equivalence Trials</h1>
                         <h4 data-toc-skip class="author">Gosuke
 Homma</h4>
             
-            <h4 data-toc-skip class="date">2026-10-08</h4>
+            <h4 data-toc-skip class="date">2026-10-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/gosukehommaEX/bbssr/blob/main/vignettes/bbssr-non-inferiority.Rmd" class="external-link"><code>vignettes/bbssr-non-inferiority.Rmd</code></a></small>
       <div class="d-none name"><code>bbssr-non-inferiority.Rmd</code></div>
@@ -523,6 +524,112 @@ accepts <code>margin.scale</code> in the same way and lowers the nominal
 level until the rate is controlled.</p>
 </div>
 <div class="section level2">
+<h2 id="tests-of-equivalence">Tests of equivalence<a class="anchor" aria-label="anchor" href="#tests-of-equivalence"></a>
+</h2>
+<p>With <code>alternative = 'equivalence'</code> the null hypothesis
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>−</mo><msub><mi>p</mi><mn>2</mn></msub><mo>≤</mo><mi>−</mi><msub><mi>δ</mi><mi>L</mi></msub></mrow><annotation encoding="application/x-tex">p_{1} - p_{2} \le -\delta_{L}</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>−</mo><msub><mi>p</mi><mn>2</mn></msub><mo>≥</mo><msub><mi>δ</mi><mi>U</mi></msub></mrow><annotation encoding="application/x-tex">p_{1} - p_{2} \ge \delta_{U}</annotation></semantics></math>
+is tested against
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><msub><mi>δ</mi><mi>L</mi></msub><mo>&lt;</mo><msub><mi>p</mi><mn>1</mn></msub><mo>−</mo><msub><mi>p</mi><mn>2</mn></msub><mo>&lt;</mo><msub><mi>δ</mi><mi>U</mi></msub></mrow><annotation encoding="application/x-tex">-\delta_{L} &lt; p_{1} - p_{2} &lt; \delta_{U}</annotation></semantics></math>
+by two one-sided tests, the test against <code>'greater'</code> with the
+margin
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>L</mi></msub><annotation encoding="application/x-tex">\delta_{L}</annotation></semantics></math>
+and the test against <code>'less'</code> with the margin
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>U</mi></msub><annotation encoding="application/x-tex">\delta_{U}</annotation></semantics></math>,
+each at the level
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>.
+The margins are given as <code>margin = c(lower, upper)</code>, or as a
+single value for both. The null hypothesis is rejected when both tests
+reject, so the rejection region is the intersection of the two one-sided
+regions.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">eq</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span>N1 <span class="op">=</span> <span class="fl">80</span>, N2 <span class="op">=</span> <span class="fl">80</span>, alpha <span class="op">=</span> <span class="fl">0.05</span>, Test <span class="op">=</span> <span class="st">'Farrington-Manning'</span>,</span>
+<span>               alternative <span class="op">=</span> <span class="st">'equivalence'</span>, margin <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
+<span><span class="va">lo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span>N1 <span class="op">=</span> <span class="fl">80</span>, N2 <span class="op">=</span> <span class="fl">80</span>, alpha <span class="op">=</span> <span class="fl">0.05</span>, Test <span class="op">=</span> <span class="st">'Farrington-Manning'</span>,</span>
+<span>               alternative <span class="op">=</span> <span class="st">'greater'</span>, margin <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
+<span><span class="va">up</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryRR.html">BinaryRR</a></span><span class="op">(</span>N1 <span class="op">=</span> <span class="fl">80</span>, N2 <span class="op">=</span> <span class="fl">80</span>, alpha <span class="op">=</span> <span class="fl">0.05</span>, Test <span class="op">=</span> <span class="st">'Farrington-Manning'</span>,</span>
+<span>               alternative <span class="op">=</span> <span class="st">'less'</span>, margin <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">eq</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">lo</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">up</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>The normal approximation to the sample size adds the approximate
+powers of the two one-sided tests and subtracts 1, which gives a lower
+bound for the approximate probability that both reject, and solves for
+the size at which this bound reaches the target power. The exact search
+of <code><a href="../reference/BinarySampleSize.html">BinarySampleSize()</a></code> starts from that size.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">plan.eq</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinarySampleSize.html">BinarySampleSize</a></span><span class="op">(</span>p1 <span class="op">=</span> <span class="fl">0.4</span>, p2 <span class="op">=</span> <span class="fl">0.4</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.05</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>,</span>
+<span>                            Test <span class="op">=</span> <span class="st">'Farrington-Manning'</span>, alternative <span class="op">=</span> <span class="st">'equivalence'</span>,</span>
+<span>                            margin <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
+<span><span class="va">plan.eq</span></span>
+<span><span class="co">#&gt; Sample size for a two-arm trial with a binary endpoint</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   Test             : Farrington-Manning</span></span>
+<span><span class="co">#&gt;   Alternative      : equivalence</span></span>
+<span><span class="co">#&gt;   Response rates   : p1 = 0.4, p2 = 0.4</span></span>
+<span><span class="co">#&gt;   Allocation ratio : 1 to 1</span></span>
+<span><span class="co">#&gt;   Margin           : -0.2 to 0.2 (risk difference)</span></span>
+<span><span class="co">#&gt;   Alpha            : 0.05</span></span>
+<span><span class="co">#&gt;   Target power     : 0.8</span></span>
+<span><span class="co">#&gt;   Exact search     : crossing</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   Required sample size: N1 = 101, N2 = 101, total N = 202</span></span>
+<span><span class="co">#&gt;   Attained power      : 0.8005</span></span></code></pre></div>
+<p>In a re-estimation design the assumed difference <code>Delta.A</code>
+must lie between the margins, and is usually 0. The type I error rate is
+evaluated on both boundaries of the null hypothesis,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>−</mo><msub><mi>p</mi><mn>2</mn></msub><mo>=</mo><mi>−</mi><msub><mi>δ</mi><mi>L</mi></msub></mrow><annotation encoding="application/x-tex">p_{1} - p_{2} = -\delta_{L}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>−</mo><msub><mi>p</mi><mn>2</mn></msub><mo>=</mo><msub><mi>δ</mi><mi>U</mi></msub></mrow><annotation encoding="application/x-tex">p_{1} - p_{2} = \delta_{U}</annotation></semantics></math>,
+and its largest value is certified on each. For normally distributed
+outcomes, Glimm, Yau and Woehling (2021) found that blinded
+re-estimation can inflate the type I error rate of a test of equivalence
+more than that of a test of superiority, because on a boundary away from
+no difference the blinded estimate of the variance depends on the true
+difference. For binary outcomes the rate can be computed exactly.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tie.eq</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR</a></span><span class="op">(</span></span>
+<span>  Delta.A <span class="op">=</span> <span class="fl">0</span>, N1 <span class="op">=</span> <span class="va">plan.eq</span><span class="op">$</span><span class="va">N1</span>, N2 <span class="op">=</span> <span class="va">plan.eq</span><span class="op">$</span><span class="va">N2</span>, omega <span class="op">=</span> <span class="fl">0.3</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Farrington-Manning'</span>, alternative <span class="op">=</span> <span class="st">'equivalence'</span>,</span>
+<span>  ss.method <span class="op">=</span> <span class="st">'standard'</span>, margin <span class="op">=</span> <span class="fl">0.2</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">tie.eq</span>, <span class="st">'max'</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   Design     theta        TIE      bound boundary</span></span>
+<span><span class="co">#&gt; 1   BSSR 0.5000000 0.05400202 0.05400202    lower</span></span>
+<span><span class="co">#&gt; 2   TRAD 0.6342773 0.05352131 0.05352131    lower</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tie.eq</span><span class="op">)</span></span></code></pre></div>
+<p><img src="bbssr-non-inferiority_files/figure-html/equiv-tie-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
+<p>The largest type I error rate is 0.0540 for the re-estimation design
+and 0.0535 for the fixed-sample design of 202 patients. The
+re-estimation design exceeds the fixed-sample design, and both rates are
+computed for the same test of Farrington and Manning, whose fixed-sample
+rate already exceeds the level of 0.05. With equal margins and equal
+allocation the two boundaries are mirror images and give the same rates.
+<code><a href="../reference/BinaryAlphaAdjBSSR.html">BinaryAlphaAdjBSSR()</a></code> lowers the level of both one-sided
+tests until the rate is controlled on both boundaries.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">adj.eq</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryAlphaAdjBSSR.html">BinaryAlphaAdjBSSR</a></span><span class="op">(</span></span>
+<span>  Delta.A <span class="op">=</span> <span class="fl">0</span>, N1 <span class="op">=</span> <span class="va">plan.eq</span><span class="op">$</span><span class="va">N1</span>, N2 <span class="op">=</span> <span class="va">plan.eq</span><span class="op">$</span><span class="va">N2</span>, omega <span class="op">=</span> <span class="fl">0.3</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Farrington-Manning'</span>, alternative <span class="op">=</span> <span class="st">'equivalence'</span>,</span>
+<span>  ss.method <span class="op">=</span> <span class="st">'standard'</span>, margin <span class="op">=</span> <span class="fl">0.2</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">adj.eq</span></span>
+<span><span class="co">#&gt; Adjusted significance level for blinded sample size re-estimation</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   Test            : Farrington-Manning</span></span>
+<span><span class="co">#&gt;   Alternative     : equivalence</span></span>
+<span><span class="co">#&gt;   Adjusted part   : final analysis only</span></span>
+<span><span class="co">#&gt;   Margin          : -0.2 to 0.2 (risk difference)</span></span>
+<span><span class="co">#&gt;   Maximum         : certified over theta in [0.1, 0.9] on the lower boundary and [0.1, 0.9] on the upper boundary</span></span>
+<span><span class="co">#&gt;   Target level    : 0.05</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;        Design   max.TIE alpha.adj max.TIE.adj Boundary</span></span>
+<span><span class="co">#&gt;          BSSR 0.0540020 0.0467474   0.0496199    lower</span></span>
+<span><span class="co">#&gt;  Fixed sample 0.0535213 0.0474232   0.0492922    lower</span></span></code></pre></div>
+<p>The adjusted level of each one-sided test is 0.0467474 for the
+re-estimation design and 0.0474232 for the fixed-sample design.</p>
+</div>
+<div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <p>Blackwelder, W. C. (1982). “Proving the null hypothesis” in clinical
@@ -534,6 +641,9 @@ Medicine</em>, 9, 1447-1454.</p>
 <p>Friede, T., Mitchell, C. and Mueller-Velten, G. (2007). Blinded
 sample size reestimation in non-inferiority trials with binary
 endpoints. <em>Biometrical Journal</em>, 49, 903-916.</p>
+<p>Glimm, E., Yau, L. and Woehling, H. (2021). Type I error inflation of
+blinded sample size re-estimation in equivalence testing. <em>Statistics
+in Biopharmaceutical Research</em>, 13, 156-169.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

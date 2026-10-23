@@ -15,7 +15,7 @@ each."><meta property="og:image" content="https://gosukehommaex.github.io/bbssr/
 
     <a class="navbar-brand me-2" href="../index.html">bbssr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,7 +32,8 @@ each."><meta property="og:image" content="https://gosukehommaex.github.io/bbssr/
     <li><a class="dropdown-item" href="../articles/bbssr-interim-reestimation.html">Re-estimating the Sample Size from Interim Data</a></li>
     <li><a class="dropdown-item" href="../articles/bbssr-reestimation-rules.html">Options of the Sample Size Re-estimation</a></li>
     <li><a class="dropdown-item" href="../articles/bbssr-design-grid.html">Comparing Designs with BinaryGridBSSR</a></li>
-    <li><a class="dropdown-item" href="../articles/bbssr-non-inferiority.html">Non-inferiority Trials</a></li>
+    <li><a class="dropdown-item" href="../articles/bbssr-non-inferiority.html">Non-inferiority and Equivalence Trials</a></li>
+    <li><a class="dropdown-item" href="../articles/bbssr-paired.html">Paired Binary Data</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Type I error rate</h6></li>
     <li><a class="dropdown-item" href="../articles/bbssr-type1-error.html">Type I Error Rate of a Re-estimation Design</a></li>
@@ -78,7 +79,7 @@ each.</p>
 <span>  <span class="va">tar.power</span>,</span>
 <span>  <span class="va">Test</span>,</span>
 <span>  restricted <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  alternative <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"greater"</span>, <span class="st">"less"</span>, <span class="st">"two.sided"</span><span class="op">)</span>,</span>
+<span>  alternative <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"greater"</span>, <span class="st">"less"</span>, <span class="st">"two.sided"</span>, <span class="st">"equivalence"</span><span class="op">)</span>,</span>
 <span>  tsmethod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"minlike"</span>, <span class="st">"central"</span>, <span class="st">"blaker"</span><span class="op">)</span>,</span>
 <span>  n.grid <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  bb.gamma <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -150,7 +151,9 @@ to fall below the initial sample size. Default is <code>FALSE</code></p></dd>
 
 <dt id="arg-alternative">alternative<a class="anchor" aria-label="anchor" href="#arg-alternative"></a></dt>
 <dd><p>Direction of the alternative hypothesis. Options: <code>'greater'</code>
-(default), <code>'less'</code> or <code>'two.sided'</code></p></dd>
+(default), <code>'less'</code>, <code>'two.sided'</code>, or <code>'equivalence'</code> for the
+alternative that the effect lies between the margins of a test of equivalence, see
+<code>margin</code></p></dd>
 
 
 <dt id="arg-tsmethod">tsmethod<a class="anchor" aria-label="anchor" href="#arg-tsmethod"></a></dt>
@@ -255,10 +258,20 @@ is <code>p1 / p2 &lt;= R0</code> against <code>p1 / p2 &gt; R0</code> when <code
 <code>'greater'</code>, and <code>p1 / p2 &gt;= R0</code> against <code>p1 / p2 &lt; R0</code> when it is
 <code>'less'</code>. A margin other than 0, and any margin on the scale of the risk ratio,
 requires <code>Test = 'Blackwelder'</code> or <code>'Farrington-Manning'</code> and a one-sided
-alternative, see <code><a href="BinaryRR.html">BinaryRR</a></code>. With a margin other than 0 on the scale of
-the risk difference the assumed and the true effects are risk differences
-(<code>effect = 'RD'</code>), and with a margin on the scale of the risk ratio they are
-risk ratios (<code>effect = 'RR'</code>)</p></dd>
+alternative or <code>'equivalence'</code>, see <code><a href="BinaryRR.html">BinaryRR</a></code>. With a margin other
+than 0 on the scale of the risk difference the assumed and the true effects are risk
+differences (<code>effect = 'RD'</code>), and with a margin on the scale of the risk ratio
+they are risk ratios (<code>effect = 'RR'</code>).
+For <code>alternative = 'equivalence'</code> the margin is the pair <code>c(lower, upper)</code>
+of margins of a test of equivalence, or a single value used for both. On the scale
+of the risk difference both margins lie in (0, 1), and the null hypothesis
+<code>p1 - p2 &lt;= -lower</code> or <code>p1 - p2 &gt;= upper</code> is tested against
+<code>-lower &lt; p1 - p2 &lt; upper</code>. On the scale of the risk ratio the pair satisfies
+<code>0 &lt; lower &lt; 1 &lt; upper</code>, a single ratio <code>R</code> gives the pair of <code>R</code> and
+<code>1 / R</code>, the smaller as <code>lower</code>, and the null hypothesis is
+<code>p1 / p2 &lt;= lower</code> or <code>p1 / p2 &gt;= upper</code>. The
+null hypothesis is rejected when both one-sided tests reject, each at the level
+<code>alpha</code></p></dd>
 
 
 <dt id="arg-ref-pvalue">ref.pvalue<a class="anchor" aria-label="anchor" href="#arg-ref-pvalue"></a></dt>
@@ -302,6 +315,16 @@ null boundary, <code>theta</code> at which it occurs and, with
 over the interval given by the attribute <code>interval</code> (otherwise <code>NA</code>).
 The attribute <code>reestimation</code> holds the final sample size for every pooled number
 of interim responders.</p>
+<p>For <code>alternative = 'equivalence'</code> the null hypothesis has two boundaries, the
+lower one <code>p1 - p2 = -lower</code> (<code>p1 = lower p2</code> on the scale of the risk
+ratio) and the upper one <code>p1 - p2 = upper</code> (<code>p1 = upper p2</code>). The data
+frame then has a first column <code>boundary</code>, <code>'lower'</code> or <code>'upper'</code>,
+and a row for each element of <code>theta</code> on each boundary. The rejection
+probability is that of the two one-sided tests together. The largest rate of each
+design in the attribute <code>max</code> is the larger of its maxima on the two boundaries,
+its bound the larger of the two bounds, and the column <code>boundary</code> of the
+attribute gives the boundary on which it occurs. The attribute <code>interval</code> is
+then a matrix with a row for each boundary.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
