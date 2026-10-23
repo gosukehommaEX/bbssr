@@ -17,6 +17,8 @@
   Trials](https://gosukehommaex.github.io/bbssr/articles/bbssr-non-inferiority.md):
 - [Paired Binary
   Data](https://gosukehommaex.github.io/bbssr/articles/bbssr-paired.md):
+- [Stratified
+  Designs](https://gosukehommaex.github.io/bbssr/articles/bbssr-stratified.md):
 
 ### Type I error rate
 

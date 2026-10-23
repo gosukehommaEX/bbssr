@@ -32,6 +32,7 @@ alpha, and returns the adjusted level together with that of the fixed design."><
     <li><a class="dropdown-item" href="../articles/bbssr-design-grid.html">Comparing Designs with BinaryGridBSSR</a></li>
     <li><a class="dropdown-item" href="../articles/bbssr-non-inferiority.html">Non-inferiority and Equivalence Trials</a></li>
     <li><a class="dropdown-item" href="../articles/bbssr-paired.html">Paired Binary Data</a></li>
+    <li><a class="dropdown-item" href="../articles/bbssr-stratified.html">Stratified Designs</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Type I error rate</h6></li>
     <li><a class="dropdown-item" href="../articles/bbssr-type1-error.html">Type I Error Rate of a Re-estimation Design</a></li>
@@ -252,7 +253,8 @@ BSSR design and one for the fixed design containing:</p><dl><dt>Design</dt>
 <dt>alpha.adj</dt>
 <dd><p>Adjusted nominal level. It is <code>alpha</code> when the nominal level
 already controls the type I error rate, and 0, with a warning, when no level
-examined does</p></dd>
+examined by the bisection does. The search of <code>adjust = 'both'</code> for the BSSR
+design stops with an error instead when it reaches 0</p></dd>
 
 <dt>max.TIE.adj</dt>
 <dd><p>Largest type I error rate at the adjusted level</p></dd>

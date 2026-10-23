@@ -206,7 +206,8 @@ BSSR design and one for the fixed design containing:
 
   Adjusted nominal level. It is `alpha` when the nominal level already
   controls the type I error rate, and 0, with a warning, when no level
-  examined does
+  examined by the bisection does. The search of `adjust = 'both'` for
+  the BSSR design stops with an error instead when it reaches 0
 
 - max.TIE.adj:
 

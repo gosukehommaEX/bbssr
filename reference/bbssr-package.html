@@ -6,14 +6,16 @@ two-sided alternative. Two of them also test non-inferiority with a margin on th
 of the risk difference or the risk ratio, and the exact unconditional tests can be
 combined with the Berger-Boos procedure. The same calculations are available for
 matched-pairs designs, such as cross-over trials, with five tests based on the
-discordant pairs."><meta property="og:description" content="Tools for blinded sample size re-estimation (BSSR) in two-arm clinical trials with
+discordant pairs, and for designs stratified into two or more strata, with the
+Cochran-Mantel-Haenszel test, Cochran's test and the stratified exact conditional test."><meta property="og:description" content="Tools for blinded sample size re-estimation (BSSR) in two-arm clinical trials with
 binary endpoints, together with the exact power and sample size calculations the
 re-estimation relies on. Seven tests are supported, each available with a one-sided or a
 two-sided alternative. Two of them also test non-inferiority with a margin on the scale
 of the risk difference or the risk ratio, and the exact unconditional tests can be
 combined with the Berger-Boos procedure. The same calculations are available for
 matched-pairs designs, such as cross-over trials, with five tests based on the
-discordant pairs."><meta property="og:image" content="https://gosukehommaex.github.io/bbssr/logo.png"></head><body>
+discordant pairs, and for designs stratified into two or more strata, with the
+Cochran-Mantel-Haenszel test, Cochran's test and the stratified exact conditional test."><meta property="og:image" content="https://gosukehommaex.github.io/bbssr/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -40,6 +42,7 @@ discordant pairs."><meta property="og:image" content="https://gosukehommaex.gith
     <li><a class="dropdown-item" href="../articles/bbssr-design-grid.html">Comparing Designs with BinaryGridBSSR</a></li>
     <li><a class="dropdown-item" href="../articles/bbssr-non-inferiority.html">Non-inferiority and Equivalence Trials</a></li>
     <li><a class="dropdown-item" href="../articles/bbssr-paired.html">Paired Binary Data</a></li>
+    <li><a class="dropdown-item" href="../articles/bbssr-stratified.html">Stratified Designs</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Type I error rate</h6></li>
     <li><a class="dropdown-item" href="../articles/bbssr-type1-error.html">Type I Error Rate of a Re-estimation Design</a></li>
@@ -73,7 +76,8 @@ two-sided alternative. Two of them also test non-inferiority with a margin on th
 of the risk difference or the risk ratio, and the exact unconditional tests can be
 combined with the Berger-Boos procedure. The same calculations are available for
 matched-pairs designs, such as cross-over trials, with five tests based on the
-discordant pairs.</p>
+discordant pairs, and for designs stratified into two or more strata, with the
+Cochran-Mantel-Haenszel test, Cochran's test and the stratified exact conditional test.</p>
     </div>
 
 
@@ -143,6 +147,37 @@ over the probability of a discordant pair</p></dd>
 <dt><code><a href="PairedAlphaAdjBSSR.html">PairedAlphaAdjBSSR</a></code></dt>
 <dd><p>Adjusted significance level of a
 re-estimation design</p></dd>
+
+
+</dl></div>
+    <div class="section level2">
+    <h2 id="stratified-designs">Stratified designs<a class="anchor" aria-label="anchor" href="#stratified-designs"></a></h2>
+
+
+<dl><dt><code><a href="StratRR.html">StratRR</a></code></dt>
+<dd><p>Critical values of a stratified test</p></dd>
+
+<dt><code><a href="StratPower.html">StratPower</a></code></dt>
+<dd><p>Exact power of a stratified test</p></dd>
+
+<dt><code><a href="StratSampleSize.html">StratSampleSize</a></code></dt>
+<dd><p>Total sample size attaining a target power</p></dd>
+
+<dt><code><a href="StratPowerBSSR.html">StratPowerBSSR</a></code></dt>
+<dd><p>Power and final sample size of a re-estimation
+design</p></dd>
+
+<dt><code><a href="StratBSSR.html">StratBSSR</a></code></dt>
+<dd><p>Re-estimation from the interim pooled numbers of
+responders of the strata</p></dd>
+
+<dt><code><a href="StratTypeIErrorBSSR.html">StratTypeIErrorBSSR</a></code></dt>
+<dd><p>Type I error rate of a re-estimation
+design over the common response probabilities of the strata</p></dd>
+
+<dt><code><a href="StratAlphaAdjBSSR.html">StratAlphaAdjBSSR</a></code></dt>
+<dd><p>Adjusted significance level of a
+re-estimation design with two strata</p></dd>
 
 
 </dl></div>

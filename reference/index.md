@@ -63,6 +63,28 @@ such as a cross-over trial.
   : Adjusted Significance Level of Blinded Sample Size Re-Estimation for
   Paired Binary Data
 
+## Stratified designs
+
+Fixed-design and re-estimation calculations for a trial stratified into
+two or more strata.
+
+- [`StratRR()`](https://gosukehommaex.github.io/bbssr/reference/StratRR.md)
+  : Rejection Region of a Stratified Test
+- [`StratPower()`](https://gosukehommaex.github.io/bbssr/reference/StratPower.md)
+  : Exact Power of a Stratified Test
+- [`StratSampleSize()`](https://gosukehommaex.github.io/bbssr/reference/StratSampleSize.md)
+  : Sample Size of a Stratified Test
+- [`StratPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md)
+  : Power of Blinded Sample Size Re-Estimation for a Stratified Design
+- [`StratBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratBSSR.md)
+  : Blinded Sample Size Re-Estimation for a Stratified Trial
+- [`StratTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md)
+  : Type I Error Rate of Blinded Sample Size Re-Estimation for a
+  Stratified Design
+- [`StratAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratAlphaAdjBSSR.md)
+  : Adjusted Significance Level of Blinded Sample Size Re-Estimation for
+  a Stratified Design
+
 ## Printing, summaries and plots
 
 - [`print(`*`<bbssr_alphaadj>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_alphaadj.md)
@@ -91,6 +113,18 @@ such as a cross-over trial.
   : Print a Rejection Region
 - [`print(`*`<bbssr_samplesize>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_samplesize.md)
   : Print a Sample Size Calculation
+- [`print(`*`<bbssr_sbssr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_sbssr.md)
+  : Print Method for bbssr_sbssr Objects
+- [`print(`*`<bbssr_spower>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_spower.md)
+  : Print Method for bbssr_spower Objects
+- [`print(`*`<bbssr_spowerbssr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_spowerbssr.md)
+  : Print Method for bbssr_spowerbssr Objects
+- [`print(`*`<bbssr_srr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_srr.md)
+  : Print Method for bbssr_srr Objects
+- [`print(`*`<bbssr_ssamplesize>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_ssamplesize.md)
+  : Print Method for bbssr_ssamplesize Objects
+- [`print(`*`<bbssr_stie>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_stie.md)
+  : Print Method for bbssr_stie Objects
 - [`print(`*`<bbssr_tie>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_tie.md)
   : Print Method for bbssr_tie Objects
 - [`summary(`*`<bbssr_grid>`*`)`](https://gosukehommaex.github.io/bbssr/reference/summary.bbssr_grid.md)
@@ -113,6 +147,8 @@ such as a cross-over trial.
   : Plot a Rejection Region
 - [`plot(`*`<bbssr_samplesize>`*`)`](https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_samplesize.md)
   : Plot the Exact Power Curve around a Sample Size Solution
+- [`plot(`*`<bbssr_stie>`*`)`](https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_stie.md)
+  : Plot Method for bbssr_stie Objects
 - [`plot(`*`<bbssr_tie>`*`)`](https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_tie.md)
   : Plot Method for bbssr_tie Objects
 

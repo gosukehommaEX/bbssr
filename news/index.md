@@ -7,6 +7,51 @@ version.
 
 ### New features
 
+- Stratified designs.
+  [`StratRR()`](https://gosukehommaex.github.io/bbssr/reference/StratRR.md),
+  [`StratPower()`](https://gosukehommaex.github.io/bbssr/reference/StratPower.md),
+  [`StratSampleSize()`](https://gosukehommaex.github.io/bbssr/reference/StratSampleSize.md),
+  [`StratPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md),
+  [`StratBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratBSSR.md),
+  [`StratTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md)
+  and
+  [`StratAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratAlphaAdjBSSR.md)
+  provide the fixed-design and re-estimation calculations for a trial
+  stratified into two or more strata with fixed group sizes in each
+  stratum. Five tests are available, all based on the number of
+  responders of group 1 summed over the strata: the
+  Cochran-Mantel-Haenszel test (`'CMH'`) and Cochran’s test
+  (`'Cochran'`), each also with the continuity correction of
+  [`stats::mantelhaen.test()`](https://rdrr.io/r/stats/mantelhaen.test.html)
+  (`'CMH-cc'`, `'Cochran-cc'`), and the stratified exact conditional
+  test of Jung (2014) (`'Strat-Fisher'`), with the two-sided conventions
+  of the Fisher exact test. The exact power is computed for any number
+  of strata and any response probabilities of the strata. The normal
+  approximation to the total sample size is formula (2.8) of Woolson et
+  al. (1986), and formula (2.3) of Nam (1992) for the tests with a
+  continuity correction, and the exact search follows
+  [`BinarySampleSize()`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md)
+  within the family of designs given by the fractions of the strata and
+  the allocation ratio. The re-estimation divides the blinded pooled
+  response probability of every stratum between the groups with an
+  assumed effect common to the strata, on the scale of the risk
+  difference, the risk ratio or the odds ratio. With two strata the
+  power is computed exactly, the type I error rate is a polynomial in
+  the response probabilities of the two strata whose largest value over
+  a rectangle is certified by subdividing its bivariate Bernstein
+  coefficients, and the significance level can be adjusted. With three
+  or more strata the power and the type I error rate of the
+  re-estimation design are estimated by simulation, with Monte Carlo
+  standard errors. The sample sizes of Woolson et al. (1986, Table 1)
+  and Nam (1992, Tables 1 and 2), and the p-values of the example, the
+  exact sample sizes of Table 4 and the design example of Jung (2014)
+  are compared with the published values in
+  `inst/reproduce/reproduce-published.R`, and the p-values agree with
+  [`stats::mantelhaen.test()`](https://rdrr.io/r/stats/mantelhaen.test.html).
+  A new vignette,
+  [`vignette('bbssr-stratified')`](https://gosukehommaex.github.io/bbssr/articles/bbssr-stratified.md),
+  describes the functions.
+
 - Paired binary data.
   [`PairedRR()`](https://gosukehommaex.github.io/bbssr/reference/PairedRR.md),
   [`PairedPower()`](https://gosukehommaex.github.io/bbssr/reference/PairedPower.md),
@@ -300,6 +345,27 @@ version.
 
 - The p-values of each test are stored instead of its rejection regions,
   so a region at any level is obtained without recomputing them.
+
+- [`print()`](https://rdrr.io/r/base/print.html) of the result of
+  [`BinaryAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryAlphaAdjBSSR.md)
+  stopped with an error when the attributes of the result had been
+  removed by selecting some of its rows or columns; such an object is
+  now printed as a data frame. The print methods of the results for
+  matched pairs and stratified designs do the same.
+
+- Sizes obtained by rounding up a product are rounded up with a
+  tolerance for floating-point error: the interim sizes
+  `ceiling(omega * N2)` and `ceiling(r * ceiling(omega * N2))` of the
+  re-estimation functions and the size `ceiling(r * N2)` of group 1. For
+  example, `omega = 0.55` with `N2 = 100` now gives 55 interim patients
+  in group 2 instead of 56, and `r = 1.1` with 50 patients in group 2
+  gives 55 patients in group 1 instead of 56.
+
+- `N.min` and `N.max` must be finite numbers. `N.max = Inf` made
+  [`BinaryBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryBSSR.md)
+  and
+  [`BinaryPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryPowerBSSR.md)
+  run without end with the default rounding.
 
 ### Performance
 

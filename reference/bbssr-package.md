@@ -8,7 +8,9 @@ Two of them also test non-inferiority with a margin on the scale of the
 risk difference or the risk ratio, and the exact unconditional tests can
 be combined with the Berger-Boos procedure. The same calculations are
 available for matched-pairs designs, such as cross-over trials, with
-five tests based on the discordant pairs.
+five tests based on the discordant pairs, and for designs stratified
+into two or more strata, with the Cochran-Mantel-Haenszel test,
+Cochran's test and the stratified exact conditional test.
 
 ## Main functions
 
@@ -83,6 +85,38 @@ five tests based on the discordant pairs.
 - [`PairedAlphaAdjBSSR`](https://gosukehommaex.github.io/bbssr/reference/PairedAlphaAdjBSSR.md):
 
   Adjusted significance level of a re-estimation design
+
+## Stratified designs
+
+- [`StratRR`](https://gosukehommaex.github.io/bbssr/reference/StratRR.md):
+
+  Critical values of a stratified test
+
+- [`StratPower`](https://gosukehommaex.github.io/bbssr/reference/StratPower.md):
+
+  Exact power of a stratified test
+
+- [`StratSampleSize`](https://gosukehommaex.github.io/bbssr/reference/StratSampleSize.md):
+
+  Total sample size attaining a target power
+
+- [`StratPowerBSSR`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md):
+
+  Power and final sample size of a re-estimation design
+
+- [`StratBSSR`](https://gosukehommaex.github.io/bbssr/reference/StratBSSR.md):
+
+  Re-estimation from the interim pooled numbers of responders of the
+  strata
+
+- [`StratTypeIErrorBSSR`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md):
+
+  Type I error rate of a re-estimation design over the common response
+  probabilities of the strata
+
+- [`StratAlphaAdjBSSR`](https://gosukehommaex.github.io/bbssr/reference/StratAlphaAdjBSSR.md):
+
+  Adjusted significance level of a re-estimation design with two strata
 
 ## Reuse of computed p-values
 

@@ -30,6 +30,9 @@ print(x, digits = 6, ...)
 
 ## Details
 
+An object whose attributes were removed, for example by selecting some
+of its rows or columns, is printed as a data frame.
+
 The adjusted levels are rounded down to `digits` significant digits, so
 that a printed level does not reject more outcomes than the level it
 stands for.
