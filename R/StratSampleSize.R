@@ -57,6 +57,16 @@
 #' quantiles rounded to three decimals, such as 1.645 for the level 0.05 and 0.841 or 0.842
 #' for the power 0.8, and round them to the nearest integer instead.
 #'
+#' For the unstratified tests the approximation is that of the comparison of two
+#' proportions on the table of totals, formula (3.3) of Woolson et al. (1986), or (2.3) of
+#' Nam (1992) with one stratum for \code{'Unstrat-Chisq-cc'}: the formula above with one
+#' stratum, in which group 1 holds the fraction \code{sum_j frac[j] s[j]} of the patients
+#' and the response probability of each group is the average of its probabilities over
+#' the strata, weighted by its sizes in the strata. The exact power of these tests is that
+#' of the stratified design, with the response probabilities of each stratum, so the
+#' search accounts for the difference between the strata that the table of totals
+#' ignores.
+#'
 #' The exact power is not monotone in the sample size, so the result depends on
 #' \code{search}, as described in \code{\link{BinarySampleSize}}.
 #'
@@ -103,10 +113,17 @@ StratSampleSize <- function(p1, p2, frac, r = 1, alpha, tar.power, Test,
       tar.power <= 0 || tar.power >= 1) {
     stop('tar.power must be a single value in (0, 1)')
   }
-  n.raw <- strat_raw_n(q1, q2, fr$frac, fr$r, alpha, tar.power, a$alternative, a$cc)
+  n.raw <- strat_raw_n(q1, q2, fr$frac, fr$r, alpha, tar.power, a$alternative, a$cc,
+                       a$unstrat)
   if (!is.finite(n.raw)) {
     stop('the response probabilities show no effect in the direction of the ',
-         'alternative: sum_j w[j] (p1[j] - p2[j]) must be ',
+         'alternative: ',
+         if (a$unstrat) {
+           paste('the difference of the averages of p1 and p2 over the strata, weighted',
+                 'by the group sizes, must be ')
+         } else {
+           'sum_j w[j] (p1[j] - p2[j]) must be '
+         },
          switch(a$alternative, greater = 'positive', less = 'negative',
                 two.sided = 'non-zero'))
   }

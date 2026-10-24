@@ -1365,3 +1365,5 @@ if __name__ == "__main__":
     import reference_strat
     reference_strat.blocks(emit, reported_level)
     reference_strat.blocks_bssr(emit, reported_level)
+    reference_strat.blocks_unstrat(emit, reported_level)
+    reference_strat.blocks_crp(emit, reported_level)

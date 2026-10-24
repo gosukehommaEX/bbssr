@@ -37,7 +37,7 @@ strat_ss_search <- function(p1, p2, frac, r, alpha, tar.power, Test, alternative
   p1 <- matrix(as.double(p1), ncol = J)
   p2 <- matrix(as.double(p2), ncol = J)
   a <- check_strat_args(rep(1, J), rep(1, J), alpha, Test, alternative, tsmethod)
-  init <- strat_raw_n(p1, p2, frac, r, alpha, tar.power, a$alternative, a$cc)
+  init <- strat_raw_n(p1, p2, frac, r, alpha, tar.power, a$alternative, a$cc, a$unstrat)
   if (any(!is.finite(init))) {
     stop('the response probabilities show no effect in the direction of the alternative')
   }

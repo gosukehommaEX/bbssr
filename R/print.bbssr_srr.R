@@ -24,7 +24,8 @@ print.bbssr_srr <- function(x, n = 20, ...) {
   cat('Rejection region of a stratified test\n\n')
   cat(sprintf('  Test             : %s\n', attr(x, 'Test')))
   cat(sprintf('  Alternative      : %s\n', attr(x, 'alternative')))
-  if (attr(x, 'Test') == 'Strat-Fisher' && attr(x, 'alternative') == 'two.sided') {
+  if (attr(x, 'Test') %in% c('Strat-Fisher', 'Unstrat-Fisher') &&
+      attr(x, 'alternative') == 'two.sided') {
     cat(sprintf('  Two-sided method : %s\n', attr(x, 'tsmethod')))
   }
   cat(sprintf('  Group sizes      : N1 = (%s), N2 = (%s)\n',

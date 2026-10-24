@@ -20,6 +20,19 @@ test_that("StratTypeIErrorBSSR agrees with the reference values", {
   expect_true(all(mx$TIE >= c(max(cert$TIE.BSSR), max(cert$TIE.TRAD)) - 1e-15))
 })
 
+test_that("StratTypeIErrorBSSR agrees with the reference values of an unstratified test", {
+  # The allocation ratio is 1 in stratum 1 and 3 in stratum 2, so the table of totals
+  # mixes strata with different response probabilities in different proportions
+  res <- tie(Delta.A = 0.4, N1 = c(6, 9), N2 = c(6, 3), r = c(1, 3), Test = 'Unstrat-Chisq',
+             N.max = 72, theta = rbind(c(0.1, 0.3), c(0.5, 0.5), c(0.2, 0.8)),
+             maximize = 'grid')
+  expect_equal(res$TIE.BSSR, c(0.0598976228961289, 0.0549331938924263, 0.12888549601319),
+               tolerance = 1e-10)
+  expect_equal(res$TIE.TRAD, c(0.0875167736767266, 0.0505431294441224, 0.126121635879333),
+               tolerance = 1e-10)
+  expect_identical(attr(res, 'Test'), 'Unstrat-Chisq')
+})
+
 test_that("StratTypeIErrorBSSR returns the grid and the settings", {
   res <- tie(theta = c(0.2, 0.5, 0.8))
   expect_s3_class(res, 'bbssr_stie')

@@ -1472,8 +1472,9 @@ add(sc.src, 'Schepers2026 Section 3.4: conditional power with 51 further pairs',
 # pi21 = k / 10, column c <= k holds the odds ratio 4 with s1 = c / 10 and column c > k the
 # odds ratio 2 with s1 = (c - 1) / 10. The values are reproduced with the quantiles 1.645
 # and 0.841 and rounding to the nearest integer. N_U is the size of the comparison of two
-# proportions on the table of totals, formula (2.8) with one stratum, with the crude rates
-# of formulas (3.1) and (3.2)
+# proportions on the table of totals, formula (3.3), with the crude rates of formulas
+# (3.1) and (3.2); it is computed by StratSampleSize() with Test = 'Unstrat-Chisq', with
+# these rates in both strata, so that the table of totals has them
 st.or <- function(p, theta) p * theta / (1 - p + p * theta)
 wo.src <- 'Woolson et al. (1986)'
 wo.NB <- rbind(c(318, 1442, 832, 648, 578, 565, 598, 693, 920, 1652),
@@ -1500,27 +1501,34 @@ st.cells$s1 <- ifelse(st.cells$c <= st.cells$k, st.cells$c, st.cells$c - 1) / 10
 st.lab <- sprintf('pi21 = %.1f, theta = %g, s1 = %.1f', st.cells$k / 10, st.cells$theta,
                   st.cells$s1)
 # Total size of formula (2.8) for one cell of the table, with the given quantiles and
-# continuity correction; strat = FALSE gives the unstratified size of the totals
-st.size <- function(i, z.a, z.b, cc = FALSE, strat = TRUE) {
+# continuity correction
+st.size <- function(i, z.a, z.b, cc = FALSE) {
   s <- c(st.cells$s1[i], 1 - st.cells$s1[i])
   p2 <- c(st.cells$k[i] / 10, 1 - st.cells$k[i] / 10)
   p1 <- st.or(p2, st.cells$theta[i])
-  if (!strat) {
-    w <- 0.5 * (1 - s)
-    p2 <- sum(w * p2) / sum(w)
-    p1 <- st.or(p2, st.cells$theta[i])
-    s <- sum(0.5 * s)
-  }
   bbssr:::strat_raw_n(p1, p2, rep(1 / length(s), length(s)), s / (1 - s),
                       stats::pnorm(-z.a), stats::pnorm(z.b), 'greater', cc)
 }
 add(wo.src, paste0('Woolson1986 Table 1: N_B, ', st.lab), as.vector(t(wo.NB)),
     vapply(seq_len(nrow(st.cells)), st.size, numeric(1), z.a = 1.645, z.b = 0.841), 0,
     'Formula (2.8) with the quantiles 1.645 and 0.841, rounded to the nearest integer')
+# Unrounded N_U of one cell: the crude rates (3.1) and (3.2) in both strata and the
+# overall fraction of group 1, sum_j t_j s_j
+st.size.u <- function(i, z.a, z.b) {
+  s <- c(st.cells$s1[i], 1 - st.cells$s1[i])
+  p2 <- c(st.cells$k[i] / 10, 1 - st.cells$k[i] / 10)
+  w <- 0.5 * (1 - s)
+  p2u <- sum(w * p2) / sum(w)
+  p1u <- st.or(p2u, st.cells$theta[i])
+  su <- sum(0.5 * s)
+  attr(StratSampleSize(rep(p1u, 2), rep(p2u, 2), c(0.5, 0.5), su / (1 - su),
+                       stats::pnorm(-z.a), stats::pnorm(z.b), 'Unstrat-Chisq',
+                       method = 'standard'), 'n.raw')
+}
 add(wo.src, paste0('Woolson1986 Table 1: N_U, ', st.lab), as.vector(t(wo.NU)),
-    vapply(seq_len(nrow(st.cells)), st.size, numeric(1), z.a = 1.645, z.b = 0.841,
-           strat = FALSE), 0,
-    'Formula (3.3), equal to (2.8) with one stratum, quantiles 1.645 and 0.841')
+    vapply(seq_len(nrow(st.cells)), st.size.u, numeric(1), z.a = 1.645, z.b = 0.841), 0,
+    paste('Formula (3.3) by StratSampleSize(Test = "Unstrat-Chisq", method = "standard"),',
+          'quantiles 1.645 and 0.841'))
 # The Iowa example of p. 929: four strata, s = 0.5, one-sided alpha = 0.05, odds ratio 3
 # and power 0.95. Nam (1992) recomputes the same design at the powers 0.9 and 0.7 with
 # formula (2.8), and those values are reproduced below. The size 200 of p. 929 is not
@@ -1618,7 +1626,7 @@ add(jung.src, 'Jung2014 Table 2: one-sided p-value, stratified exact test', 0.15
 add(jung.src, 'Jung2014 Table 2: one-sided p-value, Mantel-Haenszel test', 0.0760,
     jung_p('CMH'), 4)
 add(jung.src, 'Jung2014 Table 2: one-sided p-value, unstratified Fisher test', 0.1577,
-    bbssr:::fisher_pvalue(28, 35, 'greater', 'minlike', FALSE)[28, 31], 4)
+    jung_p('Unstrat-Fisher'), 4)
 # Table 4, column (m, n) fixed: the first N from the printed size of the Mantel-Haenszel
 # test upwards at which the stratified exact test at the one-sided level 0.05 has power
 # 0.9, with (q1, q2) = (0.1, 0.3), n1 = floor(N a1), n2 = N - n1 and the group 1 sizes

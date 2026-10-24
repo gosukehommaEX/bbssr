@@ -259,6 +259,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// strat_cond_reject
+List strat_cond_reject(IntegerVector n1, IntegerVector n2, List designs, IntegerVector id, double alpha, bool full, NumericVector theta1, NumericVector theta2);
+RcppExport SEXP _bbssr_strat_cond_reject(SEXP n1SEXP, SEXP n2SEXP, SEXP designsSEXP, SEXP idSEXP, SEXP alphaSEXP, SEXP fullSEXP, SEXP theta1SEXP, SEXP theta2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type n1(n1SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type n2(n2SEXP);
+    Rcpp::traits::input_parameter< List >::type designs(designsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type id(idSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< bool >::type full(fullSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type theta1(theta1SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type theta2(theta2SEXP);
+    rcpp_result_gen = Rcpp::wrap(strat_cond_reject(n1, n2, designs, id, alpha, full, theta1, theta2));
+    return rcpp_result_gen;
+END_RCPP
+}
 // strat_bern_max
 List strat_bern_max(NumericMatrix coef, double a1, double b1, double a2, double b2, double tol, int max_pieces);
 RcppExport SEXP _bbssr_strat_bern_max(SEXP coefSEXP, SEXP a1SEXP, SEXP b1SEXP, SEXP a2SEXP, SEXP b2SEXP, SEXP tolSEXP, SEXP max_piecesSEXP) {
@@ -340,6 +358,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_bbssr_strat_power", (DL_FUNC) &_bbssr_strat_power, 8},
     {"_bbssr_strat_bssr_power", (DL_FUNC) &_bbssr_strat_bssr_power, 6},
     {"_bbssr_strat_tie_coef", (DL_FUNC) &_bbssr_strat_tie_coef, 4},
+    {"_bbssr_strat_cond_reject", (DL_FUNC) &_bbssr_strat_cond_reject, 8},
     {"_bbssr_strat_bern_max", (DL_FUNC) &_bbssr_strat_bern_max, 7},
     {"_bbssr_strat_bern_eval", (DL_FUNC) &_bbssr_strat_bern_eval, 3},
     {"_bbssr_strat_pvalue_cases", (DL_FUNC) &_bbssr_strat_pvalue_cases, 7},

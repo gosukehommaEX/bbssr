@@ -37,6 +37,12 @@
 #'   \code{'standard'} is available
 #' @param ss.Test Test used in the re-estimation. Default is \code{Test}
 #' @param ss.alpha Level used in the re-estimation. Default is \code{alpha}
+#' @param ss.strata Blinded estimate of the re-estimation. \code{'stratified'} (default)
+#'   estimates the pooled response probability of each stratum from its own interim
+#'   patients, and \code{'pooled'} uses the proportion of responders among all the interim
+#'   patients for every stratum, as a re-estimation that ignores the strata would. With
+#'   \code{'pooled'} the final group sizes depend only on the total number of interim
+#'   responders
 #' @param search Search of the exact re-estimation, see \code{\link{StratSampleSize}}
 #' @param search.limit Limit of the search \code{'stable'}, see
 #'   \code{\link{StratSampleSize}}
@@ -124,6 +130,7 @@ StratPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r, alpha, 
                            effect = c('RD', 'RR', 'OR'),
                            ss.method = c('exact', 'standard'),
                            ss.Test = Test, ss.alpha = alpha,
+                           ss.strata = c('stratified', 'pooled'),
                            search = c('crossing', 'smallest', 'stable'),
                            search.limit = c(2, 50), N.min = NULL, N.max = NULL,
                            n.interim = NULL, frac = NULL, nsim = 1e5) {
@@ -132,6 +139,7 @@ StratPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r, alpha, 
   effect <- match.arg(effect)
   ss.method <- match.arg(ss.method)
   search <- match.arg(search)
+  ss.strata <- match.arg(ss.strata)
   d <- strat_design(N1, N2, r, frac, omega, n.interim, alpha, Test, alternative, tsmethod,
                     ss.method, nsim)
   a <- d$a
@@ -140,7 +148,7 @@ StratPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r, alpha, 
                   ss.method = ss.method, ss.Test = ss.Test, ss.alpha = ss.alpha,
                   tar.power = tar.power, N1.plan = a$N1, N2.plan = a$N2,
                   restricted = restricted, N.min = N.min, N.max = N.max, search = search,
-                  search.limit = search.limit)
+                  search.limit = search.limit, ss.strata = ss.strata)
   # True probabilities of the groups. Scenarios with a probability outside the unit
   # interval are omitted, and probabilities outside it only by rounding error are moved
   # onto it
@@ -218,6 +226,7 @@ StratPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r, alpha, 
   attr(out, 'ss.method') <- ss.method
   attr(out, 'ss.Test') <- ss.Test
   attr(out, 'ss.alpha') <- ss.alpha
+  attr(out, 'ss.strata') <- ss.strata
   attr(out, 'search') <- search
   attr(out, 'N.min') <- N.min
   attr(out, 'N.max') <- N.max

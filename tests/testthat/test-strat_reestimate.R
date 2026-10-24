@@ -62,3 +62,29 @@ test_that("strat_reestimate agrees with the reference sizes for the risk and odd
   expect_equal(flat(re(3, 'OR')),
                c(10, 10, 10, 10, 26, 26, 26, 26, 23, 23, 23, 23, 70, 70, 70, 70))
 })
+
+test_that("strat_reestimate agrees with the reference sizes of the pooled estimate", {
+  re <- function(Test, ss.strata) {
+    strat_reestimate(cells, c(5L, 5L), c(5L, 5L), 0.3, 'RD', c(0.5, 0.5), c(1, 1),
+                     'standard', Test, 0.05, 0.8, 'greater', 'minlike', c(10L, 10L),
+                     c(10L, 10L), FALSE, NULL, NULL, 'crossing', c(2, 50), ss.strata)
+  }
+  expect_equal(flat(re('CMH', 'pooled')),
+               c(5, 5, 5, 5, 17, 17, 17, 17, 17, 17, 17, 17, 7, 7, 7, 7))
+  expect_equal(flat(re('Unstrat-Chisq', 'stratified')),
+               c(5, 5, 5, 5, 17, 17, 17, 17, 17, 17, 17, 17, 7, 7, 7, 7))
+  expect_equal(flat(re('Unstrat-Chisq', 'pooled')),
+               c(5, 5, 5, 5, 17, 17, 17, 17, 17, 17, 17, 17, 7, 7, 7, 7))
+  # The pooled estimate is the same in every stratum and depends only on the total
+  p <- re('CMH', 'pooled')
+  expect_equal(p$hat.p[, 1], p$hat.p[, 2])
+  expect_equal(p$hat.p[, 1], rowSums(cells) / 20)
+  q <- strat_reestimate(rbind(c(3, 7), c(7, 3), c(10, 0)), c(5L, 5L), c(5L, 5L), 0.3, 'RD',
+                        c(0.5, 0.5), c(1, 1), 'standard', 'CMH', 0.05, 0.8, 'greater',
+                        'minlike', c(10L, 10L), c(10L, 10L), FALSE, NULL, NULL, 'crossing',
+                        c(2, 50), 'pooled')
+  expect_identical(q$N1[1, ], q$N1[2, ])
+  expect_identical(q$N1[1, ], q$N1[3, ])
+  expect_error(re('CMH', 'by stratum'))
+})
+

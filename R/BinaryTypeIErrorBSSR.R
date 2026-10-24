@@ -55,10 +55,7 @@
 #' Under the null hypothesis both groups share the response probability \code{theta}. The
 #' sample size is re-estimated exactly as in \code{\link{BinaryPowerBSSR}}, from the
 #' assumed effect \code{Delta.A}, and the rejection probability is summed over every
-#' interim outcome and every outcome of the second stage. Exact tests control the type I
-#' error rate of a fixed-sample design, but this property is not inherited by a design in
-#' which the final sample size depends on the interim data, so the rate is worth checking
-#' for every design.
+#' interim outcome and every outcome of the second stage.
 #'
 #' The type I error rate is a polynomial in \code{theta}, since both response
 #' probabilities are linear in \code{theta}. With \code{maximize = 'certified'} the

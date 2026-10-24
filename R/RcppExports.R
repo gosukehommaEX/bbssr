@@ -65,6 +65,10 @@ strat_tie_coef <- function(n1, n2, designs, id) {
     .Call(`_bbssr_strat_tie_coef`, n1, n2, designs, id)
 }
 
+strat_cond_reject <- function(n1, n2, designs, id, alpha, full, theta1, theta2) {
+    .Call(`_bbssr_strat_cond_reject`, n1, n2, designs, id, alpha, full, theta1, theta2)
+}
+
 strat_bern_max <- function(coef, a1, b1, a2, b2, tol, max_pieces) {
     .Call(`_bbssr_strat_bern_max`, coef, a1, b1, a2, b2, tol, max_pieces)
 }

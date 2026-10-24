@@ -52,3 +52,31 @@ test_that("strat_raw_n reproduces published sizes of Nam (1992) and Woolson et a
   n <- c(wo(0.1, 4, 0.1), wo(0.1, 2, 0.1), wo(0.2, 4, 0.1), wo(0.4, 2, 0.4))
   expect_equal(round(n), c(318, 1442, 205, 231))
 })
+
+test_that("strat_raw_n with pooled = TRUE agrees with formula (3.3) of Woolson et al.", {
+  expect_equal(c(strat_raw_n(c(0.5, 0.7), c(0.3, 0.5), c(0.4, 0.6), c(1, 1), 0.025, 0.8,
+                             'greater', FALSE, TRUE),
+                 strat_raw_n(c(0.5, 0.7), c(0.3, 0.5), c(0.4, 0.6), c(1, 1), 0.025, 0.8,
+                             'greater', TRUE, TRUE),
+                 strat_raw_n(c(0.3, 0.5, 0.2), c(0.45, 0.6, 0.35), c(1, 2, 1) / 4,
+                             c(2, 2, 2), 0.05, 0.9, 'less', FALSE, TRUE),
+                 strat_raw_n(c(0.6, 0.4), c(0.4, 0.3), c(0.5, 0.5), c(0.5, 2), 0.05, 0.8,
+                             'two.sided', TRUE, TRUE)),
+               c(193.533303159213, 213.063960527299, 601.342608705281, 800.223532140971),
+               tolerance = 1e-10)
+  # Equal probabilities in the strata make the table of totals that of one stratum
+  # with the overall fraction of group 1
+  s <- c(1, 2) / c(2, 3)
+  fr <- c(0.4, 0.6)
+  sb <- sum(fr * s)
+  expect_equal(strat_raw_n(c(0.5, 0.5), c(0.3, 0.3), fr, c(1, 2), 0.025, 0.8, 'greater',
+                           FALSE, TRUE),
+               strat_raw_n(c(0.5, 0.5), c(0.3, 0.3), c(0.5, 0.5), rep(sb / (1 - sb), 2),
+                           0.025, 0.8, 'greater', FALSE))
+  # Vectorized over scenarios, NaN without an effect on the table of totals
+  n <- strat_raw_n(rbind(c(0.5, 0.7), c(0.3, 0.6)), rbind(c(0.3, 0.5), c(0.3, 0.6)),
+                   c(0.5, 0.5), c(1, 1), 0.025, 0.8, 'greater', FALSE, TRUE)
+  expect_length(n, 2)
+  expect_true(is.finite(n[1]) && is.nan(n[2]))
+})
+

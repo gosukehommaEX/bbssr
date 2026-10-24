@@ -70,6 +70,7 @@ StratAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.power
                               effect = c('RD', 'RR', 'OR'),
                               ss.method = c('exact', 'standard'),
                               ss.Test = Test, ss.alpha = alpha,
+                              ss.strata = c('stratified', 'pooled'),
                               search = c('crossing', 'smallest', 'stable'),
                               search.limit = c(2, 50), N.min = NULL, N.max = NULL,
                               n.interim = NULL, frac = NULL,
@@ -81,6 +82,7 @@ StratAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.power
   effect <- match.arg(effect)
   ss.method <- match.arg(ss.method)
   search <- match.arg(search)
+  ss.strata <- match.arg(ss.strata)
   maximize <- match.arg(maximize)
   adjust <- match.arg(adjust)
   if (length(tol) != 1 || !is.numeric(tol) || is.na(tol) || tol <= 0 || tol >= 1) {
@@ -105,7 +107,8 @@ StratAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.power
     list(Delta.A = Delta.A, effect = effect, frac = d$frac, r = d$r,
          ss.method = ss.method, ss.Test = ss.Test, ss.alpha = level.ss,
          tar.power = tar.power, N1.plan = a$N1, N2.plan = a$N2, restricted = restricted,
-         N.min = N.min, N.max = N.max, search = search, search.limit = search.limit)
+         N.min = N.min, N.max = N.max, search = search, search.limit = search.limit,
+         ss.strata = ss.strata)
   }
   # A design at a level is its type I error rate f at points (x, y), the coefficients of
   # the rate and the final designs. assess() returns the largest rate at the points of
@@ -157,10 +160,12 @@ StratAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.power
     res.trad$level <- report_level(brackets(plan, res.trad$level), res.trad$level)
   }
   # Design with re-estimation
+  # Only the final group sizes are needed here, so the critical values of strat_map() are
+  # not computed; make_design() computes them at each level
   layout_at <- function(level.ss) {
     sm <- strat_map(d$n1, d$n2, alpha, a$Test, a$alternative, a$tsmethod,
-                    re.args(level.ss))
-    list(sizes = lapply(sm$designs, function(s) list(N1 = s$N1, N2 = s$N2)), id = sm$id)
+                    re.args(level.ss), crit = FALSE)
+    list(sizes = sm$designs, id = sm$id)
   }
   if (adjust == 'test') {
     lay <- layout_at(ss.alpha)
@@ -223,6 +228,7 @@ StratAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.power
   attr(out, 'Delta.A') <- Delta.A
   attr(out, 'effect') <- effect
   attr(out, 'ss.method') <- ss.method
+  attr(out, 'ss.strata') <- ss.strata
   attr(out, 'search') <- search
   attr(out, 'margin') <- 0
   attr(out, 'margin.scale') <- 'RD'

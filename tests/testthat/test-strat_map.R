@@ -21,6 +21,18 @@ test_that("strat_map lists every interim outcome with the first stratum varying 
   expect_identical(length(m$designs), length(unique(m$id)))
 })
 
+test_that("strat_map with crit = FALSE gives the same designs without critical values", {
+  m <- strat_map(c(5L, 4L), c(5L, 3L), 0.05, 'CMH', 'greater', 'minlike', re.args)
+  m0 <- strat_map(c(5L, 4L), c(5L, 3L), 0.05, 'CMH', 'greater', 'minlike', re.args,
+                  crit = FALSE)
+  expect_identical(m0$id, m$id)
+  expect_identical(m0$map, m$map)
+  expect_gt(length(m0$designs), 1)
+  expect_identical(lapply(m0$designs, names), rep(list(c('N1', 'N2')), length(m0$designs)))
+  expect_identical(lapply(m0$designs, `[`, c('N1', 'N2')),
+                   lapply(m$designs, `[`, c('N1', 'N2')))
+})
+
 test_that("strat_map gives the rows of strat_reestimate", {
   m <- strat_map(c(5L, 4L), c(5L, 3L), 0.05, 'CMH', 'greater', 'minlike', re.args)
   re <- do.call(strat_reestimate, c(list(s = cbind(c(3, 7), c(5, 0)), n1 = c(5L, 4L),

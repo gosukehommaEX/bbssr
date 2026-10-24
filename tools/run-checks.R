@@ -39,15 +39,15 @@ devtools::document()
 devtools::load_all()
 note('bbssr version ', as.character(utils::packageVersion('bbssr')))
 
-# Timing on a design grid of five assumed effects and nine interim fractions
+# Timing on a grid of 45 re-estimation designs
 timing_grid <- function() {
-  grid <- expand.grid(Delta.A = c(0.36, 0.33, 0.30, 0.27, 0.24), omega = 1:9 / 10)
+  grid <- expand.grid(Delta.A = c(0.25, 0.30, 0.35, 0.40, 0.45), omega = 1:9 / 10)
   for (i in seq_len(nrow(grid))) {
     d <- grid$Delta.A[i]
-    n0 <- BinarySampleSize(0.4, 0.4 - d, 1, 0.025, 0.9, 'Z-pool')
+    n0 <- BinarySampleSize(0.6, 0.6 - d, 1, 0.025, 0.8, 'Z-pool')
     BinaryPowerBSSR(p = seq(0.01, 0.99, by = 0.01), Delta.A = d, Delta.T = 0,
                     N1 = n0$N1, N2 = n0$N2, omega = grid$omega[i], r = 1,
-                    alpha = 0.025, tar.power = 0.9, Test = 'Z-pool')
+                    alpha = 0.025, tar.power = 0.8, Test = 'Z-pool')
   }
 }
 clear_rr_cache()

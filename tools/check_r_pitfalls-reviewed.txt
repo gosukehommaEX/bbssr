@@ -44,3 +44,4 @@ pminmax	tests/testthat/test-paired_reestimate.R	expect_equal(re(N.min = 40)$N, p
 pminmax	tests/testthat/test-strat_crit.R	lo <- pmax(0, z[k, ] - N2)	vector argument
 pminmax	vignettes/bbssr-validation.Rmd	pmin(1, 2 * pmin(stats::phyper(i, N1, N2, s),	vector argument (outer() passes vectors to its function)
 pminmax	vignettes/bbssr-validation.Rmd	p[ord] <- pmin(1, out)	vector argument
+pminmax	tests/testthat/test-strat_pvalue_cases.R	pmin(1, 2 * stats::pnorm(abs(zstat(15, 12)[idx]), lower.tail = FALSE)))	vector argument (indexing by a two-column matrix gives a vector)

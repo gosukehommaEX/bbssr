@@ -15,3 +15,10 @@ test_that("print.bbssr_spower prints a subset without its attributes as a data f
   expect_false(any(grepl('Exact power of a stratified test', out)))
   expect_true(any(grepl('Power', out, fixed = TRUE)))
 })
+
+test_that("print.bbssr_spower shows the two-sided method of the unstratified Fisher test", {
+  res <- StratPower(c(0.6, 0.45), c(0.35, 0.3), c(8, 6), c(7, 9), 0.05, 'Unstrat-Fisher',
+                    'two.sided', 'central')
+  out <- capture.output(print(res))
+  expect_true(any(grepl('Two-sided method : central', out, fixed = TRUE)))
+})

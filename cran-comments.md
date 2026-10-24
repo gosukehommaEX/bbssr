@@ -19,7 +19,7 @@ re-estimation. `NEWS.md` lists every change, including the changes in behaviour.
 ## Test environments
 
 * local R installation, R 4.6.1 on Windows 11
-* win-builder, R-devel and R-release
+* win-builder, R-devel (2026-10-23 r90760) and R-release (4.6.1)
 * GitHub Actions, R-CMD-check on Ubuntu (devel, release, oldrel-1), macOS and Windows
 
 ## R CMD check results
@@ -27,16 +27,20 @@ re-estimation. `NEWS.md` lists every change, including the changes in behaviour.
 0 errors | 0 warnings | 0 notes on the local installation. R-CMD-check on GitHub Actions
 passes on all five platforms.
 
-TODO: add the results of win-builder (R-devel and R-release) before the submission. Draft
-for the NOTE that win-builder is expected to give, to be checked against its output:
+win-builder (R-devel and R-release) gives 1 NOTE:
 
     Possibly misspelled words in DESCRIPTION:
-      al, Blackwelder, Boschloo, BSSR, et, Farrington, Friede, Haenszel, Kieser,
-      McNemar, Mehrotra, Nam, Woolson
+      Blackwelder (14:20)
+      Farrington (15:5)
+      Friede (29:43, 30:28)
+      Haenszel (20:32)
+      McNemar (18:68)
+      Woolson (21:17)
 
-These are the surnames of the authors of the cited references, the abbreviation BSSR,
-defined in the Description as blinded sample size re-estimation, and "et al.". They are
-spelled correctly.
+These are the surnames of the authors of the cited references and are spelled correctly.
+
+TODO: re-run the checks after the additions planned for this release and update the
+results above before the submission.
 
 ## Reverse dependencies
 

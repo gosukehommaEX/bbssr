@@ -3,9 +3,12 @@
 #' Internal helper returning the final group sizes of the strata of a stratified design
 #' with blinded sample size re-estimation, for each row of the interim pooled numbers of
 #' responders \code{s}. In stratum \code{j} the blinded estimate of the pooled response
-#' probability is \code{s[, j] / (n1[j] + n2[j])}, which \code{split_pooled} divides
-#' between the groups with the assumed effect \code{Delta.A}, common to the strata on the
-#' scale \code{effect}, and the allocation ratio of the stratum.
+#' probability is \code{s[, j] / (n1[j] + n2[j])}, or with \code{ss.strata = 'pooled'}
+#' the estimate of all the strata together, \code{sum_j s[, j] / sum_j (n1[j] + n2[j])},
+#' which \code{split_pooled} divides between the groups with the assumed effect
+#' \code{Delta.A}, common to the strata on the scale \code{effect}, and the allocation
+#' ratio of the stratum. For an unstratified \code{ss.Test} the normal approximation is
+#' that of the table of totals (\code{strat_raw_n} with \code{pooled = TRUE}).
 #'
 #' With \code{ss.method = 'standard'} the nominal total sample size is that of
 #' \code{strat_raw_n}, rounded up, with the probabilities before truncation to the unit
@@ -39,6 +42,7 @@
 #' @param N.max Largest final total sample size, or \code{NULL}
 #' @param search Search of \code{strat_ss_search}
 #' @param search.limit Limit of the search \code{'stable'}
+#' @param ss.strata \code{'stratified'} (default) or \code{'pooled'}
 #'
 #' @return A list with the matrices \code{hat.p}, \code{hat.p1} and \code{hat.p2} of the
 #'   blinded estimates and of the truncated planning probabilities, the vectors
@@ -51,8 +55,10 @@
 #' @noRd
 strat_reestimate <- function(s, n1, n2, Delta.A, effect, frac, r, ss.method, ss.Test,
                              ss.alpha, tar.power, alternative, tsmethod, N1.plan, N2.plan,
-                             restricted, N.min, N.max, search, search.limit) {
+                             restricted, N.min, N.max, search, search.limit,
+                             ss.strata = 'stratified') {
   J <- length(n1)
+  ss.strata <- match.arg(ss.strata, c('stratified', 'pooled'))
   s <- matrix(as.double(s), ncol = J)
   check_delta(Delta.A, effect, alternative, 'Delta.A', 0, 'RD')
   if (length(tar.power) != 1 || !is.numeric(tar.power) || is.na(tar.power) ||
@@ -64,6 +70,8 @@ strat_reestimate <- function(s, n1, n2, Delta.A, effect, frac, r, ss.method, ss.
   }
   a <- check_strat_args(rep(1, J), rep(1, J), ss.alpha, ss.Test, alternative, tsmethod)
   hat.p <- sweep(s, 2, n1 + n2, '/')
+  # One blinded estimate for all the strata, recycled over the columns
+  if (ss.strata == 'pooled') hat.p[] <- rowSums(s) / sum(n1 + n2)
   sp1 <- sp2 <- matrix(NA_real_, nrow(s), J)
   for (j in seq_len(J)) {
     sp <- split_pooled(hat.p[, j], Delta.A, r[j], effect)
@@ -77,12 +85,13 @@ strat_reestimate <- function(s, n1, n2, Delta.A, effect, frac, r, ss.method, ss.
   limit <- rep(NA_integer_, nrow(s))
   n.re <- rep(NA_real_, nrow(s))
   if (ss.method == 'standard') {
-    n.raw <- strat_raw_n(sp1, sp2, frac, r, ss.alpha, tar.power, a$alternative, a$cc)
+    n.raw <- strat_raw_n(sp1, sp2, frac, r, ss.alpha, tar.power, a$alternative, a$cc,
+                         a$unstrat)
     ok <- is.finite(n.raw)
     n.re[ok] <- pmax(1, ceil_tol(n.raw[ok]))
   } else {
     ok <- is.finite(strat_raw_n(hat.p1, hat.p2, frac, r, ss.alpha, tar.power,
-                                a$alternative, a$cc))
+                                a$alternative, a$cc, a$unstrat))
     key <- apply(cbind(hat.p1, hat.p2), 1, paste, collapse = '_')
     first <- which(!duplicated(key) & ok)
     if (length(first) > 0) {

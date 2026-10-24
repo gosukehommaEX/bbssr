@@ -28,8 +28,9 @@ print.bbssr_sbssr <- function(x, digits = 4, ...) {
   cat('Blinded sample size re-estimation for a stratified trial\n\n')
   cat(sprintf('  Test             : %s\n', attr(x, 'Test')))
   cat(sprintf('  Alternative      : %s\n', attr(x, 'alternative')))
-  cat(sprintf('  Re-estimation    : %s (%s)\n', rule,
-              if (isTRUE(attr(x, 'restricted'))) 'restricted' else 'unrestricted'))
+  cat(sprintf('  Re-estimation    : %s (%s%s)\n', rule,
+              if (isTRUE(attr(x, 'restricted'))) 'restricted' else 'unrestricted',
+              if (identical(attr(x, 'ss.strata'), 'pooled')) ', strata pooled' else ''))
   cat(sprintf('  Effect           : %s, assumed %s\n', attr(x, 'effect'),
               format(attr(x, 'Delta.A'))))
   cat(sprintf('  Final total      : %d, power %s at the planning probabilities\n\n',

@@ -63,6 +63,7 @@ StratTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.pow
                                 effect = c('RD', 'RR', 'OR'),
                                 ss.method = c('exact', 'standard'),
                                 ss.Test = Test, ss.alpha = alpha,
+                                ss.strata = c('stratified', 'pooled'),
                                 search = c('crossing', 'smallest', 'stable'),
                                 search.limit = c(2, 50), N.min = NULL, N.max = NULL,
                                 n.interim = NULL, frac = NULL,
@@ -75,6 +76,7 @@ StratTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.pow
   effect <- match.arg(effect)
   ss.method <- match.arg(ss.method)
   search <- match.arg(search)
+  ss.strata <- match.arg(ss.strata)
   maximize <- match.arg(maximize)
   d <- strat_design(N1, N2, r, frac, omega, n.interim, alpha, Test, alternative, tsmethod,
                     ss.method, nsim)
@@ -93,7 +95,7 @@ StratTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.pow
                   ss.method = ss.method, ss.Test = ss.Test, ss.alpha = ss.alpha,
                   tar.power = tar.power, N1.plan = a$N1, N2.plan = a$N2,
                   restricted = restricted, N.min = N.min, N.max = N.max, search = search,
-                  search.limit = search.limit)
+                  search.limit = search.limit, ss.strata = ss.strata)
   se.BSSR <- NULL
   map <- NULL
   pick <- function(y) {
@@ -155,6 +157,7 @@ StratTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.pow
   attr(out, 'Delta.A') <- Delta.A
   attr(out, 'effect') <- effect
   attr(out, 'ss.method') <- ss.method
+  attr(out, 'ss.strata') <- ss.strata
   attr(out, 'search') <- search
   attr(out, 'maximize') <- maximize
   if (maximize == 'certified') {

@@ -5,9 +5,8 @@
 #' (BSSR) rejects the null hypothesis given the pooled number of responders at the interim
 #' analysis and in the second stage. These conditional rejection probabilities do not
 #' depend on the common response probability, and the type I error rate is their average
-#' over the binomial distribution of the two pooled counts. The type I error rate can also
-#' be decomposed by the pooled number of interim responders, which shows the interim
-#' outcomes that raise it.
+#' over the binomial distribution of the two pooled counts. With \code{theta}, the type I
+#' error rate is also returned for each pooled number of interim responders.
 #'
 #' @inheritParams BinaryPowerBSSR
 #' @param theta Optional vector of common response probabilities at which the type I
@@ -57,21 +56,11 @@
 #' of the final sample size over these two distributions and does not depend on
 #' \code{theta}. The type I error rate is
 #' \code{sum_s sum_s2 b(s; n11 + n12, theta) b(s2; n21(s) + n22(s), theta) CRP(s, s2)},
-#' where \code{b} is the binomial probability, so it is at most \code{alpha} for every
-#' \code{theta} whenever \code{CRP} is at most \code{alpha} for every outcome.
+#' where \code{b} is the binomial probability.
 #'
 #' \code{CRP.total} is the conditional size of the final test given the total number of
 #' responders, with the responder count of group 1 hypergeometric among all final
-#' patients. Fisher's exact test keeps it at or below \code{alpha} by construction. The
-#' allocation is fixed within each stage, so the responder count of group 1 given
-#' \code{s} and \code{s2} is the sum of two hypergeometric counts rather than one, and
-#' \code{CRP} differs from \code{CRP.total}. When the final sample size does not depend
-#' on \code{s}, averaging \code{CRP} over the hypergeometric distribution of \code{s}
-#' given the total gives \code{CRP.total}. Re-estimation makes the final sample size
-#' depend on \code{s}, and this averaging no longer holds. Outcomes with \code{CRP} above
-#' \code{alpha} therefore occur in a fixed-sample design as well, and whether they raise
-#' the type I error rate is seen from the decomposition by \code{s} rather than from
-#' \code{CRP} alone.
+#' patients.
 #'
 #' Only tests of superiority are covered. With a non-inferiority margin the two response
 #' probabilities differ on the boundary of the null hypothesis, and the conditional
@@ -80,7 +69,7 @@
 #' @examples
 #' crp <- BinaryCondRejectBSSR(
 #'   Delta.A = 0.3, N1 = 12, N2 = 12, n.interim = c(6, 6), r = 1,
-#'   alpha = 0.025, tar.power = 0.8, Test = 'Fisher', ss.method = 'standard',
+#'   alpha = 0.025, tar.power = 0.8, Test = 'Chisq', ss.method = 'standard',
 #'   theta = c(0.3, 0.5)
 #' )
 #' print(crp)
@@ -89,7 +78,7 @@
 #' \donttest{
 #' crp <- BinaryCondRejectBSSR(
 #'   Delta.A = 0.3, N1 = 39, N2 = 39, n.interim = c(20, 20), r = 1,
-#'   alpha = 0.025, tar.power = 0.8, Test = 'Boschloo', ss.method = 'standard'
+#'   alpha = 0.025, tar.power = 0.8, Test = 'Chisq', ss.method = 'standard'
 #' )
 #' attr(crp, 'max')
 #' plot(crp)

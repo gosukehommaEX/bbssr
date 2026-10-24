@@ -11,6 +11,7 @@ with local optimization.
 """
 import itertools
 import math
+from fractions import Fraction
 
 import numpy as np
 from scipy.optimize import brentq, minimize
@@ -88,12 +89,44 @@ def asym_p(N1, N2, z, S, test, alt):
     return norm.sf(Z) if alt == "greater" else norm.cdf(Z)
 
 
-def pvalue(test, alt, ts, N1, N2, x1, x2):
-    z = [x1[j] + x2[j] for j in range(len(N1))]
-    S = sum(x1)
+UNSTRAT = ("Unstrat-Chisq", "Unstrat-Chisq-cc", "Unstrat-Fisher")
+
+
+def pearson_p(n1, n2, X1, Z, alt, cc):
+    """Comparison of two proportions with the pooled variance on the table of totals,
+    X1 of n1 and Z - X1 of n2 responders, written on the scale of the count X1: the
+    deviation d = X1 - n1 Z / n (exact), reduced by 1/2 when |d| >= 1/2 with cc, over
+    sqrt(pbar qbar n1 n2 / n)."""
+    n = n1 + n2
+    if Z == 0 or Z == n:
+        return 1.0
+    d = Fraction(X1 * n - n1 * Z, n)
+    y = Fraction(1, 2) if (cc and abs(d) >= Fraction(1, 2)) else Fraction(0)
+    pbar = Z / n
+    sd = math.sqrt(pbar * (1 - pbar) * n1 * n2 / n)
+    zv = float(abs(d) - y) / sd
+    if alt == "two.sided":
+        return min(1.0, 2 * norm.sf(zv))
+    zs = zv if d > 0 else (-zv if d < 0 else 0.0)
+    return norm.sf(zs) if alt == "greater" else norm.cdf(zs)
+
+
+def p_of(N1, N2, z, S, test, alt, ts):
+    """p-value given the stratum totals z and S = sum of the group 1 responders. The
+    unstratified tests use the table of totals only."""
+    if test in UNSTRAT:
+        n1, n2, Z = sum(N1), sum(N2), sum(z)
+        if test == "Unstrat-Fisher":
+            return fisher_p([n1], [n2], [Z], S, alt, ts)
+        return pearson_p(n1, n2, S, Z, alt, test.endswith("-cc"))
     if test == "Strat-Fisher":
         return fisher_p(N1, N2, z, S, alt, ts)
     return asym_p(N1, N2, z, S, test, alt)
+
+
+def pvalue(test, alt, ts, N1, N2, x1, x2):
+    z = [x1[j] + x2[j] for j in range(len(N1))]
+    return p_of(N1, N2, z, sum(x1), test, alt, ts)
 
 
 # ---------------------------------------------------------------------------------------
@@ -114,8 +147,7 @@ def reject_array(N1, N2, test, alt, ts, alpha):
         lo = sum(max(0, z[j] - N2[j]) for j in range(J))
         hi = sum(min(z[j], N1[j]) for j in range(J))
         for S in range(lo, hi + 1):
-            p = (fisher_p(N1, N2, list(z), S, alt, ts) if test == "Strat-Fisher"
-                 else asym_p(N1, N2, list(z), S, test, alt))
+            p = p_of(N1, N2, list(z), S, test, alt, ts)
             rej[z + (S,)] = p < alpha - TOL
     grids = np.meshgrid(*[np.arange(n + 1) for j in range(J) for n in (N1[j], N2[j])],
                         indexing="ij")
@@ -135,10 +167,7 @@ def pvalue_set(N1, N2, test, alt, ts):
         lo = sum(max(0, z[j] - N2[j]) for j in range(J))
         hi = sum(min(z[j], N1[j]) for j in range(J))
         for S in range(lo, hi + 1):
-            if test == "Strat-Fisher":
-                out.append(fisher_p(N1, N2, list(z), S, alt, ts))
-            else:
-                out.append(asym_p(N1, N2, list(z), S, test, alt))
+            out.append(p_of(N1, N2, list(z), S, test, alt, ts))
     return out
 
 
@@ -157,8 +186,43 @@ def power(N1, N2, p1, p2, test, alt, ts, alpha):
 
 # ---------------------------------------------------------------------------------------
 # Sample size
-def raw_n(p1, p2, frac, r, alpha, tp, alt, cc):
-    """Formula (2.8) of Woolson et al. (1986), and (2.3) of Nam (1992) with cc."""
+def raw_n_unstrat(p1, p2, frac, r, alpha, tp, alt, cc):
+    """Formula (3.3) of Woolson et al. (1986) for the table of totals, written out as
+    printed: group 1 holds the fraction a = sum_j t_j s_j, and the probabilities of the
+    groups are the averages over the strata weighted by the group sizes. With cc, formula
+    (2.3) of Nam (1992) with one stratum, D = a (1 - a) (pi1 - pi2)."""
+    t = np.asarray(frac, float) / np.sum(frac)
+    r = np.resize(np.asarray(r, float), len(t))
+    s = r / (1 + r)
+    a = float(np.sum(t * s))
+    b = 1 - a
+    pi1 = float(np.sum(t * s * np.asarray(p1, float))) / a
+    pi2 = float(np.sum(t * (1 - s) * np.asarray(p2, float))) / b
+    diff = pi1 - pi2
+    if alt == "less":
+        diff = -diff
+    if alt == "two.sided":
+        diff = abs(diff)
+    if not diff > 1e-12:
+        return float("nan")
+    pipp = pi1 * a + pi2 * b
+    za = norm.isf(alpha / 2 if alt == "two.sided" else alpha)
+    zb = norm.ppf(tp)
+    num = (za * math.sqrt(a * b * max(pipp * (1 - pipp), 0)) +
+           zb * math.sqrt(a ** 2 * b ** 2 * (max(pi1 * (1 - pi1), 0) / a +
+                                             max(pi2 * (1 - pi2), 0) / b))) ** 2
+    n = num / (diff * a * b) ** 2
+    if cc:
+        D = a * b * diff
+        n = (1 + math.sqrt(1 + 2 / (D * n))) ** 2 * n / 4
+    return float(n)
+
+
+def raw_n(p1, p2, frac, r, alpha, tp, alt, cc, pooled=False):
+    """Formula (2.8) of Woolson et al. (1986), and (2.3) of Nam (1992) with cc; with
+    pooled, the size of the table of totals."""
+    if pooled:
+        return raw_n_unstrat(p1, p2, frac, r, alpha, tp, alt, cc)
     frac = np.asarray(frac, float) / np.sum(frac)
     r = np.resize(np.asarray(r, float), len(frac))
     s = r / (1 + r)
@@ -176,7 +240,7 @@ def raw_n(p1, p2, frac, r, alpha, tp, alt, cc):
                                    s * np.maximum(p2 * (1 - p2), 0)))
     za = norm.isf(alpha / 2 if alt == "two.sided" else alpha)
     zb = norm.ppf(tp)
-    if not D > 0:
+    if not D > 1e-12:
         return float("nan")
     n = (za * math.sqrt(v0) + zb * math.sqrt(v1)) ** 2 / D ** 2
     if cc:
@@ -198,7 +262,7 @@ def sizes(n, frac, r):
 
 def exact_n(p1, p2, frac, r, alpha, tp, test, alt, ts="minlike", search="crossing"):
     cc = test.endswith("-cc")
-    n0 = max(1, ceil_tol(raw_n(p1, p2, frac, r, alpha, tp, alt, cc)))
+    n0 = max(1, ceil_tol(raw_n(p1, p2, frac, r, alpha, tp, alt, cc, test in UNSTRAT)))
     pw = lambda n: power(*sizes(n, frac, r), p1, p2, test, alt, ts, alpha)
     if search == "smallest":
         n = 1
@@ -240,24 +304,29 @@ def split(p, delta, r, effect):
 
 
 def reestimate(s, n1, n2, DA, effect, frac, r, method, test, alpha, tp, alt, ts,
-               N1p, N2p, restricted=False, Nmin=None, Nmax=None):
-    """Final group sizes after the interim pooled responders s (one per stratum)."""
+               N1p, N2p, restricted=False, Nmin=None, Nmax=None, ss_strata="stratified"):
+    """Final group sizes after the interim pooled responders s (one per stratum). With
+    ss_strata = 'pooled', every stratum uses the proportion of responders among all the
+    interim patients."""
     J = len(s)
     r = list(np.resize(np.asarray(r, float), J))
     raw1, raw2 = [], []
     for j in range(J):
-        a, b = split(s[j] / (n1[j] + n2[j]), DA, r[j], effect)
+        hat = (sum(s) / sum(n1[k] + n2[k] for k in range(J)) if ss_strata == "pooled"
+               else s[j] / (n1[j] + n2[j]))
+        a, b = split(hat, DA, r[j], effect)
         raw1.append(a)
         raw2.append(b)
     q1 = [min(1, max(0, v)) for v in raw1]
     q2 = [min(1, max(0, v)) for v in raw2]
     cc = test.endswith("-cc")
+    un = test in UNSTRAT
     if method == "standard":
-        nr = raw_n(raw1, raw2, frac, r, alpha, tp, alt, cc)
+        nr = raw_n(raw1, raw2, frac, r, alpha, tp, alt, cc, un)
         ok = math.isfinite(nr)
         n = max(1, ceil_tol(nr)) if ok else None
     else:
-        ok = math.isfinite(raw_n(q1, q2, frac, r, alpha, tp, alt, cc))
+        ok = math.isfinite(raw_n(q1, q2, frac, r, alpha, tp, alt, cc, un))
         n = exact_n(q1, q2, frac, r, alpha, tp, test, alt, ts) if ok else None
     low1 = [max(n1[j], N1p[j]) if restricted else n1[j] for j in range(J)]
     low2 = [max(n2[j], N2p[j]) if restricted else n2[j] for j in range(J)]
@@ -273,6 +342,8 @@ def reestimate(s, n1, n2, DA, effect, frac, r, method, test, alpha, tp, alt, ts,
         m += 1
     n = max(n, m)
     if Nmax is not None:
+        # the total of sizes(n) is at least n, so the size is at most Nmax
+        n = min(n, int(Nmax))
         while sum(sizes(n, frac, r)[0]) + sum(sizes(n, frac, r)[1]) > Nmax:
             n -= 1
     return sizes(n, frac, r)
@@ -355,8 +426,7 @@ def blocks(emit, reported_level):
                 lo = sum(max(0, z[j] - N2[j]) for j in range(2))
                 hi = sum(min(z[j], N1[j]) for j in range(2))
                 for S in range(lo, hi + 1):
-                    p = (fisher_p(N1, N2, list(z), S, alt, ts) if test == "Strat-Fisher"
-                         else asym_p(N1, N2, list(z), S, test, alt))
+                    p = p_of(N1, N2, list(z), S, test, alt, ts)
                     count += p < 0.1 - TOL
             emit(f, f"rejected outcomes {test} {alt}", [count], rtol=0)
     # Power of fixed designs with two and three strata
@@ -567,3 +637,216 @@ def blocks_bssr(emit, reported_level):
     pw, EN = bssr_power(d["n1"], d["n2"], fin, [0.6, 0.7, 0.5], [0.3, 0.4, 0.2], "CMH",
                         "greater", "minlike", 0.1)
     emit(f, "exact power and E.N three strata", [pw, EN])
+
+
+# ---------------------------------------------------------------------------------------
+# Unstratified tests and the re-estimation from the pooled estimate (added for 3.0.0, A2)
+def blocks_unstrat(emit, reported_level):
+    alts = ("greater", "less", "two.sided")
+    # p-values of individual tables
+    f = "test-strat_pvalue_cases.R"
+    N1, N2 = [6, 9], [7, 5]
+    tabs = [([4, 7], [1, 2]), ([2, 3], [5, 4]), ([6, 9], [0, 5]), ([3, 5], [3, 2]),
+            ([2, 9], [1, 2])]
+    for test in UNSTRAT:
+        for alt in alts:
+            ts_list = ["minlike", "central", "blaker"] if (test == "Unstrat-Fisher" and
+                                                           alt == "two.sided") else ["minlike"]
+            for ts in ts_list:
+                emit(f, f"{test} {alt} {ts}",
+                     [pvalue(test, alt, ts, N1, N2, x1, x2) for x1, x2 in tabs])
+    # Rejected outcomes over the grid of stratum totals
+    f = "test-StratRR.R"
+    N1, N2 = [5, 7], [6, 4]
+    for test in UNSTRAT:
+        for alt in ("greater", "two.sided"):
+            ts = "blaker" if test == "Unstrat-Fisher" and alt == "two.sided" else "minlike"
+            count = 0
+            for z in itertools.product(range(N1[0] + N2[0] + 1), range(N1[1] + N2[1] + 1)):
+                lo = sum(max(0, z[j] - N2[j]) for j in range(2))
+                hi = sum(min(z[j], N1[j]) for j in range(2))
+                for S in range(lo, hi + 1):
+                    count += p_of(N1, N2, list(z), S, test, alt, ts) < 0.1 - TOL
+            emit(f, f"rejected outcomes {test} {alt}", [count], rtol=0)
+    # Power of fixed designs with two and three strata
+    f = "test-StratPower.R"
+    for test in UNSTRAT:
+        for alt in alts:
+            ts = "central" if test == "Unstrat-Fisher" and alt == "two.sided" else "minlike"
+            v2 = power([8, 6], [7, 9], [0.6, 0.45], [0.35, 0.3], test, alt, ts, 0.05)
+            v3 = power([4, 5, 3], [5, 3, 4], [0.7, 0.3, 0.55], [0.4, 0.25, 0.5], test, alt, ts,
+                       0.1)
+            emit(f, f"power {test} {alt}", [v2, v3])
+    # Normal approximation of the table of totals
+    f = "test-strat_raw_n.R"
+    emit(f, "pooled", [
+        raw_n([0.5, 0.7], [0.3, 0.5], [0.4, 0.6], 1, 0.025, 0.8, "greater", False, True),
+        raw_n([0.5, 0.7], [0.3, 0.5], [0.4, 0.6], 1, 0.025, 0.8, "greater", True, True),
+        raw_n([0.3, 0.5, 0.2], [0.45, 0.6, 0.35], [1, 2, 1], 2, 0.05, 0.9, "less", False,
+              True),
+        raw_n([0.6, 0.4], [0.4, 0.3], [0.5, 0.5], [0.5, 2], 0.05, 0.8, "two.sided", True,
+              True)])
+    # Sample size
+    f = "test-StratSampleSize.R"
+    emit(f, "standard unstratified",
+         [ceil_tol(raw_n([0.5, 0.7], [0.3, 0.5], [0.4, 0.6], [1, 2], 0.025, 0.8, "greater",
+                         cc, True)) for cc in (False, True)], rtol=0)
+    emit(f, "exact unstratified", [exact_n([0.65, 0.8], [0.3, 0.45], [0.5, 0.5], 1, 0.025,
+                                           0.8, t, "greater")
+                                   for t in ("Unstrat-Chisq", "Unstrat-Fisher")], rtol=0)
+    # Re-estimation from the pooled estimate, and with the unstratified test
+    d = dict(n1=[5, 5], n2=[5, 5], N1p=[10, 10], N2p=[10, 10], frac=[0.5, 0.5], r=[1, 1],
+             DA=0.3, effect="RD", alt="greater", ts="minlike", method="standard",
+             alpha=0.05)
+    cells = [(0, 0), (3, 7), (6, 4), (8, 10)]
+    for key, test, strata in (("CMH standard pooled", "CMH", "pooled"),
+                              ("Unstrat-Chisq standard", "Unstrat-Chisq", "stratified"),
+                              ("Unstrat-Chisq standard pooled", "Unstrat-Chisq", "pooled")):
+        emit("test-strat_reestimate.R", "final sizes " + key,
+             [v for s in cells
+              for part in reestimate(s, d["n1"], d["n2"], d["DA"], d["effect"], d["frac"],
+                                     d["r"], d["method"], test, d["alpha"], 0.8, d["alt"],
+                                     d["ts"], d["N1p"], d["N2p"], ss_strata=strata)
+              for v in part], rtol=0)
+    # Power of re-estimation designs
+    f = "test-StratPowerBSSR.R"
+    designs = {
+        "CMH standard pooled": dict(d, test="CMH", strata="pooled"),
+        "Unstrat-Fisher exact pooled": dict(n1=[4, 5], n2=[4, 5], N1p=[8, 10],
+                                            N2p=[8, 10], frac=[8, 10], r=[1, 1], DA=0.4,
+                                            effect="RD", test="Unstrat-Fisher",
+                                            alt="greater", ts="minlike", method="exact",
+                                            alpha=0.1, Nmax=48, strata="pooled"),
+    }
+    for key, e in designs.items():
+        fin = (lambda s, e=e: reestimate(s, e["n1"], e["n2"], e["DA"], e["effect"],
+                                         e["frac"], e["r"], e["method"], e["test"],
+                                         e["alpha"], 0.8, e["alt"], e["ts"], e["N1p"],
+                                         e["N2p"], Nmax=e.get("Nmax"),
+                                         ss_strata=e["strata"]))
+        res = []
+        for p1, p2 in (([0.55, 0.75], [0.25, 0.45]), ([0.4, 0.6], [0.4, 0.6])):
+            pw, EN = bssr_power(e["n1"], e["n2"], fin, p1, p2, e["test"], e["alt"],
+                                e["ts"], e["alpha"])
+            res += [pw, EN]
+        emit(f, "power and E.N " + key, res)
+    # Type I error rate of the unstratified test when the allocation ratio differs between
+    # the strata (r = 1 and 3): the table of totals mixes strata with different response
+    # probabilities in different proportions
+    f = "test-StratTypeIErrorBSSR.R"
+    e = dict(n1=[3, 6], n2=[3, 2], N1p=[6, 9], N2p=[6, 3], frac=[12, 12], r=[1, 3],
+             DA=0.4, effect="RD", test="Unstrat-Chisq", alt="greater", ts="minlike",
+             method="standard", alpha=0.05, Nmax=72)
+    fin = (lambda s: reestimate(s, e["n1"], e["n2"], e["DA"], e["effect"], e["frac"],
+                                e["r"], e["method"], e["test"], e["alpha"], 0.8, e["alt"],
+                                e["ts"], e["N1p"], e["N2p"], Nmax=e["Nmax"]))
+    pts = ((0.1, 0.3), (0.5, 0.5), (0.2, 0.8))
+    emit(f, "grid Unstrat-Chisq unequal allocation",
+         [bssr_power(e["n1"], e["n2"], fin, [x, y], [x, y], e["test"], e["alt"], e["ts"],
+                     e["alpha"])[0] for x, y in pts])
+    emit(f, "fixed Unstrat-Chisq unequal allocation",
+         [power(e["N1p"], e["N2p"], [x, y], [x, y], e["test"], e["alt"], e["ts"],
+                e["alpha"]) for x, y in pts])
+
+
+# ---------------------------------------------------------------------------------------
+# Conditional rejection probabilities of a two-stratum re-estimation design (added for
+# 3.0.0, A1)
+def hyp_pmf(m1, m2, z):
+    """Distribution of the group 1 responders among z responders of m1 + m2 patients."""
+    lo = max(0, z - m2)
+    if m1 + m2 == 0:
+        return 0, np.array([1.0])
+    x = np.arange(lo, min(z, m1) + 1)
+    return lo, hypergeom.pmf(x, m1 + m2, m1, z)
+
+
+def cond_reject(n1, n2, fin, test, alt, ts, alpha, pts=()):
+    """For every interim cell s = (s1, s2): the final sizes, and for every second-stage
+    outcome w = (w1, w2) the conditional rejection probability CRP(s, w) and the
+    conditional size CRP.total(s + w) of the final design, by direct summation of the
+    hypergeometric distributions; with points (theta1, theta2), the type I error rate given
+    s. Returns a list of cells in the order s1 fastest, each a dict."""
+    out = []
+    for s2 in range(n1[1] + n2[1] + 1):
+        for s1 in range(n1[0] + n2[0] + 1):
+            N1, N2 = fin((s1, s2))
+            m1 = [N1[j] - n1[j] for j in range(2)]
+            m2 = [N2[j] - n2[j] for j in range(2)]
+            rows = []
+            for w2 in range(m1[1] + m2[1] + 1):
+                for w1 in range(m1[0] + m2[0] + 1):
+                    z = [s1 + w1, s2 + w2]
+                    # indicator of rejection for every S given z
+                    Smax = sum(N1)
+                    R = np.array([p_of(list(N1), list(N2), z, S, test, alt, ts) < alpha - TOL
+                                  for S in range(Smax + 1)], dtype=float)
+                    # interim and second-stage group 1 counts of each stratum
+                    dists = []
+                    for j, (s, w) in enumerate(((s1, w1), (s2, w2))):
+                        la, fa = hyp_pmf(n1[j], n2[j], s)
+                        lu, fu = hyp_pmf(m1[j], m2[j], w)
+                        dists.append((la + lu, np.convolve(fa, fu)))
+                    (l0, f0), (l1, f1) = dists
+                    crp = 0.0
+                    for i0, p0 in enumerate(f0):
+                        for i1, p1 in enumerate(f1):
+                            crp += p0 * p1 * R[l0 + i0 + l1 + i1]
+                    (t0, g0), (t1, g1) = hyp_pmf(N1[0], N2[0], z[0]), hyp_pmf(N1[1], N2[1], z[1])
+                    tot = 0.0
+                    for i0, p0 in enumerate(g0):
+                        for i1, p1 in enumerate(g1):
+                            tot += p0 * p1 * R[t0 + i0 + t1 + i1]
+                    rows.append((w1, w2, crp, tot))
+            tie_s = []
+            for th1, th2 in pts:
+                acc = 0.0
+                for w1, w2, crp, tot in rows:
+                    acc += (binom.pmf(w1, m1[0] + m2[0], th1) *
+                            binom.pmf(w2, m1[1] + m2[1], th2) * crp)
+                tie_s.append(acc)
+            out.append(dict(s=(s1, s2), N1=N1, N2=N2, rows=rows, tie_s=tie_s))
+    return out
+
+
+def blocks_crp(emit, reported_level):
+    f = "test-StratCondRejectBSSR.R"
+    d = dict(n1=[3, 3], n2=[3, 3], N1p=[6, 6], N2p=[6, 6], frac=[0.5, 0.5], r=[1, 1],
+             DA=0.35, effect="RD", alt="greater", ts="minlike", method="standard",
+             alpha=0.05)
+    pts = [(0.3, 0.5), (0.5, 0.5)]
+    for key, test in (("CMH", "CMH"), ("Strat-Fisher", "Strat-Fisher"),
+                      ("Unstrat-Chisq", "Unstrat-Chisq")):
+        fin = (lambda s, test=test: reestimate(s, d["n1"], d["n2"], d["DA"], d["effect"],
+                                               d["frac"], d["r"], d["method"], test,
+                                               d["alpha"], 0.8, d["alt"], d["ts"], d["N1p"],
+                                               d["N2p"], Nmax=36))
+        cells = cond_reject(d["n1"], d["n2"], fin, test, d["alt"], d["ts"], d["alpha"], pts)
+        cmax = [max(r[2] for r in c["rows"]) for c in cells]
+        cmin = [min(r[2] for r in c["rows"]) for c in cells]
+        tmax = [max(r[3] for r in c["rows"]) for c in cells]
+        emit(f, f"sums of CRP.max CRP.min CRP.total.max {key}",
+             [sum(cmax), sum(cmin), sum(tmax)])
+        # largest CRP over all outcomes, first in the order of the cells and of (w1, w2)
+        best = max(cmax)
+        loc = None
+        for c in cells:
+            for w1, w2, crp, tot in c["rows"]:
+                if crp >= best * (1 - 1e-12):
+                    loc = list(c["s"]) + [w1, w2]
+                    break
+            if loc is not None:
+                break
+        emit(f, f"largest CRP and CRP.total {key}", [best, max(tmax)])
+        emit(f, f"location of the largest CRP {key}", loc, rtol=0)
+        exceed = sum(r[2] - d["alpha"] > TOL for c in cells for r in c["rows"])
+        exceed_t = sum(r[3] - d["alpha"] > TOL for c in cells for r in c["rows"])
+        emit(f, f"exceed {key}", [exceed, exceed_t], rtol=0)
+        n = [d["n1"][j] + d["n2"][j] for j in range(2)]
+        tie = []
+        for p, (th1, th2) in enumerate(pts):
+            tie.append(sum(binom.pmf(c["s"][0], n[0], th1) * binom.pmf(c["s"][1], n[1], th2) *
+                           c["tie_s"][p] for c in cells))
+        emit(f, f"TIE at the points {key}", tie)
+        cell = next(c for c in cells if c["s"] == (2, 3))
+        emit(f, f"TIE.s of the cell (2, 3) {key}", cell["tie_s"])

@@ -282,21 +282,31 @@ v_{0} = \hat{p}(1 - \hat{p}) \Bigl(1 + \frac{1}{r}\Bigr) ,
 $$
 where $v_{1} = \hat{p}_{1}(1 - \hat{p}_{1}) / r + \hat{p}_{2}(1 - \hat{p}_{2})$ under `'standard'`, formula (21.3) of Kieser (2020), and $v_{1} = v_{0}$ under `'null.variance'`, formula (1) of Friede and Kieser (2004). Under `'alternative.variance'` both terms use $v_{1}$. A two-sided alternative uses $\alpha / 2$ in place of $\alpha$, and for the risk difference the denominator is $\Delta_{A}^{2}$. Group 1 receives $r \hat{N}_{2}$ patients. With a non-inferiority margin the difference and the variance $v_{0}$ change, as the `bbssr-non-inferiority` vignette describes. The approximation uses the recovered probabilities before truncation, with each Bernoulli variance truncated at zero, so that the assumed effect $\Delta_{A}$ is kept as in formula (2) of Friede and Kieser (2004). The `bbssr-reestimation-rules` vignette compares the methods and the rules that turn $\hat{N}_{2}$ into whole numbers.
 
-Two rules govern what happens next. The unrestricted rule takes the re-estimated sample size as it stands, allowing the trial to end up smaller than planned. The restricted rule raises it to the planned sample size first, so the trial can only grow. The table below applies both to a trial planned at 24 patients per group with an interim analysis at 12, with the default exact search.
+```{r bssr-rules-design}
+n.int <- 12
+N.plan <- 24
+```
+
+Two rules govern what happens next. The unrestricted rule takes the re-estimated sample size as it stands, allowing the trial to end up smaller than planned. The restricted rule raises it to the planned sample size first, so the trial can only grow. The table below applies both to a trial planned at `r N.plan` patients per group with an interim analysis at `r n.int`, with the default exact search.
 
 ```{r bssr-rules}
 interim <- data.frame(S = c(2, 4, 6, 8, 10))
-interim$pooled <- round(interim$S / 24, 3)
+interim$pooled <- round(interim$S / (2 * n.int), 3)
 interim$unrestricted <- vapply(interim$S, function(s) {
-  BinaryBSSR(n1 = 12, n2 = 12, S = s, Delta.A = 0.36, r = 1,
+  BinaryBSSR(n1 = n.int, n2 = n.int, S = s, Delta.A = 0.3, r = 1,
              alpha = 0.025, tar.power = 0.8, Test = 'Chisq')$N.final
 }, numeric(1))
 interim$restricted <- vapply(interim$S, function(s) {
-  BinaryBSSR(n1 = 12, n2 = 12, S = s, Delta.A = 0.36, r = 1,
+  BinaryBSSR(n1 = n.int, n2 = n.int, S = s, Delta.A = 0.3, r = 1,
              alpha = 0.025, tar.power = 0.8, Test = 'Chisq',
-             restricted = TRUE, N1 = 24, N2 = 24)$N.final
+             restricted = TRUE, N1 = N.plan, N2 = N.plan)$N.final
 }, numeric(1))
 interim
+```
+
+```{r bssr-rules-check, include = FALSE}
+stopifnot(is.unsorted(interim$unrestricted), is.unsorted(rev(interim$unrestricted)),
+          interim$pooled[1] < 0.3 / 2)
 ```
 
 The unrestricted column is not monotone in $S$. At a pooled rate of `r interim$pooled[1]` the recovered control probability $\hat{p} - \Delta_{A} / 2$ is negative and is truncated at zero, which shrinks the recovered risk difference below $\Delta_{A}$ and pushes the sample size back up.
@@ -311,7 +321,7 @@ $$
 
 where the conditional power $\mathrm{CP}$ is computed from the rejection region of the final sample size that the interim outcome leads to. The sum runs over every possible interim outcome, so the same rejection region is required many times and is cached.
 
-Setting $p_{1} = p_{2} = \theta$ in this sum gives the type I error rate of the design at $\theta$. The final sample size depends on the interim data, so the rate is not bounded by the size of the test at any one sample size, and `BinaryTypeIErrorBSSR()` evaluates it over $\theta$. The `bbssr-type1-error` vignette covers this calculation, the adjusted nominal level and the decomposition of the rate by the interim outcome.
+Setting $p_{1} = p_{2} = \theta$ in this sum gives the type I error rate of the design at $\theta$, and `BinaryTypeIErrorBSSR()` evaluates it over $\theta$. The `bbssr-type1-error` vignette covers this calculation, the adjusted nominal level and the decomposition of the rate by the interim outcome.
 
 ### The largest type I error rate
 

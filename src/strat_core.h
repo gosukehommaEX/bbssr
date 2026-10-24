@@ -6,7 +6,8 @@
 // 2. The outcome of stratum j is summarized by the number x of responders of group 1 and
 // the number z of responders of the stratum. All the tests use the statistic
 // S = sum_j x_j, and given z = (z_1, ..., z_J) they reject when S is at most a lower or at
-// least an upper critical value. A vector of stratum totals z is stored at the position
+// least an upper critical value. The unstratified tests apply the test of one stratum to
+// the table of totals, so their critical values depend on z only through sum_j z_j. A vector of stratum totals z is stored at the position
 // z_1 + (N_1 + 1) (z_2 + (N_2 + 1) (z_3 + ...)), where N_j = N1[j] + N2[j], the first
 // stratum varying fastest.
 #ifndef BBSSR_STRAT_CORE_H
@@ -29,7 +30,16 @@ const double REJECT_TOL = 1.4901161193847656e-08;
 // Relative tolerance of tie_groups(), which groups equal keys of the two-sided p-values
 const double TIE_TOL = 1e-10;
 
-enum TestType { CMH = 0, CMH_CC = 1, COCHRAN = 2, COCHRAN_CC = 3, FISHER = 4 };
+enum TestType {
+  CMH = 0,
+  CMH_CC = 1,
+  COCHRAN = 2,
+  COCHRAN_CC = 3,
+  FISHER = 4,
+  UNSTRAT_CHISQ = 5,
+  UNSTRAT_CHISQ_CC = 6,
+  UNSTRAT_FISHER = 7
+};
 enum Alternative { GREATER = 0, LESS = 1, TWO_SIDED = 2 };
 enum TsMethod { MINLIKE = 0, CENTRAL = 1, BLAKER = 2 };
 
@@ -59,6 +69,33 @@ struct Crit {
   int lo;
   int hi;
 };
+
+// The unstratified tests: Pearson's chi-squared test of the table of totals, without and
+// with the continuity correction, and Fisher's exact test of that table. Pearson's
+// statistic is the statistic of Cochran's test with one stratum, so each unstratified test
+// is the test of code type - 3 applied to the pooled design
+inline bool unstratified(int type) { return type >= UNSTRAT_CHISQ; }
+
+inline Design pooled_design(const Design& d) {
+  Design p;
+  p.N1.assign(1, std::accumulate(d.N1.begin(), d.N1.end(), 0));
+  p.N2.assign(1, std::accumulate(d.N2.begin(), d.N2.end(), 0));
+  return p;
+}
+
+inline Test pooled_test(const Test& t) {
+  Test u = t;
+  u.type = t.type - (UNSTRAT_CHISQ - COCHRAN);
+  return u;
+}
+
+// Critical values of the pooled design restricted to the range [Smin, Smax] of S in the
+// stratified design, in the form of Crit
+inline Crit clamp_crit(Crit c, int Smin, int Smax) {
+  c.lo = std::min(std::max(c.lo, Smin - 1), Smax);
+  c.hi = std::max(std::min(c.hi, Smax + 1), Smin);
+  return c;
+}
 
 // lf[k] = log(k!) for k = 0, ..., n
 inline std::vector<double> log_factorials(int n) {
@@ -253,17 +290,153 @@ inline Crit tails_of(const std::vector<char>& rej, int Smin) {
   return c;
 }
 
+// Hypergeometric distributions of the strata of a design for every number of responders,
+// h[j][z], and the tails of the last stratum, bu[z][k] = P(B >= lo + k) and
+// bl[z][k] = P(B <= lo + k) with lo = h[J - 1][z].lo, for the critical values of the
+// stratified exact test at every vector of stratum totals
+struct HyperTable {
+  std::vector<std::vector<Dist>> h;
+  std::vector<std::vector<double>> bu, bl;
+};
+
+inline void tails_of_dist(const Dist& b, std::vector<double>& bu, std::vector<double>& bl) {
+  const int nb = static_cast<int>(b.p.size());
+  bu.assign(nb + 1, 0.0);
+  bl.assign(nb, 0.0);
+  for (int k = nb - 1; k >= 0; --k) bu[k] = bu[k + 1] + b.p[k];
+  double acc = 0.0;
+  for (int k = 0; k < nb; ++k) {
+    acc += b.p[k];
+    bl[k] = acc;
+  }
+}
+
+inline HyperTable hyper_table(const Design& d, const std::vector<double>& lf) {
+  HyperTable ht;
+  const int J = d.J();
+  ht.h.resize(J);
+  for (int j = 0; j < J; ++j) {
+    for (int z = 0; z <= d.total(j); ++z) ht.h[j].push_back(hyper(d.N1[j], d.N2[j], z, lf));
+  }
+  ht.bu.resize(d.total(J - 1) + 1);
+  ht.bl.resize(d.total(J - 1) + 1);
+  for (int z = 0; z <= d.total(J - 1); ++z) tails_of_dist(ht.h[J - 1][z], ht.bu[z], ht.bl[z]);
+  return ht;
+}
+
+// Critical values of the stratified exact conditional test for the one-sided alternatives
+// and the central two-sided p-value. The null distribution of S is that of the sum over
+// the first strata, F, convolved with the last stratum, so P(S' >= S) and P(S' <= S) are
+// sums of F against the tails of the last stratum. These tail probabilities are monotone
+// in S, and the boundaries of the rejected values are found by bisection, without the whole
+// null distribution. With the central p-value the upper tail rejects when 2 P(S' >= S) does
+// and the lower tail when 2 P(S' <= S) does: a value with P(S' >= S) < 1/2 has
+// P(S' <= S) > 1/2, and the median is not rejected, so the two tails do not meet. The
+// distributions of the strata are taken from ht when it is given
+inline Crit fisher_tail_crit(const Design& d, const Test& t, const int* z,
+                             const std::vector<double>& lf, int Smin, int Smax,
+                             const HyperTable* ht) {
+  const int J = d.J();
+  auto h = [&](int j) { return ht ? ht->h[j][z[j]] : hyper(d.N1[j], d.N2[j], z[j], lf); };
+  Dist Fl;
+  const Dist* F = &Fl;
+  if (J == 1) {
+    Fl.lo = 0;
+    Fl.p.assign(1, 1.0);
+  } else if (J == 2 && ht) {
+    F = &ht->h[0][z[0]];
+  } else {
+    Fl = h(0);
+    for (int j = 1; j < J - 1; ++j) Fl = convolve(Fl, h(j));
+  }
+  std::vector<double> bul, bll;
+  int blo;
+  if (ht) {
+    blo = ht->h[J - 1][z[J - 1]].lo;
+  } else {
+    const Dist b = h(J - 1);
+    blo = b.lo;
+    tails_of_dist(b, bul, bll);
+  }
+  const std::vector<double>& bu = ht ? ht->bu[z[J - 1]] : bul;
+  const std::vector<double>& bl = ht ? ht->bl[z[J - 1]] : bll;
+  const int na = static_cast<int>(F->p.size()), nb = static_cast<int>(bl.size());
+  const double* Fp = F->p.data();
+  const int base = F->lo + blo;
+  // P(S' >= S) = sum_i F.p[i] bu[S - base - i], with bu[k] = bu[0] for k <= 0 and 0 for
+  // k >= nb, and P(S' <= S) likewise with bl[k] = 0 for k < 0 and bl[nb - 1] for
+  // k >= nb - 1, summed over the ranges of i where the tail is complete or partial
+  auto upper = [&](int S) {
+    const int m = S - base;
+    double whole = 0.0, part = 0.0;
+    for (int i = std::max(0, m); i < na; ++i) whole += Fp[i];
+    for (int i = std::max(0, m - nb + 1), e = std::min(na - 1, m - 1); i <= e; ++i) {
+      part += Fp[i] * bu[m - i];
+    }
+    return part + whole * bu[0];
+  };
+  auto lower = [&](int S) {
+    const int m = S - base;
+    double whole = 0.0, part = 0.0;
+    for (int i = 0, e = std::min(na - 1, m - nb + 1); i <= e; ++i) whole += Fp[i];
+    for (int i = std::max(0, m - nb + 2), e = std::min(na - 1, m); i <= e; ++i) {
+      part += Fp[i] * bl[m - i];
+    }
+    return part + whole * bl[nb - 1];
+  };
+  const double scale = t.alternative == TWO_SIDED ? 2.0 : 1.0;
+  auto rej_up = [&](int S) { return rejects(std::min(1.0, scale * upper(S)), t.alpha); };
+  auto rej_lo = [&](int S) { return rejects(std::min(1.0, scale * lower(S)), t.alpha); };
+  Crit c;
+  c.lo = Smin - 1;
+  c.hi = Smax + 1;
+  if (t.alternative != LESS && rej_up(Smax)) {
+    int hi = Smax;  // rejected
+    if (rej_up(Smin)) {
+      hi = Smin;
+    } else {
+      int lo = Smin;  // not rejected
+      while (hi - lo > 1) {
+        const int mid = lo + (hi - lo) / 2;
+        if (rej_up(mid)) hi = mid; else lo = mid;
+      }
+    }
+    c.hi = hi;
+  }
+  if (t.alternative != GREATER && rej_lo(Smin)) {
+    int lo = Smin;  // rejected
+    if (rej_lo(Smax)) {
+      lo = Smax;
+    } else {
+      int hi = Smax;  // not rejected
+      while (hi - lo > 1) {
+        const int mid = lo + (hi - lo) / 2;
+        if (rej_lo(mid)) lo = mid; else hi = mid;
+      }
+    }
+    c.lo = lo;
+  }
+  return c;
+}
+
 // Critical values of the test for the stratum totals z
 inline Crit critical(const Design& d, const Test& t, const int* z,
-                     const std::vector<double>& lf) {
+                     const std::vector<double>& lf, const HyperTable* ht = nullptr) {
   int Smin = 0, Smax = 0;
   for (int j = 0; j < d.J(); ++j) {
     Smin += std::max(0, z[j] - d.N2[j]);
     Smax += std::min(z[j], d.N1[j]);
   }
+  if (unstratified(t.type)) {
+    const int Z = std::accumulate(z, z + d.J(), 0);
+    return clamp_crit(critical(pooled_design(d), pooled_test(t), &Z, lf), Smin, Smax);
+  }
   Crit c;
   c.lo = Smin - 1;
   c.hi = Smax + 1;
+  if (t.type == FISHER && (t.alternative != TWO_SIDED || t.tsmethod == CENTRAL)) {
+    return fisher_tail_crit(d, t, z, lf, Smin, Smax, ht);
+  }
   if (t.type == FISHER) {
     const Dist f = null_dist(d, z, lf);
     const std::vector<double> pv = fisher_pvalues(f, t.alternative, t.tsmethod);
@@ -327,8 +500,33 @@ inline void critical_grid(const Design& d, const Test& t, const std::vector<doub
   lo.assign(n, 0);
   hi.assign(n, 0);
   std::vector<int> z(d.J(), 0);
+  if (unstratified(t.type)) {
+    // The critical values of the pooled design, one for each total, restricted to the range
+    // of S of each vector of stratum totals
+    std::vector<int> plo, phi;
+    critical_grid(pooled_design(d), pooled_test(t), lf, plo, phi);
+    for (std::size_t k = 0; k < n; ++k) {
+      int Z = 0, Smin = 0, Smax = 0;
+      for (int j = 0; j < d.J(); ++j) {
+        Z += z[j];
+        Smin += std::max(0, z[j] - d.N2[j]);
+        Smax += std::min(z[j], d.N1[j]);
+      }
+      const Crit c = clamp_crit(Crit{plo[Z], phi[Z]}, Smin, Smax);
+      lo[k] = c.lo;
+      hi[k] = c.hi;
+      for (int j = 0; j < d.J(); ++j) {
+        if (++z[j] <= d.total(j)) break;
+        z[j] = 0;
+      }
+    }
+    return;
+  }
+  HyperTable ht;
+  const bool table = t.type == FISHER && (t.alternative != TWO_SIDED || t.tsmethod == CENTRAL);
+  if (table) ht = hyper_table(d, lf);
   for (std::size_t k = 0; k < n; ++k) {
-    const Crit c = critical(d, t, z.data(), lf);
+    const Crit c = critical(d, t, z.data(), lf, table ? &ht : nullptr);
     lo[k] = c.lo;
     hi[k] = c.hi;
     for (int j = 0; j < d.J(); ++j) {
@@ -343,6 +541,12 @@ inline void critical_grid(const Design& d, const Test& t, const std::vector<doub
 // report_level() chooses a level with the same rejection regions
 inline void level_bracket(const Design& d, const Test& t, const std::vector<double>& lf,
                           double& pr, double& pn) {
+  // The pairs (sum_j z_j, S) of the stratified design are exactly the outcomes of the
+  // pooled design, and the p-values of an unstratified test depend only on them
+  if (unstratified(t.type)) {
+    level_bracket(pooled_design(d), pooled_test(t), lf, pr, pn);
+    return;
+  }
   pr = -1.0;
   pn = 2.0;
   const bool cochran = t.type == COCHRAN || t.type == COCHRAN_CC;
@@ -383,6 +587,10 @@ inline void level_bracket(const Design& d, const Test& t, const std::vector<doub
 // p-value of the test for the stratum totals z and the statistic S
 inline double pvalue(const Design& d, const Test& t, const int* z, int S,
                      const std::vector<double>& lf) {
+  if (unstratified(t.type)) {
+    const int Z = std::accumulate(z, z + d.J(), 0);
+    return pvalue(pooled_design(d), pooled_test(t), &Z, S, lf);
+  }
   if (t.type == FISHER) {
     const Dist f = null_dist(d, z, lf);
     if (S < f.lo || S > f.hi()) throw std::runtime_error("S is outside its range");
@@ -510,7 +718,72 @@ inline std::vector<double> stage_joint(int n1, int n2, int m1, int m2, int s,
   return J;
 }
 
-// Rejection probability of the re-estimation design for the probabilities p1[j], p2[j]
+// Tails of the second stratum for the second-stage numbers of responders w, from the joint
+// distribution J1 of stage_joint() with X values of x and W values of w:
+// up[w * (X + 1) + y] = sum_{x >= y} J1(x, w) and down[w * X + y] = sum_{x <= y} J1(x, w)
+inline void stage_tails(const std::vector<double>& J1, int X, int W, std::vector<double>& up,
+                        std::vector<double>& down) {
+  up.assign(static_cast<std::size_t>(W) * (X + 1), 0.0);
+  down.assign(static_cast<std::size_t>(W) * X, 0.0);
+  for (int w = 0; w < W; ++w) {
+    double* u = &up[static_cast<std::size_t>(w) * (X + 1)];
+    double* l = &down[static_cast<std::size_t>(w) * X];
+    double acc = 0.0;
+    for (int x = X - 1; x >= 0; --x) {
+      acc += J1[x * W + w];
+      u[x] = acc;
+    }
+    acc = 0.0;
+    for (int x = 0; x < X; ++x) {
+      acc += J1[x * W + w];
+      l[x] = acc;
+    }
+  }
+}
+
+// Probability that the second stratum completes a rejection, given the critical values hi
+// and lo of the final stratum totals and the final number x of group 1 responders of the
+// first stratum, from the tails u and l of stage_tails() for one w, with X values:
+// T(x) = U(hi - x) + L(lo - x), where U(a) is u[0] for a <= 0, u[a] for 0 < a < X and 0
+// for a >= X, and L(b) is 0 for b < 0, l[b] for 0 <= b < X - 1 and l[X - 1] for
+// b >= X - 1. add_tails() adds T(x) to g[x] for x = x_lo, ..., x_hi, over the ranges of x
+// in which each tail is complete, partial or empty
+inline void add_tails(double* g, int x_lo, int x_hi, const double* u, const double* l, int X,
+                      int hi, int lo) {
+  for (int x = std::max(x_lo, hi); x <= x_hi; ++x) g[x] += u[0];
+  for (int x = std::max(x_lo, hi - X + 1), e = std::min(x_hi, hi - 1); x <= e; ++x) {
+    g[x] += u[hi - x];
+  }
+  for (int x = x_lo, e = std::min(x_hi, lo - X + 1); x <= e; ++x) g[x] += l[X - 1];
+  for (int x = std::max(x_lo, lo - X + 2), e = std::min(x_hi, lo); x <= e; ++x) {
+    g[x] += l[lo - x];
+  }
+}
+
+// sum_q f[q] T(f_lo + q) for q = 0, ..., n - 1, with T of add_tails(), over the same
+// ranges
+inline double dot_tails(const double* f, int f_lo, int n, const double* u, const double* l,
+                        int X, int hi, int lo) {
+  const int x_hi = f_lo + n - 1;
+  double su = 0.0, sl = 0.0, s = 0.0;
+  for (int x = std::max(f_lo, hi); x <= x_hi; ++x) su += f[x - f_lo];
+  for (int x = std::max(f_lo, hi - X + 1), e = std::min(x_hi, hi - 1); x <= e; ++x) {
+    s += f[x - f_lo] * u[hi - x];
+  }
+  for (int x = f_lo, e = std::min(x_hi, lo - X + 1); x <= e; ++x) sl += f[x - f_lo];
+  for (int x = std::max(f_lo, lo - X + 2), e = std::min(x_hi, lo); x <= e; ++x) {
+    s += f[x - f_lo] * l[lo - x];
+  }
+  return s + su * u[0] + sl * l[X - 1];
+}
+
+// Rejection probability of the re-estimation design for the probabilities p1[j], p2[j].
+// Given the final design k and the interim outcome s_2 of the second stratum, the sum over
+// the second-stage outcomes of the second stratum depends on the first stratum only through
+// its final total z_1 and its final number x of group 1 responders, G(z_1, x). The interim
+// cells (s_1, s_2) of design k with the same s_2 share this table, and the probability of
+// a cell is the sum of G against the joint distribution of the final x and the
+// second-stage number of responders of the first stratum given s_1
 inline double bssr_power2(const std::vector<int>& n1, const std::vector<int>& n2,
                           const std::vector<FinalDesign>& designs, const std::vector<int>& id,
                           const double* p1, const double* p2, const std::vector<double>& lf) {
@@ -520,14 +793,15 @@ inline double bssr_power2(const std::vector<int>& n1, const std::vector<int>& n2
     binom_row(n1[j], p1[j], lf, bi[j][0]);
     binom_row(n2[j], p2[j], lf, bi[j][1]);
   }
-  // Interim cells of each design, ordered by s_2
+  // Interim cells of each design, ordered by s_2 and then by s_1
   std::vector<std::vector<std::pair<int, int>>> cells(designs.size());
   for (int s1 = 0; s1 <= S1; ++s1) {
     for (int s0 = 0; s0 <= S0; ++s0) cells[id[s0 + (S0 + 1) * s1]].push_back({s0, s1});
   }
   double total = 0.0;
   for (std::size_t k = 0; k < designs.size(); ++k) {
-    if (cells[k].empty()) continue;
+    const std::vector<std::pair<int, int>>& ck = cells[k];
+    if (ck.empty()) continue;
     const Design& d = designs[k].d;
     const int m1[2] = {d.N1[0] - n1[0], d.N1[1] - n1[1]};
     const int m2[2] = {d.N2[0] - n2[0], d.N2[1] - n2[1]};
@@ -537,60 +811,63 @@ inline double bssr_power2(const std::vector<int>& n1, const std::vector<int>& n2
       binom_row(m2[j], p2[j], lf, bs[j][1]);
     }
     const int W0 = m1[0] + m2[0] + 1, W1 = m1[1] + m2[1] + 1;
-    const int X1 = d.N1[1] + 1;
+    const int X0 = d.N1[0] + 1, X1 = d.N1[1] + 1;
     const int Z0 = d.total(0) + 1;
+    const int* hi = designs[k].hi.data();
+    const int* lo = designs[k].lo.data();
+    // Joint distributions of the first stratum by s_1, stored as H[w * X0 + x]
     std::map<int, std::vector<double>> J0;
-    int cur = -1;
-    std::vector<double> up, down;  // tails of stratum 2 in x, for each w
-    for (const auto& cell : cells[k]) {
-      const int s0 = cell.first, s1 = cell.second;
-      if (s1 != cur) {
-        cur = s1;
-        const std::vector<double> J1 = stage_joint(n1[1], n2[1], m1[1], m2[1], s1, bi[1][0],
-                                                   bi[1][1], bs[1][0], bs[1][1]);
-        // up[y * W1 + w] = sum_{x >= y} J1(x, w), down[y * W1 + w] = sum_{x <= y} J1(x, w)
-        up.assign((X1 + 1) * W1, 0.0);
-        down.assign(X1 * W1, 0.0);
-        for (int w = 0; w < W1; ++w) {
-          double acc = 0.0;
-          for (int x = X1 - 1; x >= 0; --x) {
-            acc += J1[x * W1 + w];
-            up[x * W1 + w] = acc;
-          }
-          acc = 0.0;
-          for (int x = 0; x < X1; ++x) {
-            acc += J1[x * W1 + w];
-            down[x * W1 + w] = acc;
-          }
+    std::vector<double> up, down, G;
+    std::vector<char> need;
+    std::size_t beg = 0;
+    while (beg < ck.size()) {
+      const int s1 = ck[beg].second;
+      std::size_t e = beg;
+      while (e < ck.size() && ck[e].second == s1) ++e;
+      stage_tails(stage_joint(n1[1], n2[1], m1[1], m2[1], s1, bi[1][0], bi[1][1], bs[1][0],
+                              bs[1][1]),
+                  X1, W1, up, down);
+      // G over the first-stratum totals z_1 that the cells reach
+      const int zlo = ck[beg].first, zhi = ck[e - 1].first + W0 - 1;
+      need.assign(zhi - zlo + 1, 0);
+      for (std::size_t c = beg; c < e; ++c) {
+        for (int w0 = 0; w0 < W0; ++w0) need[ck[c].first + w0 - zlo] = 1;
+      }
+      G.assign(static_cast<std::size_t>(zhi - zlo + 1) * X0, 0.0);
+      for (int z0 = zlo; z0 <= zhi; ++z0) {
+        if (!need[z0 - zlo]) continue;
+        double* g = &G[static_cast<std::size_t>(z0 - zlo) * X0];
+        const int x_lo = std::max(0, z0 - d.N2[0]), x_hi = std::min(z0, X0 - 1);
+        for (int w1 = 0; w1 < W1; ++w1) {
+          const std::size_t cz = z0 + static_cast<std::size_t>(Z0) * (s1 + w1);
+          add_tails(g, x_lo, x_hi, &up[static_cast<std::size_t>(w1) * (X1 + 1)],
+                    &down[static_cast<std::size_t>(w1) * X1], X1, hi[cz], lo[cz]);
         }
       }
-      auto it = J0.find(s0);
-      if (it == J0.end()) {
-        it = J0.emplace(s0, stage_joint(n1[0], n2[0], m1[0], m2[0], s0, bi[0][0], bi[0][1],
-                                        bs[0][0], bs[0][1])).first;
-      }
-      const std::vector<double>& J0s = it->second;
-      const int a_lo = std::max(0, s0 - n2[0]), a_hi = std::min(s0, n1[0]);
-      double crp = 0.0;
-      for (int w0 = 0; w0 < W0; ++w0) {
-        const int z0 = s0 + w0;
-        const int x_lo = a_lo + std::max(0, w0 - m2[0]), x_hi = a_hi + std::min(w0, m1[0]);
-        for (int x = x_lo; x <= x_hi; ++x) {
-          const double h = J0s[x * W0 + w0];
-          if (h == 0.0) continue;
-          double acc = 0.0;
-          for (int w1 = 0; w1 < W1; ++w1) {
-            const std::size_t cell_z = z0 + static_cast<std::size_t>(Z0) * (s1 + w1);
-            const int u = designs[k].hi[cell_z] - x;
-            const int l = designs[k].lo[cell_z] - x;
-            if (u <= 0) acc += up[w1]; else if (u < X1) acc += up[u * W1 + w1];
-            if (l >= X1 - 1) acc += down[(X1 - 1) * W1 + w1];
-            else if (l >= 0) acc += down[l * W1 + w1];
+      for (std::size_t c = beg; c < e; ++c) {
+        const int s0 = ck[c].first;
+        auto it = J0.find(s0);
+        if (it == J0.end()) {
+          const std::vector<double> J = stage_joint(n1[0], n2[0], m1[0], m2[0], s0, bi[0][0],
+                                                    bi[0][1], bs[0][0], bs[0][1]);
+          std::vector<double> H(static_cast<std::size_t>(W0) * X0);
+          for (int x = 0; x < X0; ++x) {
+            for (int w = 0; w < W0; ++w) H[static_cast<std::size_t>(w) * X0 + x] = J[x * W0 + w];
           }
-          crp += h * acc;
+          it = J0.emplace(s0, std::move(H)).first;
         }
+        const std::vector<double>& H = it->second;
+        const int a_lo = std::max(0, s0 - n2[0]), a_hi = std::min(s0, n1[0]);
+        double crp = 0.0;
+        for (int w0 = 0; w0 < W0; ++w0) {
+          const int x_lo = a_lo + std::max(0, w0 - m2[0]), x_hi = a_hi + std::min(w0, m1[0]);
+          const double* h = &H[static_cast<std::size_t>(w0) * X0];
+          const double* g = &G[static_cast<std::size_t>(s0 + w0 - zlo) * X0];
+          for (int x = x_lo; x <= x_hi; ++x) crp += h[x] * g[x];
+        }
+        total += crp;
       }
-      total += crp;
+      beg = e;
     }
   }
   return total;
@@ -607,6 +884,10 @@ inline double bssr_power2(const std::vector<int>& n1, const std::vector<int>& n2
 // (the split of the stratum responders between the two stages) times the probability of
 // rejection given s and z. The coefficients of all designs, raised to the largest degree
 // in each variable, are returned as a (D_1 + 1) by (D_2 + 1) matrix in row major order.
+// The interim cells of design k with the same s_2 enter the probability of rejection given
+// z only through the sum over these cells of the split probability of stratum 1 times the
+// null distribution of its number x of group 1 responders, which is accumulated once for
+// them when that takes fewer operations than the sums of the cells one by one.
 
 // Coefficients c of degree n raised to degree D in one variable:
 // c'_i = sum_k c_k choose(n, k) choose(D - n, i - k) / choose(D, i)
@@ -644,91 +925,320 @@ inline std::vector<double> tie_coef2(const std::vector<int>& n1, const std::vect
   }
   std::vector<double> coef((D0 + 1) * (D1 + 1), 0.0);
   for (std::size_t k = 0; k < designs.size(); ++k) {
-    if (cells[k].empty()) continue;
+    const std::vector<std::pair<int, int>>& ck = cells[k];
+    if (ck.empty()) continue;
     const Design& d = designs[k].d;
     const int T0 = d.total(0), T1 = d.total(1);
     const int m1[2] = {d.N1[0] - n1[0], d.N1[1] - n1[1]};
     const int m2[2] = {d.N2[0] - n2[0], d.N2[1] - n2[1]};
     const int W0 = m1[0] + m2[0] + 1, W1 = m1[1] + m2[1] + 1;
+    const int X0 = d.N1[0] + 1;
     std::vector<double> Q((T0 + 1) * (T1 + 1), 0.0);  // Q[z0 * (T1 + 1) + z1]
     // Null distributions of x for stratum 1 given (s0, w0), cached by s0
     std::map<int, std::vector<Dist>> phi0;
-    int cur = -1;
     std::vector<std::vector<double>> up1, down1;  // tails for stratum 2 by w1
     std::vector<int> lo1(W1);
-    for (const auto& cell : cells[k]) {
+    std::vector<double> h1(W1), A;
+    std::vector<char> need;
+    // Stage split probabilities choose(n, s) choose(m, w) / choose(n + m, s + w)
+    const int nn0 = S0, mm0 = W0 - 1, nn1 = S1, mm1 = W1 - 1;
+    auto split0 = [&](int s0, int w0) {
+      const int z0 = s0 + w0;
+      return std::exp(lf[nn0] - lf[s0] - lf[nn0 - s0] + lf[mm0] - lf[w0] - lf[mm0 - w0] -
+                      (lf[T0] - lf[z0] - lf[T0 - z0]));
+    };
+    std::size_t beg = 0;
+    while (beg < ck.size()) {
+      const int s1 = ck[beg].second;
+      std::size_t e = beg;
+      while (e < ck.size() && ck[e].second == s1) ++e;
+      const Dist a1 = hyper(n1[1], n2[1], s1, lf);
+      up1.assign(W1, std::vector<double>());
+      down1.assign(W1, std::vector<double>());
+      for (int w = 0; w < W1; ++w) {
+        const Dist f = convolve(a1, hyper(m1[1], m2[1], w, lf));
+        const int n = static_cast<int>(f.p.size());
+        lo1[w] = f.lo;
+        up1[w].assign(n + 1, 0.0);
+        down1[w].assign(n, 0.0);
+        for (int q = n - 1; q >= 0; --q) up1[w][q] = up1[w][q + 1] + f.p[q];
+        double acc = 0.0;
+        for (int q = 0; q < n; ++q) {
+          acc += f.p[q];
+          down1[w][q] = acc;
+        }
+        const int z1 = s1 + w;
+        h1[w] = std::exp(lf[nn1] - lf[s1] - lf[nn1 - s1] + lf[mm1] - lf[w] - lf[mm1 - w] -
+                         (lf[T1] - lf[z1] - lf[T1 - z1]));
+      }
+      // T = sum_q f[q] P(rejection | x = f_lo + q): the second stratum completes the
+      // rejection, with the tails of w1 and the critical values of (z0, s1 + w1)
+      auto tsum = [&](const double* f, int f_lo, int f_n, int z0, int w1) {
+        const std::size_t cz = z0 + static_cast<std::size_t>(T0 + 1) * (s1 + w1);
+        const int chi = designs[k].hi[cz] - lo1[w1], clo = designs[k].lo[cz] - lo1[w1];
+        const double* up = up1[w1].data();
+        const double* down = down1[w1].data();
+        const int n = static_cast<int>(down1[w1].size());
+        return dot_tails(f, f_lo, f_n, up, down, n, chi, clo);
+      };
+      for (std::size_t c = beg; c < e; ++c) {
+        const int s0 = ck[c].first;
+        if (phi0.find(s0) == phi0.end()) {
+          std::vector<Dist> v(W0);
+          const Dist a0 = hyper(n1[0], n2[0], s0, lf);
+          for (int w = 0; w < W0; ++w) v[w] = convolve(a0, hyper(m1[0], m2[0], w, lf));
+          phi0.emplace(s0, v);
+        }
+      }
+      // Operations of the direct sums, and of the sums of A over the totals z0 that the
+      // cells reach, where A(z0, x) = sum over the cells of the stage split probability
+      // times the null distribution of x given (s0, z0 - s0)
+      const int zlo = ck[beg].first, zhi = ck[e - 1].first + W0 - 1;
+      need.assign(zhi - zlo + 1, 0);
+      long long pairs = 0;
+      for (std::size_t c = beg; c < e; ++c) {
+        const std::vector<Dist>& ph = phi0.find(ck[c].first)->second;
+        for (int w0 = 0; w0 < W0; ++w0) {
+          pairs += static_cast<long long>(ph[w0].p.size());
+          need[ck[c].first + w0 - zlo] = 1;
+        }
+      }
+      long long rows = 0;
+      for (int z0 = zlo; z0 <= zhi; ++z0) {
+        if (need[z0 - zlo]) rows += std::min(z0, X0 - 1) - std::max(0, z0 - d.N2[0]) + 1;
+      }
+      if ((rows + 0.0) * W1 + pairs < (pairs + 0.0) * W1) {
+        A.assign(static_cast<std::size_t>(zhi - zlo + 1) * X0, 0.0);
+        for (std::size_t c = beg; c < e; ++c) {
+          const int s0 = ck[c].first;
+          const std::vector<Dist>& ph = phi0.find(s0)->second;
+          for (int w0 = 0; w0 < W0; ++w0) {
+            const double h0 = split0(s0, w0);
+            const Dist& f0 = ph[w0];
+            double* row = &A[static_cast<std::size_t>(s0 + w0 - zlo) * X0];
+            for (std::size_t q = 0; q < f0.p.size(); ++q) row[f0.lo + q] += h0 * f0.p[q];
+          }
+        }
+        for (int z0 = zlo; z0 <= zhi; ++z0) {
+          if (!need[z0 - zlo]) continue;
+          const int x_lo = std::max(0, z0 - d.N2[0]), x_hi = std::min(z0, X0 - 1);
+          const double* row = &A[static_cast<std::size_t>(z0 - zlo) * X0 + x_lo];
+          for (int w1 = 0; w1 < W1; ++w1) {
+            Q[z0 * (T1 + 1) + s1 + w1] += h1[w1] * tsum(row, x_lo, x_hi - x_lo + 1, z0, w1);
+          }
+        }
+      } else {
+        for (std::size_t c = beg; c < e; ++c) {
+          const int s0 = ck[c].first;
+          const std::vector<Dist>& ph = phi0.find(s0)->second;
+          for (int w0 = 0; w0 < W0; ++w0) {
+            const int z0 = s0 + w0;
+            const double h0 = split0(s0, w0);
+            const Dist& f0 = ph[w0];
+            for (int w1 = 0; w1 < W1; ++w1) {
+              Q[z0 * (T1 + 1) + s1 + w1] +=
+                h0 * h1[w1] * tsum(f0.p.data(), f0.lo, static_cast<int>(f0.p.size()), z0, w1);
+            }
+          }
+        }
+      }
+      beg = e;
+    }
+    // Raise the degrees to (D0, D1) and add
+    std::vector<double> tmp((D0 + 1) * (T1 + 1), 0.0);
+    elevate_rows(Q, T0, D0, T1 + 1, T1 + 1, lf, tmp, T1 + 1);
+    // Along the second variable: each row of tmp is a polynomial of degree T1, raised with
+    // the weights of elevate_rows(), computed once for all rows
+    const int e1 = D1 - T1;
+    std::vector<double> w1((D1 + 1) * (e1 + 1), 0.0);
+    for (int r = 0; r <= D1; ++r) {
+      for (int q = std::max(0, r - e1); q <= std::min(r, T1); ++q) {
+        w1[r * (e1 + 1) + r - q] = std::exp(lf[T1] - lf[q] - lf[T1 - q] + lf[e1] - lf[r - q] -
+                                            lf[e1 - r + q] - (lf[D1] - lf[r] - lf[D1 - r]));
+      }
+    }
+    for (int i = 0; i <= D0; ++i) {
+      const double* row = &tmp[i * (T1 + 1)];
+      for (int r = 0; r <= D1; ++r) {
+        double out = 0.0;
+        for (int q = std::max(0, r - e1); q <= std::min(r, T1); ++q) {
+          out += w1[r * (e1 + 1) + r - q] * row[q];
+        }
+        coef[i * (D1 + 1) + r] += out;
+      }
+    }
+  }
+  return coef;
+}
+
+// ---------------------------------------------------------------------------------------
+// Conditional rejection probabilities of a two-stratum re-estimation design under the null
+// hypothesis. Given the interim pooled numbers of responders (s_1, s_2) of the strata and
+// the second-stage numbers (w_1, w_2), the number of group 1 responders of each stratum is
+// the sum of two independent hypergeometric counts, so the probability of rejection
+// CRP(s, w) does not depend on the response probabilities. CRP.total(z) is the conditional
+// size of the final test given the final stratum totals z = s + w, with the group 1
+// responders of each stratum hypergeometric among all its final patients. For every
+// interim cell the largest and smallest CRP over w, the number of w at which CRP and
+// CRP.total exceed alpha, and the largest CRP.total are returned, with the first w, in the
+// order w_1 fastest, at which each largest value is attained up to a relative 1e-12. With
+// points (theta_1, theta_2), the type I error rate given s, sum_w b(w_1) b(w_2) CRP(s, w)
+// with the binomial distributions of the second stage, is returned for every cell and
+// point. With full, every (s, w) is listed cell by cell, w_1 fastest, with the cells
+// grouped by final design.
+
+struct CondReject {
+  // per interim cell, in the storage order s_1 + (S_1 + 1) s_2 of id
+  std::vector<double> crp_max, crp_min, total_max;
+  std::vector<int> exceed, exceed_total, w0_max, w1_max, w0_total, w1_total;
+  // tie_s[cell * P + p] for the points p
+  std::vector<double> tie_s;
+  // full listing
+  std::vector<int> s0, s1, w0, w1;
+  std::vector<double> crp, total;
+};
+
+inline CondReject cond_reject2(const std::vector<int>& n1, const std::vector<int>& n2,
+                               const std::vector<FinalDesign>& designs,
+                               const std::vector<int>& id, double alpha, bool full,
+                               const std::vector<double>& th0,
+                               const std::vector<double>& th1,
+                               const std::vector<double>& lf) {
+  const int S0 = n1[0] + n2[0], S1 = n1[1] + n2[1];
+  const std::size_t ncell = static_cast<std::size_t>(S0 + 1) * (S1 + 1);
+  const std::size_t P = th0.size();
+  CondReject out;
+  out.crp_max.assign(ncell, 0.0);
+  out.crp_min.assign(ncell, 0.0);
+  out.total_max.assign(ncell, 0.0);
+  out.exceed.assign(ncell, 0);
+  out.exceed_total.assign(ncell, 0);
+  out.w0_max.assign(ncell, 0);
+  out.w1_max.assign(ncell, 0);
+  out.w0_total.assign(ncell, 0);
+  out.w1_total.assign(ncell, 0);
+  out.tie_s.assign(ncell * P, 0.0);
+  std::vector<std::vector<std::pair<int, int>>> cells(designs.size());
+  for (int s1 = 0; s1 <= S1; ++s1) {
+    for (int s0 = 0; s0 <= S0; ++s0) cells[id[s0 + (S0 + 1) * s1]].push_back({s0, s1});
+  }
+  // First position in v of a value within a relative 1e-12 of the largest one
+  auto first_max = [](const std::vector<double>& v, double& m) {
+    m = *std::max_element(v.begin(), v.end());
+    for (std::size_t i = 0; i < v.size(); ++i) {
+      if (v[i] >= m * (1 - 1e-12)) return i;
+    }
+    return static_cast<std::size_t>(0);
+  };
+  for (std::size_t k = 0; k < designs.size(); ++k) {
+    const std::vector<std::pair<int, int>>& ck = cells[k];
+    if (ck.empty()) continue;
+    const Design& d = designs[k].d;
+    const int T0 = d.total(0), T1 = d.total(1);
+    const int m1[2] = {d.N1[0] - n1[0], d.N1[1] - n1[1]};
+    const int m2[2] = {d.N2[0] - n2[0], d.N2[1] - n2[1]};
+    const int W0 = m1[0] + m2[0] + 1, W1 = m1[1] + m2[1] + 1;
+    const int* hi = designs[k].hi.data();
+    const int* lo = designs[k].lo.data();
+    // CRP.total for every vector of final stratum totals
+    std::vector<double> tot(static_cast<std::size_t>(T0 + 1) * (T1 + 1));
+    {
+      std::vector<Dist> h0(T0 + 1);
+      for (int z0 = 0; z0 <= T0; ++z0) h0[z0] = hyper(d.N1[0], d.N2[0], z0, lf);
+      std::vector<double> bu, bl;
+      for (int z1 = 0; z1 <= T1; ++z1) {
+        const Dist b = hyper(d.N1[1], d.N2[1], z1, lf);
+        tails_of_dist(b, bu, bl);
+        const int n = static_cast<int>(bl.size());
+        for (int z0 = 0; z0 <= T0; ++z0) {
+          const Dist& a = h0[z0];
+          const std::size_t cz = z0 + static_cast<std::size_t>(T0 + 1) * z1;
+          tot[cz] = dot_tails(a.p.data(), a.lo, static_cast<int>(a.p.size()), bu.data(),
+                              bl.data(), n, hi[cz] - b.lo, lo[cz] - b.lo);
+        }
+      }
+    }
+    // Binomial distributions of the second stage at the points
+    std::vector<std::vector<double>> b0(P), b1(P);
+    for (std::size_t p = 0; p < P; ++p) {
+      binom_row(W0 - 1, th0[p], lf, b0[p]);
+      binom_row(W1 - 1, th1[p], lf, b1[p]);
+    }
+    std::map<int, std::vector<Dist>> phi0;
+    std::vector<std::vector<double>> up1(W1), down1(W1);
+    std::vector<int> lo1(W1);
+    std::vector<double> c(static_cast<std::size_t>(W0) * W1), t(c.size());
+    int cur = -1;
+    for (const auto& cell : ck) {
       const int s0 = cell.first, s1 = cell.second;
       if (s1 != cur) {
         cur = s1;
-        const Dist a = hyper(n1[1], n2[1], s1, lf);
-        up1.assign(W1, std::vector<double>());
-        down1.assign(W1, std::vector<double>());
+        const Dist a1 = hyper(n1[1], n2[1], s1, lf);
         for (int w = 0; w < W1; ++w) {
-          const Dist f = convolve(a, hyper(m1[1], m2[1], w, lf));
-          const int n = static_cast<int>(f.p.size());
+          const Dist f = convolve(a1, hyper(m1[1], m2[1], w, lf));
           lo1[w] = f.lo;
-          up1[w].assign(n + 1, 0.0);
-          down1[w].assign(n, 0.0);
-          for (int i = n - 1; i >= 0; --i) up1[w][i] = up1[w][i + 1] + f.p[i];
-          double acc = 0.0;
-          for (int i = 0; i < n; ++i) {
-            acc += f.p[i];
-            down1[w][i] = acc;
-          }
+          tails_of_dist(f, up1[w], down1[w]);
         }
       }
       auto it = phi0.find(s0);
       if (it == phi0.end()) {
         std::vector<Dist> v(W0);
-        const Dist a = hyper(n1[0], n2[0], s0, lf);
-        for (int w = 0; w < W0; ++w) v[w] = convolve(a, hyper(m1[0], m2[0], w, lf));
+        const Dist a0 = hyper(n1[0], n2[0], s0, lf);
+        for (int w = 0; w < W0; ++w) v[w] = convolve(a0, hyper(m1[0], m2[0], w, lf));
         it = phi0.emplace(s0, v).first;
       }
       const std::vector<Dist>& ph = it->second;
-      // Stage split probabilities choose(n, s) choose(m, w) / choose(n + m, s + w)
-      const int nn0 = S0, mm0 = W0 - 1, nn1 = S1, mm1 = W1 - 1;
-      for (int w0 = 0; w0 < W0; ++w0) {
-        const int z0 = s0 + w0;
-        const double h0 = std::exp(lf[nn0] - lf[s0] - lf[nn0 - s0] + lf[mm0] - lf[w0] -
-                                   lf[mm0 - w0] - (lf[T0] - lf[z0] - lf[T0 - z0]));
-        const Dist& f0 = ph[w0];
+      for (int w1 = 0; w1 < W1; ++w1) {
+        const int n = static_cast<int>(down1[w1].size());
+        for (int w0 = 0; w0 < W0; ++w0) {
+          const std::size_t cz = s0 + w0 + static_cast<std::size_t>(T0 + 1) * (s1 + w1);
+          const Dist& f0 = ph[w0];
+          c[w0 + static_cast<std::size_t>(W0) * w1] =
+            dot_tails(f0.p.data(), f0.lo, static_cast<int>(f0.p.size()), up1[w1].data(),
+                      down1[w1].data(), n, hi[cz] - lo1[w1], lo[cz] - lo1[w1]);
+          t[w0 + static_cast<std::size_t>(W0) * w1] = tot[cz];
+        }
+      }
+      const std::size_t ic = s0 + static_cast<std::size_t>(S0 + 1) * s1;
+      double m;
+      std::size_t i = first_max(c, m);
+      out.crp_max[ic] = m;
+      out.w0_max[ic] = static_cast<int>(i % W0);
+      out.w1_max[ic] = static_cast<int>(i / W0);
+      out.crp_min[ic] = *std::min_element(c.begin(), c.end());
+      i = first_max(t, m);
+      out.total_max[ic] = m;
+      out.w0_total[ic] = static_cast<int>(i % W0);
+      out.w1_total[ic] = static_cast<int>(i / W0);
+      for (std::size_t q = 0; q < c.size(); ++q) {
+        out.exceed[ic] += c[q] - alpha > REJECT_TOL;
+        out.exceed_total[ic] += t[q] - alpha > REJECT_TOL;
+      }
+      for (std::size_t p = 0; p < P; ++p) {
+        double acc = 0.0;
         for (int w1 = 0; w1 < W1; ++w1) {
-          const int z1 = s1 + w1;
-          const double h1 = std::exp(lf[nn1] - lf[s1] - lf[nn1 - s1] + lf[mm1] - lf[w1] -
-                                     lf[mm1 - w1] - (lf[T1] - lf[z1] - lf[T1 - z1]));
-          const std::size_t cz = z0 + static_cast<std::size_t>(T0 + 1) * z1;
-          const int chi = designs[k].hi[cz], clo = designs[k].lo[cz];
-          const std::vector<double>& up = up1[w1];
-          const std::vector<double>& down = down1[w1];
-          const int n = static_cast<int>(down.size());
-          double T = 0.0;
-          for (int i = 0; i < static_cast<int>(f0.p.size()); ++i) {
-            const double fx = f0.p[i];
-            if (fx == 0.0) continue;
-            const int x = f0.lo + i;
-            const int u = chi - x - lo1[w1];
-            const int l = clo - x - lo1[w1];
-            double r = 0.0;
-            if (u <= 0) r += up[0]; else if (u < n) r += up[u];
-            if (l >= n - 1) r += down[n - 1]; else if (l >= 0) r += down[l];
-            T += fx * r;
+          double row = 0.0;
+          const double* cw = &c[static_cast<std::size_t>(W0) * w1];
+          for (int w0 = 0; w0 < W0; ++w0) row += b0[p][w0] * cw[w0];
+          acc += b1[p][w1] * row;
+        }
+        out.tie_s[ic * P + p] = acc;
+      }
+      if (full) {
+        for (int w1 = 0; w1 < W1; ++w1) {
+          for (int w0 = 0; w0 < W0; ++w0) {
+            out.s0.push_back(s0);
+            out.s1.push_back(s1);
+            out.w0.push_back(w0);
+            out.w1.push_back(w1);
+            out.crp.push_back(c[w0 + static_cast<std::size_t>(W0) * w1]);
+            out.total.push_back(t[w0 + static_cast<std::size_t>(W0) * w1]);
           }
-          Q[z0 * (T1 + 1) + z1] += h0 * h1 * T;
         }
       }
     }
-    // Raise the degrees to (D0, D1) and add
-    std::vector<double> tmp((D0 + 1) * (T1 + 1), 0.0);
-    elevate_rows(Q, T0, D0, T1 + 1, T1 + 1, lf, tmp, T1 + 1);
-    // Along the second variable: each row of tmp is a polynomial of degree T1
-    for (int i = 0; i <= D0; ++i) {
-      std::vector<double> row(&tmp[i * (T1 + 1)], &tmp[i * (T1 + 1)] + (T1 + 1));
-      std::vector<double> out(D1 + 1, 0.0);
-      elevate_rows(row, T1, D1, 1, 1, lf, out, 1);
-      for (int r = 0; r <= D1; ++r) coef[i * (D1 + 1) + r] += out[r];
-    }
   }
-  return coef;
+  return out;
 }
 
 // ---------------------------------------------------------------------------------------

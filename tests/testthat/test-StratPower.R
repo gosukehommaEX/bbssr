@@ -41,6 +41,32 @@ test_that("StratPower agrees with the reference values with two and three strata
                tolerance = 1e-10)
 })
 
+test_that("StratPower of the unstratified tests agrees with the reference values", {
+  both <- function(Test, alternative) c(pw2(Test, alternative), pw3(Test, alternative))
+  expect_equal(both('Unstrat-Chisq', 'greater'), c(0.335288560357361, 0.177197685152934),
+               tolerance = 1e-10)
+  expect_equal(both('Unstrat-Chisq', 'less'), c(0.00202571746993205, 0.025213285248676),
+               tolerance = 1e-10)
+  expect_equal(both('Unstrat-Chisq', 'two.sided'), c(0.210566268355524, 0.15294743714339),
+               tolerance = 1e-10)
+  expect_equal(both('Unstrat-Chisq-cc', 'greater'),
+               c(0.208522344468668, 0.0970165390611851),
+               tolerance = 1e-10)
+  expect_equal(both('Unstrat-Chisq-cc', 'less'),
+               c(0.000644444554309201, 0.0101001563835337),
+               tolerance = 1e-10)
+  expect_equal(both('Unstrat-Chisq-cc', 'two.sided'),
+               c(0.115119583787729, 0.0535554775819315),
+               tolerance = 1e-10)
+  expect_equal(both('Unstrat-Fisher', 'greater'), c(0.208522344468668, 0.0970165390611851),
+               tolerance = 1e-10)
+  expect_equal(both('Unstrat-Fisher', 'less'), c(0.000644444554309201, 0.0101001563835337),
+               tolerance = 1e-10)
+  expect_equal(both('Unstrat-Fisher', 'two.sided'),
+               c(0.115119583787729, 0.0828363802829164),
+               tolerance = 1e-10)
+})
+
 test_that("StratPower evaluates several scenarios and recycles a single one", {
   p1 <- rbind(c(0.6, 0.45), c(0.4, 0.4))
   res <- StratPower(p1, c(0.35, 0.3), c(8, 6), c(7, 9), 0.05, 'CMH')

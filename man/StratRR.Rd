@@ -25,18 +25,21 @@ with the hypergeometric variance, without continuity correction), \code{'CMH-cc'
 (the same with the continuity correction of \code{\link[stats]{mantelhaen.test}}),
 \code{'Cochran'} (Cochran's test with the binomial variance, the test of Woolson et
 al. (1986)), \code{'Cochran-cc'} (the same with the continuity correction, which
-rejects the same outcomes as that of Nam (1992) at one-sided levels up to 0.078) or
-\code{'Strat-Fisher'} (the stratified exact conditional test of Jung (2014)). See
-Details}
+rejects the same outcomes as that of Nam (1992) at one-sided levels up to 0.078),
+\code{'Strat-Fisher'} (the stratified exact conditional test of Jung (2014)), or one
+of the unstratified tests of the table of totals: \code{'Unstrat-Chisq'} (Pearson's
+chi-squared test, the comparison of two proportions with the pooled variance),
+\code{'Unstrat-Chisq-cc'} (the same with the continuity correction) and
+\code{'Unstrat-Fisher'} (Fisher's exact test). See Details}
 
 \item{alternative}{Direction of the alternative hypothesis. Options:
 \code{'greater'} (default), under which group 1 responds more often than group 2,
 \code{'less'} or \code{'two.sided'}}
 
-\item{tsmethod}{Convention of the two-sided p-value of \code{'Strat-Fisher'}, as for
-the Fisher exact test of \code{\link{BinaryRR}}. Options: \code{'minlike'}
-(default), \code{'central'} or \code{'blaker'}. Ignored by the other tests and for
-one-sided alternatives}
+\item{tsmethod}{Convention of the two-sided p-value of \code{'Strat-Fisher'} and
+\code{'Unstrat-Fisher'}, as for the Fisher exact test of \code{\link{BinaryRR}}.
+Options: \code{'minlike'} (default), \code{'central'} or \code{'blaker'}. Ignored by
+the other tests and for one-sided alternatives}
 }
 \value{
 An object of class \code{bbssr_srr}, a data frame with one row for each
@@ -59,7 +62,8 @@ stratified into two or more strata, for every combination of the numbers of resp
 of the strata. The tests are based on \code{S}, the number of responders of group 1
 summed over the strata. Given the numbers of responders \code{z = (z_1, ..., z_J)} of
 the strata, each test rejects the null hypothesis when \code{S} is at most a lower or
-at least an upper critical value.
+at least an upper critical value. The unstratified tests, which ignore the strata, are
+included for comparison.
 }
 \details{
 In stratum \code{j}, with \code{N_j = N1[j] + N2[j]} patients and \code{z_j}
@@ -85,6 +89,18 @@ tail probability (Jung, 2014), and \code{'minlike'} and \code{'blaker'} order th
 of \code{S} by their probability and by their smaller tail probability, with the ties
 of \code{\link{BinaryRR}}. As in the other functions of the package, a p-value is
 rejected when it is below \code{alpha} by more than about 1.49e-8.
+
+The unstratified tests apply the corresponding test of a single 2 x 2 table to the
+table of totals, with \code{sum_j N1[j]} and \code{sum_j N2[j]} patients and
+\code{sum_j z_j} responders, so their critical values depend on \code{z} only through
+this total. Pearson's statistic of that table is Cochran's statistic of one stratum, as
+in \code{'Chisq'} of \code{\link{BinaryRR}}, and the continuity correction is that of
+\code{'Cochran-cc'}; with the correction applied to every outcome, as in the
+\eqn{z_u} test of Nam (1992, Section 2.2), the same outcomes are rejected at one-sided
+levels up to 0.078. An unstratified test is valid when the distribution of the strata
+is the same in the two groups, and its level can be distorted otherwise (Nam, 1992;
+Jung, 2014); its power and type I error rate are computed here with the response
+probabilities of each stratum, so these consequences can be evaluated.
 
 The function stores the critical values for reuse during the session, like the
 rejection regions of the other designs.

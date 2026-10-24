@@ -21,3 +21,12 @@ test_that("print.bbssr_spowerbssr prints a subset without its attributes as a da
     expect_true(any(grepl('power.BSSR', out, fixed = TRUE)))
   }
 })
+
+test_that("print.bbssr_spowerbssr marks the re-estimation from the pooled estimate", {
+  res <- StratPowerBSSR(p = c(0.4, 0.6), Delta.A = 0.3, Delta.T = 0.3, N1 = c(10, 10),
+                        N2 = c(10, 10), omega = 0.5, r = 1, alpha = 0.05, tar.power = 0.8,
+                        Test = 'CMH', ss.method = 'standard', ss.strata = 'pooled')
+  out <- capture.output(print(res))
+  expect_true(any(grepl('normal approximation (unrestricted, strata pooled)', out,
+                        fixed = TRUE)))
+})

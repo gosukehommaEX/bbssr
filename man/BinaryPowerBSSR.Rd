@@ -252,9 +252,9 @@ BinaryPowerBSSR(
 
 \donttest{
 res <- BinaryPowerBSSR(
-  p = seq(0.19, 0.37, by = 0.03),
-  Delta.A = 0.36, Delta.T = 0.36,
-  N1 = 24, N2 = 24, omega = 0.5, r = 1,
+  p = seq(0.23, 0.47, by = 0.04),
+  Delta.A = 0.3, Delta.T = 0.3,
+  N1 = 39, N2 = 39, omega = 0.5, r = 1,
   alpha = 0.025, tar.power = 0.8, Test = 'Z-pool'
 )
 print(res)

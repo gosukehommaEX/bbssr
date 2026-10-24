@@ -104,10 +104,11 @@ The whole grid of p-values is computed in one pass and kept for the rest of the 
 ### Evaluating a re-estimation design
 
 ```{r bssr}
-plan <- BinarySampleSize(p1 = 0.45, p2 = 0.09, r = 1, alpha = 0.025, tar.power = 0.8,
-                         Test = 'Z-pool')
+p.plan <- c(0.56, 0.26)
+plan <- BinarySampleSize(p1 = p.plan[1], p2 = p.plan[2], r = 1, alpha = 0.025,
+                         tar.power = 0.8, Test = 'Z-pool')
 res <- BinaryPowerBSSR(
-  p = seq(0.19, 0.37, by = 0.03), Delta.A = 0.36, Delta.T = 0.36,
+  p = seq(0.29, 0.49, by = 0.04), Delta.A = 0.3, Delta.T = 0.3,
   N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
   alpha = 0.025, tar.power = 0.8, Test = 'Z-pool'
 )
@@ -115,7 +116,7 @@ res
 plot(res)
 ```
 
-The variance of a binary endpoint is largest at one half, so at a fixed risk difference the required sample size grows as the pooled probability approaches that value. The fixed-sample design of `r plan$N` patients is planned at a pooled probability of `r 0.5 * (0.45 + 0.09)`. The re-estimation adapts the sample size to the pooled probability observed at the interim analysis, and `E.N` reports the expected total sample size it leads to.
+The variance of a binary endpoint is largest at one half, so at a fixed risk difference the required sample size grows as the pooled probability approaches that value. The fixed-sample design of `r plan$N` patients is planned at a pooled probability of `r mean(p.plan)`. The re-estimation adapts the sample size to the pooled probability observed at the interim analysis, and `E.N` reports the expected total sample size it leads to.
 
 ### Type I error rate and adjusted level
 
@@ -147,7 +148,7 @@ summary(grid)
 ### Re-estimating from observed interim data
 
 ```{r interim}
-BinaryBSSR(n1 = 12, n2 = 12, S = 8, Delta.A = 0.36, r = 1,
+BinaryBSSR(n1 = 22, n2 = 22, S = 20, Delta.A = 0.3, r = 1,
            alpha = 0.025, tar.power = 0.8, Test = 'Z-pool')
 ```
 

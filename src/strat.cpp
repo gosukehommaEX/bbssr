@@ -23,7 +23,7 @@ static strat::Design make_design(const IntegerVector& N1, const IntegerVector& N
 }
 
 static strat::Test make_test(int type, int alternative, int tsmethod, double alpha) {
-  if (type < 0 || type > 4) stop("type must be 0, ..., 4");
+  if (type < 0 || type > 7) stop("type must be 0, ..., 7");
   if (alternative < 0 || alternative > 2) stop("alternative must be 0, 1 or 2");
   if (tsmethod < 0 || tsmethod > 2) stop("tsmethod must be 0, 1 or 2");
   if (!(alpha > 0.0 && alpha < 1.0)) stop("alpha must lie in (0, 1)");
@@ -37,6 +37,14 @@ static int largest_total(const strat::Design& d) {
   return m;
 }
 
+// Total size of the design, the largest argument of the log factorials of the
+// unstratified tests, which pool the strata
+static int total_size(const strat::Design& d) {
+  int m = 0;
+  for (int j = 0; j < d.J(); ++j) m += d.total(j);
+  return m;
+}
+
 // Critical values for every vector of stratum totals, in the storage order of
 // strat_core.h: reject when S <= lo or S >= hi
 // [[Rcpp::export]]
@@ -44,7 +52,7 @@ List strat_crit(IntegerVector N1, IntegerVector N2, int type, int alternative, i
                 double alpha) {
   const strat::Design d = make_design(N1, N2);
   const strat::Test t = make_test(type, alternative, tsmethod, alpha);
-  const std::vector<double> lf = strat::log_factorials(largest_total(d));
+  const std::vector<double> lf = strat::log_factorials(total_size(d));
   std::vector<int> lo, hi;
   try {
     strat::critical_grid(d, t, lf, lo, hi);
@@ -65,7 +73,7 @@ NumericVector strat_power(IntegerVector N1, IntegerVector N2, NumericMatrix p1,
   if (p1.ncol() != J || p2.ncol() != J || p1.nrow() != p2.nrow()) {
     stop("p1 and p2 must have one row per scenario and one column per stratum");
   }
-  const std::vector<double> lf = strat::log_factorials(largest_total(d));
+  const std::vector<double> lf = strat::log_factorials(total_size(d));
   NumericVector out(p1.nrow());
   std::vector<double> q1(J), q2(J);
   for (int i = 0; i < p1.nrow(); ++i) {
@@ -180,6 +188,44 @@ NumericMatrix strat_tie_coef(IntegerVector n1, IntegerVector n2, List designs,
   return out;
 }
 
+// Conditional rejection probabilities of a two-stratum re-estimation design under the null
+// hypothesis, see strat::cond_reject2(). The points (theta1[p], theta2[p]), possibly none,
+// are those of the decomposition of the type I error rate. The vectors per interim cell
+// are in the storage order of id; w1 and w2 are the second-stage numbers of responders of
+// the two strata
+// [[Rcpp::export]]
+List strat_cond_reject(IntegerVector n1, IntegerVector n2, List designs, IntegerVector id,
+                       double alpha, bool full, NumericVector theta1, NumericVector theta2) {
+  int Tmax = 0;
+  const std::vector<strat::FinalDesign> ds = final_designs(designs, n1, n2, Tmax);
+  check_id(id, n1, n2, ds.size());
+  if (!(alpha > 0.0 && alpha < 1.0)) stop("alpha must lie in (0, 1)");
+  if (theta1.size() != theta2.size()) stop("theta1 and theta2 must have the same length");
+  for (R_xlen_t p = 0; p < theta1.size(); ++p) {
+    if (!(theta1[p] >= 0.0 && theta1[p] <= 1.0 && theta2[p] >= 0.0 && theta2[p] <= 1.0)) {
+      stop("the points must lie in the unit square");
+    }
+  }
+  const std::vector<int> a1(n1.begin(), n1.end()), a2(n2.begin(), n2.end()),
+    ids(id.begin(), id.end());
+  const std::vector<double> t1(theta1.begin(), theta1.end()), t2(theta2.begin(), theta2.end());
+  const std::vector<double> lf = strat::log_factorials(Tmax);
+  const strat::CondReject cr = strat::cond_reject2(a1, a2, ds, ids, alpha, full, t1, t2, lf);
+  const int ncell = static_cast<int>(cr.crp_max.size()), P = static_cast<int>(t1.size());
+  NumericMatrix tie(ncell, P);
+  for (int i = 0; i < ncell; ++i) {
+    for (int p = 0; p < P; ++p) tie(i, p) = cr.tie_s[static_cast<std::size_t>(i) * P + p];
+  }
+  return List::create(_["crp.max"] = wrap(cr.crp_max), _["crp.min"] = wrap(cr.crp_min),
+                      _["total.max"] = wrap(cr.total_max), _["exceed"] = wrap(cr.exceed),
+                      _["exceed.total"] = wrap(cr.exceed_total),
+                      _["w1.max"] = wrap(cr.w0_max), _["w2.max"] = wrap(cr.w1_max),
+                      _["w1.total"] = wrap(cr.w0_total), _["w2.total"] = wrap(cr.w1_total),
+                      _["tie.s"] = tie, _["s1"] = wrap(cr.s0), _["s2"] = wrap(cr.s1),
+                      _["w1"] = wrap(cr.w0), _["w2"] = wrap(cr.w1), _["crp"] = wrap(cr.crp),
+                      _["total"] = wrap(cr.total));
+}
+
 static strat::Poly2 make_poly(const NumericMatrix& coef) {
   if (coef.nrow() < 1 || coef.ncol() < 1) stop("coef must not be empty");
   strat::Poly2 P;
@@ -236,7 +282,9 @@ NumericVector strat_pvalue_cases(IntegerMatrix N1, IntegerMatrix N2, IntegerMatr
   const strat::Test t = make_test(type, alternative, tsmethod, 0.5);
   int Tmax = 1;
   for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < J; ++j) Tmax = std::max(Tmax, N1(i, j) + N2(i, j));
+    int T = 0;
+    for (int j = 0; j < J; ++j) T += N1(i, j) + N2(i, j);
+    Tmax = std::max(Tmax, T);
   }
   const std::vector<double> lf = strat::log_factorials(Tmax);
   NumericVector out(n);
@@ -268,7 +316,7 @@ NumericVector strat_level_bracket(IntegerVector N1, IntegerVector N2, int type,
                                   int alternative, int tsmethod, double alpha) {
   const strat::Design d = make_design(N1, N2);
   const strat::Test t = make_test(type, alternative, tsmethod, alpha);
-  const std::vector<double> lf = strat::log_factorials(largest_total(d));
+  const std::vector<double> lf = strat::log_factorials(total_size(d));
   double pr = -1.0, pn = 2.0;
   strat::level_bracket(d, t, lf, pr, pn);
   return NumericVector::create(pr, pn);

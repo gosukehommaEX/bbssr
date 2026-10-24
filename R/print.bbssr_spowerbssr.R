@@ -33,8 +33,9 @@ print.bbssr_spowerbssr <- function(x, digits = 4, ...) {
   cat('Blinded sample size re-estimation for a stratified design\n\n')
   cat(sprintf('  Test             : %s\n', attr(x, 'Test')))
   cat(sprintf('  Alternative      : %s\n', attr(x, 'alternative')))
-  cat(sprintf('  Re-estimation    : %s (%s)\n', rule,
-              if (isTRUE(attr(x, 'restricted'))) 'restricted' else 'unrestricted'))
+  cat(sprintf('  Re-estimation    : %s (%s%s)\n', rule,
+              if (isTRUE(attr(x, 'restricted'))) 'restricted' else 'unrestricted',
+              if (identical(attr(x, 'ss.strata'), 'pooled')) ', strata pooled' else ''))
   cat(sprintf('  Planned sizes    : %s\n', sizes(attr(x, 'N1'), attr(x, 'N2'))))
   cat(sprintf('  Interim sizes    : %s\n', sizes(attr(x, 'n1.interim'),
                                                attr(x, 'n2.interim'))))

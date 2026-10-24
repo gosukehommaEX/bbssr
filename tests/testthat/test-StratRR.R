@@ -43,3 +43,42 @@ test_that("StratRR rejects in one tail for a one-sided alternative", {
 test_that("StratRR refuses designs with too many combinations", {
   expect_error(StratRR(rep(10, 6), rep(10, 6), 0.05, 'CMH'), 'more than 1e6')
 })
+
+test_that("StratRR of the unstratified tests agrees with the reference numbers", {
+  n <- function(Test, alternative) {
+    count_rejected(StratRR(c(5, 7), c(6, 4), 0.1, Test, alternative, 'blaker'))
+  }
+  expect_equal(c(n('Unstrat-Chisq', 'greater'), n('Unstrat-Chisq', 'two.sided')),
+               c(239, 410))
+  expect_equal(c(n('Unstrat-Chisq-cc', 'greater'), n('Unstrat-Chisq-cc', 'two.sided')),
+               c(173, 282))
+  expect_equal(c(n('Unstrat-Fisher', 'greater'), n('Unstrat-Fisher', 'two.sided')),
+               c(173, 330))
+})
+
+test_that("StratRR of the unstratified tests rejects as BinaryRR on the table of totals", {
+  for (v in list(c('Unstrat-Chisq', 'Chisq'), c('Unstrat-Fisher', 'Fisher'))) {
+    for (alt in c('greater', 'less', 'two.sided')) {
+      rr <- StratRR(c(5, 7), c(6, 4), 0.05, v[1], alt, 'blaker')
+      b <- unclass(BinaryRR(12, 10, 0.05, v[2], alt, 'blaker'))
+      Z <- rr$z.S1 + rr$z.S2
+      same <- logical(nrow(rr))
+      n.rej <- 0
+      for (i in seq_len(nrow(rr))) {
+        S <- rr$S.min[i]:rr$S.max[i]
+        rej <- (!is.na(rr$lower[i]) & S <= rr$lower[i]) |
+          (!is.na(rr$upper[i]) & S >= rr$upper[i])
+        n.rej <- n.rej + sum(rej)
+        same[i] <- identical(rej, as.vector(b[cbind(S + 1, Z[i] - S + 1)]))
+      }
+      expect_true(all(same))
+      expect_gt(n.rej, 0)
+    }
+  }
+  # The critical values depend on the stratum totals only through their sum
+  rr <- StratRR(c(5, 7), c(6, 4), 0.05, 'Unstrat-Fisher')
+  i <- which(rr$z.S1 + rr$z.S2 == 9 & rr$S.min <= 7 & rr$S.max >= 9)
+  expect_gt(length(i), 1)
+  expect_identical(length(unique(rr$upper[i])), 1L)
+})
+

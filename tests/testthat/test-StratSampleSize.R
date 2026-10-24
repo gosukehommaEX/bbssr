@@ -17,6 +17,21 @@ test_that("StratSampleSize agrees with the reference values", {
   expect_equal(attr(ss(), 'n.raw'), 185.997689655091, tolerance = 1e-10)
 })
 
+test_that("StratSampleSize of the unstratified tests agrees with the reference values", {
+  expect_equal(c(attr(ss(Test = 'Unstrat-Chisq', r = c(1, 2)), 'n'),
+                 attr(ss(Test = 'Unstrat-Chisq-cc', r = c(1, 2)), 'n')), c(148, 165))
+  ex <- function(Test) {
+    attr(ss(p1 = c(0.65, 0.8), p2 = c(0.3, 0.45), frac = c(0.5, 0.5), Test = Test,
+            method = 'exact'), 'n')
+  }
+  expect_equal(c(ex('Unstrat-Chisq'), ex('Unstrat-Fisher')), c(57, 73))
+  # The normal approximation is that of the table of totals
+  expect_equal(attr(ss(Test = 'Unstrat-Chisq', r = c(1, 2)), 'n.raw'),
+               strat_raw_n(c(0.5, 0.7), c(0.3, 0.5), c(0.4, 0.6), c(1, 2), 0.025, 0.8,
+                           'greater', FALSE, TRUE))
+  expect_error(ss(p1 = c(0.6, 0.2), p2 = c(0.4, 0.4), Test = 'Unstrat-Chisq'), 'averages')
+})
+
 test_that("StratSampleSize returns the group sizes and their exact power", {
   res <- ss(method = 'exact')
   expect_s3_class(res, 'bbssr_ssamplesize')

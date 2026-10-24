@@ -42,6 +42,7 @@ reference:
       - StratBSSR
       - StratTypeIErrorBSSR
       - StratAlphaAdjBSSR
+      - StratCondRejectBSSR
   - title: Printing, summaries and plots
     contents:
       - starts_with("print.")

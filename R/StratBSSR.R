@@ -57,6 +57,7 @@ StratBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test, restricted 
                       effect = c('RD', 'RR', 'OR'),
                       ss.method = c('exact', 'standard'),
                       ss.Test = Test, ss.alpha = alpha,
+                      ss.strata = c('stratified', 'pooled'),
                       search = c('crossing', 'smallest', 'stable'),
                       search.limit = c(2, 50), N.min = NULL, N.max = NULL) {
   alternative <- match.arg(alternative)
@@ -64,6 +65,7 @@ StratBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test, restricted 
   effect <- match.arg(effect)
   ss.method <- match.arg(ss.method)
   search <- match.arg(search)
+  ss.strata <- match.arg(ss.strata)
   a <- check_strat_args(n1, n2, alpha, Test, alternative, tsmethod)
   J <- length(a$N1)
   if (!is.numeric(S) || length(S) != J || anyNA(S) || any(S != round(S)) || any(S < 0) ||
@@ -84,7 +86,7 @@ StratBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test, restricted 
   re <- strat_reestimate(matrix(S, nrow = 1), a$N1, a$N2, Delta.A, effect, fr$frac, fr$r,
                          ss.method, ss.Test, ss.alpha, tar.power, a$alternative,
                          a$tsmethod, N1, N2, restricted, N.min, N.max, search,
-                         search.limit)
+                         search.limit, ss.strata)
   N1.final <- as.integer(re$N1[1, ])
   N2.final <- as.integer(re$N2[1, ])
   Power <- strat_fixed_power(N1.final, N2.final, re$hat.p1, re$hat.p2, alpha, a$Test,
@@ -109,6 +111,7 @@ StratBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test, restricted 
   attr(out, 'ss.method') <- ss.method
   attr(out, 'ss.Test') <- ss.Test
   attr(out, 'ss.alpha') <- ss.alpha
+  attr(out, 'ss.strata') <- ss.strata
   attr(out, 'search') <- search
   attr(out, 'search.limit') <- re$limit
   attr(out, 'N.min') <- N.min

@@ -32,6 +32,30 @@ Version 2.1.0 was not released, and its changes are included in this version.
   `stats::mantelhaen.test()`. A new vignette, `vignette('bbssr-stratified')`, describes
   the functions.
 
+* Analyses and re-estimation that ignore the strata, for comparison with the stratified
+  designs. The `Strat*()` functions accept three unstratified tests of the table of
+  totals: Pearson's chi-squared test (`'Unstrat-Chisq'`), the same with the continuity
+  correction (`'Unstrat-Chisq-cc'`) and Fisher's exact test (`'Unstrat-Fisher'`). Their
+  power, type I error rate and adjusted level are computed exactly with the response
+  probabilities of each stratum, so the loss of efficiency and the distortion of the level
+  when the strata are distributed differently in the two groups (Nam, 1992; Jung, 2014)
+  can be evaluated. The normal approximation to their sample size is formula (3.3) of
+  Woolson et al. (1986) for the table of totals, with the probabilities of each group
+  averaged over the strata. The re-estimation functions `StratPowerBSSR()`,
+  `StratBSSR()`, `StratTypeIErrorBSSR()` and `StratAlphaAdjBSSR()` gain the argument
+  `ss.strata`; `ss.strata = 'pooled'` re-estimates the sample size from the proportion of
+  responders among all the interim patients, used for every stratum. The sizes `N_U` of
+  Woolson et al. (1986, Table 1) and the unstratified p-value of the example of Jung
+  (2014) are reproduced with these tests.
+
+* `StratCondRejectBSSR()` gives, for a design with two strata, the conditional rejection
+  probabilities of the re-estimation design under the null hypothesis given the pooled
+  numbers of responders of the strata at the interim analysis and in the second stage,
+  which do not depend on the response probabilities, the conditional size of the final
+  test given the final numbers of responders of the strata, and the decomposition of the
+  type I error rate by the interim outcome, as `BinaryCondRejectBSSR()` does for two
+  groups.
+
 * Paired binary data. `PairedRR()`, `PairedPower()`, `PairedSampleSize()`,
   `PairedPowerBSSR()`, `PairedBSSR()`, `PairedTypeIErrorBSSR()` and
   `PairedAlphaAdjBSSR()` provide the fixed-design and re-estimation calculations for a
@@ -107,12 +131,8 @@ Version 2.1.0 was not released, and its changes are included in this version.
   probability of a re-estimation design given the pooled numbers of responders at the
   interim analysis and in the second stage, together with the rejection probability
   given only their total. The first does not depend on the common response probability
-  and the type I error rate is its binomial average, so the type I error rate is at most
-  the nominal level whenever the first is, and the rate can be decomposed by the pooled
-  number of interim responders to show the interim outcomes that raise it. Because the
-  allocation is fixed within each stage, the first can exceed the level even for
-  Fisher's exact test without re-estimation, whereas the conditional size of that test
-  given the total never does.
+  and the type I error rate is its binomial average. With `theta`, the type I error rate
+  is also returned for each pooled number of interim responders.
 
 * `BinaryGridBSSR()` evaluates a set of re-estimation designs, given as the rows of a
   data frame, over common true pooled response probabilities and returns one tidy data
@@ -278,16 +298,32 @@ Version 2.1.0 was not released, and its changes are included in this version.
   sample size search of `BinarySampleSize()` and the re-estimation of `BinaryPowerBSSR()`
   recomputed it for every candidate sample size and every interim outcome. The p-values
   behind each region are now computed once and kept for the rest of the R session, and
-  a region at any level follows from them. Over a design grid of five assumed effects
-  and nine interim fractions this replaces more than ten thousand evaluations of
-  `BinaryRR()` by fewer than a hundred. The stored p-values are discarded when they would
-  occupy more than about 100 MB, and `options(bbssr.cache = FALSE)` turns the reuse off.
+  a region at any level follows from them. The stored p-values are discarded when they
+  would occupy more than about 100 MB, and `options(bbssr.cache = FALSE)` turns the reuse
+  off.
 
 * `BinaryPowerBSSR()` sums the conditional power of the second stage in compiled code.
   Each column of the final rejection region is stored as runs of rejected outcomes, so
   the conditional probability over a column is a difference of binomial distribution
   functions rather than a sum over every cell. The results agree with version 2.0.0 up
   to rounding in the last digits.
+
+* The exact two-stratum computations of `StratPowerBSSR()`, `StratTypeIErrorBSSR()` and
+  `StratAlphaAdjBSSR()` share work between the interim outcomes that lead to the same
+  final design. Given the final design and the interim number of responders of the
+  second stratum, the probability that the second stratum completes a rejection is
+  tabulated once as a function of the final total and the final number of group 1
+  responders of the first stratum, and the coefficients of the type I error rate sum the
+  first stratum over these interim outcomes before the second stratum is added. The
+  critical values of `'Strat-Fisher'` with a one-sided alternative or
+  `tsmethod = 'central'` are found by bisection on tail probabilities, with the
+  hypergeometric distributions of the strata computed once per design. With planned
+  sizes of 80 per group and stratum, the power is computed about three times faster, the
+  coefficients of the type I error rate about five times faster and the critical values
+  of `'Strat-Fisher'` about six times faster. The power and the critical values are
+  unchanged, and the coefficients agree up to rounding in the last digits.
+  `StratAlphaAdjBSSR()` no longer computes the critical values of the final designs when
+  it only needs their group sizes.
 
 ## Documentation
 

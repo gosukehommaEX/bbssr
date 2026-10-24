@@ -26,9 +26,9 @@ knitr::opts_chunk$set(
 library(bbssr)
 ```
 
-## Why the rate has to be computed
+## The type I error rate of a re-estimation design
 
-The size of a test at a fixed sample size is a property of one rejection region. With blinded sample size re-estimation the final sample size depends on the pooled number of interim responders, whose distribution depends on the common response probability $\theta$, and the rejection probability under the null hypothesis averages rejection regions of different sizes with weights that depend on $\theta$. A test that keeps the nominal level at every fixed sample size need not keep it for this average, so the type I error rate of a re-estimation design is computed for the design itself.
+With blinded sample size re-estimation the final sample size depends on the pooled number of interim responders, whose distribution depends on the common response probability $\theta$. The type I error rate of a re-estimation design is computed for the design itself, by summing the rejection probability over the interim outcomes and the outcomes of the second stage.
 
 Under the null hypothesis $p_{1} = p_{2} = \theta$. Let $n_{11}$ and $n_{12}$ be the interim sample sizes of the two groups, $s$ the pooled number of interim responders, $n_{21}(s)$ and $n_{22}(s)$ the second-stage sample sizes reached from $s$, and $\mathcal{R}_{s}$ the rejection region at the final sample size reached from $s$. The type I error rate is
 $$
@@ -70,7 +70,11 @@ exact.max <- do.call(rbind, lapply(c('Fisher', 'Boschloo'), function(tst) {
 exact.max
 ```
 
-For this rule the largest rate of the re-estimation design is `r exact.max$TIE[exact.max$Test == 'Fisher' & exact.max$Design == 'BSSR']` with Fisher's exact test and `r exact.max$TIE[exact.max$Test == 'Boschloo' & exact.max$Design == 'BSSR']` with the Boschloo test, against the nominal 0.025. Whether the rate stays at or below the level is a property of the rule and the test together. The guarantee of an exact test holds at each fixed sample size and need not carry over to a sample size chosen from the interim data, so the rate has to be checked for each design.
+```{r exact-tests-check, include = FALSE}
+stopifnot(all(exact.max$TIE[exact.max$Design == 'BSSR'] <= 0.025))
+```
+
+For this rule the largest rate of the re-estimation design is `r exact.max$TIE[exact.max$Test == 'Fisher' & exact.max$Design == 'BSSR']` with Fisher's exact test and `r exact.max$TIE[exact.max$Test == 'Boschloo' & exact.max$Design == 'BSSR']` with the Boschloo test, against the nominal 0.025.
 
 ## The adjusted significance level
 
@@ -148,18 +152,18 @@ $$
 \mathrm{TIE}(\theta) = \sum_{s} \sum_{s_{2}} b(s; n_{11} + n_{12}, \theta) \,
 b\bigl(s_{2}; n_{21}(s) + n_{22}(s), \theta\bigr) \, \mathrm{CRP}(s, s_{2}) ,
 $$
-where $b$ is the binomial probability. The rate is therefore at most $\alpha$ for every $\theta$ whenever $\mathrm{CRP}$ is at most $\alpha$ for every outcome. The column `CRP.total` is the rejection probability given only the total $s + s_{2}$, with the responder count of group 1 treated as one hypergeometric count among all final patients. Fisher's exact test keeps it at or below $\alpha$ by construction.
+where $b$ is the binomial probability. The column `CRP.total` is the rejection probability given only the total $s + s_{2}$, with the responder count of group 1 treated as one hypergeometric count among all final patients.
 
 ```{r crp}
 crp <- BinaryCondRejectBSSR(
   Delta.A = 0.3, N1 = 12, N2 = 12, n.interim = c(6, 6), r = 1, alpha = 0.025,
-  tar.power = 0.8, Test = 'Fisher', ss.method = 'standard', theta = c(0.3, 0.5)
+  tar.power = 0.8, Test = 'Chisq', ss.method = 'standard', theta = c(0.3, 0.5)
 )
 crp
 plot(crp)
 ```
 
-`CRP` exceeds the nominal level at `r attr(crp, 'exceed')[['CRP']]` outcomes and `CRP.total` at `r attr(crp, 'exceed')[['CRP.total']]`. The allocation is fixed within each stage, so the responder count of group 1 given $s$ and $s_{2}$ is the sum of two hypergeometric counts rather than one, and `CRP` differs from `CRP.total` even when the sample size is not re-estimated. Whether the outcomes above the level raise the type I error rate is seen from the decomposition by $s$, which `theta` requests.
+The decomposition by $s$ is returned when `theta` is given.
 
 ```{r by-s}
 by.s <- attr(crp, 'by.s')

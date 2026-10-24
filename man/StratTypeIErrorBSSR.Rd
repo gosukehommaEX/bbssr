@@ -20,6 +20,7 @@ StratTypeIErrorBSSR(
   ss.method = c("exact", "standard"),
   ss.Test = Test,
   ss.alpha = alpha,
+  ss.strata = c("stratified", "pooled"),
   search = c("crossing", "smallest", "stable"),
   search.limit = c(2, 50),
   N.min = NULL,
@@ -58,9 +59,12 @@ with the hypergeometric variance, without continuity correction), \code{'CMH-cc'
 (the same with the continuity correction of \code{\link[stats]{mantelhaen.test}}),
 \code{'Cochran'} (Cochran's test with the binomial variance, the test of Woolson et
 al. (1986)), \code{'Cochran-cc'} (the same with the continuity correction, which
-rejects the same outcomes as that of Nam (1992) at one-sided levels up to 0.078) or
-\code{'Strat-Fisher'} (the stratified exact conditional test of Jung (2014)). See
-Details}
+rejects the same outcomes as that of Nam (1992) at one-sided levels up to 0.078),
+\code{'Strat-Fisher'} (the stratified exact conditional test of Jung (2014)), or one
+of the unstratified tests of the table of totals: \code{'Unstrat-Chisq'} (Pearson's
+chi-squared test, the comparison of two proportions with the pooled variance),
+\code{'Unstrat-Chisq-cc'} (the same with the continuity correction) and
+\code{'Unstrat-Fisher'} (Fisher's exact test). See Details}
 
 \item{restricted}{Logical. If \code{TRUE}, the final group sizes are at least the planned
 sizes. Default is \code{FALSE}}
@@ -69,10 +73,10 @@ sizes. Default is \code{FALSE}}
 \code{'greater'} (default), under which group 1 responds more often than group 2,
 \code{'less'} or \code{'two.sided'}}
 
-\item{tsmethod}{Convention of the two-sided p-value of \code{'Strat-Fisher'}, as for
-the Fisher exact test of \code{\link{BinaryRR}}. Options: \code{'minlike'}
-(default), \code{'central'} or \code{'blaker'}. Ignored by the other tests and for
-one-sided alternatives}
+\item{tsmethod}{Convention of the two-sided p-value of \code{'Strat-Fisher'} and
+\code{'Unstrat-Fisher'}, as for the Fisher exact test of \code{\link{BinaryRR}}.
+Options: \code{'minlike'} (default), \code{'central'} or \code{'blaker'}. Ignored by
+the other tests and for one-sided alternatives}
 
 \item{effect}{Scale of \code{Delta.A} and \code{Delta.T}. Options: \code{'RD'} (default)
 for the risk difference, \code{'RR'} for the risk ratio or \code{'OR'} for the odds
@@ -86,6 +90,13 @@ size of \code{\link{StratSampleSize}} with \code{method = 'exact'}, and
 \item{ss.Test}{Test used in the re-estimation. Default is \code{Test}}
 
 \item{ss.alpha}{Level used in the re-estimation. Default is \code{alpha}}
+
+\item{ss.strata}{Blinded estimate of the re-estimation. \code{'stratified'} (default)
+estimates the pooled response probability of each stratum from its own interim
+patients, and \code{'pooled'} uses the proportion of responders among all the interim
+patients for every stratum, as a re-estimation that ignores the strata would. With
+\code{'pooled'} the final group sizes depend only on the total number of interim
+responders}
 
 \item{search}{Search of the exact re-estimation, see \code{\link{StratSampleSize}}}
 

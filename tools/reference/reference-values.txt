@@ -247,3 +247,57 @@ test-StratAlphaAdjBSSR.R	grid max at nominal level	1e-10	0.108801399881486 0.109
 test-StratAlphaAdjBSSR.R	grid adjusted level	1e-12	0.0947488 0.0786496
 test-StratAlphaAdjBSSR.R	grid max at adjusted level	1e-10	0.0954459061613307 0.0905266881854914
 test-strat_simulate.R	exact power and E.N three strata	1e-10	0.547956295988924 22.297028016
+test-strat_pvalue_cases.R	Unstrat-Chisq greater minlike	1e-10	0.00625122055412587 0.984345952848196 0.00029417189438257 0.273295021227503 0.00625122055412587
+test-strat_pvalue_cases.R	Unstrat-Chisq less minlike	1e-10	0.993748779445874 0.0156540471518043 0.999705828105617 0.726704978772497 0.993748779445874
+test-strat_pvalue_cases.R	Unstrat-Chisq two.sided minlike	1e-10	0.0125024411082517 0.0313080943036085 0.000588343788765141 0.546590042455007 0.0125024411082517
+test-strat_pvalue_cases.R	Unstrat-Chisq-cc greater minlike	1e-10	0.0174260773092047 0.961266029316397 0.00137204182392903 0.414761464413403 0.0174260773092047
+test-strat_pvalue_cases.R	Unstrat-Chisq-cc less minlike	1e-10	0.982573922690795 0.0387339706836033 0.998627958176071 0.585238535586597 0.982573922690795
+test-strat_pvalue_cases.R	Unstrat-Chisq-cc two.sided minlike	1e-10	0.0348521546184094 0.0774679413672065 0.00274408364785806 0.829522928826806 0.0348521546184094
+test-strat_pvalue_cases.R	Unstrat-Fisher greater minlike	1e-10	0.0165320590478754 0.995231151194269 0.000891861761426979 0.415304886256562 0.0165320590478754
+test-strat_pvalue_cases.R	Unstrat-Fisher less minlike	1e-10	0.998439299442126 0.0377058374837349 1 0.838780454973751 0.998439299442126
+test-strat_pvalue_cases.R	Unstrat-Fisher two.sided minlike	1e-10	0.0213009078536067 0.0542378965316104 0.000891861761426979 0.703567101897967 0.0213009078536067
+test-strat_pvalue_cases.R	Unstrat-Fisher two.sided central	1e-10	0.0330641180957509 0.0754116749674698 0.00178372352285396 0.830609772513124 0.0330641180957509
+test-strat_pvalue_cases.R	Unstrat-Fisher two.sided blaker	1e-10	0.0213009078536067 0.0542378965316104 0.000891861761426979 0.703567101897967 0.0213009078536067
+test-StratRR.R	rejected outcomes Unstrat-Chisq greater	0	239
+test-StratRR.R	rejected outcomes Unstrat-Chisq two.sided	0	410
+test-StratRR.R	rejected outcomes Unstrat-Chisq-cc greater	0	173
+test-StratRR.R	rejected outcomes Unstrat-Chisq-cc two.sided	0	282
+test-StratRR.R	rejected outcomes Unstrat-Fisher greater	0	173
+test-StratRR.R	rejected outcomes Unstrat-Fisher two.sided	0	330
+test-StratPower.R	power Unstrat-Chisq greater	1e-10	0.335288560357361 0.177197685152934
+test-StratPower.R	power Unstrat-Chisq less	1e-10	0.00202571746993205 0.025213285248676
+test-StratPower.R	power Unstrat-Chisq two.sided	1e-10	0.210566268355524 0.15294743714339
+test-StratPower.R	power Unstrat-Chisq-cc greater	1e-10	0.208522344468668 0.0970165390611851
+test-StratPower.R	power Unstrat-Chisq-cc less	1e-10	0.000644444554309201 0.0101001563835337
+test-StratPower.R	power Unstrat-Chisq-cc two.sided	1e-10	0.115119583787729 0.0535554775819315
+test-StratPower.R	power Unstrat-Fisher greater	1e-10	0.208522344468668 0.0970165390611851
+test-StratPower.R	power Unstrat-Fisher less	1e-10	0.000644444554309201 0.0101001563835337
+test-StratPower.R	power Unstrat-Fisher two.sided	1e-10	0.115119583787729 0.0828363802829164
+test-strat_raw_n.R	pooled	1e-10	193.533303159213 213.063960527299 601.342608705281 800.223532140971
+test-StratSampleSize.R	standard unstratified	0	148 165
+test-StratSampleSize.R	exact unstratified	0	57 73
+test-strat_reestimate.R	final sizes CMH standard pooled	0	5 5 5 5 17 17 17 17 17 17 17 17 7 7 7 7
+test-strat_reestimate.R	final sizes Unstrat-Chisq standard	0	5 5 5 5 17 17 17 17 17 17 17 17 7 7 7 7
+test-strat_reestimate.R	final sizes Unstrat-Chisq standard pooled	0	5 5 5 5 17 17 17 17 17 17 17 17 7 7 7 7
+test-StratPowerBSSR.R	power and E.N CMH standard pooled	1e-10	0.811374950528284 65.21175507318 0.0517254447539776 64.9123712443604
+test-StratPowerBSSR.R	power and E.N Unstrat-Fisher exact pooled	1e-10	0.584748568726719 33.6281430484303 0.0558427838549891 33.5446561534546
+test-StratTypeIErrorBSSR.R	grid Unstrat-Chisq unequal allocation	1e-10	0.0598976228961289 0.0549331938924263 0.12888549601319
+test-StratTypeIErrorBSSR.R	fixed Unstrat-Chisq unequal allocation	1e-10	0.0875167736767266 0.0505431294441224 0.126121635879333
+test-StratCondRejectBSSR.R	sums of CRP.max CRP.min CRP.total.max CMH	1e-10	5.04246914881655 0.0321590909090909 4.85014382410244
+test-StratCondRejectBSSR.R	largest CRP and CRP.total CMH	1e-10	0.13 0.121212121212121
+test-StratCondRejectBSSR.R	location of the largest CRP CMH	0	2 0 3 0
+test-StratCondRejectBSSR.R	exceed CMH	0	1497 2092
+test-StratCondRejectBSSR.R	TIE at the points CMH	1e-10	0.0555498675564424 0.0564531616983004
+test-StratCondRejectBSSR.R	TIE.s of the cell (2, 3) CMH	1e-10	0.0631218753516136 0.0595825994014741
+test-StratCondRejectBSSR.R	sums of CRP.max CRP.min CRP.total.max Strat-Fisher	1e-10	1.85932951968666 0.0115909090909091 2.17966362655884
+test-StratCondRejectBSSR.R	largest CRP and CRP.total Strat-Fisher	1e-10	0.0553617576507187 0.0497077580633126
+test-StratCondRejectBSSR.R	location of the largest CRP Strat-Fisher	0	3 3 6 6
+test-StratCondRejectBSSR.R	exceed Strat-Fisher	0	61 0
+test-StratCondRejectBSSR.R	TIE at the points Strat-Fisher	1e-10	0.026349572048717 0.0316584061947651
+test-StratCondRejectBSSR.R	TIE.s of the cell (2, 3) Strat-Fisher	1e-10	0.0320588949234571 0.0357064372301102
+test-StratCondRejectBSSR.R	sums of CRP.max CRP.min CRP.total.max Unstrat-Chisq	1e-10	4.33050910894661 0.0225 4.73128420835368
+test-StratCondRejectBSSR.R	largest CRP and CRP.total Unstrat-Chisq	1e-10	0.125 0.117647058823529
+test-StratCondRejectBSSR.R	location of the largest CRP Unstrat-Chisq	0	1 0 1 1
+test-StratCondRejectBSSR.R	exceed Unstrat-Chisq	0	1849 2864
+test-StratCondRejectBSSR.R	TIE at the points Unstrat-Chisq	1e-10	0.0583615622080922 0.0658128868963104
+test-StratCondRejectBSSR.R	TIE.s of the cell (2, 3) Unstrat-Chisq	1e-10	0.0653565634470866 0.0706095910072328

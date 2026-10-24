@@ -25,6 +25,31 @@ test_that("StratPowerBSSR agrees with the reference values with two strata", {
                tolerance = 1e-10)
 })
 
+test_that("StratPowerBSSR agrees with the reference values of the pooled estimate", {
+  one <- pb(p = c(0.4, 0.6), Delta.T = 0.3, ss.strata = 'pooled')
+  two <- pb(p = c(0.4, 0.6), Delta.T = 0, ss.strata = 'pooled')
+  expect_equal(c(one$power.BSSR, one$E.N, two$power.BSSR, two$E.N),
+               c(0.811374950528284, 65.21175507318, 0.0517254447539776, 64.9123712443604),
+               tolerance = 1e-10)
+  ex <- function(dT) {
+    pb(p = c(0.4, 0.6), Delta.A = 0.4, Delta.T = dT, N1 = c(8, 10), N2 = c(8, 10),
+       alpha = 0.1, Test = 'Unstrat-Fisher', ss.method = 'exact', N.max = 48,
+       ss.strata = 'pooled')
+  }
+  a <- ex(0.3)
+  b <- ex(0)
+  expect_equal(c(a$power.BSSR, a$E.N, b$power.BSSR, b$E.N),
+               c(0.584748568726719, 33.6281430484303, 0.0558427838549891, 33.5446561534546),
+               tolerance = 1e-10)
+  # With the pooled estimate the final sizes depend only on the total number of interim
+  # responders
+  expect_identical(attr(one, 'ss.strata'), 'pooled')
+  m <- attr(one, 'reestimation')
+  expect_true(all(tapply(m$N, m$s1 + m$s2, function(v) length(unique(v))) == 1))
+  expect_gt(length(unique(m$N)), 1)
+  expect_identical(attr(pb(p = c(0.4, 0.6), Delta.T = 0.3), 'ss.strata'), 'stratified')
+})
+
 test_that("StratPowerBSSR returns the fixed design and the distribution of N", {
   res <- pb(p = rbind(c(0.4, 0.6), c(0.1, 0.6), c(0.5, 0.5)), Delta.T = 0.3)
   # p = 0.1 gives p2 = -0.05 in stratum 1 and the scenario is omitted
