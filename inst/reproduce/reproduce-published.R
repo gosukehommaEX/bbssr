@@ -1660,6 +1660,45 @@ add(jung.src, sprintf('Jung2014 Table 4: N, (m, n) fixed, a1 = %.2f, b = (%s), t
                       vapply(jung.th[jung.t4$th], paste, character(1), collapse = ', ')),
     jung.pub, vapply(seq_len(nrow(jung.t4)), jung_n, numeric(1)), 0,
     'Sizes rounded down, the remainder in the last stratum')
+# Table 4, column n fixed (Section 3.2): stratum sizes floor(N a1) and N - floor(N a1),
+# group 1 sizes binomial with the probabilities b, searched as the column (m, n) fixed
+jung.lab <- sprintf('a1 = %.2f, b = (%s), theta = (%s)', jung.t4$a1,
+                    vapply(jung.b[jung.t4$b], paste, character(1), collapse = ', '),
+                    vapply(jung.th[jung.t4$th], paste, character(1), collapse = ', '))
+jung.nf <- c(61, 66, 82, 60, 66, 82, 45, 49, 62, 61, 66, 83, 60, 66, 83,
+             75, 72, 75, 75, 70, 75, 56, 53, 56, 75, 71, 76, 75, 71, 76,
+             97, 76, 67, 97, 76, 67, 73, 57, 51, 98, 77, 69, 98, 77, 69)
+jung_alloc_power <- function(i, N, alloc) {
+  b <- jung.b[[jung.t4$b[i]]]
+  q <- c(0.1, 0.3)
+  StratPower(st.or(q, jung.th[[jung.t4$th[i]]]), q, alpha = 0.05, Test = 'Strat-Fisher',
+             alloc = alloc, N = N, frac = c(jung.t4$a1[i], 1 - jung.t4$a1[i]),
+             r = b / (1 - b))$Power
+}
+jung_first <- function(i, alloc, N) {
+  while (jung_alloc_power(i, N, alloc) < 0.9) N <- N + 1
+  N
+}
+add(jung.src, paste('Jung2014 Table 4: N, n fixed,', jung.lab), jung.nf,
+    vapply(seq_len(nrow(jung.t4)), function(i) jung_first(i, 'group', jung.mh[i]),
+           numeric(1)), 0,
+    'Stratum sizes rounded down, the remainder in the last stratum; group sizes binomial')
+# Table 4, column random (Section 3.1): the stratum sizes binomial as well. A power takes
+# seconds, so the printed N is accepted when the power reaches 0.9 at N and not at N - 1;
+# otherwise the first N from the size of the Mantel-Haenszel test upwards is recomputed
+jung.rd <- c(61, 66, 82, 61, 66, 82, 45, 49, 62, 61, 67, 83, 61, 66, 83,
+             76, 71, 75, 75, 71, 75, 54, 53, 56, 76, 71, 78, 76, 71, 76,
+             98, 76, 67, 97, 76, 67, 73, 57, 51, 99, 77, 69, 99, 77, 69)
+jung_rd <- function(i) {
+  N <- jung.rd[i]
+  if (jung_alloc_power(i, N, 'both') >= 0.9 && jung_alloc_power(i, N - 1, 'both') < 0.9) {
+    return(N)
+  }
+  jung_first(i, 'both', jung.mh[i])
+}
+add(jung.src, paste('Jung2014 Table 4: N, random,', jung.lab), jung.rd,
+    vapply(seq_len(nrow(jung.t4)), jung_rd, numeric(1)), 0,
+    'Stratum and group sizes binomial; the printed N checked by the powers at N - 1 and N')
 # Design example of p. 139: three strata of sizes (20, 20, 22) with half of each in group
 # 1, rounded down, q = (0.9, 0.75, 0.6), odds ratios (1, 30, 30), one-sided level 0.1
 jung.q <- c(0.9, 0.75, 0.6)

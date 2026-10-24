@@ -56,6 +56,18 @@ Version 2.1.0 was not released, and its changes are included in this version.
   type I error rate by the interim outcome, as `BinaryCondRejectBSSR()` does for two
   groups.
 
+* Random stratum and group sizes in the designs with two strata. `StratPower()` and
+  `StratSampleSize()` gain the argument `alloc`: `'stratum'` draws the stratum sizes from
+  a binomial distribution and allocates the groups by permuted blocks of size `block`
+  within the strata, `'group'` keeps the stratum sizes fixed and draws the group sizes
+  from binomial distributions (Jung, 2014, Section 3.2), and `'both'` draws both (Jung,
+  2014, Section 3.1). The exact power is the sum over the configurations of stratum and
+  group sizes of the power of the fixed design they give; the configurations with a
+  probability below 1e-14 are left out, and their total probability is reported as a
+  bound on the error. The sample sizes of the columns 'n fixed' and 'random' of Table 4
+  of Jung (2014) are compared with the published values in
+  `inst/reproduce/reproduce-published.R`.
+
 * Paired binary data. `PairedRR()`, `PairedPower()`, `PairedSampleSize()`,
   `PairedPowerBSSR()`, `PairedBSSR()`, `PairedTypeIErrorBSSR()` and
   `PairedAlphaAdjBSSR()` provide the fixed-design and re-estimation calculations for a

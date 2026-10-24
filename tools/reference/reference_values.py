@@ -1367,3 +1367,4 @@ if __name__ == "__main__":
     reference_strat.blocks_bssr(emit, reported_level)
     reference_strat.blocks_unstrat(emit, reported_level)
     reference_strat.blocks_crp(emit, reported_level)
+    reference_strat.blocks_alloc(emit, reported_level)

@@ -1406,6 +1406,121 @@ inline Max2 bernstein_max2(const Poly2& P, double tol, int max_pieces) {
   return out;
 }
 
+// ---------------------------------------------------------------------------------------
+// Fixed two-stratum designs whose stratum and group sizes are random. A configuration
+// holds the sizes n[j] of the strata, the sizes m[j] of group 1 in them and its
+// probability w. The stratum sizes are fixed (ALLOC_GROUP) or n_1 ~ Bin(N, a1) and
+// n_2 = N - n_1. Within stratum j the size of group 1 is Bin(n_j, b_j) (ALLOC_GROUP and
+// ALLOC_BOTH), or follows permuted blocks of size B with g_j patients of group 1 in each
+// block (ALLOC_STRATUM): g_j floor(n_j / B) from the complete blocks and a hypergeometric
+// number among the first n_j mod B patients of the last block.
+
+enum AllocModel { ALLOC_STRATUM = 1, ALLOC_GROUP = 2, ALLOC_BOTH = 3 };
+
+struct AllocSpec {
+  int model;
+  int N;          // total sample size
+  double a1;      // probability of stratum 1 (ALLOC_STRATUM and ALLOC_BOTH)
+  int nfix[2];    // sizes of the strata (ALLOC_GROUP)
+  double b[2];    // probability of group 1 within the strata (ALLOC_GROUP and ALLOC_BOTH)
+  int block;      // size of the permuted blocks (ALLOC_STRATUM)
+  int g[2];       // patients of group 1 in a block (ALLOC_STRATUM)
+};
+
+struct AllocConfig {
+  int n[2];
+  int m[2];
+  double w;
+};
+
+// Distribution of the size of group 1 in stratum j with n patients, on 0, ..., n
+inline std::vector<double> group_size_dist(const AllocSpec& s, int j, int n,
+                                           const std::vector<double>& lf) {
+  std::vector<double> out;
+  if (s.model == ALLOC_STRATUM) {
+    out.assign(n + 1, 0.0);
+    const Dist h = hyper(s.g[j], s.block - s.g[j], n % s.block, lf);
+    const int base = (n / s.block) * s.g[j];
+    for (std::size_t i = 0; i < h.p.size(); ++i) out[base + h.lo + i] = h.p[i];
+    return out;
+  }
+  binom_row(n, s.b[j], lf, out);
+  return out;
+}
+
+// Configurations with probability at least eps; the total probability of the others is
+// returned in skipped. Probabilities that underflow to 0 in binom_row() are not counted
+inline std::vector<AllocConfig> alloc_configs(const AllocSpec& s, double eps,
+                                              const std::vector<double>& lf,
+                                              double& skipped) {
+  std::vector<AllocConfig> out;
+  skipped = 0.0;
+  std::vector<double> wn;
+  if (s.model == ALLOC_GROUP) {
+    wn.assign(s.N + 1, 0.0);
+    wn[s.nfix[0]] = 1.0;
+  } else {
+    binom_row(s.N, s.a1, lf, wn);
+  }
+  for (int n0 = 0; n0 <= s.N; ++n0) {
+    if (wn[n0] == 0.0) continue;
+    if (wn[n0] < eps) {
+      skipped += wn[n0];
+      continue;
+    }
+    const int n1 = s.N - n0;
+    const std::vector<double> g0 = group_size_dist(s, 0, n0, lf);
+    const std::vector<double> g1 = group_size_dist(s, 1, n1, lf);
+    for (int m0 = 0; m0 <= n0; ++m0) {
+      for (int m1 = 0; m1 <= n1; ++m1) {
+        const double w = wn[n0] * g0[m0] * g1[m1];
+        if (w == 0.0) continue;
+        if (w < eps) {
+          skipped += w;
+          continue;
+        }
+        out.push_back(AllocConfig{{n0, n1}, {m0, m1}, w});
+      }
+    }
+  }
+  return out;
+}
+
+// Adds w times the rejection probability of the configuration to out[k] for the scenarios
+// k = 0, ..., K - 1 with probabilities p1[2 k + j] and p2[2 k + j]. A stratum without
+// patients is left out, which leaves a one-stratum design; a group without patients in a
+// stratum contributes no variation to S, as in the tests of observed data. Two strata
+// use the critical values of every vector of stratum totals and bssr_power2() without an
+// interim analysis, as for a fixed design in R
+inline void add_config_power(const AllocConfig& c, const Test& t, const double* p1,
+                             const double* p2, int K, const std::vector<double>& lf,
+                             double* out) {
+  Design d;
+  int keep[2];
+  int J = 0;
+  for (int j = 0; j < 2; ++j) {
+    if (c.n[j] == 0) continue;
+    d.N1.push_back(c.m[j]);
+    d.N2.push_back(c.n[j] - c.m[j]);
+    keep[J++] = j;
+  }
+  if (J == 0) return;
+  if (J == 1) {
+    for (int k = 0; k < K; ++k) {
+      const double q1 = p1[2 * k + keep[0]], q2 = p2[2 * k + keep[0]];
+      out[k] += c.w * power_fixed(d, t, &q1, &q2, lf);
+    }
+    return;
+  }
+  std::vector<FinalDesign> ds(1);
+  ds[0].d = d;
+  critical_grid(d, t, lf, ds[0].lo, ds[0].hi);
+  const std::vector<int> z0 = {0, 0}, id = {0};
+  for (int k = 0; k < K; ++k) {
+    out[k] += c.w * bssr_power2(z0, z0, ds, id, p1 + 2 * k, p2 + 2 * k, lf);
+  }
+}
+
 }  // namespace strat
 
 #endif

@@ -26,8 +26,20 @@ print.bbssr_spower <- function(x, digits = 4, ...) {
       attr(x, 'alternative') == 'two.sided') {
     cat(sprintf('  Two-sided method : %s\n', attr(x, 'tsmethod')))
   }
-  cat(sprintf('  Group sizes      : N1 = (%s), N2 = (%s)\n',
-              paste(attr(x, 'N1'), collapse = ', '), paste(attr(x, 'N2'), collapse = ', ')))
+  alloc <- attr(x, 'alloc')
+  if (is.null(alloc) || alloc == 'fixed') {
+    cat(sprintf('  Group sizes      : N1 = (%s), N2 = (%s)\n',
+                paste(attr(x, 'N1'), collapse = ', '),
+                paste(attr(x, 'N2'), collapse = ', ')))
+  } else {
+    cat(sprintf('  Allocation       : %s\n', strat_alloc_label(alloc, attr(x, 'block'),
+                                                           attr(x, 'n.strata'))))
+    cat(sprintf('  Total size       : N = %d, fractions (%s), ratio %s\n', attr(x, 'N'),
+                paste(format(round(attr(x, 'frac'), 4)), collapse = ', '),
+                paste(format(unique(attr(x, 'r'))), collapse = ', ')))
+    cat(sprintf('  Left out         : configurations of total probability %s\n',
+                format(signif(attr(x, 'skipped'), 2))))
+  }
   cat(sprintf('  Alpha            : %s\n\n', format(attr(x, 'alpha'))))
   tab <- data.frame(lapply(unclass(x), identity), check.names = FALSE)
   tab$Power <- round(tab$Power, digits)

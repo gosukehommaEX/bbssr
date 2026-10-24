@@ -7,12 +7,17 @@
 StratPower(
   p1,
   p2,
-  N1,
-  N2,
+  N1 = NULL,
+  N2 = NULL,
   alpha,
   Test,
   alternative = c("greater", "less", "two.sided"),
-  tsmethod = c("minlike", "central", "blaker")
+  tsmethod = c("minlike", "central", "blaker"),
+  alloc = c("fixed", "stratum", "group", "both"),
+  N = NULL,
+  frac = NULL,
+  r = 1,
+  block = 4
 )
 }
 \arguments{
@@ -22,9 +27,11 @@ per stratum, or a matrix with one row per scenario and one column per stratum}
 \item{p2}{Response probabilities of group 2 in the strata, of the same form as
 \code{p1}}
 
-\item{N1}{Sizes of group 1 in the strata, one element per stratum}
+\item{N1}{Sizes of group 1 in the strata, one element per stratum, with
+\code{alloc = 'fixed'}}
 
-\item{N2}{Sizes of group 2 in the strata, one element per stratum}
+\item{N2}{Sizes of group 2 in the strata, one element per stratum, with
+\code{alloc = 'fixed'}}
 
 \item{alpha}{Level of significance, for the alternative specified}
 
@@ -48,15 +55,37 @@ chi-squared test, the comparison of two proportions with the pooled variance),
 \code{'Unstrat-Fisher'}, as for the Fisher exact test of \code{\link{BinaryRR}}.
 Options: \code{'minlike'} (default), \code{'central'} or \code{'blaker'}. Ignored by
 the other tests and for one-sided alternatives}
+
+\item{alloc}{Allocation of the patients to the strata and the groups. \code{'fixed'}
+(default) uses the group sizes \code{N1} and \code{N2}. The others need two strata
+and make the sizes random, see Details: \code{'stratum'} (stratum sizes binomial,
+permuted blocks within the strata), \code{'group'} (stratum sizes fixed, group sizes
+binomial) and \code{'both'} (stratum and group sizes binomial)}
+
+\item{N}{Total sample size, with a random allocation}
+
+\item{frac}{Fractions of the two strata, with a random allocation. They are rescaled to
+sum to 1}
+
+\item{r}{Allocation ratio of group 1 to group 2 within the strata, a single value or
+one value per stratum, with a random allocation. Default is 1}
+
+\item{block}{Size of the permuted blocks of \code{alloc = 'stratum'}. Each block holds
+\code{block r / (1 + r)} patients of group 1, which must be a whole number. Default
+is 4}
 }
 \value{
 An object of class \code{bbssr_spower}, a data frame with one row per scenario
 containing the response probabilities \code{p1.S1, p1.S2, ...} and
-\code{p2.S1, p2.S2, ...} and the exact power \code{Power}.
+\code{p2.S1, p2.S2, ...} and the exact power \code{Power}. With a random allocation
+the attribute \code{skipped} is the total probability of the configurations left out
+of the sum, see Details, and \code{n.strata} the stratum sizes of
+\code{alloc = 'group'}.
 }
 \description{
 Calculates the exact power of a test of \code{\link{StratRR}} for a two-arm trial with a
-binary endpoint and fixed group sizes in each stratum.
+binary endpoint, with fixed group sizes in each stratum or, with two strata, with
+stratum and group sizes that are random.
 }
 \details{
 The numbers of responders of the two groups in each stratum are independent binomial
@@ -65,6 +94,27 @@ variables. The power is the probability of the rejection region of
 strata and carrying the distribution of the partial sum of \code{S} over the strata.
 The response probabilities may differ between the strata in any way, so the power is
 available also when the odds ratio or the risk difference is not common to the strata.
+
+With \code{alloc} other than \code{'fixed'} the design has two strata and a total of
+\code{N} patients, and the sizes of the strata and of the groups within them are
+random. With \code{'group'} the stratum sizes are fixed at \code{n1 = floor(N frac[1])}
+and \code{n2 = N - n1}, and each patient of stratum \code{j} is in group 1 with the
+probability \code{r[j] / (1 + r[j])}, so that the size of group 1 is binomial (Jung,
+2014, Section 3.2). With \code{'both'} the size of stratum 1 is binomial as well, with
+the probability \code{frac[1]} (Jung, 2014, Section 3.1). With \code{'stratum'} the
+stratum sizes are binomial and the groups are allocated by permuted blocks of size
+\code{block} within each stratum: every complete block holds
+\code{block r[j] / (1 + r[j])} patients of group 1, and the number of patients of
+group 1 among the patients of the last, incomplete block is hypergeometric. The power is
+the sum over the stratum and group sizes of their probability times the power of the
+fixed design they give. Configurations with a probability below 1e-14 are left out, and
+their total probability, which bounds the error of the power, is returned in the
+attribute \code{skipped}. A group without patients in a stratum leaves that stratum
+without variation of \code{S}, and a stratum without patients leaves a design with one
+stratum. The number of configurations grows with \code{N} most quickly for
+\code{'both'}: at \code{N = 100} the power of one scenario takes a fraction of a second
+with \code{'stratum'}, about a second with \code{'group'} and tens of seconds with
+\code{'both'}.
 }
 \examples{
 StratPower(p1 = c(0.5, 0.7), p2 = c(0.3, 0.5), N1 = c(40, 40), N2 = c(40, 40),
@@ -74,6 +124,14 @@ StratPower(p1 = c(0.5, 0.7), p2 = c(0.3, 0.5), N1 = c(40, 40), N2 = c(40, 40),
 StratPower(p1 = rbind(c(0.5, 0.7), c(0.45, 0.65)), p2 = rbind(c(0.3, 0.5), c(0.3, 0.5)),
            N1 = c(40, 40), N2 = c(40, 40), alpha = 0.025, Test = 'Strat-Fisher')
 
+# Random stratum sizes, with permuted blocks of 4 within the strata
+StratPower(p1 = c(0.5, 0.7), p2 = c(0.3, 0.5), alpha = 0.025, Test = 'CMH',
+           alloc = 'stratum', N = 160, frac = c(0.5, 0.5))
+
+}
+\references{
+Jung SH (2014). Stratified Fisher's exact test and its sample size calculation.
+\emph{Biometrical Journal}, 56(1), 129-140.
 }
 \seealso{
 \code{\link{StratRR}}, \code{\link{StratSampleSize}}

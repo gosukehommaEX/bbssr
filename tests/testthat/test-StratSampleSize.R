@@ -53,3 +53,32 @@ test_that("StratSampleSize checks its arguments", {
   expect_error(ss(frac = c(0.4, 0.3, 0.3)), 'one element per stratum')
   expect_error(ss(p1 = 0.5, p2 = 0.3, frac = 1), 'at least two strata')
 })
+
+test_that("StratSampleSize with a random allocation agrees with the reference values", {
+  # Reference values from tools/reference/reference_strat.py (alloc_exact_n): the search
+  # 'crossing' over the total sample size with the power of a random allocation
+  ra <- function(alloc, ...) {
+    StratSampleSize(c(0.6, 0.8), c(0.2, 0.4), frac = c(0.5, 0.5), alpha = 0.05,
+                    tar.power = 0.8, Test = 'CMH', alloc = alloc, ...)
+  }
+  st <- ra('stratum')
+  gr <- ra('group')
+  expect_equal(c(st$N, gr$N), c(36, 37))
+  expect_null(st$N1)
+  expect_null(st$N2)
+  expect_identical(attr(st, 'n'), st$N)
+  expect_equal(st$Power, StratPower(c(0.6, 0.8), c(0.2, 0.4), alpha = 0.05, Test = 'CMH',
+                                    alloc = 'stratum', N = st$N,
+                                    frac = c(0.5, 0.5))$Power)
+  expect_gte(st$Power, 0.8)
+  expect_identical(attr(gr, 'n.strata'),
+                   as.integer(c(floor(gr$N / 2), gr$N - floor(gr$N / 2))))
+  # The normal approximation gives the total sample size itself
+  sd <- ra('both', method = 'standard')
+  expect_identical(sd$N, as.integer(ceiling(attr(sd, 'n.raw'))))
+  expect_identical(attr(sd, 'alloc'), 'both')
+  expect_error(ra('stratum', block = 3), 'whole numbers')
+  expect_error(StratSampleSize(c(0.6, 0.8, 0.7), c(0.2, 0.4, 0.3), frac = c(1, 1, 1),
+                               alpha = 0.05, tar.power = 0.8, Test = 'CMH',
+                               alloc = 'group'), 'two strata')
+})

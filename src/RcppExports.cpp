@@ -307,6 +307,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// strat_random_power
+List strat_random_power(int model, int N, double a1, IntegerVector nfix, NumericVector b, int block, IntegerVector g, NumericMatrix p1, NumericMatrix p2, int type, int alternative, int tsmethod, double alpha, double eps);
+RcppExport SEXP _bbssr_strat_random_power(SEXP modelSEXP, SEXP NSEXP, SEXP a1SEXP, SEXP nfixSEXP, SEXP bSEXP, SEXP blockSEXP, SEXP gSEXP, SEXP p1SEXP, SEXP p2SEXP, SEXP typeSEXP, SEXP alternativeSEXP, SEXP tsmethodSEXP, SEXP alphaSEXP, SEXP epsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< int >::type N(NSEXP);
+    Rcpp::traits::input_parameter< double >::type a1(a1SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type nfix(nfixSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type b(bSEXP);
+    Rcpp::traits::input_parameter< int >::type block(blockSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type g(gSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type p1(p1SEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type p2(p2SEXP);
+    Rcpp::traits::input_parameter< int >::type type(typeSEXP);
+    Rcpp::traits::input_parameter< int >::type alternative(alternativeSEXP);
+    Rcpp::traits::input_parameter< int >::type tsmethod(tsmethodSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
+    rcpp_result_gen = Rcpp::wrap(strat_random_power(model, N, a1, nfix, b, block, g, p1, p2, type, alternative, tsmethod, alpha, eps));
+    return rcpp_result_gen;
+END_RCPP
+}
 // strat_pvalue_cases
 NumericVector strat_pvalue_cases(IntegerMatrix N1, IntegerMatrix N2, IntegerMatrix x1, IntegerMatrix x2, int type, int alternative, int tsmethod);
 RcppExport SEXP _bbssr_strat_pvalue_cases(SEXP N1SEXP, SEXP N2SEXP, SEXP x1SEXP, SEXP x2SEXP, SEXP typeSEXP, SEXP alternativeSEXP, SEXP tsmethodSEXP) {
@@ -361,6 +385,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_bbssr_strat_cond_reject", (DL_FUNC) &_bbssr_strat_cond_reject, 8},
     {"_bbssr_strat_bern_max", (DL_FUNC) &_bbssr_strat_bern_max, 7},
     {"_bbssr_strat_bern_eval", (DL_FUNC) &_bbssr_strat_bern_eval, 3},
+    {"_bbssr_strat_random_power", (DL_FUNC) &_bbssr_strat_random_power, 14},
     {"_bbssr_strat_pvalue_cases", (DL_FUNC) &_bbssr_strat_pvalue_cases, 7},
     {"_bbssr_strat_level_bracket", (DL_FUNC) &_bbssr_strat_level_bracket, 6},
     {NULL, NULL, 0}

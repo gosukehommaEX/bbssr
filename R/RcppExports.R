@@ -77,6 +77,10 @@ strat_bern_eval <- function(coef, x, y) {
     .Call(`_bbssr_strat_bern_eval`, coef, x, y)
 }
 
+strat_random_power <- function(model, N, a1, nfix, b, block, g, p1, p2, type, alternative, tsmethod, alpha, eps) {
+    .Call(`_bbssr_strat_random_power`, model, N, a1, nfix, b, block, g, p1, p2, type, alternative, tsmethod, alpha, eps)
+}
+
 strat_pvalue_cases <- function(N1, N2, x1, x2, type, alternative, tsmethod) {
     .Call(`_bbssr_strat_pvalue_cases`, N1, N2, x1, x2, type, alternative, tsmethod)
 }

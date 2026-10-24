@@ -16,7 +16,9 @@ StratSampleSize(
   tsmethod = c("minlike", "central", "blaker"),
   method = c("exact", "standard"),
   search = c("crossing", "smallest", "stable"),
-  search.limit = c(2, 50)
+  search.limit = c(2, 50),
+  alloc = c("fixed", "stratum", "group", "both"),
+  block = 4
 )
 }
 \arguments{
@@ -67,15 +69,27 @@ fluctuates around \code{tar.power}, as in \code{\link{BinarySampleSize}}. Option
 downwards from \code{max(ceiling(search.limit[1] n), ceiling(n + search.limit[2]))},
 where \code{n} is the nominal size of the normal approximation. Default is
 \code{c(2, 50)}}
+
+\item{alloc}{Allocation of the patients to the strata and the groups. \code{'fixed'}
+(default) uses the group sizes \code{N1} and \code{N2}. The others need two strata
+and make the sizes random, see Details: \code{'stratum'} (stratum sizes binomial,
+permuted blocks within the strata), \code{'group'} (stratum sizes fixed, group sizes
+binomial) and \code{'both'} (stratum and group sizes binomial)}
+
+\item{block}{Size of the permuted blocks of \code{alloc = 'stratum'}. Each block holds
+\code{block r / (1 + r)} patients of group 1, which must be a whole number. Default
+is 4}
 }
 \value{
 An object of class \code{bbssr_ssamplesize}, a list containing the arguments
 \code{p1}, \code{p2}, \code{frac}, \code{r}, \code{alpha}, \code{tar.power},
 \code{Test} and \code{alternative}, the group sizes \code{N1} and \code{N2} of the
-strata, their total \code{N}, and the exact power \code{Power} of the design. The
-attribute \code{n.raw} holds the unrounded total of the normal approximation,
-\code{n} the nominal total of the design and \code{search.limit} the limit of the
-nominal total examined by \code{search = 'stable'} (otherwise \code{NA}).
+strata (\code{NULL} with a random allocation), their total \code{N}, and the exact
+power \code{Power} of the design. The attribute \code{n.raw} holds the unrounded
+total of the normal approximation, \code{n} the nominal total of the design and
+\code{search.limit} the limit of the nominal total examined by
+\code{search = 'stable'} (otherwise \code{NA}). With a random allocation the
+attributes \code{skipped} and \code{n.strata} are those of \code{\link{StratPower}}.
 }
 \description{
 Calculates the total sample size of a two-arm trial with a binary endpoint stratified
@@ -120,6 +134,13 @@ ignores.
 
 The exact power is not monotone in the sample size, so the result depends on
 \code{search}, as described in \code{\link{BinarySampleSize}}.
+
+With a random allocation (\code{alloc} other than \code{'fixed'}, two strata only) the
+total sample size \code{N} is searched directly, the nominal total being the total
+itself, and the power is that of \code{\link{StratPower}} with the same allocation.
+Jung (2014) searches upwards from the sample size of the Mantel-Haenszel test. The power
+is not monotone, so the result can differ from that of \code{search = 'crossing'},
+which starts from the normal approximation.
 }
 \examples{
 # Normal approximation and exact sample size with two strata

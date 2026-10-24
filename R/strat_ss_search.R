@@ -17,6 +17,10 @@
 #' @param r Allocation ratios of the strata
 #' @param search \code{'crossing'}, \code{'smallest'} or \code{'stable'}
 #' @param search.limit Factor and increment of the limit of the search \code{'stable'}
+#' @param alloc \code{NULL} (default) for the designs of \code{strat_sizes}, or, for a
+#'   random allocation, a list with \code{alloc} and the result \code{al} of
+#'   \code{check_strat_alloc}; the sizes are then total sample sizes, and the power is
+#'   that of \code{strat_alloc_power}
 #' @inheritParams StratRR
 #' @param tar.power Target power
 #'
@@ -26,7 +30,7 @@
 #' @keywords internal
 #' @noRd
 strat_ss_search <- function(p1, p2, frac, r, alpha, tar.power, Test, alternative, tsmethod,
-                            search = 'crossing', search.limit = c(2, 50)) {
+                            search = 'crossing', search.limit = c(2, 50), alloc = NULL) {
   if (search == 'stable' &&
       (!is.numeric(search.limit) || length(search.limit) != 2 || anyNA(search.limit) ||
          any(!is.finite(search.limit)) || search.limit[1] < 1 || search.limit[2] < 0)) {
@@ -42,6 +46,11 @@ strat_ss_search <- function(p1, p2, frac, r, alpha, tar.power, Test, alternative
     stop('the response probabilities show no effect in the direction of the alternative')
   }
   power_at <- function(n, k) {
+    if (!is.null(alloc)) {
+      return(strat_alloc_power(n, alloc$al, alloc$alloc, p1[k, , drop = FALSE],
+                               p2[k, , drop = FALSE], alpha, a$Test, a$alternative,
+                               a$tsmethod)$power)
+    }
     sz <- strat_sizes(n, frac, r)
     strat_fixed_power(sz$N1[1, ], sz$N2[1, ], p1[k, , drop = FALSE],
                       p2[k, , drop = FALSE], alpha, a$Test, a$alternative, a$tsmethod)

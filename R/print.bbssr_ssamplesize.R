@@ -29,10 +29,20 @@ print.bbssr_ssamplesize <- function(x, digits = 4, ...) {
               format(x$tar.power)))
   cat(sprintf('  Normal approx.   : %s (unrounded total)\n',
               format(round(attr(x, 'n.raw'), 2))))
+  alloc <- attr(x, 'alloc')
+  random <- !is.null(alloc) && alloc != 'fixed'
+  if (random) {
+    cat(sprintf('  Allocation       : %s\n', strat_alloc_label(alloc, attr(x, 'block'),
+                                                           attr(x, 'n.strata'))))
+  }
   cat(sprintf('  Total size       : N = %d, power %s\n\n', x$N,
               format(round(x$Power, digits))))
-  tab <- data.frame(Stratum = seq_along(x$N1), frac = round(x$frac, 4), r = x$r,
-                    p1 = x$p1, p2 = x$p2, N1 = x$N1, N2 = x$N2)
+  tab <- data.frame(Stratum = seq_along(x$frac), frac = round(x$frac, 4), r = x$r,
+                    p1 = x$p1, p2 = x$p2)
+  if (!random) {
+    tab$N1 <- x$N1
+    tab$N2 <- x$N2
+  }
   print(tab, row.names = FALSE)
   invisible(x)
 }

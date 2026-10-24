@@ -21,15 +21,18 @@
 #'   downwards from \code{max(ceiling(search.limit[1] n), ceiling(n + search.limit[2]))},
 #'   where \code{n} is the nominal size of the normal approximation. Default is
 #'   \code{c(2, 50)}
+#' @inheritParams StratPower
 #' @inheritParams StratRR
 #'
 #' @return An object of class \code{bbssr_ssamplesize}, a list containing the arguments
 #'   \code{p1}, \code{p2}, \code{frac}, \code{r}, \code{alpha}, \code{tar.power},
 #'   \code{Test} and \code{alternative}, the group sizes \code{N1} and \code{N2} of the
-#'   strata, their total \code{N}, and the exact power \code{Power} of the design. The
-#'   attribute \code{n.raw} holds the unrounded total of the normal approximation,
-#'   \code{n} the nominal total of the design and \code{search.limit} the limit of the
-#'   nominal total examined by \code{search = 'stable'} (otherwise \code{NA}).
+#'   strata (\code{NULL} with a random allocation), their total \code{N}, and the exact
+#'   power \code{Power} of the design. The attribute \code{n.raw} holds the unrounded
+#'   total of the normal approximation, \code{n} the nominal total of the design and
+#'   \code{search.limit} the limit of the nominal total examined by
+#'   \code{search = 'stable'} (otherwise \code{NA}). With a random allocation the
+#'   attributes \code{skipped} and \code{n.strata} are those of \code{\link{StratPower}}.
 #'
 #' @details
 #' A design is described by the fractions \code{frac} of the strata and the allocation
@@ -70,6 +73,13 @@
 #' The exact power is not monotone in the sample size, so the result depends on
 #' \code{search}, as described in \code{\link{BinarySampleSize}}.
 #'
+#' With a random allocation (\code{alloc} other than \code{'fixed'}, two strata only) the
+#' total sample size \code{N} is searched directly, the nominal total being the total
+#' itself, and the power is that of \code{\link{StratPower}} with the same allocation.
+#' Jung (2014) searches upwards from the sample size of the Mantel-Haenszel test. The power
+#' is not monotone, so the result can differ from that of \code{search = 'crossing'},
+#' which starts from the normal approximation.
+#'
 #' @references
 #' Woolson RF, Bean JA, Rojas PB (1986). Sample size for case-control studies using
 #' Cochran's statistic. \emph{Biometrics}, 42(4), 927-932.
@@ -95,14 +105,17 @@ StratSampleSize <- function(p1, p2, frac, r = 1, alpha, tar.power, Test,
                             tsmethod = c('minlike', 'central', 'blaker'),
                             method = c('exact', 'standard'),
                             search = c('crossing', 'smallest', 'stable'),
-                            search.limit = c(2, 50)) {
+                            search.limit = c(2, 50),
+                            alloc = c('fixed', 'stratum', 'group', 'both'), block = 4) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   method <- match.arg(method)
   search <- match.arg(search)
+  alloc <- match.arg(alloc)
   J <- length(frac)
   if (J < 2) stop('frac must have one element per stratum, for at least two strata')
   fr <- check_strat_frac(frac, r, J)
+  al <- if (alloc == 'fixed') NULL else check_strat_alloc(alloc, NULL, frac, r, block)
   a <- check_strat_args(rep(1, J), rep(1, J), alpha, Test, alternative, tsmethod)
   q1 <- check_strat_probs(p1, J, 'p1')
   q2 <- check_strat_probs(p2, J, 'p2')
@@ -132,24 +145,39 @@ StratSampleSize <- function(p1, p2, frac, r = 1, alpha, tar.power, Test,
     n <- as.integer(max(1, ceil_tol(n.raw)))
   } else {
     s <- strat_ss_search(q1, q2, fr$frac, fr$r, alpha, tar.power, a$Test, a$alternative,
-                         a$tsmethod, search, search.limit)
+                         a$tsmethod, search, search.limit,
+                         alloc = if (is.null(al)) NULL else list(alloc = alloc, al = al))
     n <- s$n
     limit <- s$limit
   }
-  sz <- strat_sizes(n, fr$frac, fr$r)
-  N1 <- as.integer(sz$N1[1, ])
-  N2 <- as.integer(sz$N2[1, ])
-  Power <- strat_fixed_power(N1, N2, q1, q2, alpha, a$Test, a$alternative, a$tsmethod)
+  if (is.null(al)) {
+    sz <- strat_sizes(n, fr$frac, fr$r)
+    N1 <- as.integer(sz$N1[1, ])
+    N2 <- as.integer(sz$N2[1, ])
+    Power <- strat_fixed_power(N1, N2, q1, q2, alpha, a$Test, a$alternative, a$tsmethod)
+    N <- as.integer(sum(N1) + sum(N2))
+  } else {
+    N1 <- N2 <- NULL
+    res <- strat_alloc_power(n, al, alloc, q1, q2, alpha, a$Test, a$alternative,
+                             a$tsmethod)
+    Power <- res$power
+    N <- as.integer(n)
+  }
   out <- list(p1 = as.vector(q1), p2 = as.vector(q2), frac = fr$frac, r = fr$r,
               alpha = alpha, tar.power = tar.power, Test = a$Test,
-              alternative = a$alternative, N1 = N1, N2 = N2,
-              N = as.integer(sum(N1) + sum(N2)), Power = Power)
+              alternative = a$alternative, N1 = N1, N2 = N2, N = N, Power = Power)
   attr(out, 'n.raw') <- n.raw
   attr(out, 'n') <- n
   attr(out, 'method') <- method
   attr(out, 'search') <- search
   attr(out, 'search.limit') <- limit
   attr(out, 'tsmethod') <- a$tsmethod
+  attr(out, 'alloc') <- alloc
+  if (!is.null(al)) {
+    attr(out, 'block') <- al$block
+    attr(out, 'n.strata') <- res$n
+    attr(out, 'skipped') <- res$skipped
+  }
   class(out) <- 'bbssr_ssamplesize'
   out
 }

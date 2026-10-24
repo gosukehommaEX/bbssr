@@ -269,6 +269,85 @@ NumericVector strat_bern_eval(NumericMatrix coef, NumericVector x, NumericVector
   return out;
 }
 
+// Exact power of a two-stratum design with random stratum and group sizes for each row of
+// p1 and p2, as the sum over the configurations of strat::alloc_configs() with
+// probability at least eps. model 1: stratum sizes multinomial with the probability a1 of
+// stratum 1, permuted blocks of size block with g[j] patients of group 1 in stratum j;
+// model 2: stratum sizes nfix, group 1 sizes binomial with the probabilities b; model 3:
+// stratum sizes multinomial, group 1 sizes binomial. skipped is the total probability of
+// the configurations left out, a bound on the error of the power
+// [[Rcpp::export]]
+List strat_random_power(int model, int N, double a1, IntegerVector nfix, NumericVector b,
+                        int block, IntegerVector g, NumericMatrix p1, NumericMatrix p2,
+                        int type, int alternative, int tsmethod, double alpha, double eps) {
+  if (model < 1 || model > 3) stop("model must be 1, 2 or 3");
+  if (N < 1) stop("N must be positive");
+  if (nfix.size() != 2 || b.size() != 2 || g.size() != 2) {
+    stop("nfix, b and g must have length 2");
+  }
+  if (!(eps >= 0.0 && eps < 1.0)) stop("eps must lie in [0, 1)");
+  strat::AllocSpec s;
+  s.model = model;
+  s.N = N;
+  s.a1 = a1;
+  s.block = block;
+  for (int j = 0; j < 2; ++j) {
+    s.nfix[j] = nfix[j];
+    s.b[j] = b[j];
+    s.g[j] = g[j];
+  }
+  if (model == strat::ALLOC_GROUP) {
+    if (nfix[0] == NA_INTEGER || nfix[1] == NA_INTEGER || nfix[0] < 0 || nfix[1] < 0 ||
+        nfix[0] + nfix[1] != N) {
+      stop("nfix must be two non-negative stratum sizes that sum to N");
+    }
+  } else if (!(a1 > 0.0 && a1 < 1.0)) {
+    stop("a1 must lie in (0, 1)");
+  }
+  if (model == strat::ALLOC_STRATUM) {
+    if (block < 2) stop("block must be at least 2");
+    for (int j = 0; j < 2; ++j) {
+      if (g[j] == NA_INTEGER || g[j] < 1 || g[j] >= block) {
+        stop("g must lie between 1 and block - 1");
+      }
+    }
+  } else {
+    for (int j = 0; j < 2; ++j) {
+      if (!(b[j] > 0.0 && b[j] < 1.0)) stop("b must lie in (0, 1)");
+    }
+  }
+  if (p1.ncol() != 2 || p2.ncol() != 2 || p1.nrow() != p2.nrow()) {
+    stop("p1 and p2 must have one row per scenario and two columns");
+  }
+  const int K = p1.nrow();
+  std::vector<double> q1(2 * K), q2(2 * K);
+  for (int k = 0; k < K; ++k) {
+    for (int j = 0; j < 2; ++j) {
+      q1[2 * k + j] = p1(k, j);
+      q2[2 * k + j] = p2(k, j);
+      if (!(q1[2 * k + j] >= 0.0 && q1[2 * k + j] <= 1.0 && q2[2 * k + j] >= 0.0 &&
+            q2[2 * k + j] <= 1.0)) {
+        stop("the response probabilities must lie in [0, 1]");
+      }
+    }
+  }
+  const strat::Test t = make_test(type, alternative, tsmethod, alpha);
+  const std::vector<double> lf = strat::log_factorials(N);
+  double skipped = 0.0;
+  const std::vector<strat::AllocConfig> cfg = strat::alloc_configs(s, eps, lf, skipped);
+  std::vector<double> out(K, 0.0);
+  try {
+    for (std::size_t i = 0; i < cfg.size(); ++i) {
+      if (i % 64 == 0) Rcpp::checkUserInterrupt();
+      strat::add_config_power(cfg[i], t, q1.data(), q2.data(), K, lf, out.data());
+    }
+  } catch (const std::exception& e) {
+    stop(e.what());
+  }
+  return List::create(_["power"] = wrap(out), _["skipped"] = skipped,
+                      _["configs"] = static_cast<int>(cfg.size()));
+}
+
 // p-values of the test for observed data: row i gives, for each stratum, the group sizes
 // N1 and N2 and the numbers of responders x1 and x2 of the two groups
 // [[Rcpp::export]]

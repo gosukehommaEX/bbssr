@@ -1,0 +1,21 @@
+test_that("check_strat_alloc returns the probabilities of group 1 and the block contents", {
+  al <- check_strat_alloc('stratum', 20, c(1, 3), c(1, 3), 4)
+  expect_equal(al$frac, c(0.25, 0.75))
+  expect_equal(al$b, c(0.5, 0.75))
+  expect_identical(al$g, c(2L, 3L))
+  expect_identical(al$block, 4L)
+  al <- check_strat_alloc('both', NULL, c(0.5, 0.5), 2, 5)
+  expect_null(al$g)
+  expect_null(al$block)
+  expect_equal(al$b, c(2, 2) / 3)
+})
+
+test_that("check_strat_alloc checks its arguments", {
+  expect_error(check_strat_alloc('both', 20, c(1, 1, 1), 1, 4), 'two strata')
+  expect_error(check_strat_alloc('both', 20, NULL, 1, 4), 'frac must be supplied')
+  expect_error(check_strat_alloc('both', 20.5, c(1, 1), 1, 4), 'single positive integer')
+  expect_error(check_strat_alloc('both', 20, c(1, -1), 1, 4), 'positive values')
+  expect_error(check_strat_alloc('stratum', 20, c(1, 1), 1, 3), 'whole numbers')
+  expect_error(check_strat_alloc('stratum', 20, c(1, 1), 2, 4), 'whole numbers')
+  expect_error(check_strat_alloc('stratum', 20, c(1, 1), 1, 1), 'at least 2')
+})

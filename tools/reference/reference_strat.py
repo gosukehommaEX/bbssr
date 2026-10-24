@@ -7,7 +7,8 @@ combination of the numbers of responders of group 1 in the strata, the power of 
 design by summing the binomial probabilities of every table that the p-value rejects, the
 power of a re-estimation design by enumerating the interim and second-stage numbers of
 responders of both groups in every stratum, and the largest type I error rate by a grid
-with local optimization.
+with local optimization. The power of a design with random stratum and group sizes sums
+the power of the fixed design of every configuration of sizes, without leaving any out.
 """
 import itertools
 import math
@@ -75,6 +76,9 @@ def asym_p(N1, N2, z, S, test, alt):
     for j in range(len(N1)):
         n = N1[j] + N2[j]
         E += N1[j] * z[j] / n
+        # A stratum of one patient has an empty group and adds nothing to V
+        if n < 2:
+            continue
         if test.startswith("Cochran"):
             V += N1[j] * N2[j] * z[j] * (n - z[j]) / n ** 3
         else:
@@ -98,7 +102,7 @@ def pearson_p(n1, n2, X1, Z, alt, cc):
     deviation d = X1 - n1 Z / n (exact), reduced by 1/2 when |d| >= 1/2 with cc, over
     sqrt(pbar qbar n1 n2 / n)."""
     n = n1 + n2
-    if Z == 0 or Z == n:
+    if Z == 0 or Z == n or n1 == 0 or n2 == 0:
         return 1.0
     d = Fraction(X1 * n - n1 * Z, n)
     y = Fraction(1, 2) if (cc and abs(d) >= Fraction(1, 2)) else Fraction(0)
@@ -861,3 +865,86 @@ def blocks_crp(emit, reported_level):
             rows += ((a[0] + b[0] - d["n1"][0] - d["n2"][0] + 1) *
                      (a[1] + b[1] - d["n1"][1] - d["n2"][1] + 1))
     emit(f, "rows of the full listing with Delta.A = 0.1 and N.max = 1000", [rows], rtol=0)
+
+
+# ---------------------------------------------------------------------------------------
+# Random stratum and group sizes (two strata)
+def alloc_group_sizes(model, n, b, B):
+    """Probabilities of the size m of group 1 among the n patients of a stratum: binomial
+    with the probability b, or from permuted blocks of size B holding round(B b) patients
+    of group 1, of which the last block is incomplete when n is not a multiple of B."""
+    if model == "stratum":
+        g = round(B * b)
+        k, e = divmod(n, B)
+        return {k * g + h: float(hypergeom.pmf(h, B, g, e))
+                for h in range(max(0, e - (B - g)), min(e, g) + 1)}
+    return {m: float(binom.pmf(m, n, b)) for m in range(n + 1)}
+
+
+def alloc_power(N, a1, b, model, p1, p2, test, alt, ts, alpha, B=4):
+    """Exact power with random sizes: the sum over every stratum size and group size of
+    the probability times the power of the fixed design. Model 'group' fixes
+    n_1 = floor(N a1); 'stratum' and 'both' draw n_1 from Bin(N, a1). A stratum without
+    patients is left out of the design."""
+    if model == "group":
+        strata = {math.floor(N * a1 + 1e-9): 1.0}
+    else:
+        strata = {n1: float(binom.pmf(n1, N, a1)) for n1 in range(N + 1)}
+    total = 0.0
+    for n1, wn in strata.items():
+        n = (n1, N - n1)
+        dists = [alloc_group_sizes(model, n[j], b[j], B) for j in range(2)]
+        keep = [j for j in range(2) if n[j] > 0]
+        for m0, w0 in dists[0].items():
+            for m1, w1 in dists[1].items():
+                m = (m0, m1)
+                N1 = [m[j] for j in keep]
+                N2 = [n[j] - m[j] for j in keep]
+                total += wn * w0 * w1 * power(N1, N2, [p1[j] for j in keep],
+                                              [p2[j] for j in keep], test, alt, ts, alpha)
+    return total
+
+
+def alloc_exact_n(p1, p2, frac, r, alpha, tp, test, alt, model, B=4):
+    """Total sample size of the search 'crossing' with the power of alloc_power: from the
+    rounded-up normal approximation, down while the power attains the target, or up
+    until it does."""
+    t = np.asarray(frac, float) / np.sum(frac)
+    rr = np.resize(np.asarray(r, float), 2)
+    b = rr / (1 + rr)
+    cc = test.endswith("-cc")
+    pw = lambda N: alloc_power(N, t[0], b, model, p1, p2, test, alt, "minlike", alpha, B)
+    n = max(1, ceil_tol(raw_n(p1, p2, frac, r, alpha, tp, alt, cc, test in UNSTRAT)))
+    P = pw(n)
+    if P >= tp - TOL:
+        while P >= tp - TOL and n > 1:
+            n -= 1
+            P = pw(n)
+        if P < tp - TOL:
+            n += 1
+    else:
+        while P < tp - TOL:
+            n += 1
+            P = pw(n)
+    return n
+
+
+def blocks_alloc(emit, reported_level):
+    f = "test-StratPower.R"
+    sc1 = ([0.5, 0.8], [0.2, 0.4])
+    sc0 = ([0.3, 0.6], [0.3, 0.6])
+    for model in ("stratum", "group", "both"):
+        for test in ("CMH", "Strat-Fisher", "Unstrat-Chisq"):
+            emit(f, f"random allocation {model} {test}",
+                 [alloc_power(16, 0.5, (0.5, 0.5), model, p1, p2, test, "greater",
+                              "minlike", 0.05) for p1, p2 in (sc1, sc0)])
+    # Unequal fractions and allocation ratio 3: n_1 = floor(6.8) = 6 with 'group', and
+    # blocks of 4 with 3 patients of group 1
+    for model in ("stratum", "group"):
+        emit(f, f"random allocation {model} Strat-Fisher, frac (0.4, 0.6), r 3",
+             alloc_power(17, 0.4, (0.75, 0.75), model, [0.5, 0.8], [0.2, 0.4],
+                         "Strat-Fisher", "greater", "minlike", 0.05))
+    # One key for both sizes, so that a shifted size cannot match the other one
+    emit("test-StratSampleSize.R", "random allocation stratum and group CMH, crossing",
+         [alloc_exact_n([0.6, 0.8], [0.2, 0.4], [0.5, 0.5], 1, 0.05, 0.8, "CMH", "greater",
+                        model) for model in ("stratum", "group")], rtol=0)

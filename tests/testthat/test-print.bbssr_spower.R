@@ -22,3 +22,18 @@ test_that("print.bbssr_spower shows the two-sided method of the unstratified Fis
   out <- capture.output(print(res))
   expect_true(any(grepl('Two-sided method : central', out, fixed = TRUE)))
 })
+
+test_that("print.bbssr_spower describes a random allocation", {
+  res <- StratPower(c(0.5, 0.8), c(0.2, 0.4), alpha = 0.05, Test = 'Strat-Fisher',
+                    alloc = 'group', N = 17, frac = c(0.4, 0.6), r = 3)
+  out <- capture.output(print(res))
+  expect_true(any(grepl('stratum sizes (6, 11), random group sizes', out, fixed = TRUE)))
+  expect_true(any(grepl('Total size       : N = 17, fractions (0.4, 0.6), ratio 3', out,
+                        fixed = TRUE)))
+  expect_false(any(grepl('Group sizes', out, fixed = TRUE)))
+  res <- StratPower(c(0.5, 0.8), c(0.2, 0.4), alpha = 0.05, Test = 'CMH', alloc = 'stratum',
+                    N = 16, frac = c(0.5, 0.5))
+  out <- capture.output(print(res))
+  expect_true(any(grepl('permuted blocks of 4 within the strata', out, fixed = TRUE)))
+  expect_true(any(grepl('Left out', out, fixed = TRUE)))
+})

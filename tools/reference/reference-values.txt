@@ -302,3 +302,15 @@ test-StratCondRejectBSSR.R	exceed Unstrat-Chisq	0	1849 2864
 test-StratCondRejectBSSR.R	TIE at the points Unstrat-Chisq	1e-10	0.0583615622080922 0.0658128868963104
 test-StratCondRejectBSSR.R	TIE.s of the cell (2, 3) Unstrat-Chisq	1e-10	0.0653565634470866 0.0706095910072328
 test-StratCondRejectBSSR.R	rows of the full listing with Delta.A = 0.1 and N.max = 1000	0	1734897
+test-StratPower.R	random allocation stratum CMH	1e-10	0.411444606689659 0.0473474558748814
+test-StratPower.R	random allocation stratum Strat-Fisher	1e-10	0.223592332438072 0.0142843045203167
+test-StratPower.R	random allocation stratum Unstrat-Chisq	1e-10	0.383824090759094 0.0394443754222324
+test-StratPower.R	random allocation group CMH	1e-10	0.396656774694748 0.0501045228602838
+test-StratPower.R	random allocation group Strat-Fisher	1e-10	0.199885429075408 0.0131489604395502
+test-StratPower.R	random allocation group Unstrat-Chisq	1e-10	0.405920505935753 0.0544615541355178
+test-StratPower.R	random allocation both CMH	1e-10	0.396610240208928 0.0500683414440941
+test-StratPower.R	random allocation both Strat-Fisher	1e-10	0.199358926866081 0.0131096992312949
+test-StratPower.R	random allocation both Unstrat-Chisq	1e-10	0.407803164480989 0.0545926491870062
+test-StratPower.R	random allocation stratum Strat-Fisher, frac (0.4, 0.6), r 3	1e-10	0.190973505647753
+test-StratPower.R	random allocation group Strat-Fisher, frac (0.4, 0.6), r 3	1e-10	0.16684528129529
+test-StratSampleSize.R	random allocation stratum and group CMH, crossing	0	36 37
