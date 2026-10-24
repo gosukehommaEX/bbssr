@@ -76,7 +76,9 @@ normal approximation of Woolson et al. (1986) and Nam (1992).</p>
 <span>  tsmethod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"minlike"</span>, <span class="st">"central"</span>, <span class="st">"blaker"</span><span class="op">)</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exact"</span>, <span class="st">"standard"</span><span class="op">)</span>,</span>
 <span>  search <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"crossing"</span>, <span class="st">"smallest"</span>, <span class="st">"stable"</span><span class="op">)</span>,</span>
-<span>  search.limit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">50</span><span class="op">)</span></span>
+<span>  search.limit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">50</span><span class="op">)</span>,</span>
+<span>  alloc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fixed"</span>, <span class="st">"stratum"</span>, <span class="st">"group"</span>, <span class="st">"both"</span><span class="op">)</span>,</span>
+<span>  block <span class="op">=</span> <span class="fl">4</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -155,16 +157,32 @@ downwards from <code>max(ceiling(search.limit[1] n), ceiling(n + search.limit[2]
 where <code>n</code> is the nominal size of the normal approximation. Default is
 <code>c(2, 50)</code></p></dd>
 
+
+<dt id="arg-alloc">alloc<a class="anchor" aria-label="anchor" href="#arg-alloc"></a></dt>
+<dd><p>Allocation of the patients to the strata and the groups. <code>'fixed'</code>
+(default) uses the group sizes <code>N1</code> and <code>N2</code>. The others need two strata
+and make the sizes random, see Details: <code>'stratum'</code> (stratum sizes binomial,
+permuted blocks within the strata), <code>'group'</code> (stratum sizes fixed, group sizes
+binomial) and <code>'both'</code> (stratum and group sizes binomial)</p></dd>
+
+
+<dt id="arg-block">block<a class="anchor" aria-label="anchor" href="#arg-block"></a></dt>
+<dd><p>Size of the permuted blocks of <code>alloc = 'stratum'</code>. Each block holds
+<code>block r / (1 + r)</code> patients of group 1, which must be a whole number. Default
+is 4</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An object of class <code>bbssr_ssamplesize</code>, a list containing the arguments
 <code>p1</code>, <code>p2</code>, <code>frac</code>, <code>r</code>, <code>alpha</code>, <code>tar.power</code>,
 <code>Test</code> and <code>alternative</code>, the group sizes <code>N1</code> and <code>N2</code> of the
-strata, their total <code>N</code>, and the exact power <code>Power</code> of the design. The
-attribute <code>n.raw</code> holds the unrounded total of the normal approximation,
-<code>n</code> the nominal total of the design and <code>search.limit</code> the limit of the
-nominal total examined by <code>search = 'stable'</code> (otherwise <code>NA</code>).</p>
+strata (<code>NULL</code> with a random allocation), their total <code>N</code>, and the exact
+power <code>Power</code> of the design. The attribute <code>n.raw</code> holds the unrounded
+total of the normal approximation, <code>n</code> the nominal total of the design and
+<code>search.limit</code> the limit of the nominal total examined by
+<code>search = 'stable'</code> (otherwise <code>NA</code>). With a random allocation the
+attributes <code>skipped</code> and <code>n.strata</code> are those of <code><a href="StratPower.html">StratPower</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -202,6 +220,12 @@ search accounts for the difference between the strata that the table of totals
 ignores.</p>
 <p>The exact power is not monotone in the sample size, so the result depends on
 <code>search</code>, as described in <code><a href="BinarySampleSize.html">BinarySampleSize</a></code>.</p>
+<p>With a random allocation (<code>alloc</code> other than <code>'fixed'</code>, two strata only) the
+total sample size <code>N</code> is searched directly, the nominal total being the total
+itself, and the power is that of <code><a href="StratPower.html">StratPower</a></code> with the same allocation.
+Jung (2014) searches upwards from the sample size of the Mantel-Haenszel test. The power
+is not monotone, so the result can differ from that of <code>search = 'crossing'</code>,
+which starts from the normal approximation.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

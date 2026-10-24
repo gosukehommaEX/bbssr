@@ -89,6 +89,23 @@ version.
   [`BinaryCondRejectBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryCondRejectBSSR.md)
   does for two groups.
 
+- Random stratum and group sizes in the designs with two strata.
+  [`StratPower()`](https://gosukehommaex.github.io/bbssr/reference/StratPower.md)
+  and
+  [`StratSampleSize()`](https://gosukehommaex.github.io/bbssr/reference/StratSampleSize.md)
+  gain the argument `alloc`: `'stratum'` draws the stratum sizes from a
+  binomial distribution and allocates the groups by permuted blocks of
+  size `block` within the strata, `'group'` keeps the stratum sizes
+  fixed and draws the group sizes from binomial distributions (Jung,
+  2014, Section 3.2), and `'both'` draws both (Jung, 2014, Section 3.1).
+  The exact power is the sum over the configurations of stratum and
+  group sizes of the power of the fixed design they give; the
+  configurations with a probability below 1e-14 are left out, and their
+  total probability is reported as a bound on the error. The sample
+  sizes of the columns ‘n fixed’ and ‘random’ of Table 4 of Jung (2014)
+  are compared with the published values in
+  `inst/reproduce/reproduce-published.R`.
+
 - Paired binary data.
   [`PairedRR()`](https://gosukehommaex.github.io/bbssr/reference/PairedRR.md),
   [`PairedPower()`](https://gosukehommaex.github.io/bbssr/reference/PairedPower.md),

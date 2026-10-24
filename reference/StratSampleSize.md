@@ -21,7 +21,9 @@ StratSampleSize(
   tsmethod = c("minlike", "central", "blaker"),
   method = c("exact", "standard"),
   search = c("crossing", "smallest", "stable"),
-  search.limit = c(2, 50)
+  search.limit = c(2, 50),
+  alloc = c("fixed", "stratum", "group", "both"),
+  block = 4
 )
 ```
 
@@ -108,15 +110,33 @@ StratSampleSize(
   `n` is the nominal size of the normal approximation. Default is
   `c(2, 50)`
 
+- alloc:
+
+  Allocation of the patients to the strata and the groups. `'fixed'`
+  (default) uses the group sizes `N1` and `N2`. The others need two
+  strata and make the sizes random, see Details: `'stratum'` (stratum
+  sizes binomial, permuted blocks within the strata), `'group'` (stratum
+  sizes fixed, group sizes binomial) and `'both'` (stratum and group
+  sizes binomial)
+
+- block:
+
+  Size of the permuted blocks of `alloc = 'stratum'`. Each block holds
+  `block r / (1 + r)` patients of group 1, which must be a whole number.
+  Default is 4
+
 ## Value
 
 An object of class `bbssr_ssamplesize`, a list containing the arguments
 `p1`, `p2`, `frac`, `r`, `alpha`, `tar.power`, `Test` and `alternative`,
-the group sizes `N1` and `N2` of the strata, their total `N`, and the
-exact power `Power` of the design. The attribute `n.raw` holds the
-unrounded total of the normal approximation, `n` the nominal total of
-the design and `search.limit` the limit of the nominal total examined by
-`search = 'stable'` (otherwise `NA`).
+the group sizes `N1` and `N2` of the strata (`NULL` with a random
+allocation), their total `N`, and the exact power `Power` of the design.
+The attribute `n.raw` holds the unrounded total of the normal
+approximation, `n` the nominal total of the design and `search.limit`
+the limit of the nominal total examined by `search = 'stable'`
+(otherwise `NA`). With a random allocation the attributes `skipped` and
+`n.strata` are those of
+[`StratPower`](https://gosukehommaex.github.io/bbssr/reference/StratPower.md).
 
 ## Details
 
@@ -161,6 +181,15 @@ between the strata that the table of totals ignores.
 The exact power is not monotone in the sample size, so the result
 depends on `search`, as described in
 [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md).
+
+With a random allocation (`alloc` other than `'fixed'`, two strata only)
+the total sample size `N` is searched directly, the nominal total being
+the total itself, and the power is that of
+[`StratPower`](https://gosukehommaex.github.io/bbssr/reference/StratPower.md)
+with the same allocation. Jung (2014) searches upwards from the sample
+size of the Mantel-Haenszel test. The power is not monotone, so the
+result can differ from that of `search = 'crossing'`, which starts from
+the normal approximation.
 
 ## References
 
