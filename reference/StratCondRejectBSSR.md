@@ -284,10 +284,6 @@ Gosuke Homma (<my.name.is.gosuke@gmail.com>)
 crp <- StratCondRejectBSSR(Delta.A = 0.3, N1 = c(8, 8), N2 = c(8, 8), omega = 0.5,
                            r = 1, alpha = 0.025, tar.power = 0.8, Test = 'CMH',
                            ss.method = 'standard', theta = c(0.3, 0.5))
-#> Warning: row names were found from a short variable and have been discarded
-#> Warning: row names were found from a short variable and have been discarded
-#> Warning: row names were found from a short variable and have been discarded
-#> Warning: row names were found from a short variable and have been discarded
 print(crp)
 #> Conditional rejection probabilities of blinded sample size re-estimation
 #> for a stratified design, under equal response probabilities in every stratum

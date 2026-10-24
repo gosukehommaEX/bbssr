@@ -262,8 +262,6 @@ crp <- StratCondRejectBSSR(Delta.A = 2.5, N1 = c(20, 20), N2 = c(20, 20), omega 
                            r = 1, alpha = 0.025, tar.power = 0.8, Test = 'CMH',
                            effect = 'OR', ss.method = 'standard', N.max = 160,
                            theta = cbind(mx$theta.S1[1], mx$theta.S2[1]))
-#> Warning in data.frame(theta.S1 = pts[p, 1], theta.S2 = pts[p, 2], s1 = map$s1,
-#> : row names were found from a short variable and have been discarded
 crp
 #> Conditional rejection probabilities of blinded sample size re-estimation
 #> for a stratified design, under equal response probabilities in every stratum
