@@ -24,8 +24,19 @@ re-estimation. `NEWS.md` lists every change, including the changes in behaviour.
 
 ## R CMD check results
 
-TODO: fill in from the full run of tools/run-checks.R and from win-builder before the
-submission.
+0 errors | 0 warnings | 0 notes on the local installation. R-CMD-check on GitHub Actions
+passes on all five platforms.
+
+TODO: add the results of win-builder (R-devel and R-release) before the submission. Draft
+for the NOTE that win-builder is expected to give, to be checked against its output:
+
+    Possibly misspelled words in DESCRIPTION:
+      al, Blackwelder, Boschloo, BSSR, et, Farrington, Friede, Haenszel, Kieser,
+      McNemar, Mehrotra, Nam, Woolson
+
+These are the surnames of the authors of the cited references, the abbreviation BSSR,
+defined in the Description as blinded sample size re-estimation, and "et al.". They are
+spelled correctly.
 
 ## Reverse dependencies
 
