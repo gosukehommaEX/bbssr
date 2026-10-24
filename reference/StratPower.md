@@ -54,8 +54,12 @@ StratPower(
   `'Cochran'` (Cochran's test with the binomial variance, the test of
   Woolson et al. (1986)), `'Cochran-cc'` (the same with the continuity
   correction, which rejects the same outcomes as that of Nam (1992) at
-  one-sided levels up to 0.078) or `'Strat-Fisher'` (the stratified
-  exact conditional test of Jung (2014)). See Details
+  one-sided levels up to 0.078), `'Strat-Fisher'` (the stratified exact
+  conditional test of Jung (2014)), or one of the unstratified tests of
+  the table of totals: `'Unstrat-Chisq'` (Pearson's chi-squared test,
+  the comparison of two proportions with the pooled variance),
+  `'Unstrat-Chisq-cc'` (the same with the continuity correction) and
+  `'Unstrat-Fisher'` (Fisher's exact test). See Details
 
 - alternative:
 
@@ -65,8 +69,8 @@ StratPower(
 
 - tsmethod:
 
-  Convention of the two-sided p-value of `'Strat-Fisher'`, as for the
-  Fisher exact test of
+  Convention of the two-sided p-value of `'Strat-Fisher'` and
+  `'Unstrat-Fisher'`, as for the Fisher exact test of
   [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
   Options: `'minlike'` (default), `'central'` or `'blaker'`. Ignored by
   the other tests and for one-sided alternatives

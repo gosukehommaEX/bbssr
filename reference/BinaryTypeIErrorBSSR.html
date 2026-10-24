@@ -332,10 +332,7 @@ then a matrix with a row for each boundary.</p>
     <p>Under the null hypothesis both groups share the response probability <code>theta</code>. The
 sample size is re-estimated exactly as in <code><a href="BinaryPowerBSSR.html">BinaryPowerBSSR</a></code>, from the
 assumed effect <code>Delta.A</code>, and the rejection probability is summed over every
-interim outcome and every outcome of the second stage. Exact tests control the type I
-error rate of a fixed-sample design, but this property is not inherited by a design in
-which the final sample size depends on the interim data, so the rate is worth checking
-for every design.</p>
+interim outcome and every outcome of the second stage.</p>
 <p>The type I error rate is a polynomial in <code>theta</code>, since both response
 probabilities are linear in <code>theta</code>. With <code>maximize = 'certified'</code> the
 polynomial is expressed in the Bernstein basis over the interval from the smallest to

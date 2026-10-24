@@ -213,10 +213,11 @@ p-value.
 
 ``` r
 
-plan <- BinarySampleSize(p1 = 0.45, p2 = 0.09, r = 1, alpha = 0.025, tar.power = 0.8,
-                         Test = 'Z-pool')
+p.plan <- c(0.56, 0.26)
+plan <- BinarySampleSize(p1 = p.plan[1], p2 = p.plan[2], r = 1, alpha = 0.025,
+                         tar.power = 0.8, Test = 'Z-pool')
 res <- BinaryPowerBSSR(
-  p = seq(0.19, 0.37, by = 0.03), Delta.A = 0.36, Delta.T = 0.36,
+  p = seq(0.29, 0.49, by = 0.04), Delta.A = 0.3, Delta.T = 0.3,
   N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
   alpha = 0.025, tar.power = 0.8, Test = 'Z-pool'
 )
@@ -226,20 +227,19 @@ res
 #>   Test            : Z-pool
 #>   Alternative     : greater
 #>   Design rule     : unrestricted
-#>   Initial size    : N1 = 24, N2 = 24
-#>   Interim fraction: 0.5, giving n1 = 12 and n2 = 12
-#>   Treatment effect: assumed 0.36, true 0.36 (risk difference)
+#>   Initial size    : N1 = 43, N2 = 43
+#>   Interim fraction: 0.5, giving n1 = 22 and n2 = 22
+#>   Treatment effect: assumed 0.3, true 0.3 (risk difference)
 #>   Re-estimation   : exact power of Z-pool at level 0.025
 #>   Alpha           : 0.025, target power 0.8
 #> 
 #>     p   p1   p2 power.BSSR power.TRAD  E.N
-#>  0.19 0.37 0.01     0.9107     0.9565 38.2
-#>  0.22 0.40 0.04     0.8221     0.8916 40.6
-#>  0.25 0.43 0.07     0.7848     0.8442 43.5
-#>  0.28 0.46 0.10     0.7727     0.8070 46.6
-#>  0.31 0.49 0.13     0.7718     0.7800 49.4
-#>  0.34 0.52 0.16     0.7747     0.7590 51.9
-#>  0.37 0.55 0.19     0.7783     0.7388 53.9
+#>  0.29 0.44 0.14     0.7725     0.8792 69.6
+#>  0.33 0.48 0.18     0.7861     0.8562 75.5
+#>  0.37 0.52 0.22     0.7951     0.8350 80.2
+#>  0.41 0.56 0.26     0.7979     0.8106 83.8
+#>  0.45 0.60 0.30     0.7975     0.7913 86.2
+#>  0.49 0.64 0.34     0.7971     0.7834 87.3
 plot(res)
 ```
 
@@ -247,8 +247,8 @@ plot(res)
 
 The variance of a binary endpoint is largest at one half, so at a fixed
 risk difference the required sample size grows as the pooled probability
-approaches that value. The fixed-sample design of 48 patients is planned
-at a pooled probability of 0.27. The re-estimation adapts the sample
+approaches that value. The fixed-sample design of 86 patients is planned
+at a pooled probability of 0.41. The re-estimation adapts the sample
 size to the pooled probability observed at the interim analysis, and
 `E.N` reports the expected total sample size it leads to.
 
@@ -327,26 +327,26 @@ summary(grid)
 
 ``` r
 
-BinaryBSSR(n1 = 12, n2 = 12, S = 8, Delta.A = 0.36, r = 1,
+BinaryBSSR(n1 = 22, n2 = 22, S = 20, Delta.A = 0.3, r = 1,
            alpha = 0.025, tar.power = 0.8, Test = 'Z-pool')
 #> Blinded sample size re-estimation from interim data
 #> 
 #>   Test             : Z-pool
 #>   Alternative      : greater
 #>   Design rule      : unrestricted
-#>   Assumed effect   : 0.36
+#>   Assumed effect   : 0.3
 #>   Alpha            : 0.025, target power 0.8
 #> 
 #> Interim data
-#>   Patients         : n1 = 12, n2 = 12, total n = 24
-#>   Responders       : S = 8, blinded pooled rate = 0.3333
-#>   Recovered rates  : hat.p1 = 0.5133, hat.p2 = 0.1533
+#>   Patients         : n1 = 22, n2 = 22, total n = 44
+#>   Responders       : S = 20, blinded pooled rate = 0.4545
+#>   Recovered rates  : hat.p1 = 0.6045, hat.p2 = 0.3045
 #> 
 #> Re-estimation
-#>   Required total   : N1 = 27, N2 = 27, total N = 54
-#>   Still to enrol   : group 1 = 15, group 2 = 15, total = 30
-#>   Final size       : N1 = 27, N2 = 27, total N = 54
-#>   Power at final N : 0.8129
+#>   Required total   : N1 = 44, N2 = 44, total N = 88
+#>   Still to enrol   : group 1 = 22, group 2 = 22, total = 44
+#>   Final size       : N1 = 44, N2 = 44, total N = 88
+#>   Power at final N : 0.8004
 ```
 
 The total number of responders is the only quantity that has to leave

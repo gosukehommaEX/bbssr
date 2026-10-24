@@ -288,10 +288,6 @@ Under the null hypothesis both groups share the response probability
 [`BinaryPowerBSSR`](https://gosukehommaex.github.io/bbssr/reference/BinaryPowerBSSR.md),
 from the assumed effect `Delta.A`, and the rejection probability is
 summed over every interim outcome and every outcome of the second stage.
-Exact tests control the type I error rate of a fixed-sample design, but
-this property is not inherited by a design in which the final sample
-size depends on the interim data, so the rate is worth checking for
-every design.
 
 The type I error rate is a polynomial in `theta`, since both response
 probabilities are linear in `theta`. With `maximize = 'certified'` the

@@ -91,19 +91,15 @@ Homma</h4>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://gosukehommaex.github.io/bbssr/">bbssr</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
-<h2 id="why-the-rate-has-to-be-computed">Why the rate has to be computed<a class="anchor" aria-label="anchor" href="#why-the-rate-has-to-be-computed"></a>
+<h2 id="the-type-i-error-rate-of-a-re-estimation-design">The type I error rate of a re-estimation design<a class="anchor" aria-label="anchor" href="#the-type-i-error-rate-of-a-re-estimation-design"></a>
 </h2>
-<p>The size of a test at a fixed sample size is a property of one
-rejection region. With blinded sample size re-estimation the final
-sample size depends on the pooled number of interim responders, whose
-distribution depends on the common response probability
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>,
-and the rejection probability under the null hypothesis averages
-rejection regions of different sizes with weights that depend on
+<p>With blinded sample size re-estimation the final sample size depends
+on the pooled number of interim responders, whose distribution depends
+on the common response probability
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>.
-A test that keeps the nominal level at every fixed sample size need not
-keep it for this average, so the type I error rate of a re-estimation
-design is computed for the design itself.</p>
+The type I error rate of a re-estimation design is computed for the
+design itself, by summing the rejection probability over the interim
+outcomes and the outcomes of the second stage.</p>
 <p>Under the null hypothesis
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>=</mo><msub><mi>p</mi><mn>2</mn></msub><mo>=</mo><mi>θ</mi></mrow><annotation encoding="application/x-tex">p_{1} = p_{2} = \theta</annotation></semantics></math>.
 Let
@@ -205,11 +201,7 @@ following largest rates.</p>
 <span><span class="co">#&gt; 4 Boschloo   TRAD 0.4543 0.02477</span></span></code></pre></div>
 <p>For this rule the largest rate of the re-estimation design is 0.01573
 with Fisher’s exact test and 0.02312 with the Boschloo test, against the
-nominal 0.025. Whether the rate stays at or below the level is a
-property of the rule and the test together. The guarantee of an exact
-test holds at each fixed sample size and need not carry over to a sample
-size chosen from the interim data, so the rate has to be checked for
-each design.</p>
+nominal 0.025.</p>
 </div>
 <div class="section level2">
 <h2 id="the-adjusted-significance-level">The adjusted significance level<a class="anchor" aria-label="anchor" href="#the-adjusted-significance-level"></a>
@@ -409,73 +401,54 @@ and
 b\bigl(s_{2}; n_{21}(s) + n_{22}(s), \theta\bigr) \, \mathrm{CRP}(s, s_{2}) ,
 </annotation></semantics></math> where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
-is the binomial probability. The rate is therefore at most
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
-for every
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
-whenever
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">P</mi></mrow><annotation encoding="application/x-tex">\mathrm{CRP}</annotation></semantics></math>
-is at most
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
-for every outcome. The column <code>CRP.total</code> is the rejection
-probability given only the total
+is the binomial probability. The column <code>CRP.total</code> is the
+rejection probability given only the total
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>+</mo><msub><mi>s</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">s + s_{2}</annotation></semantics></math>,
 with the responder count of group 1 treated as one hypergeometric count
-among all final patients. Fisher’s exact test keeps it at or below
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
-by construction.</p>
+among all final patients.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">crp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryCondRejectBSSR.html">BinaryCondRejectBSSR</a></span><span class="op">(</span></span>
 <span>  Delta.A <span class="op">=</span> <span class="fl">0.3</span>, N1 <span class="op">=</span> <span class="fl">12</span>, N2 <span class="op">=</span> <span class="fl">12</span>, n.interim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fl">6</span><span class="op">)</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>,</span>
-<span>  tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Fisher'</span>, ss.method <span class="op">=</span> <span class="st">'standard'</span>, theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0.5</span><span class="op">)</span></span>
+<span>  tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Chisq'</span>, ss.method <span class="op">=</span> <span class="st">'standard'</span>, theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0.5</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">crp</span></span>
 <span><span class="co">#&gt; Conditional rejection probabilities of blinded sample size re-estimation</span></span>
 <span><span class="co">#&gt; for a binary endpoint, under equal response probabilities</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   Test            : Fisher</span></span>
+<span><span class="co">#&gt;   Test            : Chisq</span></span>
 <span><span class="co">#&gt;   Alternative     : greater</span></span>
 <span><span class="co">#&gt;   Initial size    : N1 = 12, N2 = 12</span></span>
 <span><span class="co">#&gt;   Interim size    : n1 = 6, n2 = 6</span></span>
 <span><span class="co">#&gt;   Assumed effect  : 0.3 (RD)</span></span>
 <span><span class="co">#&gt;   Nominal level   : 0.025</span></span>
 <span><span class="co">#&gt;   Outcomes        : 567 pairs (s, s2)</span></span>
-<span><span class="co">#&gt;   Above the level : 8 for CRP, 0 for CRP.total</span></span>
+<span><span class="co">#&gt;   Above the level : 198 for CRP, 264 for CRP.total</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Largest conditional rejection probability</span></span>
 <span><span class="co">#&gt;   Quantity   value s s2 N1 N2</span></span>
-<span><span class="co">#&gt;        CRP 0.02597 2  3 24 24</span></span>
-<span><span class="co">#&gt;  CRP.total 0.02500 3 15 32 32</span></span>
+<span><span class="co">#&gt;        CRP 0.05519 2  2 24 24</span></span>
+<span><span class="co">#&gt;  CRP.total 0.05753 4  0 38 38</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Type I error rate over 2 values of theta: largest 0.01581 at theta = 0.5</span></span>
+<span><span class="co">#&gt; Type I error rate over 2 values of theta: largest 0.02762 at theta = 0.5</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">crp</span><span class="op">)</span></span></code></pre></div>
 <p><img src="bbssr-type1-error_files/figure-html/crp-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
-<p><code>CRP</code> exceeds the nominal level at 8 outcomes and
-<code>CRP.total</code> at 0. The allocation is fixed within each stage,
-so the responder count of group 1 given
+<p>The decomposition by
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>s</mi><mn>2</mn></msub><annotation encoding="application/x-tex">s_{2}</annotation></semantics></math>
-is the sum of two hypergeometric counts rather than one, and
-<code>CRP</code> differs from <code>CRP.total</code> even when the
-sample size is not re-estimated. Whether the outcomes above the level
-raise the type I error rate is seen from the decomposition by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>,
-which <code>theta</code> requests.</p>
+is returned when <code>theta</code> is given.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">by.s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">crp</span>, <span class="st">'by.s'</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">by.s</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   theta s N1 N2     prob.s       TIE.s contribution</span></span>
-<span><span class="co">#&gt; 1   0.3 0  6  6 0.01384129 0.000000000 0.0000000000</span></span>
-<span><span class="co">#&gt; 2   0.3 1 14 14 0.07118376 0.006945771 0.0004944261</span></span>
-<span><span class="co">#&gt; 3   0.3 2 24 24 0.16779030 0.013122889 0.0022018935</span></span>
-<span><span class="co">#&gt; 4   0.3 3 32 32 0.23970043 0.014650674 0.0035117727</span></span>
-<span><span class="co">#&gt; 5   0.3 4 38 38 0.23113970 0.015559790 0.0035964851</span></span>
-<span><span class="co">#&gt; 6   0.3 5 42 42 0.15849579 0.015005504 0.0023783092</span></span>
+<span><span class="co">#&gt;   theta s N1 N2     prob.s      TIE.s contribution</span></span>
+<span><span class="co">#&gt; 1   0.3 0  6  6 0.01384129 0.00000000  0.000000000</span></span>
+<span><span class="co">#&gt; 2   0.3 1 14 14 0.07118376 0.02078361  0.001479455</span></span>
+<span><span class="co">#&gt; 3   0.3 2 24 24 0.16779030 0.02603899  0.004369090</span></span>
+<span><span class="co">#&gt; 4   0.3 3 32 32 0.23970043 0.02648734  0.006349026</span></span>
+<span><span class="co">#&gt; 5   0.3 4 38 38 0.23113970 0.02684226  0.006204313</span></span>
+<span><span class="co">#&gt; 6   0.3 5 42 42 0.15849579 0.02550149  0.004041879</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">crp</span>, <span class="st">'TIE'</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   theta        TIE</span></span>
-<span><span class="co">#&gt; 1   0.3 0.01387632</span></span>
-<span><span class="co">#&gt; 2   0.5 0.01580768</span></span>
+<span><span class="co">#&gt; 1   0.3 0.02537642</span></span>
+<span><span class="co">#&gt; 2   0.5 0.02761990</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">crp</span>, what <span class="op">=</span> <span class="st">'by.s'</span><span class="op">)</span></span></code></pre></div>
 <p><img src="bbssr-type1-error_files/figure-html/by-s-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p><code>TIE.s</code> is the type I error rate given
@@ -484,7 +457,7 @@ and <code>contribution</code> is its product with the probability
 <code>prob.s</code> of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>.
 The contributions add up to the type I error rate at each value of
-<code>theta</code>, which is 0.01388 and 0.01581 here.</p>
+<code>theta</code>, which is 0.02538 and 0.02762 here.</p>
 </div>
 <div class="section level2">
 <h2 id="non-inferiority">Non-inferiority<a class="anchor" aria-label="anchor" href="#non-inferiority"></a>

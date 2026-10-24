@@ -589,31 +589,34 @@ is kept as in formula (2) of Friede and Kieser (2004). The
 the rules that turn
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>N</mi><mo accent="true">̂</mo></mover><mn>2</mn></msub><annotation encoding="application/x-tex">\hat{N}_{2}</annotation></semantics></math>
 into whole numbers.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">n.int</span> <span class="op">&lt;-</span> <span class="fl">12</span></span>
+<span><span class="va">N.plan</span> <span class="op">&lt;-</span> <span class="fl">24</span></span></code></pre></div>
 <p>Two rules govern what happens next. The unrestricted rule takes the
 re-estimated sample size as it stands, allowing the trial to end up
 smaller than planned. The restricted rule raises it to the planned
 sample size first, so the trial can only grow. The table below applies
 both to a trial planned at 24 patients per group with an interim
 analysis at 12, with the default exact search.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">interim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">6</span>, <span class="fl">8</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">interim</span><span class="op">$</span><span class="va">pooled</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">interim</span><span class="op">$</span><span class="va">S</span> <span class="op">/</span> <span class="fl">24</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">interim</span><span class="op">$</span><span class="va">pooled</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">interim</span><span class="op">$</span><span class="va">S</span> <span class="op">/</span> <span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">n.int</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">interim</span><span class="op">$</span><span class="va">unrestricted</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">interim</span><span class="op">$</span><span class="va">S</span>, <span class="kw">function</span><span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="../reference/BinaryBSSR.html">BinaryBSSR</a></span><span class="op">(</span>n1 <span class="op">=</span> <span class="fl">12</span>, n2 <span class="op">=</span> <span class="fl">12</span>, S <span class="op">=</span> <span class="va">s</span>, Delta.A <span class="op">=</span> <span class="fl">0.36</span>, r <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  <span class="fu"><a href="../reference/BinaryBSSR.html">BinaryBSSR</a></span><span class="op">(</span>n1 <span class="op">=</span> <span class="va">n.int</span>, n2 <span class="op">=</span> <span class="va">n.int</span>, S <span class="op">=</span> <span class="va">s</span>, Delta.A <span class="op">=</span> <span class="fl">0.3</span>, r <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>             alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Chisq'</span><span class="op">)</span><span class="op">$</span><span class="va">N.final</span></span>
 <span><span class="op">}</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">interim</span><span class="op">$</span><span class="va">restricted</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">interim</span><span class="op">$</span><span class="va">S</span>, <span class="kw">function</span><span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="../reference/BinaryBSSR.html">BinaryBSSR</a></span><span class="op">(</span>n1 <span class="op">=</span> <span class="fl">12</span>, n2 <span class="op">=</span> <span class="fl">12</span>, S <span class="op">=</span> <span class="va">s</span>, Delta.A <span class="op">=</span> <span class="fl">0.36</span>, r <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  <span class="fu"><a href="../reference/BinaryBSSR.html">BinaryBSSR</a></span><span class="op">(</span>n1 <span class="op">=</span> <span class="va">n.int</span>, n2 <span class="op">=</span> <span class="va">n.int</span>, S <span class="op">=</span> <span class="va">s</span>, Delta.A <span class="op">=</span> <span class="fl">0.3</span>, r <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>             alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Chisq'</span>,</span>
-<span>             restricted <span class="op">=</span> <span class="cn">TRUE</span>, N1 <span class="op">=</span> <span class="fl">24</span>, N2 <span class="op">=</span> <span class="fl">24</span><span class="op">)</span><span class="op">$</span><span class="va">N.final</span></span>
+<span>             restricted <span class="op">=</span> <span class="cn">TRUE</span>, N1 <span class="op">=</span> <span class="va">N.plan</span>, N2 <span class="op">=</span> <span class="va">N.plan</span><span class="op">)</span><span class="op">$</span><span class="va">N.final</span></span>
 <span><span class="op">}</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">interim</span></span>
 <span><span class="co">#&gt;    S pooled unrestricted restricted</span></span>
-<span><span class="co">#&gt; 1  2  0.083           40         48</span></span>
-<span><span class="co">#&gt; 2  4  0.167           30         48</span></span>
-<span><span class="co">#&gt; 3  6  0.250           40         48</span></span>
-<span><span class="co">#&gt; 4  8  0.333           50         50</span></span>
-<span><span class="co">#&gt; 5 10  0.417           58         58</span></span></code></pre></div>
+<span><span class="co">#&gt; 1  2  0.083           46         48</span></span>
+<span><span class="co">#&gt; 2  4  0.167           40         48</span></span>
+<span><span class="co">#&gt; 3  6  0.250           62         62</span></span>
+<span><span class="co">#&gt; 4  8  0.333           76         76</span></span>
+<span><span class="co">#&gt; 5 10  0.417           82         82</span></span></code></pre></div>
 <p>The unrestricted column is not monotone in
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>.
 At a pooled rate of 0.083 the recovered control probability
@@ -638,10 +641,8 @@ cached.</p>
 <p>Setting
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>=</mo><msub><mi>p</mi><mn>2</mn></msub><mo>=</mo><mi>θ</mi></mrow><annotation encoding="application/x-tex">p_{1} = p_{2} = \theta</annotation></semantics></math>
 in this sum gives the type I error rate of the design at
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>.
-The final sample size depends on the interim data, so the rate is not
-bounded by the size of the test at any one sample size, and
-<code><a href="../reference/BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR()</a></code> evaluates it over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>,
+and <code><a href="../reference/BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR()</a></code> evaluates it over
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>.
 The <code>bbssr-type1-error</code> vignette covers this calculation, the
 adjusted nominal level and the decomposition of the rate by the interim

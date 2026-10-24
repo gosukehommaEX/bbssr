@@ -131,7 +131,7 @@ for blinded sample size re-estimation.</p>
 <div class="section level2">
 <h2 id="tests">Tests<a class="anchor" aria-label="anchor" href="#tests"></a>
 </h2>
-<p>Five tests are available. <code>'CMH'</code> is the
+<p>Five stratified tests are available. <code>'CMH'</code> is the
 Cochran-Mantel-Haenszel statistic
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>S</mi><mo>−</mo><mi>E</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msqrt><mi>V</mi></msqrt></mrow><annotation encoding="application/x-tex">(S - E) / \sqrt{V}</annotation></semantics></math>
 with the hypergeometric variance
@@ -153,7 +153,10 @@ stratified exact conditional test of Jung (2014), which refers
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
 to its distribution given
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>,
-the convolution of the hypergeometric distributions of the strata.</p>
+the convolution of the hypergeometric distributions of the strata. Three
+unstratified tests, which analyse the table of totals and ignore the
+strata, are available for comparison (see <a href="#analyses-that-ignore-the-strata">Analyses that ignore the
+strata</a>).</p>
 <p>Jung (2014, Table 2) analyses the response to thymosin in three
 strata of patients with bronchogenic carcinoma.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -333,6 +336,107 @@ certified largest rate does not exceed <code>alpha</code>.</p>
 <span><span class="co">#&gt;        Design   max.TIE alpha.adj max.TIE.adj</span></span>
 <span><span class="co">#&gt;          BSSR 0.0255490 0.0245872   0.0248681</span></span>
 <span><span class="co">#&gt;  Fixed sample 0.0283368 0.0228356   0.0246744</span></span></code></pre></div>
+<p><code><a href="../reference/StratCondRejectBSSR.html">StratCondRejectBSSR()</a></code> gives, under the null hypothesis,
+the probability of rejection given the pooled numbers of responders of
+the strata at the interim analysis and in the second stage. These
+probabilities do not depend on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>θ</mi><mn>1</mn></msub><mo>,</mo><msub><mi>θ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\theta_1, \theta_2)</annotation></semantics></math>,
+and averaging them over the second stage gives the type I error rate
+given the interim outcome. Below they are evaluated at the point of the
+largest rate found above.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">crp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/StratCondRejectBSSR.html">StratCondRejectBSSR</a></span><span class="op">(</span>Delta.A <span class="op">=</span> <span class="fl">2.5</span>, N1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">20</span><span class="op">)</span>, N2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">20</span><span class="op">)</span>, omega <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>                           r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'CMH'</span>,</span>
+<span>                           effect <span class="op">=</span> <span class="st">'OR'</span>, ss.method <span class="op">=</span> <span class="st">'standard'</span>, N.max <span class="op">=</span> <span class="fl">160</span>,</span>
+<span>                           theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">mx</span><span class="op">$</span><span class="va">theta.S1</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">mx</span><span class="op">$</span><span class="va">theta.S2</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in data.frame(theta.S1 = pts[p, 1], theta.S2 = pts[p, 2], s1 = map$s1,</span></span>
+<span><span class="co">#&gt; : row names were found from a short variable and have been discarded</span></span>
+<span><span class="va">crp</span></span>
+<span><span class="co">#&gt; Conditional rejection probabilities of blinded sample size re-estimation</span></span>
+<span><span class="co">#&gt; for a stratified design, under equal response probabilities in every stratum</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   Test             : CMH</span></span>
+<span><span class="co">#&gt;   Alternative      : greater</span></span>
+<span><span class="co">#&gt;   Planned sizes    : (20, 20) and (20, 20)</span></span>
+<span><span class="co">#&gt;   Interim sizes    : (10, 10) and (10, 10)</span></span>
+<span><span class="co">#&gt;   Assumed effect   : 2.5 (OR)</span></span>
+<span><span class="co">#&gt;   Nominal level    : 0.025</span></span>
+<span><span class="co">#&gt;   Interim outcomes : 441 pairs (s1, s2)</span></span>
+<span><span class="co">#&gt;   Above the level  : 267496 outcomes for CRP, 762792 for CRP.total</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Largest conditional rejection probability</span></span>
+<span><span class="co">#&gt;   Quantity   value s1 s2 w1 w2</span></span>
+<span><span class="co">#&gt;        CRP 0.06250  1  1  1  1</span></span>
+<span><span class="co">#&gt;  CRP.total 0.06093  1  0  1  2</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Type I error rate over 1 point: largest 0.02555 at theta = (0.340135, 0.340135)</span></span>
+<span><span class="va">by.s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">crp</span>, <span class="st">'by.s'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">by.s</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">by.s</span><span class="op">$</span><span class="va">contribution</span><span class="op">)</span>, <span class="op">]</span>, <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      theta.S1  theta.S2 s1 s2     prob.s      TIE.s contribution</span></span>
+<span><span class="co">#&gt; 155 0.3401352 0.3401352  7  7 0.03371154 0.02640780 0.0008902478</span></span>
+<span><span class="co">#&gt; 134 0.3401352 0.3401352  7  6 0.03270032 0.02633070 0.0008610225</span></span>
+<span><span class="co">#&gt; 154 0.3401352 0.3401352  6  7 0.03270032 0.02633070 0.0008610225</span></span>
+<span><span class="co">#&gt; 133 0.3401352 0.3401352  6  6 0.03171943 0.02617832 0.0008303614</span></span>
+<span><span class="co">#&gt; 176 0.3401352 0.3401352  7  8 0.02823765 0.02625803 0.0007414652</span></span></code></pre></div>
+<p>The contributions of the interim outcomes sum to 0.02555, the largest
+type I error rate found above.</p>
+</div>
+<div class="section level2">
+<h2 id="analyses-that-ignore-the-strata">Analyses that ignore the strata<a class="anchor" aria-label="anchor" href="#analyses-that-ignore-the-strata"></a>
+</h2>
+<p><code>'Unstrat-Chisq'</code> is Pearson’s chi-squared test of the
+table of totals, with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>j</mi></msub><msub><mi>N</mi><mrow><mn>1</mn><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\sum_j N_{1j}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>j</mi></msub><msub><mi>N</mi><mrow><mn>2</mn><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\sum_j N_{2j}</annotation></semantics></math>
+patients and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>j</mi></msub><msub><mi>z</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">\sum_j z_j</annotation></semantics></math>
+responders, which is the comparison of two proportions with the pooled
+variance; <code>'Unstrat-Chisq-cc'</code> adds the continuity
+correction, and <code>'Unstrat-Fisher'</code> is Fisher’s exact test of
+that table. Their critical values depend on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+only through
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>j</mi></msub><msub><mi>z</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">\sum_j z_j</annotation></semantics></math>,
+but their power and type I error rate are computed with the response
+probabilities of each stratum. An unstratified test controls the level
+when the strata are distributed alike in the two groups, and its level
+can be distorted otherwise (Nam, 1992; Jung, 2014). In the next design
+group 1 holds a third of the first stratum, whose patients respond
+rarely, and three quarters of the second.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">th</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.6</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>, <span class="fl">0.4</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">lev</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'CMH'</span>, <span class="st">'Strat-Fisher'</span>, <span class="st">'Unstrat-Chisq'</span>, <span class="st">'Unstrat-Fisher'</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">Test</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="../reference/StratPower.html">StratPower</a></span><span class="op">(</span><span class="va">th</span>, <span class="va">th</span>, N1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">60</span><span class="op">)</span>, N2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">20</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>, Test <span class="op">=</span> <span class="va">Test</span><span class="op">)</span><span class="op">$</span><span class="va">Power</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">lev</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'theta = (0.2, 0.6)'</span>, <span class="st">'theta = (0.4, 0.4)'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">lev</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                       CMH Strat-Fisher Unstrat-Chisq Unstrat-Fisher</span></span>
+<span><span class="co">#&gt; theta = (0.2, 0.6) 0.0264       0.0157        0.5090         0.4348</span></span>
+<span><span class="co">#&gt; theta = (0.4, 0.4) 0.0247       0.0160        0.0247         0.0166</span></span></code></pre></div>
+<p>With the response probabilities 0.2 and 0.6 in the two strata, the
+one-sided type I error rate of the unstratified chi-squared test is
+0.509 instead of 0.025, because the table of totals compares groups made
+of different mixtures of the strata. When the strata respond alike, the
+rate is 0.0247.</p>
+<p>The re-estimation can ignore the strata as well: with
+<code>ss.strata = 'pooled'</code> the sample size is re-estimated from
+the proportion of responders among all the interim patients, used for
+every stratum, so the final sizes depend only on the total number of
+interim responders. The final analysis is still the test given by
+<code>Test</code>.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res.pooled</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/StratPowerBSSR.html">StratPowerBSSR</a></span><span class="op">(</span>p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">pooled</span>, <span class="va">pooled</span> <span class="op">+</span> <span class="fl">0.1</span><span class="op">)</span>, Delta.A <span class="op">=</span> <span class="fl">2.5</span>,</span>
+<span>                             Delta.T <span class="op">=</span> <span class="fl">2.5</span>, N1 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N1</span>, N2 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N2</span>, omega <span class="op">=</span> <span class="fl">0.5</span>, r <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>                             alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'CMH'</span>, effect <span class="op">=</span> <span class="st">'OR'</span>,</span>
+<span>                             ss.method <span class="op">=</span> <span class="st">'standard'</span>, N.max <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">plan</span><span class="op">$</span><span class="va">N</span>,</span>
+<span>                             ss.strata <span class="op">=</span> <span class="st">'pooled'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span>stratified <span class="op">=</span> <span class="va">res</span><span class="op">$</span><span class="va">E.N</span>, pooled <span class="op">=</span> <span class="va">res.pooled</span><span class="op">$</span><span class="va">E.N</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                [,1]     [,2]</span></span>
+<span><span class="co">#&gt; stratified 166.4284 175.7539</span></span>
+<span><span class="co">#&gt; pooled     157.1181 165.4599</span></span></code></pre></div>
+<p>The rows give the expected final totals of the two estimates in the
+two scenarios of the previous section.</p>
 </div>
 <div class="section level2">
 <h2 id="three-or-more-strata">Three or more strata<a class="anchor" aria-label="anchor" href="#three-or-more-strata"></a>
@@ -343,7 +447,7 @@ product over the strata, and <code><a href="../reference/StratPowerBSSR.html">St
 re-estimation design by simulation, with the random numbers of R and a
 Monte Carlo standard error. The rates of the fixed design remain
 exact.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">q2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.35</span>, <span class="fl">0.5</span><span class="op">)</span></span>
 <span><span class="va">q1</span> <span class="op">&lt;-</span> <span class="va">q2</span> <span class="op">*</span> <span class="fl">2.5</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">q2</span> <span class="op">+</span> <span class="va">q2</span> <span class="op">*</span> <span class="fl">2.5</span><span class="op">)</span></span>

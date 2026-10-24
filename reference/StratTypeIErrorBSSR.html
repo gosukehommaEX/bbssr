@@ -89,6 +89,7 @@ or more strata the rate of the re-estimation design is estimated by simulation.<
 <span>  ss.method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exact"</span>, <span class="st">"standard"</span><span class="op">)</span>,</span>
 <span>  ss.Test <span class="op">=</span> <span class="va">Test</span>,</span>
 <span>  ss.alpha <span class="op">=</span> <span class="va">alpha</span>,</span>
+<span>  ss.strata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"stratified"</span>, <span class="st">"pooled"</span><span class="op">)</span>,</span>
 <span>  search <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"crossing"</span>, <span class="st">"smallest"</span>, <span class="st">"stable"</span><span class="op">)</span>,</span>
 <span>  search.limit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">50</span><span class="op">)</span>,</span>
 <span>  N.min <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -146,9 +147,12 @@ with the hypergeometric variance, without continuity correction), <code>'CMH-cc'
 (the same with the continuity correction of <code><a href="https://rdrr.io/r/stats/mantelhaen.test.html" class="external-link">mantelhaen.test</a></code>),
 <code>'Cochran'</code> (Cochran's test with the binomial variance, the test of Woolson et
 al. (1986)), <code>'Cochran-cc'</code> (the same with the continuity correction, which
-rejects the same outcomes as that of Nam (1992) at one-sided levels up to 0.078) or
-<code>'Strat-Fisher'</code> (the stratified exact conditional test of Jung (2014)). See
-Details</p></dd>
+rejects the same outcomes as that of Nam (1992) at one-sided levels up to 0.078),
+<code>'Strat-Fisher'</code> (the stratified exact conditional test of Jung (2014)), or one
+of the unstratified tests of the table of totals: <code>'Unstrat-Chisq'</code> (Pearson's
+chi-squared test, the comparison of two proportions with the pooled variance),
+<code>'Unstrat-Chisq-cc'</code> (the same with the continuity correction) and
+<code>'Unstrat-Fisher'</code> (Fisher's exact test). See Details</p></dd>
 
 
 <dt id="arg-restricted">restricted<a class="anchor" aria-label="anchor" href="#arg-restricted"></a></dt>
@@ -163,10 +167,10 @@ sizes. Default is <code>FALSE</code></p></dd>
 
 
 <dt id="arg-tsmethod">tsmethod<a class="anchor" aria-label="anchor" href="#arg-tsmethod"></a></dt>
-<dd><p>Convention of the two-sided p-value of <code>'Strat-Fisher'</code>, as for
-the Fisher exact test of <code><a href="BinaryRR.html">BinaryRR</a></code>. Options: <code>'minlike'</code>
-(default), <code>'central'</code> or <code>'blaker'</code>. Ignored by the other tests and for
-one-sided alternatives</p></dd>
+<dd><p>Convention of the two-sided p-value of <code>'Strat-Fisher'</code> and
+<code>'Unstrat-Fisher'</code>, as for the Fisher exact test of <code><a href="BinaryRR.html">BinaryRR</a></code>.
+Options: <code>'minlike'</code> (default), <code>'central'</code> or <code>'blaker'</code>. Ignored by
+the other tests and for one-sided alternatives</p></dd>
 
 
 <dt id="arg-effect">effect<a class="anchor" aria-label="anchor" href="#arg-effect"></a></dt>
@@ -188,6 +192,15 @@ size of <code><a href="StratSampleSize.html">StratSampleSize</a></code> with <co
 
 <dt id="arg-ss-alpha">ss.alpha<a class="anchor" aria-label="anchor" href="#arg-ss-alpha"></a></dt>
 <dd><p>Level used in the re-estimation. Default is <code>alpha</code></p></dd>
+
+
+<dt id="arg-ss-strata">ss.strata<a class="anchor" aria-label="anchor" href="#arg-ss-strata"></a></dt>
+<dd><p>Blinded estimate of the re-estimation. <code>'stratified'</code> (default)
+estimates the pooled response probability of each stratum from its own interim
+patients, and <code>'pooled'</code> uses the proportion of responders among all the interim
+patients for every stratum, as a re-estimation that ignores the strata would. With
+<code>'pooled'</code> the final group sizes depend only on the total number of interim
+responders</p></dd>
 
 
 <dt id="arg-search">search<a class="anchor" aria-label="anchor" href="#arg-search"></a></dt>

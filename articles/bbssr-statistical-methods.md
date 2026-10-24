@@ -466,6 +466,12 @@ in formula (2) of Friede and Kieser (2004). The
 `bbssr-reestimation-rules` vignette compares the methods and the rules
 that turn $`\hat{N}_{2}`$ into whole numbers.
 
+``` r
+
+n.int <- 12
+N.plan <- 24
+```
+
 Two rules govern what happens next. The unrestricted rule takes the
 re-estimated sample size as it stands, allowing the trial to end up
 smaller than planned. The restricted rule raises it to the planned
@@ -476,23 +482,23 @@ analysis at 12, with the default exact search.
 ``` r
 
 interim <- data.frame(S = c(2, 4, 6, 8, 10))
-interim$pooled <- round(interim$S / 24, 3)
+interim$pooled <- round(interim$S / (2 * n.int), 3)
 interim$unrestricted <- vapply(interim$S, function(s) {
-  BinaryBSSR(n1 = 12, n2 = 12, S = s, Delta.A = 0.36, r = 1,
+  BinaryBSSR(n1 = n.int, n2 = n.int, S = s, Delta.A = 0.3, r = 1,
              alpha = 0.025, tar.power = 0.8, Test = 'Chisq')$N.final
 }, numeric(1))
 interim$restricted <- vapply(interim$S, function(s) {
-  BinaryBSSR(n1 = 12, n2 = 12, S = s, Delta.A = 0.36, r = 1,
+  BinaryBSSR(n1 = n.int, n2 = n.int, S = s, Delta.A = 0.3, r = 1,
              alpha = 0.025, tar.power = 0.8, Test = 'Chisq',
-             restricted = TRUE, N1 = 24, N2 = 24)$N.final
+             restricted = TRUE, N1 = N.plan, N2 = N.plan)$N.final
 }, numeric(1))
 interim
 #>    S pooled unrestricted restricted
-#> 1  2  0.083           40         48
-#> 2  4  0.167           30         48
-#> 3  6  0.250           40         48
-#> 4  8  0.333           50         50
-#> 5 10  0.417           58         58
+#> 1  2  0.083           46         48
+#> 2  4  0.167           40         48
+#> 3  6  0.250           62         62
+#> 4  8  0.333           76         76
+#> 5 10  0.417           82         82
 ```
 
 The unrestricted column is not monotone in $`S`$. At a pooled rate of
@@ -516,9 +522,7 @@ to. The sum runs over every possible interim outcome, so the same
 rejection region is required many times and is cached.
 
 Setting $`p_{1} = p_{2} = \theta`$ in this sum gives the type I error
-rate of the design at $`\theta`$. The final sample size depends on the
-interim data, so the rate is not bounded by the size of the test at any
-one sample size, and
+rate of the design at $`\theta`$, and
 [`BinaryTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryTypeIErrorBSSR.md)
 evaluates it over $`\theta`$. The `bbssr-type1-error` vignette covers
 this calculation, the adjusted nominal level and the decomposition of

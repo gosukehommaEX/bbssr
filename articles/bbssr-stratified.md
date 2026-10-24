@@ -34,8 +34,9 @@ for blinded sample size re-estimation.
 
 ## Tests
 
-Five tests are available. `'CMH'` is the Cochran-Mantel-Haenszel
-statistic $`(S - E) / \sqrt{V}`$ with the hypergeometric variance
+Five stratified tests are available. `'CMH'` is the
+Cochran-Mantel-Haenszel statistic $`(S - E) / \sqrt{V}`$ with the
+hypergeometric variance
 $`V = \sum_j N_{1j} N_{2j} z_j (N_j - z_j) / \{N_j^2 (N_j - 1)\}`$, and
 `'Cochran'` is Cochran’s statistic with the binomial variance
 $`\sum_j N_{1j} N_{2j} z_j (N_j - z_j) / N_j^3`$, the statistic of
@@ -47,7 +48,10 @@ corrections reject the same outcomes at one-sided levels up to 0.078,
 since an outcome with $`|S - E| < 0.5`$ has a larger one-sided p-value.
 `'Strat-Fisher'` is the stratified exact conditional test of Jung
 (2014), which refers $`S`$ to its distribution given $`z`$, the
-convolution of the hypergeometric distributions of the strata.
+convolution of the hypergeometric distributions of the strata. Three
+unstratified tests, which analyse the table of totals and ignore the
+strata, are available for comparison (see [Analyses that ignore the
+strata](#analyses-that-ignore-the-strata)).
 
 Jung (2014, Table 2) analyses the response to thymosin in three strata
 of patients with bronchogenic carcinoma.
@@ -243,6 +247,110 @@ adj
 #>          BSSR 0.0255490 0.0245872   0.0248681
 #>  Fixed sample 0.0283368 0.0228356   0.0246744
 ```
+
+[`StratCondRejectBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratCondRejectBSSR.md)
+gives, under the null hypothesis, the probability of rejection given the
+pooled numbers of responders of the strata at the interim analysis and
+in the second stage. These probabilities do not depend on
+$`(\theta_1, \theta_2)`$, and averaging them over the second stage gives
+the type I error rate given the interim outcome. Below they are
+evaluated at the point of the largest rate found above.
+
+``` r
+
+crp <- StratCondRejectBSSR(Delta.A = 2.5, N1 = c(20, 20), N2 = c(20, 20), omega = 0.5,
+                           r = 1, alpha = 0.025, tar.power = 0.8, Test = 'CMH',
+                           effect = 'OR', ss.method = 'standard', N.max = 160,
+                           theta = cbind(mx$theta.S1[1], mx$theta.S2[1]))
+#> Warning in data.frame(theta.S1 = pts[p, 1], theta.S2 = pts[p, 2], s1 = map$s1,
+#> : row names were found from a short variable and have been discarded
+crp
+#> Conditional rejection probabilities of blinded sample size re-estimation
+#> for a stratified design, under equal response probabilities in every stratum
+#> 
+#>   Test             : CMH
+#>   Alternative      : greater
+#>   Planned sizes    : (20, 20) and (20, 20)
+#>   Interim sizes    : (10, 10) and (10, 10)
+#>   Assumed effect   : 2.5 (OR)
+#>   Nominal level    : 0.025
+#>   Interim outcomes : 441 pairs (s1, s2)
+#>   Above the level  : 267496 outcomes for CRP, 762792 for CRP.total
+#> 
+#> Largest conditional rejection probability
+#>   Quantity   value s1 s2 w1 w2
+#>        CRP 0.06250  1  1  1  1
+#>  CRP.total 0.06093  1  0  1  2
+#> 
+#> Type I error rate over 1 point: largest 0.02555 at theta = (0.340135, 0.340135)
+by.s <- attr(crp, 'by.s')
+head(by.s[order(-by.s$contribution), ], 5)
+#>      theta.S1  theta.S2 s1 s2     prob.s      TIE.s contribution
+#> 155 0.3401352 0.3401352  7  7 0.03371154 0.02640780 0.0008902478
+#> 134 0.3401352 0.3401352  7  6 0.03270032 0.02633070 0.0008610225
+#> 154 0.3401352 0.3401352  6  7 0.03270032 0.02633070 0.0008610225
+#> 133 0.3401352 0.3401352  6  6 0.03171943 0.02617832 0.0008303614
+#> 176 0.3401352 0.3401352  7  8 0.02823765 0.02625803 0.0007414652
+```
+
+The contributions of the interim outcomes sum to 0.02555, the largest
+type I error rate found above.
+
+## Analyses that ignore the strata
+
+`'Unstrat-Chisq'` is Pearson’s chi-squared test of the table of totals,
+with $`\sum_j N_{1j}`$ and $`\sum_j N_{2j}`$ patients and $`\sum_j z_j`$
+responders, which is the comparison of two proportions with the pooled
+variance; `'Unstrat-Chisq-cc'` adds the continuity correction, and
+`'Unstrat-Fisher'` is Fisher’s exact test of that table. Their critical
+values depend on $`z`$ only through $`\sum_j z_j`$, but their power and
+type I error rate are computed with the response probabilities of each
+stratum. An unstratified test controls the level when the strata are
+distributed alike in the two groups, and its level can be distorted
+otherwise (Nam, 1992; Jung, 2014). In the next design group 1 holds a
+third of the first stratum, whose patients respond rarely, and three
+quarters of the second.
+
+``` r
+
+th <- rbind(c(0.2, 0.6), c(0.4, 0.4))
+lev <- sapply(c('CMH', 'Strat-Fisher', 'Unstrat-Chisq', 'Unstrat-Fisher'), function(Test) {
+  StratPower(th, th, N1 = c(20, 60), N2 = c(40, 20), alpha = 0.025, Test = Test)$Power
+})
+rownames(lev) <- c('theta = (0.2, 0.6)', 'theta = (0.4, 0.4)')
+round(lev, 4)
+#>                       CMH Strat-Fisher Unstrat-Chisq Unstrat-Fisher
+#> theta = (0.2, 0.6) 0.0264       0.0157        0.5090         0.4348
+#> theta = (0.4, 0.4) 0.0247       0.0160        0.0247         0.0166
+```
+
+With the response probabilities 0.2 and 0.6 in the two strata, the
+one-sided type I error rate of the unstratified chi-squared test is
+0.509 instead of 0.025, because the table of totals compares groups made
+of different mixtures of the strata. When the strata respond alike, the
+rate is 0.0247.
+
+The re-estimation can ignore the strata as well: with
+`ss.strata = 'pooled'` the sample size is re-estimated from the
+proportion of responders among all the interim patients, used for every
+stratum, so the final sizes depend only on the total number of interim
+responders. The final analysis is still the test given by `Test`.
+
+``` r
+
+res.pooled <- StratPowerBSSR(p = rbind(pooled, pooled + 0.1), Delta.A = 2.5,
+                             Delta.T = 2.5, N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
+                             alpha = 0.025, tar.power = 0.8, Test = 'CMH', effect = 'OR',
+                             ss.method = 'standard', N.max = 2 * plan$N,
+                             ss.strata = 'pooled')
+rbind(stratified = res$E.N, pooled = res.pooled$E.N)
+#>                [,1]     [,2]
+#> stratified 166.4284 175.7539
+#> pooled     157.1181 165.4599
+```
+
+The rows give the expected final totals of the two estimates in the two
+scenarios of the previous section.
 
 ## Three or more strata
 

@@ -337,14 +337,8 @@ attr(null, 'max')
 ```
 
 The largest type I error rate is 0.02713 for the re-estimation design
-and 0.02593 for the fixed-sample design, against the nominal 0.025. Two
-separate sources contribute. The chi-squared test is not exact, so the
-fixed-sample design alone can exceed the level, and the re-estimation
-changes the rate again, because the type I error rate of an adaptive
-rule is not inherited from the test it applies at the end. Substituting
-an exact test removes the first source, and whether the second matters
-has to be checked for the design. Running this check is therefore
-worthwhile whichever test is chosen, and the `bbssr-type1-error`
-vignette shows how
+and 0.02593 for the fixed-sample design, against the nominal 0.025. The
+chi-squared test is not exact, so the fixed-sample design alone can
+exceed the level. The `bbssr-type1-error` vignette shows how
 [`BinaryAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryAlphaAdjBSSR.md)
 lowers the nominal level until the rate is controlled.

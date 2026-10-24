@@ -414,9 +414,9 @@ non-inferiority trials with binary endpoints. <em>Biometrical Journal</em>, 49(6
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu">BinaryPowerBSSR</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.19</span>, <span class="fl">0.37</span>, by <span class="op">=</span> <span class="fl">0.03</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  Delta.A <span class="op">=</span> <span class="fl">0.36</span>, Delta.T <span class="op">=</span> <span class="fl">0.36</span>,</span></span>
-<span class="r-in"><span>  N1 <span class="op">=</span> <span class="fl">24</span>, N2 <span class="op">=</span> <span class="fl">24</span>, omega <span class="op">=</span> <span class="fl">0.5</span>, r <span class="op">=</span> <span class="fl">1</span>,</span></span>
+<span class="r-in"><span>  p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.23</span>, <span class="fl">0.47</span>, by <span class="op">=</span> <span class="fl">0.04</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  Delta.A <span class="op">=</span> <span class="fl">0.3</span>, Delta.T <span class="op">=</span> <span class="fl">0.3</span>,</span></span>
+<span class="r-in"><span>  N1 <span class="op">=</span> <span class="fl">39</span>, N2 <span class="op">=</span> <span class="fl">39</span>, omega <span class="op">=</span> <span class="fl">0.5</span>, r <span class="op">=</span> <span class="fl">1</span>,</span></span>
 <span class="r-in"><span>  alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Z-pool'</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></span>
@@ -425,29 +425,29 @@ non-inferiority trials with binary endpoints. <em>Biometrical Journal</em>, 49(6
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Test            : Z-pool</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Alternative     : greater</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Design rule     : unrestricted</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Initial size    : N1 = 24, N2 = 24</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Interim fraction: 0.5, giving n1 = 12 and n2 = 12</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Treatment effect: assumed 0.36, true 0.36 (risk difference)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Initial size    : N1 = 39, N2 = 39</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Interim fraction: 0.5, giving n1 = 20 and n2 = 20</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Treatment effect: assumed 0.3, true 0.3 (risk difference)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Re-estimation   : exact power of Z-pool at level 0.025</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Alpha           : 0.025, target power 0.8</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     p   p1   p2 power.BSSR power.TRAD  E.N</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.19 0.37 0.01     0.9107     0.9565 38.2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.22 0.40 0.04     0.8221     0.8916 40.6</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.25 0.43 0.07     0.7848     0.8442 43.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.28 0.46 0.10     0.7727     0.8070 46.6</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.31 0.49 0.13     0.7718     0.7800 49.4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.34 0.52 0.16     0.7747     0.7590 51.9</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.37 0.55 0.19     0.7783     0.7388 53.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  0.23 0.38 0.08     0.7616     0.8986 58.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  0.27 0.42 0.12     0.7680     0.8540 66.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  0.31 0.46 0.16     0.7793     0.8170 72.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  0.35 0.50 0.20     0.7890     0.7947 77.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  0.39 0.54 0.24     0.7938     0.7833 81.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  0.43 0.58 0.28     0.7941     0.7745 84.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  0.47 0.62 0.32     0.7929     0.7663 86.1</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     p1   p2    p      E.N     SD.N N.q25 N.q50 N.q75     P.N.max</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.37 0.01 0.19 38.18002 7.713982    34    34    46 0.003799305</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 0.40 0.04 0.22 40.60222 8.748605    34    34    48 0.004179450</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 0.43 0.07 0.25 43.53085 9.280243    34    46    50 0.011956170</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 0.46 0.10 0.28 46.55016 9.203269    34    50    54 0.032191915</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 0.49 0.13 0.31 49.38025 8.620835    46    50    56 0.070554404</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 0.52 0.16 0.34 51.86353 7.702824    50    54    58 0.130278335</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7 0.55 0.19 0.37 53.92996 6.613671    50    56    58 0.209359879</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     p1   p2    p      E.N      SD.N N.q25 N.q50 N.q75      P.N.max</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.38 0.08 0.23 58.88554 11.649441    48    58    68 0.0001982757</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 0.42 0.12 0.27 65.95004 11.429154    58    68    78 0.0024283233</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 0.46 0.16 0.31 72.15765 10.234978    68    72    80 0.0147041223</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 0.50 0.20 0.35 77.26530  8.670204    72    80    82 0.0544992365</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 0.54 0.24 0.39 81.31440  7.112108    80    82    86 0.1380835921</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 0.58 0.28 0.43 84.31936  5.648214    80    86    90 0.2546182696</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7 0.62 0.32 0.47 86.11909  4.435730    82    88    90 0.3540672752</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="BinaryPowerBSSR-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>

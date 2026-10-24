@@ -25,6 +25,7 @@ StratAlphaAdjBSSR(
   ss.method = c("exact", "standard"),
   ss.Test = Test,
   ss.alpha = alpha,
+  ss.strata = c("stratified", "pooled"),
   search = c("crossing", "smallest", "stable"),
   search.limit = c(2, 50),
   N.min = NULL,
@@ -88,8 +89,12 @@ StratAlphaAdjBSSR(
   `'Cochran'` (Cochran's test with the binomial variance, the test of
   Woolson et al. (1986)), `'Cochran-cc'` (the same with the continuity
   correction, which rejects the same outcomes as that of Nam (1992) at
-  one-sided levels up to 0.078) or `'Strat-Fisher'` (the stratified
-  exact conditional test of Jung (2014)). See Details
+  one-sided levels up to 0.078), `'Strat-Fisher'` (the stratified exact
+  conditional test of Jung (2014)), or one of the unstratified tests of
+  the table of totals: `'Unstrat-Chisq'` (Pearson's chi-squared test,
+  the comparison of two proportions with the pooled variance),
+  `'Unstrat-Chisq-cc'` (the same with the continuity correction) and
+  `'Unstrat-Fisher'` (Fisher's exact test). See Details
 
 - restricted:
 
@@ -104,8 +109,8 @@ StratAlphaAdjBSSR(
 
 - tsmethod:
 
-  Convention of the two-sided p-value of `'Strat-Fisher'`, as for the
-  Fisher exact test of
+  Convention of the two-sided p-value of `'Strat-Fisher'` and
+  `'Unstrat-Fisher'`, as for the Fisher exact test of
   [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
   Options: `'minlike'` (default), `'central'` or `'blaker'`. Ignored by
   the other tests and for one-sided alternatives
@@ -134,6 +139,15 @@ StratAlphaAdjBSSR(
   Level of significance used for the re-estimation when
   `adjust = 'test'`. Default is `alpha`. It is ignored when
   `adjust = 'both'`
+
+- ss.strata:
+
+  Blinded estimate of the re-estimation. `'stratified'` (default)
+  estimates the pooled response probability of each stratum from its own
+  interim patients, and `'pooled'` uses the proportion of responders
+  among all the interim patients for every stratum, as a re-estimation
+  that ignores the strata would. With `'pooled'` the final group sizes
+  depend only on the total number of interim responders
 
 - search:
 

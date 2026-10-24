@@ -6,9 +6,9 @@ sample size re-estimation (BSSR) rejects the null hypothesis given the
 pooled number of responders at the interim analysis and in the second
 stage. These conditional rejection probabilities do not depend on the
 common response probability, and the type I error rate is their average
-over the binomial distribution of the two pooled counts. The type I
-error rate can also be decomposed by the pooled number of interim
-responders, which shows the interim outcomes that raise it.
+over the binomial distribution of the two pooled counts. With `theta`,
+the type I error rate is also returned for each pooled number of interim
+responders.
 
 ## Usage
 
@@ -250,22 +250,11 @@ count of the same kind. `CRP` sums the rejection region of the final
 sample size over these two distributions and does not depend on `theta`.
 The type I error rate is
 `sum_s sum_s2 b(s; n11 + n12, theta) b(s2; n21(s) + n22(s), theta) CRP(s, s2)`,
-where `b` is the binomial probability, so it is at most `alpha` for
-every `theta` whenever `CRP` is at most `alpha` for every outcome.
+where `b` is the binomial probability.
 
 `CRP.total` is the conditional size of the final test given the total
 number of responders, with the responder count of group 1 hypergeometric
-among all final patients. Fisher's exact test keeps it at or below
-`alpha` by construction. The allocation is fixed within each stage, so
-the responder count of group 1 given `s` and `s2` is the sum of two
-hypergeometric counts rather than one, and `CRP` differs from
-`CRP.total`. When the final sample size does not depend on `s`,
-averaging `CRP` over the hypergeometric distribution of `s` given the
-total gives `CRP.total`. Re-estimation makes the final sample size
-depend on `s`, and this averaging no longer holds. Outcomes with `CRP`
-above `alpha` therefore occur in a fixed-sample design as well, and
-whether they raise the type I error rate is seen from the decomposition
-by `s` rather than from `CRP` alone.
+among all final patients.
 
 Only tests of superiority are covered. With a non-inferiority margin the
 two response probabilities differ on the boundary of the null
@@ -286,42 +275,42 @@ Gosuke Homma (<my.name.is.gosuke@gmail.com>)
 ``` r
 crp <- BinaryCondRejectBSSR(
   Delta.A = 0.3, N1 = 12, N2 = 12, n.interim = c(6, 6), r = 1,
-  alpha = 0.025, tar.power = 0.8, Test = 'Fisher', ss.method = 'standard',
+  alpha = 0.025, tar.power = 0.8, Test = 'Chisq', ss.method = 'standard',
   theta = c(0.3, 0.5)
 )
 print(crp)
 #> Conditional rejection probabilities of blinded sample size re-estimation
 #> for a binary endpoint, under equal response probabilities
 #> 
-#>   Test            : Fisher
+#>   Test            : Chisq
 #>   Alternative     : greater
 #>   Initial size    : N1 = 12, N2 = 12
 #>   Interim size    : n1 = 6, n2 = 6
 #>   Assumed effect  : 0.3 (RD)
 #>   Nominal level   : 0.025
 #>   Outcomes        : 567 pairs (s, s2)
-#>   Above the level : 8 for CRP, 0 for CRP.total
+#>   Above the level : 198 for CRP, 264 for CRP.total
 #> 
 #> Largest conditional rejection probability
 #>   Quantity   value s s2 N1 N2
-#>        CRP 0.02597 2  3 24 24
-#>  CRP.total 0.02500 3 15 32 32
+#>        CRP 0.05519 2  2 24 24
+#>  CRP.total 0.05753 4  0 38 38
 #> 
-#> Type I error rate over 2 values of theta: largest 0.01581 at theta = 0.5
+#> Type I error rate over 2 values of theta: largest 0.02762 at theta = 0.5
 attr(crp, 'TIE')
 #>   theta        TIE
-#> 1   0.3 0.01387632
-#> 2   0.5 0.01580768
+#> 1   0.3 0.02537642
+#> 2   0.5 0.02761990
 
 # \donttest{
 crp <- BinaryCondRejectBSSR(
   Delta.A = 0.3, N1 = 39, N2 = 39, n.interim = c(20, 20), r = 1,
-  alpha = 0.025, tar.power = 0.8, Test = 'Boschloo', ss.method = 'standard'
+  alpha = 0.025, tar.power = 0.8, Test = 'Chisq', ss.method = 'standard'
 )
 attr(crp, 'max')
 #>    Quantity      value s s2 N1 N2
-#> 1       CRP 0.05049005 6  1 22 22
-#> 2 CRP.total 0.04728609 6  1 22 22
+#> 1       CRP 0.05301455 4  0 20 20
+#> 2 CRP.total 0.05301455 4  0 20 20
 plot(crp)
 
 # }

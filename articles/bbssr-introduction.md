@@ -227,44 +227,50 @@ below the target again at a size in between.
 
 ## Blinded sample size re-estimation
 
-Consider a trial designed for a response probability of 0.45 in group 1
-and 0.09 in group 2, so an assumed treatment effect of 0.36 and a pooled
-probability of 0.27.
+``` r
+
+p.plan <- c(0.56, 0.26)
+p.grid <- seq(0.29, 0.49, by = 0.04)
+```
+
+Consider a trial designed for a response probability of 0.56 in group 1
+and 0.26 in group 2, so an assumed treatment effect of 0.3 and a pooled
+probability of 0.41.
 
 The variance of a binary endpoint is largest at one half, so at a fixed
 risk difference the required sample size grows as the pooled probability
-approaches that value. A trial sized at a pooled probability of 0.27 is
+approaches that value. A trial sized at a pooled probability of 0.41 is
 therefore over-powered if the true value turns out lower, and
 under-powered if it turns out higher.
 
 ``` r
 
-plan <- BinarySampleSize(p1 = 0.45, p2 = 0.09, r = 1, alpha = 0.025,
+plan <- BinarySampleSize(p1 = p.plan[1], p2 = p.plan[2], r = 1, alpha = 0.025,
                          tar.power = 0.8, Test = 'Z-pool')
 plan
 #> Sample size for a two-arm trial with a binary endpoint
 #> 
 #>   Test             : Z-pool
 #>   Alternative      : greater
-#>   Response rates   : p1 = 0.45, p2 = 0.09
+#>   Response rates   : p1 = 0.56, p2 = 0.26
 #>   Allocation ratio : 1 to 1
 #>   Alpha            : 0.025
 #>   Target power     : 0.8
 #>   Exact search     : crossing
 #> 
-#>   Required sample size: N1 = 24, N2 = 24, total N = 48
-#>   Attained power      : 0.8182
+#>   Required sample size: N1 = 43, N2 = 43, total N = 86
+#>   Attained power      : 0.8106
 ```
 
 [`BinaryPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryPowerBSSR.md)
 traces both effects. The scenarios below run from a pooled probability
-of 0.19 up to 0.37, with the design fixed at the sample size above.
+of 0.29 up to 0.49, with the design fixed at the sample size above.
 
 ``` r
 
 res <- BinaryPowerBSSR(
-  p = seq(0.19, 0.37, by = 0.03),
-  Delta.A = 0.36, Delta.T = 0.36,
+  p = p.grid,
+  Delta.A = 0.3, Delta.T = 0.3,
   N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
   alpha = 0.025, tar.power = 0.8, Test = 'Z-pool'
 )
@@ -274,20 +280,19 @@ res
 #>   Test            : Z-pool
 #>   Alternative     : greater
 #>   Design rule     : unrestricted
-#>   Initial size    : N1 = 24, N2 = 24
-#>   Interim fraction: 0.5, giving n1 = 12 and n2 = 12
-#>   Treatment effect: assumed 0.36, true 0.36 (risk difference)
+#>   Initial size    : N1 = 43, N2 = 43
+#>   Interim fraction: 0.5, giving n1 = 22 and n2 = 22
+#>   Treatment effect: assumed 0.3, true 0.3 (risk difference)
 #>   Re-estimation   : exact power of Z-pool at level 0.025
 #>   Alpha           : 0.025, target power 0.8
 #> 
 #>     p   p1   p2 power.BSSR power.TRAD  E.N
-#>  0.19 0.37 0.01     0.9107     0.9565 38.2
-#>  0.22 0.40 0.04     0.8221     0.8916 40.6
-#>  0.25 0.43 0.07     0.7848     0.8442 43.5
-#>  0.28 0.46 0.10     0.7727     0.8070 46.6
-#>  0.31 0.49 0.13     0.7718     0.7800 49.4
-#>  0.34 0.52 0.16     0.7747     0.7590 51.9
-#>  0.37 0.55 0.19     0.7783     0.7388 53.9
+#>  0.29 0.44 0.14     0.7725     0.8792 69.6
+#>  0.33 0.48 0.18     0.7861     0.8562 75.5
+#>  0.37 0.52 0.22     0.7951     0.8350 80.2
+#>  0.41 0.56 0.26     0.7979     0.8106 83.8
+#>  0.45 0.60 0.30     0.7975     0.7913 86.2
+#>  0.49 0.64 0.34     0.7971     0.7834 87.3
 ```
 
 ``` r
@@ -298,14 +303,13 @@ plot(res)
 ![](bbssr-introduction_files/figure-html/bssr-plot-1.png)
 
 The `power.TRAD` column falls steadily as the pooled probability rises,
-from well above the target at the low end to well below it at the high
-end. The `power.BSSR` column stays nearer the target at both ends, since
-the re-estimation removes patients in the first case and adds them in
-the second. Away from the low end it lies a little below the target. The
-`E.N` column shows the expected total sample size that the re-estimation
-settles on, against the 48 patients of the fixed design. `summary(res)`
-adds the standard deviation and the quartiles of the final total sample
-size.
+from above the target at the low end to below it at the high end. The
+`power.BSSR` column stays nearer the target at both ends, since the
+re-estimation removes patients in the first case and adds them in the
+second. It lies a little below the target throughout. The `E.N` column
+shows the expected total sample size that the re-estimation settles on,
+against the 86 patients of the fixed design. `summary(res)` adds the
+standard deviation and the quartiles of the final total sample size.
 
 ## Restricted and unrestricted rules
 
@@ -317,8 +321,8 @@ can only grow.
 ``` r
 
 args <- list(
-  p = seq(0.19, 0.37, by = 0.06),
-  Delta.A = 0.36, Delta.T = 0.36, N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
+  p = seq(0.29, 0.47, by = 0.06),
+  Delta.A = 0.3, Delta.T = 0.3, N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
   alpha = 0.025, tar.power = 0.8, Test = 'Chisq'
 )
 unrestricted <- do.call(BinaryPowerBSSR, c(args, list(restricted = FALSE)))
@@ -331,10 +335,10 @@ data.frame(
   EN.restricted = round(restricted$E.N, 1)
 )
 #>      p power.unrestricted power.restricted EN.unrestricted EN.restricted
-#> 1 0.19             0.9113           0.9737            36.8          48.2
-#> 2 0.25             0.7786           0.8808            41.0          49.0
-#> 3 0.31             0.7636           0.8224            46.7          50.9
-#> 4 0.37             0.7739           0.7970            51.9          53.6
+#> 1 0.29             0.7828           0.8893            66.4          86.0
+#> 2 0.35             0.7870           0.8548            74.3          86.1
+#> 3 0.41             0.7934           0.8307            79.8          86.3
+#> 4 0.47             0.7982           0.8046            82.9          86.7
 ```
 
 For any single interim outcome that calls for more patients than planned
@@ -357,8 +361,8 @@ turns that number into an enrolment decision.
 
 ``` r
 
-interim <- BinaryBSSR(n1 = ceiling(plan$N1 / 2), n2 = ceiling(plan$N2 / 2), S = 8,
-                      Delta.A = 0.36, r = 1, alpha = 0.025, tar.power = 0.8,
+interim <- BinaryBSSR(n1 = ceiling(plan$N1 / 2), n2 = ceiling(plan$N2 / 2), S = 20,
+                      Delta.A = 0.3, r = 1, alpha = 0.025, tar.power = 0.8,
                       Test = 'Z-pool')
 interim
 #> Blinded sample size re-estimation from interim data
@@ -366,26 +370,26 @@ interim
 #>   Test             : Z-pool
 #>   Alternative      : greater
 #>   Design rule      : unrestricted
-#>   Assumed effect   : 0.36
+#>   Assumed effect   : 0.3
 #>   Alpha            : 0.025, target power 0.8
 #> 
 #> Interim data
-#>   Patients         : n1 = 12, n2 = 12, total n = 24
-#>   Responders       : S = 8, blinded pooled rate = 0.3333
-#>   Recovered rates  : hat.p1 = 0.5133, hat.p2 = 0.1533
+#>   Patients         : n1 = 22, n2 = 22, total n = 44
+#>   Responders       : S = 20, blinded pooled rate = 0.4545
+#>   Recovered rates  : hat.p1 = 0.6045, hat.p2 = 0.3045
 #> 
 #> Re-estimation
-#>   Required total   : N1 = 27, N2 = 27, total N = 54
-#>   Still to enrol   : group 1 = 15, group 2 = 15, total = 30
-#>   Final size       : N1 = 27, N2 = 27, total N = 54
-#>   Power at final N : 0.8129
+#>   Required total   : N1 = 44, N2 = 44, total N = 88
+#>   Still to enrol   : group 1 = 22, group 2 = 22, total = 44
+#>   Final size       : N1 = 44, N2 = 44, total N = 88
+#>   Power at final N : 0.8004
 ```
 
-The interim analysis sits at half of the planned 24 patients per group.
-With 8 responders among 24 patients the blinded pooled rate is 0.333,
-against the assumed 0.27, and the re-estimated total is 54 patients
-against the 48 of the plan. The `bbssr-interim-reestimation` vignette
-works through this in more detail.
+The interim analysis sits at half of the planned 43 patients per group,
+rounded up. With 20 responders among 44 patients the blinded pooled rate
+is 0.455, against the assumed 0.41, and the re-estimated total is 88
+patients against the 86 of the plan. The `bbssr-interim-reestimation`
+vignette works through this in more detail.
 
 ## Two-sided tests
 
@@ -441,8 +445,6 @@ and the Berger-Boos procedure for the unconditional tests.
 
 ## Type I error rate of a re-estimation design
 
-A test that keeps the nominal level at a fixed sample size need not keep
-it once the sample size depends on the interim data.
 [`BinaryTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryTypeIErrorBSSR.md)
 evaluates the rejection probability of the design above under equal
 response probabilities over a grid of the common value, and finds its
@@ -452,7 +454,7 @@ bound.
 ``` r
 
 tie <- BinaryTypeIErrorBSSR(
-  Delta.A = 0.36, N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
+  Delta.A = 0.3, N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
   alpha = 0.025, tar.power = 0.8, Test = 'Z-pool'
 )
 tie
@@ -460,17 +462,17 @@ tie
 #> 
 #>   Test            : Z-pool
 #>   Alternative     : greater
-#>   Initial size    : N1 = 24, N2 = 24
-#>   Interim size    : n1 = 12, n2 = 12
-#>   Assumed effect  : 0.36 (RD)
+#>   Initial size    : N1 = 43, N2 = 43
+#>   Interim size    : n1 = 22, n2 = 22
+#>   Assumed effect  : 0.3 (RD)
 #>   Nominal level   : 0.025
 #>   Grid            : 201 values of theta in [0, 1]
 #>   Maximum         : certified over theta in [0, 1]
 #> 
 #> Largest type I error rate
 #>        Design    theta     TIE
-#>          BSSR 0.145958 0.02499
-#>  Fixed sample 0.646877 0.02203
+#>          BSSR 0.103637 0.02344
+#>  Fixed sample 0.350533 0.02480
 ```
 
 The `bbssr-type1-error` vignette explains this output and shows how

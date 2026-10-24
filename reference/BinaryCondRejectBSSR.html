@@ -4,16 +4,14 @@ that a two-arm trial with a binary endpoint and blinded sample size re-estimatio
 (BSSR) rejects the null hypothesis given the pooled number of responders at the interim
 analysis and in the second stage. These conditional rejection probabilities do not
 depend on the common response probability, and the type I error rate is their average
-over the binomial distribution of the two pooled counts. The type I error rate can also
-be decomposed by the pooled number of interim responders, which shows the interim
-outcomes that raise it."><meta property="og:description" content="Computes, under the null hypothesis of equal response probabilities, the probability
+over the binomial distribution of the two pooled counts. With theta, the type I
+error rate is also returned for each pooled number of interim responders."><meta property="og:description" content="Computes, under the null hypothesis of equal response probabilities, the probability
 that a two-arm trial with a binary endpoint and blinded sample size re-estimation
 (BSSR) rejects the null hypothesis given the pooled number of responders at the interim
 analysis and in the second stage. These conditional rejection probabilities do not
 depend on the common response probability, and the type I error rate is their average
-over the binomial distribution of the two pooled counts. The type I error rate can also
-be decomposed by the pooled number of interim responders, which shows the interim
-outcomes that raise it."><meta property="og:image" content="https://gosukehommaex.github.io/bbssr/logo.png"></head><body>
+over the binomial distribution of the two pooled counts. With theta, the type I
+error rate is also returned for each pooled number of interim responders."><meta property="og:image" content="https://gosukehommaex.github.io/bbssr/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -72,9 +70,8 @@ that a two-arm trial with a binary endpoint and blinded sample size re-estimatio
 (BSSR) rejects the null hypothesis given the pooled number of responders at the interim
 analysis and in the second stage. These conditional rejection probabilities do not
 depend on the common response probability, and the type I error rate is their average
-over the binomial distribution of the two pooled counts. The type I error rate can also
-be decomposed by the pooled number of interim responders, which shows the interim
-outcomes that raise it.</p>
+over the binomial distribution of the two pooled counts. With <code>theta</code>, the type I
+error rate is also returned for each pooled number of interim responders.</p>
     </div>
 
     <div class="section level2">
@@ -304,20 +301,10 @@ independent hypergeometric count of the same kind. <code>CRP</code> sums the rej
 of the final sample size over these two distributions and does not depend on
 <code>theta</code>. The type I error rate is
 <code>sum_s sum_s2 b(s; n11 + n12, theta) b(s2; n21(s) + n22(s), theta) CRP(s, s2)</code>,
-where <code>b</code> is the binomial probability, so it is at most <code>alpha</code> for every
-<code>theta</code> whenever <code>CRP</code> is at most <code>alpha</code> for every outcome.</p>
+where <code>b</code> is the binomial probability.</p>
 <p><code>CRP.total</code> is the conditional size of the final test given the total number of
 responders, with the responder count of group 1 hypergeometric among all final
-patients. Fisher's exact test keeps it at or below <code>alpha</code> by construction. The
-allocation is fixed within each stage, so the responder count of group 1 given
-<code>s</code> and <code>s2</code> is the sum of two hypergeometric counts rather than one, and
-<code>CRP</code> differs from <code>CRP.total</code>. When the final sample size does not depend
-on <code>s</code>, averaging <code>CRP</code> over the hypergeometric distribution of <code>s</code>
-given the total gives <code>CRP.total</code>. Re-estimation makes the final sample size
-depend on <code>s</code>, and this averaging no longer holds. Outcomes with <code>CRP</code> above
-<code>alpha</code> therefore occur in a fixed-sample design as well, and whether they raise
-the type I error rate is seen from the decomposition by <code>s</code> rather than from
-<code>CRP</code> alone.</p>
+patients.</p>
 <p>Only tests of superiority are covered. With a non-inferiority margin the two response
 probabilities differ on the boundary of the null hypothesis, and the conditional
 distributions of the responder counts then depend on them.</p>
@@ -335,42 +322,42 @@ distributions of the responder counts then depend on them.</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">crp</span> <span class="op">&lt;-</span> <span class="fu">BinaryCondRejectBSSR</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  Delta.A <span class="op">=</span> <span class="fl">0.3</span>, N1 <span class="op">=</span> <span class="fl">12</span>, N2 <span class="op">=</span> <span class="fl">12</span>, n.interim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fl">6</span><span class="op">)</span>, r <span class="op">=</span> <span class="fl">1</span>,</span></span>
-<span class="r-in"><span>  alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Fisher'</span>, ss.method <span class="op">=</span> <span class="st">'standard'</span>,</span></span>
+<span class="r-in"><span>  alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Chisq'</span>, ss.method <span class="op">=</span> <span class="st">'standard'</span>,</span></span>
 <span class="r-in"><span>  theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0.5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">crp</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Conditional rejection probabilities of blinded sample size re-estimation</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> for a binary endpoint, under equal response probabilities</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Test            : Fisher</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Test            : Chisq</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Alternative     : greater</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Initial size    : N1 = 12, N2 = 12</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Interim size    : n1 = 6, n2 = 6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Assumed effect  : 0.3 (RD)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Nominal level   : 0.025</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Outcomes        : 567 pairs (s, s2)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Above the level : 8 for CRP, 0 for CRP.total</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Above the level : 198 for CRP, 264 for CRP.total</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Largest conditional rejection probability</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Quantity   value s s2 N1 N2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        CRP 0.02597 2  3 24 24</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  CRP.total 0.02500 3 15 32 32</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        CRP 0.05519 2  2 24 24</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  CRP.total 0.05753 4  0 38 38</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Type I error rate over 2 values of theta: largest 0.01581 at theta = 0.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Type I error rate over 2 values of theta: largest 0.02762 at theta = 0.5</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">crp</span>, <span class="st">'TIE'</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   theta        TIE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1   0.3 0.01387632</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2   0.5 0.01580768</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   0.3 0.02537642</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   0.5 0.02761990</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="va">crp</span> <span class="op">&lt;-</span> <span class="fu">BinaryCondRejectBSSR</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  Delta.A <span class="op">=</span> <span class="fl">0.3</span>, N1 <span class="op">=</span> <span class="fl">39</span>, N2 <span class="op">=</span> <span class="fl">39</span>, n.interim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">20</span><span class="op">)</span>, r <span class="op">=</span> <span class="fl">1</span>,</span></span>
-<span class="r-in"><span>  alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Boschloo'</span>, ss.method <span class="op">=</span> <span class="st">'standard'</span></span></span>
+<span class="r-in"><span>  alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Chisq'</span>, ss.method <span class="op">=</span> <span class="st">'standard'</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">crp</span>, <span class="st">'max'</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Quantity      value s s2 N1 N2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1       CRP 0.05049005 6  1 22 22</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 CRP.total 0.04728609 6  1 22 22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       CRP 0.05301455 4  0 20 20</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 CRP.total 0.05301455 4  0 20 20</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">crp</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="BinaryCondRejectBSSR-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>

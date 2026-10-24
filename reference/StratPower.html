@@ -105,9 +105,12 @@ with the hypergeometric variance, without continuity correction), <code>'CMH-cc'
 (the same with the continuity correction of <code><a href="https://rdrr.io/r/stats/mantelhaen.test.html" class="external-link">mantelhaen.test</a></code>),
 <code>'Cochran'</code> (Cochran's test with the binomial variance, the test of Woolson et
 al. (1986)), <code>'Cochran-cc'</code> (the same with the continuity correction, which
-rejects the same outcomes as that of Nam (1992) at one-sided levels up to 0.078) or
-<code>'Strat-Fisher'</code> (the stratified exact conditional test of Jung (2014)). See
-Details</p></dd>
+rejects the same outcomes as that of Nam (1992) at one-sided levels up to 0.078),
+<code>'Strat-Fisher'</code> (the stratified exact conditional test of Jung (2014)), or one
+of the unstratified tests of the table of totals: <code>'Unstrat-Chisq'</code> (Pearson's
+chi-squared test, the comparison of two proportions with the pooled variance),
+<code>'Unstrat-Chisq-cc'</code> (the same with the continuity correction) and
+<code>'Unstrat-Fisher'</code> (Fisher's exact test). See Details</p></dd>
 
 
 <dt id="arg-alternative">alternative<a class="anchor" aria-label="anchor" href="#arg-alternative"></a></dt>
@@ -117,10 +120,10 @@ Details</p></dd>
 
 
 <dt id="arg-tsmethod">tsmethod<a class="anchor" aria-label="anchor" href="#arg-tsmethod"></a></dt>
-<dd><p>Convention of the two-sided p-value of <code>'Strat-Fisher'</code>, as for
-the Fisher exact test of <code><a href="BinaryRR.html">BinaryRR</a></code>. Options: <code>'minlike'</code>
-(default), <code>'central'</code> or <code>'blaker'</code>. Ignored by the other tests and for
-one-sided alternatives</p></dd>
+<dd><p>Convention of the two-sided p-value of <code>'Strat-Fisher'</code> and
+<code>'Unstrat-Fisher'</code>, as for the Fisher exact test of <code><a href="BinaryRR.html">BinaryRR</a></code>.
+Options: <code>'minlike'</code> (default), <code>'central'</code> or <code>'blaker'</code>. Ignored by
+the other tests and for one-sided alternatives</p></dd>
 
 </dl></div>
     <div class="section level2">

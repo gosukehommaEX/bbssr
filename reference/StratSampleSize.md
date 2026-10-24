@@ -64,8 +64,12 @@ StratSampleSize(
   `'Cochran'` (Cochran's test with the binomial variance, the test of
   Woolson et al. (1986)), `'Cochran-cc'` (the same with the continuity
   correction, which rejects the same outcomes as that of Nam (1992) at
-  one-sided levels up to 0.078) or `'Strat-Fisher'` (the stratified
-  exact conditional test of Jung (2014)). See Details
+  one-sided levels up to 0.078), `'Strat-Fisher'` (the stratified exact
+  conditional test of Jung (2014)), or one of the unstratified tests of
+  the table of totals: `'Unstrat-Chisq'` (Pearson's chi-squared test,
+  the comparison of two proportions with the pooled variance),
+  `'Unstrat-Chisq-cc'` (the same with the continuity correction) and
+  `'Unstrat-Fisher'` (Fisher's exact test). See Details
 
 - alternative:
 
@@ -75,8 +79,8 @@ StratSampleSize(
 
 - tsmethod:
 
-  Convention of the two-sided p-value of `'Strat-Fisher'`, as for the
-  Fisher exact test of
+  Convention of the two-sided p-value of `'Strat-Fisher'` and
+  `'Unstrat-Fisher'`, as for the Fisher exact test of
   [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
   Options: `'minlike'` (default), `'central'` or `'blaker'`. Ignored by
   the other tests and for one-sided alternatives
@@ -142,6 +146,17 @@ value of the exact search. The nominal total is `ceiling(N*)`, or
 (1992) compute `N*` and `N` with the quantiles rounded to three
 decimals, such as 1.645 for the level 0.05 and 0.841 or 0.842 for the
 power 0.8, and round them to the nearest integer instead.
+
+For the unstratified tests the approximation is that of the comparison
+of two proportions on the table of totals, formula (3.3) of Woolson et
+al. (1986), or (2.3) of Nam (1992) with one stratum for
+`'Unstrat-Chisq-cc'`: the formula above with one stratum, in which group
+1 holds the fraction `sum_j frac[j] s[j]` of the patients and the
+response probability of each group is the average of its probabilities
+over the strata, weighted by its sizes in the strata. The exact power of
+these tests is that of the stratified design, with the response
+probabilities of each stratum, so the search accounts for the difference
+between the strata that the table of totals ignores.
 
 The exact power is not monotone in the sample size, so the result
 depends on `search`, as described in

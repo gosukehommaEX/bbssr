@@ -280,37 +280,40 @@ the power falls below the target again at a size in between.</p>
 <div class="section level2">
 <h2 id="blinded-sample-size-re-estimation">Blinded sample size re-estimation<a class="anchor" aria-label="anchor" href="#blinded-sample-size-re-estimation"></a>
 </h2>
-<p>Consider a trial designed for a response probability of 0.45 in group
-1 and 0.09 in group 2, so an assumed treatment effect of 0.36 and a
-pooled probability of 0.27.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p.plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.56</span>, <span class="fl">0.26</span><span class="op">)</span></span>
+<span><span class="va">p.grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.29</span>, <span class="fl">0.49</span>, by <span class="op">=</span> <span class="fl">0.04</span><span class="op">)</span></span></code></pre></div>
+<p>Consider a trial designed for a response probability of 0.56 in group
+1 and 0.26 in group 2, so an assumed treatment effect of 0.3 and a
+pooled probability of 0.41.</p>
 <p>The variance of a binary endpoint is largest at one half, so at a
 fixed risk difference the required sample size grows as the pooled
 probability approaches that value. A trial sized at a pooled probability
-of 0.27 is therefore over-powered if the true value turns out lower, and
+of 0.41 is therefore over-powered if the true value turns out lower, and
 under-powered if it turns out higher.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinarySampleSize.html">BinarySampleSize</a></span><span class="op">(</span>p1 <span class="op">=</span> <span class="fl">0.45</span>, p2 <span class="op">=</span> <span class="fl">0.09</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>,</span>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinarySampleSize.html">BinarySampleSize</a></span><span class="op">(</span>p1 <span class="op">=</span> <span class="va">p.plan</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, p2 <span class="op">=</span> <span class="va">p.plan</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>,</span>
 <span>                         tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Z-pool'</span><span class="op">)</span></span>
 <span><span class="va">plan</span></span>
 <span><span class="co">#&gt; Sample size for a two-arm trial with a binary endpoint</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   Test             : Z-pool</span></span>
 <span><span class="co">#&gt;   Alternative      : greater</span></span>
-<span><span class="co">#&gt;   Response rates   : p1 = 0.45, p2 = 0.09</span></span>
+<span><span class="co">#&gt;   Response rates   : p1 = 0.56, p2 = 0.26</span></span>
 <span><span class="co">#&gt;   Allocation ratio : 1 to 1</span></span>
 <span><span class="co">#&gt;   Alpha            : 0.025</span></span>
 <span><span class="co">#&gt;   Target power     : 0.8</span></span>
 <span><span class="co">#&gt;   Exact search     : crossing</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   Required sample size: N1 = 24, N2 = 24, total N = 48</span></span>
-<span><span class="co">#&gt;   Attained power      : 0.8182</span></span></code></pre></div>
+<span><span class="co">#&gt;   Required sample size: N1 = 43, N2 = 43, total N = 86</span></span>
+<span><span class="co">#&gt;   Attained power      : 0.8106</span></span></code></pre></div>
 <p><code><a href="../reference/BinaryPowerBSSR.html">BinaryPowerBSSR()</a></code> traces both effects. The scenarios
-below run from a pooled probability of 0.19 up to 0.37, with the design
+below run from a pooled probability of 0.29 up to 0.49, with the design
 fixed at the sample size above.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryPowerBSSR.html">BinaryPowerBSSR</a></span><span class="op">(</span></span>
-<span>  p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.19</span>, <span class="fl">0.37</span>, by <span class="op">=</span> <span class="fl">0.03</span><span class="op">)</span>,</span>
-<span>  Delta.A <span class="op">=</span> <span class="fl">0.36</span>, Delta.T <span class="op">=</span> <span class="fl">0.36</span>,</span>
+<span>  p <span class="op">=</span> <span class="va">p.grid</span>,</span>
+<span>  Delta.A <span class="op">=</span> <span class="fl">0.3</span>, Delta.T <span class="op">=</span> <span class="fl">0.3</span>,</span>
 <span>  N1 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N1</span>, N2 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N2</span>, omega <span class="op">=</span> <span class="fl">0.5</span>, r <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Z-pool'</span></span>
 <span><span class="op">)</span></span>
@@ -320,32 +323,31 @@ fixed at the sample size above.</p>
 <span><span class="co">#&gt;   Test            : Z-pool</span></span>
 <span><span class="co">#&gt;   Alternative     : greater</span></span>
 <span><span class="co">#&gt;   Design rule     : unrestricted</span></span>
-<span><span class="co">#&gt;   Initial size    : N1 = 24, N2 = 24</span></span>
-<span><span class="co">#&gt;   Interim fraction: 0.5, giving n1 = 12 and n2 = 12</span></span>
-<span><span class="co">#&gt;   Treatment effect: assumed 0.36, true 0.36 (risk difference)</span></span>
+<span><span class="co">#&gt;   Initial size    : N1 = 43, N2 = 43</span></span>
+<span><span class="co">#&gt;   Interim fraction: 0.5, giving n1 = 22 and n2 = 22</span></span>
+<span><span class="co">#&gt;   Treatment effect: assumed 0.3, true 0.3 (risk difference)</span></span>
 <span><span class="co">#&gt;   Re-estimation   : exact power of Z-pool at level 0.025</span></span>
 <span><span class="co">#&gt;   Alpha           : 0.025, target power 0.8</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     p   p1   p2 power.BSSR power.TRAD  E.N</span></span>
-<span><span class="co">#&gt;  0.19 0.37 0.01     0.9107     0.9565 38.2</span></span>
-<span><span class="co">#&gt;  0.22 0.40 0.04     0.8221     0.8916 40.6</span></span>
-<span><span class="co">#&gt;  0.25 0.43 0.07     0.7848     0.8442 43.5</span></span>
-<span><span class="co">#&gt;  0.28 0.46 0.10     0.7727     0.8070 46.6</span></span>
-<span><span class="co">#&gt;  0.31 0.49 0.13     0.7718     0.7800 49.4</span></span>
-<span><span class="co">#&gt;  0.34 0.52 0.16     0.7747     0.7590 51.9</span></span>
-<span><span class="co">#&gt;  0.37 0.55 0.19     0.7783     0.7388 53.9</span></span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt;  0.29 0.44 0.14     0.7725     0.8792 69.6</span></span>
+<span><span class="co">#&gt;  0.33 0.48 0.18     0.7861     0.8562 75.5</span></span>
+<span><span class="co">#&gt;  0.37 0.52 0.22     0.7951     0.8350 80.2</span></span>
+<span><span class="co">#&gt;  0.41 0.56 0.26     0.7979     0.8106 83.8</span></span>
+<span><span class="co">#&gt;  0.45 0.60 0.30     0.7975     0.7913 86.2</span></span>
+<span><span class="co">#&gt;  0.49 0.64 0.34     0.7971     0.7834 87.3</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
 <p><img src="bbssr-introduction_files/figure-html/bssr-plot-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
 <p>The <code>power.TRAD</code> column falls steadily as the pooled
-probability rises, from well above the target at the low end to well
-below it at the high end. The <code>power.BSSR</code> column stays
-nearer the target at both ends, since the re-estimation removes patients
-in the first case and adds them in the second. Away from the low end it
-lies a little below the target. The <code>E.N</code> column shows the
-expected total sample size that the re-estimation settles on, against
-the 48 patients of the fixed design. <code>summary(res)</code> adds the
-standard deviation and the quartiles of the final total sample size.</p>
+probability rises, from above the target at the low end to below it at
+the high end. The <code>power.BSSR</code> column stays nearer the target
+at both ends, since the re-estimation removes patients in the first case
+and adds them in the second. It lies a little below the target
+throughout. The <code>E.N</code> column shows the expected total sample
+size that the re-estimation settles on, against the 86 patients of the
+fixed design. <code>summary(res)</code> adds the standard deviation and
+the quartiles of the final total sample size.</p>
 </div>
 <div class="section level2">
 <h2 id="restricted-and-unrestricted-rules">Restricted and unrestricted rules<a class="anchor" aria-label="anchor" href="#restricted-and-unrestricted-rules"></a>
@@ -354,10 +356,10 @@ standard deviation and the quartiles of the final total sample size.</p>
 when the interim data suggest that fewer patients suffice. Under the
 restricted rule the planned sample size acts as a floor, so the trial
 can only grow.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">args</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.19</span>, <span class="fl">0.37</span>, by <span class="op">=</span> <span class="fl">0.06</span><span class="op">)</span>,</span>
-<span>  Delta.A <span class="op">=</span> <span class="fl">0.36</span>, Delta.T <span class="op">=</span> <span class="fl">0.36</span>, N1 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N1</span>, N2 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N2</span>, omega <span class="op">=</span> <span class="fl">0.5</span>, r <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.29</span>, <span class="fl">0.47</span>, by <span class="op">=</span> <span class="fl">0.06</span><span class="op">)</span>,</span>
+<span>  Delta.A <span class="op">=</span> <span class="fl">0.3</span>, Delta.T <span class="op">=</span> <span class="fl">0.3</span>, N1 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N1</span>, N2 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N2</span>, omega <span class="op">=</span> <span class="fl">0.5</span>, r <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Chisq'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">unrestricted</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">BinaryPowerBSSR</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">args</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restricted <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -370,10 +372,10 @@ can only grow.</p>
 <span>  EN.restricted <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">restricted</span><span class="op">$</span><span class="va">E.N</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;      p power.unrestricted power.restricted EN.unrestricted EN.restricted</span></span>
-<span><span class="co">#&gt; 1 0.19             0.9113           0.9737            36.8          48.2</span></span>
-<span><span class="co">#&gt; 2 0.25             0.7786           0.8808            41.0          49.0</span></span>
-<span><span class="co">#&gt; 3 0.31             0.7636           0.8224            46.7          50.9</span></span>
-<span><span class="co">#&gt; 4 0.37             0.7739           0.7970            51.9          53.6</span></span></code></pre></div>
+<span><span class="co">#&gt; 1 0.29             0.7828           0.8893            66.4          86.0</span></span>
+<span><span class="co">#&gt; 2 0.35             0.7870           0.8548            74.3          86.1</span></span>
+<span><span class="co">#&gt; 3 0.41             0.7934           0.8307            79.8          86.3</span></span>
+<span><span class="co">#&gt; 4 0.47             0.7982           0.8046            82.9          86.7</span></span></code></pre></div>
 <p>For any single interim outcome that calls for more patients than
 planned the two rules give the same answer, since neither caps the
 increase. They part company when the interim outcome calls for fewer.
@@ -392,9 +394,9 @@ the trial is running, the interim analysis produces one number that can
 be shared without unblinding, namely the total count of responders.
 <code><a href="../reference/BinaryBSSR.html">BinaryBSSR()</a></code> turns that number into an enrolment
 decision.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">interim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryBSSR.html">BinaryBSSR</a></span><span class="op">(</span>n1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">ceiling</a></span><span class="op">(</span><span class="va">plan</span><span class="op">$</span><span class="va">N1</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span>, n2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">ceiling</a></span><span class="op">(</span><span class="va">plan</span><span class="op">$</span><span class="va">N2</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span>, S <span class="op">=</span> <span class="fl">8</span>,</span>
-<span>                      Delta.A <span class="op">=</span> <span class="fl">0.36</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>,</span>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">interim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryBSSR.html">BinaryBSSR</a></span><span class="op">(</span>n1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">ceiling</a></span><span class="op">(</span><span class="va">plan</span><span class="op">$</span><span class="va">N1</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span>, n2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">ceiling</a></span><span class="op">(</span><span class="va">plan</span><span class="op">$</span><span class="va">N2</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span>, S <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>                      Delta.A <span class="op">=</span> <span class="fl">0.3</span>, r <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>                      Test <span class="op">=</span> <span class="st">'Z-pool'</span><span class="op">)</span></span>
 <span><span class="va">interim</span></span>
 <span><span class="co">#&gt; Blinded sample size re-estimation from interim data</span></span>
@@ -402,23 +404,23 @@ decision.</p>
 <span><span class="co">#&gt;   Test             : Z-pool</span></span>
 <span><span class="co">#&gt;   Alternative      : greater</span></span>
 <span><span class="co">#&gt;   Design rule      : unrestricted</span></span>
-<span><span class="co">#&gt;   Assumed effect   : 0.36</span></span>
+<span><span class="co">#&gt;   Assumed effect   : 0.3</span></span>
 <span><span class="co">#&gt;   Alpha            : 0.025, target power 0.8</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Interim data</span></span>
-<span><span class="co">#&gt;   Patients         : n1 = 12, n2 = 12, total n = 24</span></span>
-<span><span class="co">#&gt;   Responders       : S = 8, blinded pooled rate = 0.3333</span></span>
-<span><span class="co">#&gt;   Recovered rates  : hat.p1 = 0.5133, hat.p2 = 0.1533</span></span>
+<span><span class="co">#&gt;   Patients         : n1 = 22, n2 = 22, total n = 44</span></span>
+<span><span class="co">#&gt;   Responders       : S = 20, blinded pooled rate = 0.4545</span></span>
+<span><span class="co">#&gt;   Recovered rates  : hat.p1 = 0.6045, hat.p2 = 0.3045</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Re-estimation</span></span>
-<span><span class="co">#&gt;   Required total   : N1 = 27, N2 = 27, total N = 54</span></span>
-<span><span class="co">#&gt;   Still to enrol   : group 1 = 15, group 2 = 15, total = 30</span></span>
-<span><span class="co">#&gt;   Final size       : N1 = 27, N2 = 27, total N = 54</span></span>
-<span><span class="co">#&gt;   Power at final N : 0.8129</span></span></code></pre></div>
-<p>The interim analysis sits at half of the planned 24 patients per
-group. With 8 responders among 24 patients the blinded pooled rate is
-0.333, against the assumed 0.27, and the re-estimated total is 54
-patients against the 48 of the plan. The
+<span><span class="co">#&gt;   Required total   : N1 = 44, N2 = 44, total N = 88</span></span>
+<span><span class="co">#&gt;   Still to enrol   : group 1 = 22, group 2 = 22, total = 44</span></span>
+<span><span class="co">#&gt;   Final size       : N1 = 44, N2 = 44, total N = 88</span></span>
+<span><span class="co">#&gt;   Power at final N : 0.8004</span></span></code></pre></div>
+<p>The interim analysis sits at half of the planned 43 patients per
+group, rounded up. With 20 responders among 44 patients the blinded
+pooled rate is 0.455, against the assumed 0.41, and the re-estimated
+total is 88 patients against the 86 of the plan. The
 <code>bbssr-interim-reestimation</code> vignette works through this in
 more detail.</p>
 </div>
@@ -429,7 +431,7 @@ more detail.</p>
 conditional tests, and for the Boschloo test, whose ordering statistic
 is the Fisher p-value, the two-sided p-value follows one of two
 conventions, selected with <code>tsmethod</code>.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pw</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">alpha</span>, <span class="va">alternative</span>, <span class="va">tsmethod</span> <span class="op">=</span> <span class="st">'minlike'</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="../reference/BinaryPower.html">BinaryPower</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.3</span>, <span class="fl">40</span>, <span class="fl">40</span>, <span class="va">alpha</span>, <span class="st">'Fisher'</span>,</span>
 <span>              alternative <span class="op">=</span> <span class="va">alternative</span>, tsmethod <span class="op">=</span> <span class="va">tsmethod</span><span class="op">)</span><span class="op">$</span><span class="va">Power</span></span>
@@ -460,7 +462,7 @@ shows.</p>
 lower response probability, is obtained by exchanging the two groups, so
 it gives the same power as <code>'greater'</code> with the groups
 exchanged.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>greater <span class="op">=</span> <span class="fu"><a href="../reference/BinaryPower.html">BinaryPower</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.3</span>, <span class="fl">40</span>, <span class="fl">40</span>, <span class="fl">0.025</span>, <span class="st">'Fisher'</span><span class="op">)</span><span class="op">$</span><span class="va">Power</span>,</span>
 <span>  less <span class="op">=</span> <span class="fu"><a href="../reference/BinaryPower.html">BinaryPower</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0.6</span>, <span class="fl">40</span>, <span class="fl">40</span>, <span class="fl">0.025</span>, <span class="st">'Fisher'</span>, alternative <span class="op">=</span> <span class="st">'less'</span><span class="op">)</span><span class="op">$</span><span class="va">Power</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  greater     less </span></span>
@@ -472,15 +474,13 @@ tests.</p>
 <div class="section level2">
 <h2 id="type-i-error-rate-of-a-re-estimation-design">Type I error rate of a re-estimation design<a class="anchor" aria-label="anchor" href="#type-i-error-rate-of-a-re-estimation-design"></a>
 </h2>
-<p>A test that keeps the nominal level at a fixed sample size need not
-keep it once the sample size depends on the interim data.
-<code><a href="../reference/BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR()</a></code> evaluates the rejection probability
-of the design above under equal response probabilities over a grid of
-the common value, and finds its largest value over the whole range of
-the grid together with an upper bound.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<p><code><a href="../reference/BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR()</a></code> evaluates the rejection
+probability of the design above under equal response probabilities over
+a grid of the common value, and finds its largest value over the whole
+range of the grid together with an upper bound.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tie</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/BinaryTypeIErrorBSSR.html">BinaryTypeIErrorBSSR</a></span><span class="op">(</span></span>
-<span>  Delta.A <span class="op">=</span> <span class="fl">0.36</span>, N1 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N1</span>, N2 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N2</span>, omega <span class="op">=</span> <span class="fl">0.5</span>, r <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  Delta.A <span class="op">=</span> <span class="fl">0.3</span>, N1 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N1</span>, N2 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N2</span>, omega <span class="op">=</span> <span class="fl">0.5</span>, r <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'Z-pool'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">tie</span></span>
@@ -488,17 +488,17 @@ the grid together with an upper bound.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   Test            : Z-pool</span></span>
 <span><span class="co">#&gt;   Alternative     : greater</span></span>
-<span><span class="co">#&gt;   Initial size    : N1 = 24, N2 = 24</span></span>
-<span><span class="co">#&gt;   Interim size    : n1 = 12, n2 = 12</span></span>
-<span><span class="co">#&gt;   Assumed effect  : 0.36 (RD)</span></span>
+<span><span class="co">#&gt;   Initial size    : N1 = 43, N2 = 43</span></span>
+<span><span class="co">#&gt;   Interim size    : n1 = 22, n2 = 22</span></span>
+<span><span class="co">#&gt;   Assumed effect  : 0.3 (RD)</span></span>
 <span><span class="co">#&gt;   Nominal level   : 0.025</span></span>
 <span><span class="co">#&gt;   Grid            : 201 values of theta in [0, 1]</span></span>
 <span><span class="co">#&gt;   Maximum         : certified over theta in [0, 1]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Largest type I error rate</span></span>
 <span><span class="co">#&gt;        Design    theta     TIE</span></span>
-<span><span class="co">#&gt;          BSSR 0.145958 0.02499</span></span>
-<span><span class="co">#&gt;  Fixed sample 0.646877 0.02203</span></span></code></pre></div>
+<span><span class="co">#&gt;          BSSR 0.103637 0.02344</span></span>
+<span><span class="co">#&gt;  Fixed sample 0.350533 0.02480</span></span></code></pre></div>
 <p>The <code>bbssr-type1-error</code> vignette explains this output and
 shows how <code><a href="../reference/BinaryAlphaAdjBSSR.html">BinaryAlphaAdjBSSR()</a></code> lowers the nominal level
 when the rate exceeds it.</p>

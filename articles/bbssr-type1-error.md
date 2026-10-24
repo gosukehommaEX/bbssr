@@ -5,17 +5,14 @@
 library(bbssr)
 ```
 
-## Why the rate has to be computed
+## The type I error rate of a re-estimation design
 
-The size of a test at a fixed sample size is a property of one rejection
-region. With blinded sample size re-estimation the final sample size
-depends on the pooled number of interim responders, whose distribution
-depends on the common response probability $`\theta`$, and the rejection
-probability under the null hypothesis averages rejection regions of
-different sizes with weights that depend on $`\theta`$. A test that
-keeps the nominal level at every fixed sample size need not keep it for
-this average, so the type I error rate of a re-estimation design is
-computed for the design itself.
+With blinded sample size re-estimation the final sample size depends on
+the pooled number of interim responders, whose distribution depends on
+the common response probability $`\theta`$. The type I error rate of a
+re-estimation design is computed for the design itself, by summing the
+rejection probability over the interim outcomes and the outcomes of the
+second stage.
 
 Under the null hypothesis $`p_{1} = p_{2} = \theta`$. Let $`n_{11}`$ and
 $`n_{12}`$ be the interim sample sizes of the two groups, $`s`$ the
@@ -104,11 +101,7 @@ exact.max
 
 For this rule the largest rate of the re-estimation design is 0.01573
 with Fisher’s exact test and 0.02312 with the Boschloo test, against the
-nominal 0.025. Whether the rate stays at or below the level is a
-property of the rule and the test together. The guarantee of an exact
-test holds at each fixed sample size and need not carry over to a sample
-size chosen from the interim data, so the rate has to be checked for
-each design.
+nominal 0.025.
 
 ## The adjusted significance level
 
@@ -301,66 +294,58 @@ its average over the binomial distributions of $`s`$ and $`s_{2}`$,
 \mathrm{TIE}(\theta) = \sum_{s} \sum_{s_{2}} b(s; n_{11} + n_{12}, \theta) \,
 b\bigl(s_{2}; n_{21}(s) + n_{22}(s), \theta\bigr) \, \mathrm{CRP}(s, s_{2}) ,
 ```
-where $`b`$ is the binomial probability. The rate is therefore at most
-$`\alpha`$ for every $`\theta`$ whenever $`\mathrm{CRP}`$ is at most
-$`\alpha`$ for every outcome. The column `CRP.total` is the rejection
-probability given only the total $`s + s_{2}`$, with the responder count
-of group 1 treated as one hypergeometric count among all final patients.
-Fisher’s exact test keeps it at or below $`\alpha`$ by construction.
+where $`b`$ is the binomial probability. The column `CRP.total` is the
+rejection probability given only the total $`s + s_{2}`$, with the
+responder count of group 1 treated as one hypergeometric count among all
+final patients.
 
 ``` r
 
 crp <- BinaryCondRejectBSSR(
   Delta.A = 0.3, N1 = 12, N2 = 12, n.interim = c(6, 6), r = 1, alpha = 0.025,
-  tar.power = 0.8, Test = 'Fisher', ss.method = 'standard', theta = c(0.3, 0.5)
+  tar.power = 0.8, Test = 'Chisq', ss.method = 'standard', theta = c(0.3, 0.5)
 )
 crp
 #> Conditional rejection probabilities of blinded sample size re-estimation
 #> for a binary endpoint, under equal response probabilities
 #> 
-#>   Test            : Fisher
+#>   Test            : Chisq
 #>   Alternative     : greater
 #>   Initial size    : N1 = 12, N2 = 12
 #>   Interim size    : n1 = 6, n2 = 6
 #>   Assumed effect  : 0.3 (RD)
 #>   Nominal level   : 0.025
 #>   Outcomes        : 567 pairs (s, s2)
-#>   Above the level : 8 for CRP, 0 for CRP.total
+#>   Above the level : 198 for CRP, 264 for CRP.total
 #> 
 #> Largest conditional rejection probability
 #>   Quantity   value s s2 N1 N2
-#>        CRP 0.02597 2  3 24 24
-#>  CRP.total 0.02500 3 15 32 32
+#>        CRP 0.05519 2  2 24 24
+#>  CRP.total 0.05753 4  0 38 38
 #> 
-#> Type I error rate over 2 values of theta: largest 0.01581 at theta = 0.5
+#> Type I error rate over 2 values of theta: largest 0.02762 at theta = 0.5
 plot(crp)
 ```
 
 ![](bbssr-type1-error_files/figure-html/crp-1.png)
 
-`CRP` exceeds the nominal level at 8 outcomes and `CRP.total` at 0. The
-allocation is fixed within each stage, so the responder count of group 1
-given $`s`$ and $`s_{2}`$ is the sum of two hypergeometric counts rather
-than one, and `CRP` differs from `CRP.total` even when the sample size
-is not re-estimated. Whether the outcomes above the level raise the type
-I error rate is seen from the decomposition by $`s`$, which `theta`
-requests.
+The decomposition by $`s`$ is returned when `theta` is given.
 
 ``` r
 
 by.s <- attr(crp, 'by.s')
 head(by.s)
-#>   theta s N1 N2     prob.s       TIE.s contribution
-#> 1   0.3 0  6  6 0.01384129 0.000000000 0.0000000000
-#> 2   0.3 1 14 14 0.07118376 0.006945771 0.0004944261
-#> 3   0.3 2 24 24 0.16779030 0.013122889 0.0022018935
-#> 4   0.3 3 32 32 0.23970043 0.014650674 0.0035117727
-#> 5   0.3 4 38 38 0.23113970 0.015559790 0.0035964851
-#> 6   0.3 5 42 42 0.15849579 0.015005504 0.0023783092
+#>   theta s N1 N2     prob.s      TIE.s contribution
+#> 1   0.3 0  6  6 0.01384129 0.00000000  0.000000000
+#> 2   0.3 1 14 14 0.07118376 0.02078361  0.001479455
+#> 3   0.3 2 24 24 0.16779030 0.02603899  0.004369090
+#> 4   0.3 3 32 32 0.23970043 0.02648734  0.006349026
+#> 5   0.3 4 38 38 0.23113970 0.02684226  0.006204313
+#> 6   0.3 5 42 42 0.15849579 0.02550149  0.004041879
 attr(crp, 'TIE')
 #>   theta        TIE
-#> 1   0.3 0.01387632
-#> 2   0.5 0.01580768
+#> 1   0.3 0.02537642
+#> 2   0.5 0.02761990
 plot(crp, what = 'by.s')
 ```
 
@@ -368,8 +353,8 @@ plot(crp, what = 'by.s')
 
 `TIE.s` is the type I error rate given $`s`$, and `contribution` is its
 product with the probability `prob.s` of $`s`$. The contributions add up
-to the type I error rate at each value of `theta`, which is 0.01388 and
-0.01581 here.
+to the type I error rate at each value of `theta`, which is 0.02538 and
+0.02762 here.
 
 ## Non-inferiority
 

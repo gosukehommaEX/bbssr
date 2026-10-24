@@ -84,6 +84,9 @@ two or more strata.
 - [`StratAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratAlphaAdjBSSR.md)
   : Adjusted Significance Level of Blinded Sample Size Re-Estimation for
   a Stratified Design
+- [`StratCondRejectBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratCondRejectBSSR.md)
+  : Conditional Rejection Probabilities of Blinded Sample Size
+  Re-Estimation for a Stratified Design
 
 ## Printing, summaries and plots
 
@@ -115,6 +118,8 @@ two or more strata.
   : Print a Sample Size Calculation
 - [`print(`*`<bbssr_sbssr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_sbssr.md)
   : Print Method for bbssr_sbssr Objects
+- [`print(`*`<bbssr_scrp>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_scrp.md)
+  : Print Method for bbssr_scrp Objects
 - [`print(`*`<bbssr_spower>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_spower.md)
   : Print Method for bbssr_spower Objects
 - [`print(`*`<bbssr_spowerbssr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/print.bbssr_spowerbssr.md)

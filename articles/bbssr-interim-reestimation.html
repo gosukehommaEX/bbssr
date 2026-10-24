@@ -389,15 +389,9 @@ be read off a grid.</p>
 <span><span class="co">#&gt; 1   BSSR 0.5000000 0.02712595 0.02712595</span></span>
 <span><span class="co">#&gt; 2   TRAD 0.3551559 0.02593481 0.02593481</span></span></code></pre></div>
 <p>The largest type I error rate is 0.02713 for the re-estimation design
-and 0.02593 for the fixed-sample design, against the nominal 0.025. Two
-separate sources contribute. The chi-squared test is not exact, so the
-fixed-sample design alone can exceed the level, and the re-estimation
-changes the rate again, because the type I error rate of an adaptive
-rule is not inherited from the test it applies at the end. Substituting
-an exact test removes the first source, and whether the second matters
-has to be checked for the design. Running this check is therefore
-worthwhile whichever test is chosen, and the
-<code>bbssr-type1-error</code> vignette shows how
+and 0.02593 for the fixed-sample design, against the nominal 0.025. The
+chi-squared test is not exact, so the fixed-sample design alone can
+exceed the level. The <code>bbssr-type1-error</code> vignette shows how
 <code><a href="../reference/BinaryAlphaAdjBSSR.html">BinaryAlphaAdjBSSR()</a></code> lowers the nominal level until the
 rate is controlled.</p>
 </div>

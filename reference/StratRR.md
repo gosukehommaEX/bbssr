@@ -6,7 +6,8 @@ the numbers of responders of the strata. The tests are based on `S`, the
 number of responders of group 1 summed over the strata. Given the
 numbers of responders `z = (z_1, ..., z_J)` of the strata, each test
 rejects the null hypothesis when `S` is at most a lower or at least an
-upper critical value.
+upper critical value. The unstratified tests, which ignore the strata,
+are included for comparison.
 
 ## Usage
 
@@ -44,8 +45,12 @@ StratRR(
   `'Cochran'` (Cochran's test with the binomial variance, the test of
   Woolson et al. (1986)), `'Cochran-cc'` (the same with the continuity
   correction, which rejects the same outcomes as that of Nam (1992) at
-  one-sided levels up to 0.078) or `'Strat-Fisher'` (the stratified
-  exact conditional test of Jung (2014)). See Details
+  one-sided levels up to 0.078), `'Strat-Fisher'` (the stratified exact
+  conditional test of Jung (2014)), or one of the unstratified tests of
+  the table of totals: `'Unstrat-Chisq'` (Pearson's chi-squared test,
+  the comparison of two proportions with the pooled variance),
+  `'Unstrat-Chisq-cc'` (the same with the continuity correction) and
+  `'Unstrat-Fisher'` (Fisher's exact test). See Details
 
 - alternative:
 
@@ -55,8 +60,8 @@ StratRR(
 
 - tsmethod:
 
-  Convention of the two-sided p-value of `'Strat-Fisher'`, as for the
-  Fisher exact test of
+  Convention of the two-sided p-value of `'Strat-Fisher'` and
+  `'Unstrat-Fisher'`, as for the Fisher exact test of
   [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
   Options: `'minlike'` (default), `'central'` or `'blaker'`. Ignored by
   the other tests and for one-sided alternatives
@@ -114,6 +119,21 @@ and by their smaller tail probability, with the ties of
 [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
 As in the other functions of the package, a p-value is rejected when it
 is below `alpha` by more than about 1.49e-8.
+
+The unstratified tests apply the corresponding test of a single 2 x 2
+table to the table of totals, with `sum_j N1[j]` and `sum_j N2[j]`
+patients and `sum_j z_j` responders, so their critical values depend on
+`z` only through this total. Pearson's statistic of that table is
+Cochran's statistic of one stratum, as in `'Chisq'` of
+[`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md),
+and the continuity correction is that of `'Cochran-cc'`; with the
+correction applied to every outcome, as in the \\z_u\\ test of Nam
+(1992, Section 2.2), the same outcomes are rejected at one-sided levels
+up to 0.078. An unstratified test is valid when the distribution of the
+strata is the same in the two groups, and its level can be distorted
+otherwise (Nam, 1992; Jung, 2014); its power and type I error rate are
+computed here with the response probabilities of each stratum, so these
+consequences can be evaluated.
 
 The function stores the critical values for reuse during the session,
 like the rejection regions of the other designs.
