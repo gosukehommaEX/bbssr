@@ -301,3 +301,4 @@ test-StratCondRejectBSSR.R	location of the largest CRP Unstrat-Chisq	0	1 0 1 1
 test-StratCondRejectBSSR.R	exceed Unstrat-Chisq	0	1849 2864
 test-StratCondRejectBSSR.R	TIE at the points Unstrat-Chisq	1e-10	0.0583615622080922 0.0658128868963104
 test-StratCondRejectBSSR.R	TIE.s of the cell (2, 3) Unstrat-Chisq	1e-10	0.0653565634470866 0.0706095910072328
+test-StratCondRejectBSSR.R	rows of the full listing with Delta.A = 0.1 and N.max = 1000	0	1734897

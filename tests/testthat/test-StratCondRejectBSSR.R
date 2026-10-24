@@ -85,11 +85,22 @@ test_that("StratCondRejectBSSR lists the interim outcomes and the full listing",
   expect_identical(attr(res, 'exceed')[['CRP.total']], 0L)
 })
 
+test_that("StratCondRejectBSSR decomposes at a single point without warnings", {
+  # strat_theta names the columns, and an element of a matrix with column names only
+  # keeps its name, which data.frame() took as the row name of a short variable
+  expect_no_warning(res <- crp(theta = cbind(0.3, 0.5)))
+  expect_identical(rownames(attr(res, 'TIE')), '1')
+  expect_identical(nrow(attr(res, 'by.s')), nrow(res))
+})
+
 test_that("StratCondRejectBSSR checks its arguments", {
   expect_error(crp(N1 = c(6, 6, 6), N2 = c(6, 6, 6)), 'two strata')
   expect_error(crp(full = NA), 'full must be')
   expect_error(crp(theta = c(0.2, 1.2)))
-  expect_error(crp(N1 = c(60, 60), N2 = c(60, 60), N.max = 480, full = TRUE, theta = NULL,
-                   ss.method = 'standard'), 'more than 1e6')
+  # With Delta.A = 0.1 the re-estimated totals reach 620, and the listing would have
+  # 1734897 rows (reference_strat.py). It is refused before the critical values of the
+  # final designs are computed
+  expect_error(crp(Delta.A = 0.1, N.max = 1000, full = TRUE, theta = NULL),
+               'would have 1734897 rows, more than 1e6')
 })
 

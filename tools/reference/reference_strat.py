@@ -850,3 +850,14 @@ def blocks_crp(emit, reported_level):
         emit(f, f"TIE at the points {key}", tie)
         cell = next(c for c in cells if c["s"] == (2, 3))
         emit(f, f"TIE.s of the cell (2, 3) {key}", cell["tie_s"])
+    # Number of rows of the full listing of a design with large re-estimated totals,
+    # which StratCondRejectBSSR refuses (more than 1e6)
+    rows = 0
+    for s2 in range(d["n1"][1] + d["n2"][1] + 1):
+        for s1 in range(d["n1"][0] + d["n2"][0] + 1):
+            a, b = reestimate((s1, s2), d["n1"], d["n2"], 0.1, d["effect"], d["frac"],
+                              d["r"], d["method"], "CMH", d["alpha"], 0.8, d["alt"],
+                              d["ts"], d["N1p"], d["N2p"], Nmax=1000)
+            rows += ((a[0] + b[0] - d["n1"][0] - d["n2"][0] + 1) *
+                     (a[1] + b[1] - d["n1"][1] - d["n2"][1] + 1))
+    emit(f, "rows of the full listing with Delta.A = 0.1 and N.max = 1000", [rows], rtol=0)

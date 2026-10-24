@@ -35,7 +35,8 @@ test_that("strat_crit agrees with a scan of the p-values of every outcome", {
 
 test_that("strat_crit checks its arguments", {
   expect_error(strat_crit(c(4L, 6L), c(5L, 0L), 0L, 0L, 0L, 0.1), 'positive')
-  expect_error(strat_crit(c(4L, 6L), c(5L, 3L), 5L, 0L, 0L, 0.1), 'type')
+  # Types 5 to 7 are the unstratified tests
+  expect_error(strat_crit(c(4L, 6L), c(5L, 3L), 8L, 0L, 0L, 0.1), 'type')
   expect_error(strat_crit(c(4L, 6L), c(5L, 3L), 0L, 3L, 0L, 0.1), 'alternative')
   expect_error(strat_crit(c(4L, 6L), c(5L, 3L), 0L, 0L, 0L, 1), 'alpha')
 })

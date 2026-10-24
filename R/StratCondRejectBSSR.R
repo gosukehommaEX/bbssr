@@ -112,24 +112,32 @@ StratCondRejectBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.pow
   d <- strat_design(N1, N2, r, frac, omega, n.interim, alpha, Test, alternative, tsmethod,
                     ss.method, 1e5)
   a <- d$a
-  pts <- if (is.null(theta)) matrix(numeric(0), 0, 2) else strat_theta(theta, 2)
+  # Without the column names of strat_theta, which an element pts[p, j] would keep and
+  # data.frame() would take as the row name of a short variable
+  pts <- if (is.null(theta)) matrix(numeric(0), 0, 2) else unname(strat_theta(theta, 2))
   re.args <- list(Delta.A = Delta.A, effect = effect, frac = d$frac, r = d$r,
                   ss.method = ss.method, ss.Test = ss.Test, ss.alpha = ss.alpha,
                   tar.power = tar.power, N1.plan = a$N1, N2.plan = a$N2,
                   restricted = restricted, N.min = N.min, N.max = N.max, search = search,
                   search.limit = search.limit, ss.strata = ss.strata)
-  sm <- strat_map(d$n1, d$n2, alpha, a$Test, a$alternative, a$tsmethod, re.args)
+  # Final group sizes first, so that a full listing that is too long is refused before
+  # the critical values of the final designs are computed
+  sm <- strat_map(d$n1, d$n2, alpha, a$Test, a$alternative, a$tsmethod, re.args,
+                  crit = FALSE)
   map <- sm$map
   if (full) {
     # Number of second-stage outcomes of every interim outcome
-    rows <- sum((map$N1.S1 + map$N2.S1 - d$n1[1] - d$n2[1] + 1) *
+    rows <- sum(as.double(map$N1.S1 + map$N2.S1 - d$n1[1] - d$n2[1] + 1) *
                   (map$N1.S2 + map$N2.S2 - d$n1[2] - d$n2[2] + 1))
     if (rows > 1e6) {
       stop('the full listing would have ', format(rows), ' rows, more than 1e6; use ',
            'full = FALSE')
     }
   }
-  cr <- strat_cond_reject(d$n1, d$n2, sm$designs, sm$id, alpha, full, pts[, 1], pts[, 2])
+  designs <- lapply(sm$designs, function(e) {
+    get_strat_crit(e$N1, e$N2, alpha, a$Test, a$alternative, a$tsmethod)
+  })
+  cr <- strat_cond_reject(d$n1, d$n2, designs, sm$id, alpha, full, pts[, 1], pts[, 2])
   out <- data.frame(s1 = map$s1, s2 = map$s2, N1.S1 = map$N1.S1, N1.S2 = map$N1.S2,
                     N2.S1 = map$N2.S1, N2.S2 = map$N2.S2, CRP.max = cr$crp.max,
                     CRP.min = cr$crp.min, exceed = cr$exceed,
