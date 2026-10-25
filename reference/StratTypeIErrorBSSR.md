@@ -37,7 +37,11 @@ StratTypeIErrorBSSR(
   frac = NULL,
   theta = seq(0, 1, by = 0.05),
   maximize = c("certified", "grid"),
-  nsim = 1e+05
+  nsim = 1e+05,
+  alloc = c("fixed", "stratum", "group", "both"),
+  block = 4,
+  ss.frac = c("observed", "planned"),
+  nseq = 100
 )
 ```
 
@@ -199,15 +203,43 @@ StratTypeIErrorBSSR(
   Number of simulated trials at each point with three or more strata.
   Default is `1e5`. Ignored with two strata
 
+- alloc:
+
+  Allocation of the patients to the strata and the groups. `'fixed'`
+  (default) uses the group sizes `N1` and `N2`. The others need two
+  strata and make the sizes random, see Details: `'stratum'` (stratum
+  sizes binomial, permuted blocks within the strata), `'group'` (stratum
+  sizes fixed, group sizes binomial) and `'both'` (stratum and group
+  sizes binomial)
+
+- block:
+
+  Size of the permuted blocks of `alloc = 'stratum'`. Each block holds
+  `block r / (1 + r)` patients of group 1, which must be a whole number.
+  Default is 4
+
+- ss.frac:
+
+  Fractions of the strata used by the re-estimation with a random
+  allocation: `'observed'` (default), those of the interim patients, or
+  `'planned'`, those given by `frac`
+
+- nseq:
+
+  Number of allocation sequences drawn with a random allocation. Default
+  is 100
+
 ## Value
 
 An object of class `bbssr_stie`, a data frame with one row per point,
 containing the probabilities `theta.S1, theta.S2, ...`, the type I error
 rates `TIE.BSSR` and `TIE.TRAD` of the designs with re-estimation and
-without it, and, with three or more strata, the Monte Carlo standard
-error `se.BSSR`. The attribute `max` is a data frame with the location,
-the value and, with `maximize = 'certified'`, the upper bound `bound` of
-the largest rate of each design.
+without it, and, with three or more strata or a random allocation, the
+Monte Carlo standard error `se.BSSR`. The attribute `max` is a data
+frame with the location, the value and, with `maximize = 'certified'`,
+the upper bound `bound` of the largest rate of each design, and with a
+random allocation the standard error `se` of the rate of the BSSR design
+at the point of `theta` with the largest rate.
 
 ## Details
 
@@ -229,6 +261,20 @@ in the same way.
 With three or more strata the type I error rate of the re-estimation
 design is estimated at each point from `nsim` simulated trials, with the
 random numbers of R, and that of the fixed design is computed exactly.
+
+With a random allocation (two strata only) the allocation sequences are
+drawn as in
+[`StratPowerBSSR`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md).
+Given a sequence the type I error rate is a polynomial as above, and the
+rate of the re-estimation design is the average of these polynomials
+over `nseq` sequences, itself a polynomial, whose largest value is
+certified as above. The certificate holds for this average, and
+`se.BSSR` gives the Monte Carlo standard error of the average at each
+point, from the variation between the sequences; the attribute `max`
+gives it at the point of `theta` with the largest rate. The rate of the
+fixed design with the planned total and the same allocation is exact:
+the sum over the stratum and group sizes of their probability times the
+polynomial of the fixed design they give.
 
 ## See also
 

@@ -36,7 +36,11 @@ StratAlphaAdjBSSR(
   maximize = c("certified", "grid"),
   adjust = c("test", "both"),
   tol = 1e-08,
-  step = 1e-05
+  step = 1e-05,
+  alloc = c("fixed", "stratum", "group", "both"),
+  block = 4,
+  ss.frac = c("observed", "planned"),
+  nseq = 100
 )
 ```
 
@@ -212,6 +216,32 @@ StratAlphaAdjBSSR(
   Decrement of the level in the search used when `adjust = 'both'`.
   Default is `1e-5`
 
+- alloc:
+
+  Allocation of the patients to the strata and the groups. `'fixed'`
+  (default) uses the group sizes `N1` and `N2`. The others need two
+  strata and make the sizes random, see Details: `'stratum'` (stratum
+  sizes binomial, permuted blocks within the strata), `'group'` (stratum
+  sizes fixed, group sizes binomial) and `'both'` (stratum and group
+  sizes binomial)
+
+- block:
+
+  Size of the permuted blocks of `alloc = 'stratum'`. Each block holds
+  `block r / (1 + r)` patients of group 1, which must be a whole number.
+  Default is 4
+
+- ss.frac:
+
+  Fractions of the strata used by the re-estimation with a random
+  allocation: `'observed'` (default), those of the interim patients, or
+  `'planned'`, those given by `frac`
+
+- nseq:
+
+  Number of allocation sequences drawn with a random allocation. Default
+  is 100
+
 ## Value
 
 An object of class `bbssr_alphaadj`, a data frame with one row for the
@@ -270,6 +300,18 @@ coefficients of the type I error rate of
 [`StratTypeIErrorBSSR`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md),
 so the search takes about as long as that many evaluations of the type I
 error rate.
+
+With a random allocation (`alloc` other than `'fixed'`) the type I error
+rate of the design with re-estimation at each level is that of
+[`StratTypeIErrorBSSR`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md),
+the average over the same `nseq` allocation sequences at every level, so
+each level takes about `nseq` times as long as with the fixed
+allocation. The adjusted level controls this average, whose Monte Carlo
+error it does not account for. The rate of the fixed design with the
+planned total and the same allocation is exact. Both levels are reported
+as the search found them, without the rounding to six significant
+digits, since the critical values differ between the allocation
+sequences and between the stratum and group sizes.
 
 ## See also
 

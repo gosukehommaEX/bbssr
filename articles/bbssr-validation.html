@@ -80,7 +80,7 @@
                         <h4 data-toc-skip class="author">Gosuke
 Homma</h4>
             
-            <h4 data-toc-skip class="date">2026-10-24</h4>
+            <h4 data-toc-skip class="date">2026-10-25</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/gosukehommaEX/bbssr/blob/main/vignettes/bbssr-validation.Rmd" class="external-link"><code>vignettes/bbssr-validation.Rmd</code></a></small>
       <div class="d-none name"><code>bbssr-validation.Rmd</code></div>
@@ -495,18 +495,18 @@ computation itself.</p>
 <span>  unit <span class="op">=</span> <span class="st">'ms'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
-<span><span class="co">#&gt;                   expr       min        lq       mean    median        uq</span></span>
-<span><span class="co">#&gt;                  Chisq  0.290352  0.305590  0.3112999  0.309728  0.313695</span></span>
-<span><span class="co">#&gt;                 Fisher  2.453997  2.466691  2.4869748  2.477651  2.497108</span></span>
-<span><span class="co">#&gt;                 Z-pool  3.665468  3.689412  3.7039289  3.691376  3.721071</span></span>
-<span><span class="co">#&gt;               Boschloo  6.044415  6.052770  6.0663125  6.061160  6.080432</span></span>
-<span><span class="co">#&gt;  Boschloo, Berger-Boos 12.546692 12.566320 12.6292117 12.583040 12.587679</span></span>
+<span><span class="co">#&gt;                   expr      min        lq       mean    median        uq</span></span>
+<span><span class="co">#&gt;                  Chisq 0.226497  0.233457  0.2552786  0.261238  0.268780</span></span>
+<span><span class="co">#&gt;                 Fisher 1.817392  1.872884  1.8955628  1.902794  1.906384</span></span>
+<span><span class="co">#&gt;                 Z-pool 2.999839  3.034962  3.0868779  3.054380  3.065598</span></span>
+<span><span class="co">#&gt;               Boschloo 4.792875  4.809489  4.8369212  4.837020  4.850320</span></span>
+<span><span class="co">#&gt;  Boschloo, Berger-Boos 9.992855 10.057931 10.1523318 10.098927 10.121877</span></span>
 <span><span class="co">#&gt;        max neval</span></span>
-<span><span class="co">#&gt;   0.332751    10</span></span>
-<span><span class="co">#&gt;   2.577427    10</span></span>
-<span><span class="co">#&gt;   3.759863    10</span></span>
-<span><span class="co">#&gt;   6.099969    10</span></span>
-<span><span class="co">#&gt;  13.018173    10</span></span>
+<span><span class="co">#&gt;   0.281919    10</span></span>
+<span><span class="co">#&gt;   1.994925    10</span></span>
+<span><span class="co">#&gt;   3.437650    10</span></span>
+<span><span class="co">#&gt;   4.906543    10</span></span>
+<span><span class="co">#&gt;  10.805072    10</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 <p>The Berger-Boos variant costs more than the plain Boschloo test,
 because the confidence bounds of every possible responder total are
@@ -531,12 +531,12 @@ row.</p>
 <span>  unit <span class="op">=</span> <span class="st">'ms'</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Unit: milliseconds</span></span>
-<span><span class="co">#&gt;              expr        min         lq       mean     median         uq</span></span>
-<span><span class="co">#&gt;  bbssr.whole.grid   1.887651   2.002755   2.080741   2.020068   2.062818</span></span>
-<span><span class="co">#&gt;     Exact.one.row 279.674420 281.397443 282.451728 281.851911 284.193709</span></span>
-<span><span class="co">#&gt;         max neval</span></span>
-<span><span class="co">#&gt;    2.430413     5</span></span>
-<span><span class="co">#&gt;  285.141156     5</span></span>
+<span><span class="co">#&gt;              expr        min        lq       mean   median         uq       max</span></span>
+<span><span class="co">#&gt;  bbssr.whole.grid   1.508463   1.67476   1.761056   1.7290   1.740287   2.15277</span></span>
+<span><span class="co">#&gt;     Exact.one.row 204.807306 206.04411 206.965083 207.2651 207.696130 209.01276</span></span>
+<span><span class="co">#&gt;  neval</span></span>
+<span><span class="co">#&gt;      5</span></span>
+<span><span class="co">#&gt;      5</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">

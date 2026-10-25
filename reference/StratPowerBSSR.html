@@ -101,7 +101,11 @@ exactly, and with three or more strata by simulation.</p>
 <span>  N.max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n.interim <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  frac <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  nsim <span class="op">=</span> <span class="fl">1e+05</span></span>
+<span>  nsim <span class="op">=</span> <span class="fl">1e+05</span>,</span>
+<span>  alloc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fixed"</span>, <span class="st">"stratum"</span>, <span class="st">"group"</span>, <span class="st">"both"</span><span class="op">)</span>,</span>
+<span>  block <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  ss.frac <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"observed"</span>, <span class="st">"planned"</span><span class="op">)</span>,</span>
+<span>  nseq <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -248,6 +252,31 @@ takes the fractions of the planned design, <code>(N1 + N2) / sum(N1 + N2)</code>
 <dd><p>Number of simulated trials for each scenario with three or more strata.
 Default is <code>1e5</code>. Ignored with two strata</p></dd>
 
+
+<dt id="arg-alloc">alloc<a class="anchor" aria-label="anchor" href="#arg-alloc"></a></dt>
+<dd><p>Allocation of the patients to the strata and the groups. <code>'fixed'</code>
+(default) uses the group sizes <code>N1</code> and <code>N2</code>. The others need two strata
+and make the sizes random, see Details: <code>'stratum'</code> (stratum sizes binomial,
+permuted blocks within the strata), <code>'group'</code> (stratum sizes fixed, group sizes
+binomial) and <code>'both'</code> (stratum and group sizes binomial)</p></dd>
+
+
+<dt id="arg-block">block<a class="anchor" aria-label="anchor" href="#arg-block"></a></dt>
+<dd><p>Size of the permuted blocks of <code>alloc = 'stratum'</code>. Each block holds
+<code>block r / (1 + r)</code> patients of group 1, which must be a whole number. Default
+is 4</p></dd>
+
+
+<dt id="arg-ss-frac">ss.frac<a class="anchor" aria-label="anchor" href="#arg-ss-frac"></a></dt>
+<dd><p>Fractions of the strata used by the re-estimation with a random
+allocation: <code>'observed'</code> (default), those of the interim patients, or
+<code>'planned'</code>, those given by <code>frac</code></p></dd>
+
+
+<dt id="arg-nseq">nseq<a class="anchor" aria-label="anchor" href="#arg-nseq"></a></dt>
+<dd><p>Number of allocation sequences drawn with a random allocation. Default is
+100</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -270,7 +299,7 @@ interval, containing:</p><dl><dt>p.S1, p.S2, ...</dt>
 
 <dt>se.BSSR</dt>
 <dd><p>Monte Carlo standard error of <code>power.BSSR</code>, with three or more
-strata only</p></dd>
+strata or with a random allocation</p></dd>
 
 
 </dl><p>The attribute <code>reestimation</code> holds, with two strata, the final group sizes for every
@@ -305,6 +334,21 @@ conditional probability of rejection, computed exactly by enumeration in compile
 strata, and the power is estimated from <code>nsim</code> simulated trials, with the random
 numbers of R, so that <code><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed()</a></code> makes the results reproducible. The power of the
 fixed design is exact for any number of strata.</p>
+<p>With a random allocation (<code>alloc</code> other than <code>'fixed'</code>, two strata only) the
+patients enter the strata and the groups as in <code><a href="StratPower.html">StratPower</a></code>, the interim
+analysis has the first <code>sum(n1 + n2)</code> patients of the interim sizes above, and the
+final analysis the first <code>N</code> patients, where <code>N</code> is the re-estimated total.
+The re-estimation computes the total as above, for the fixed allocation, with the
+fractions of the strata among the interim patients (<code>ss.frac = 'observed'</code>) or
+those of <code>frac</code>, and takes the total of the group sizes it gives, within the same
+bounds; the allocation of the remaining patients is random. Given an allocation
+sequence, that is the strata and the groups of the patients in the order of enrolment,
+the design has fixed group sizes and its power is computed exactly as above. The power
+is the average over <code>nseq</code> sequences drawn with the random numbers of R, so that
+<code><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed()</a></code> makes the results reproducible, and <code>se.BSSR</code> is the standard
+deviation of the powers of the sequences divided by <code>sqrt(nseq)</code>. The power of the
+fixed design with the planned total and the same allocation is exact. A sequence
+without interim patients in a stratum is drawn again.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

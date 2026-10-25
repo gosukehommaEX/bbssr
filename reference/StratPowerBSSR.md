@@ -39,7 +39,11 @@ StratPowerBSSR(
   N.max = NULL,
   n.interim = NULL,
   frac = NULL,
-  nsim = 1e+05
+  nsim = 1e+05,
+  alloc = c("fixed", "stratum", "group", "both"),
+  block = 4,
+  ss.frac = c("observed", "planned"),
+  nseq = 100
 )
 ```
 
@@ -196,6 +200,32 @@ StratPowerBSSR(
   Number of simulated trials for each scenario with three or more
   strata. Default is `1e5`. Ignored with two strata
 
+- alloc:
+
+  Allocation of the patients to the strata and the groups. `'fixed'`
+  (default) uses the group sizes `N1` and `N2`. The others need two
+  strata and make the sizes random, see Details: `'stratum'` (stratum
+  sizes binomial, permuted blocks within the strata), `'group'` (stratum
+  sizes fixed, group sizes binomial) and `'both'` (stratum and group
+  sizes binomial)
+
+- block:
+
+  Size of the permuted blocks of `alloc = 'stratum'`. Each block holds
+  `block r / (1 + r)` patients of group 1, which must be a whole number.
+  Default is 4
+
+- ss.frac:
+
+  Fractions of the strata used by the re-estimation with a random
+  allocation: `'observed'` (default), those of the interim patients, or
+  `'planned'`, those given by `frac`
+
+- nseq:
+
+  Number of allocation sequences drawn with a random allocation. Default
+  is 100
+
 ## Value
 
 An object of class `bbssr_spowerbssr`, a data frame with one row for
@@ -225,7 +255,7 @@ in the unit interval, containing:
 - se.BSSR:
 
   Monte Carlo standard error of `power.BSSR`, with three or more strata
-  only
+  or with a random allocation
 
 The attribute `reestimation` holds, with two strata, the final group
 sizes for every pair of interim pooled numbers of responders, `N.dist`
@@ -269,6 +299,26 @@ simulated trials, with the random numbers of R, so that
 [`set.seed()`](https://rdrr.io/r/base/Random.html) makes the results
 reproducible. The power of the fixed design is exact for any number of
 strata.
+
+With a random allocation (`alloc` other than `'fixed'`, two strata only)
+the patients enter the strata and the groups as in
+[`StratPower`](https://gosukehommaex.github.io/bbssr/reference/StratPower.md),
+the interim analysis has the first `sum(n1 + n2)` patients of the
+interim sizes above, and the final analysis the first `N` patients,
+where `N` is the re-estimated total. The re-estimation computes the
+total as above, for the fixed allocation, with the fractions of the
+strata among the interim patients (`ss.frac = 'observed'`) or those of
+`frac`, and takes the total of the group sizes it gives, within the same
+bounds; the allocation of the remaining patients is random. Given an
+allocation sequence, that is the strata and the groups of the patients
+in the order of enrolment, the design has fixed group sizes and its
+power is computed exactly as above. The power is the average over `nseq`
+sequences drawn with the random numbers of R, so that
+[`set.seed()`](https://rdrr.io/r/base/Random.html) makes the results
+reproducible, and `se.BSSR` is the standard deviation of the powers of
+the sequences divided by `sqrt(nseq)`. The power of the fixed design
+with the planned total and the same allocation is exact. A sequence
+without interim patients in a stratum is drawn again.
 
 ## References
 

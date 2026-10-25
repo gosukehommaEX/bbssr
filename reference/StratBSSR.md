@@ -31,7 +31,10 @@ StratBSSR(
   search = c("crossing", "smallest", "stable"),
   search.limit = c(2, 50),
   N.min = NULL,
-  N.max = NULL
+  N.max = NULL,
+  alloc = c("fixed", "stratum", "group", "both"),
+  block = 4,
+  ss.frac = c("observed", "planned")
 )
 ```
 
@@ -176,6 +179,27 @@ StratBSSR(
 
   Largest final total sample size, or `NULL` (default)
 
+- alloc:
+
+  Allocation of the patients to the strata and the groups. `'fixed'`
+  (default) uses the group sizes `N1` and `N2`. The others need two
+  strata and make the sizes random, see Details: `'stratum'` (stratum
+  sizes binomial, permuted blocks within the strata), `'group'` (stratum
+  sizes fixed, group sizes binomial) and `'both'` (stratum and group
+  sizes binomial)
+
+- block:
+
+  Size of the permuted blocks of `alloc = 'stratum'`. Each block holds
+  `block r / (1 + r)` patients of group 1, which must be a whole number.
+  Default is 4
+
+- ss.frac:
+
+  Fractions of the strata used by the re-estimation with a random
+  allocation: `'observed'` (default), those of the interim patients, or
+  `'planned'`, those given by `frac`
+
 ## Value
 
 An object of class `bbssr_sbssr`, a data frame with one row per stratum
@@ -200,11 +224,12 @@ containing:
 
 - N1.final, N2.final:
 
-  Final group sizes
+  Final group sizes, `NA` with a random allocation
 
 - n1.stage2, n2.stage2:
 
-  Numbers of patients still to be enrolled
+  Numbers of patients still to be enrolled, `NA` with a random
+  allocation
 
 The attributes `n.raw` (unrounded total of the normal approximation),
 `N.final` (final total sample size) and `Power` (exact power of the
@@ -223,6 +248,16 @@ total sample size of
 for these probabilities is divided between the strata. The final group
 sizes are at least the interim sizes, at least the planned sizes when
 `restricted = TRUE`, and their total lies between `N.min` and `N.max`.
+
+With a random allocation (`alloc` other than `'fixed'`, two strata only)
+the re-estimation gives the final total sample size as in
+[`StratPowerBSSR`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md),
+with the fractions of the strata among the interim patients
+(`ss.frac = 'observed'`) or those of `frac`, and the remaining patients
+are allocated at random, so the final group sizes are `NA`. The
+attribute `Power` is then that of
+[`StratPower`](https://gosukehommaex.github.io/bbssr/reference/StratPower.md)
+with the final total and the same allocation.
 
 ## See also
 

@@ -104,7 +104,22 @@ version.
   total probability is reported as a bound on the error. The sample
   sizes of the columns ‘n fixed’ and ‘random’ of Table 4 of Jung (2014)
   are compared with the published values in
-  `inst/reproduce/reproduce-published.R`.
+  `inst/reproduce/reproduce-published.R`. The re-estimation functions
+  [`StratPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md),
+  [`StratTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md),
+  [`StratAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratAlphaAdjBSSR.md)
+  and
+  [`StratBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratBSSR.md)
+  gain the arguments `alloc`, `block` and `ss.frac`, and the first three
+  also `nseq`. The interim analysis has the first patients enrolled and
+  the final analysis the first patients up to the re-estimated total,
+  which the re-estimation computes with the fractions of the strata
+  observed at the interim analysis or with those of the plan. Given an
+  allocation sequence, the strata and the groups of the patients in the
+  order of enrolment, the design has fixed group sizes and is computed
+  exactly. The power and the type I error rate are averaged over `nseq`
+  sequences drawn with the random numbers of R and reported with Monte
+  Carlo standard errors, and the adjusted level controls this average.
 
 - Paired binary data.
   [`PairedRR()`](https://gosukehommaex.github.io/bbssr/reference/PairedRR.md),
