@@ -66,7 +66,9 @@ Version 2.1.0 was not released, and its changes are included in this version.
   probability below 1e-14 are left out, and their total probability is reported as a
   bound on the error. The sample sizes of the columns 'n fixed' and 'random' of Table 4
   of Jung (2014) are compared with the published values in
-  `inst/reproduce/reproduce-published.R`. The re-estimation functions `StratPowerBSSR()`,
+  `inst/reproduce/reproduce-published.R`, and so is the simulated power of the
+  unstratified Fisher test in Table 3, which agrees with random stratum and group sizes
+  within the Monte Carlo error. The re-estimation functions `StratPowerBSSR()`,
   `StratTypeIErrorBSSR()`, `StratAlphaAdjBSSR()` and `StratBSSR()` gain the arguments
   `alloc`, `block` and `ss.frac`, and the first three also `nseq`. The interim analysis
   has the first patients enrolled and the final analysis the first patients up to the
