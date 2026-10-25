@@ -203,11 +203,11 @@ StratPowerBSSR(
 - alloc:
 
   Allocation of the patients to the strata and the groups. `'fixed'`
-  (default) uses the group sizes `N1` and `N2`. The others need two
-  strata and make the sizes random, see Details: `'stratum'` (stratum
-  sizes binomial, permuted blocks within the strata), `'group'` (stratum
-  sizes fixed, group sizes binomial) and `'both'` (stratum and group
-  sizes binomial)
+  (default) uses the planned and interim group sizes. The others make
+  the sizes random, see Details: `'stratum'` (stratum sizes random,
+  permuted blocks within the strata) and `'both'` (stratum and group
+  sizes random), with any number of strata, and `'group'` (stratum sizes
+  in the fixed fractions, group sizes random), with two strata
 
 - block:
 
@@ -223,8 +223,8 @@ StratPowerBSSR(
 
 - nseq:
 
-  Number of allocation sequences drawn with a random allocation. Default
-  is 100
+  Number of allocation sequences drawn with a random allocation and two
+  strata. Default is 100
 
 ## Value
 
@@ -256,6 +256,11 @@ in the unit interval, containing:
 
   Monte Carlo standard error of `power.BSSR`, with three or more strata
   or with a random allocation
+
+- se.TRAD:
+
+  Monte Carlo standard error of `power.TRAD`, with three or more strata
+  and a random allocation
 
 The attribute `reestimation` holds, with two strata, the final group
 sizes for every pair of interim pooled numbers of responders, `N.dist`
@@ -297,10 +302,10 @@ With three or more strata the number of interim outcomes grows as a
 product over the strata, and the power is estimated from `nsim`
 simulated trials, with the random numbers of R, so that
 [`set.seed()`](https://rdrr.io/r/base/Random.html) makes the results
-reproducible. The power of the fixed design is exact for any number of
-strata.
+reproducible. The power of the fixed design with the fixed allocation is
+exact for any number of strata.
 
-With a random allocation (`alloc` other than `'fixed'`, two strata only)
+With a random allocation (`alloc` other than `'fixed'`) and two strata
 the patients enter the strata and the groups as in
 [`StratPower`](https://gosukehommaex.github.io/bbssr/reference/StratPower.md),
 the interim analysis has the first `sum(n1 + n2)` patients of the
@@ -319,6 +324,19 @@ reproducible, and `se.BSSR` is the standard deviation of the powers of
 the sequences divided by `sqrt(nseq)`. The power of the fixed design
 with the planned total and the same allocation is exact. A sequence
 without interim patients in a stratum is drawn again.
+
+With a random allocation and three or more strata (`alloc = 'stratum'`
+or `'both'`) the allocation is simulated with the responses, in `nsim`
+trials. The strata of the first `sum(n1 + n2)` patients are multinomial
+with the probabilities `frac`, drawn again until every stratum has one
+of them, and their groups follow the allocation within the strata. The
+total is re-estimated as with two strata, and the strata and the groups
+of the remaining patients continue the allocation, the permuted blocks
+of `alloc = 'stratum'` included. The power of the fixed design with the
+planned total and the same allocation is estimated from `nsim` other
+trials, with the standard error `se.TRAD`. A group without patients is
+allowed in both designs, and the fixed design is analysed without a
+stratum that has no patients.
 
 ## References
 

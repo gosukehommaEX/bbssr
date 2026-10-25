@@ -258,10 +258,11 @@ is <code>1e5</code>. Ignored with two strata</p></dd>
 
 <dt id="arg-alloc">alloc<a class="anchor" aria-label="anchor" href="#arg-alloc"></a></dt>
 <dd><p>Allocation of the patients to the strata and the groups. <code>'fixed'</code>
-(default) uses the group sizes <code>N1</code> and <code>N2</code>. The others need two strata
-and make the sizes random, see Details: <code>'stratum'</code> (stratum sizes binomial,
-permuted blocks within the strata), <code>'group'</code> (stratum sizes fixed, group sizes
-binomial) and <code>'both'</code> (stratum and group sizes binomial)</p></dd>
+(default) uses the planned and interim group sizes. The others make the sizes random,
+see Details: <code>'stratum'</code> (stratum sizes random, permuted blocks within the
+strata) and <code>'both'</code> (stratum and group sizes random), with any number of
+strata, and <code>'group'</code> (stratum sizes in the fixed fractions, group sizes random),
+with two strata</p></dd>
 
 
 <dt id="arg-block">block<a class="anchor" aria-label="anchor" href="#arg-block"></a></dt>
@@ -277,8 +278,8 @@ allocation: <code>'observed'</code> (default), those of the interim patients, or
 
 
 <dt id="arg-nseq">nseq<a class="anchor" aria-label="anchor" href="#arg-nseq"></a></dt>
-<dd><p>Number of allocation sequences drawn with a random allocation. Default is
-100</p></dd>
+<dd><p>Number of allocation sequences drawn with a random allocation and two
+strata. Default is 100</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -287,10 +288,12 @@ allocation: <code>'observed'</code> (default), those of the interim patients, or
 containing the probabilities <code>theta.S1, theta.S2, ...</code>, the type I error rates
 <code>TIE.BSSR</code> and <code>TIE.TRAD</code> of the designs with re-estimation and without it,
 and, with three or more strata or a random allocation, the Monte Carlo standard error
-<code>se.BSSR</code>. The attribute <code>max</code> is a data frame with the location, the value
-and, with <code>maximize = 'certified'</code>, the upper bound <code>bound</code> of the largest
-rate of each design, and with a random allocation the standard error <code>se</code> of
-the rate of the BSSR design at the point of <code>theta</code> with the largest rate.</p>
+<code>se.BSSR</code>, and with three or more strata and a random allocation <code>se.TRAD</code>
+for <code>TIE.TRAD</code>. The attribute <code>max</code> is a data frame with the location, the
+value and, with <code>maximize = 'certified'</code>, the upper bound <code>bound</code> of the
+largest rate of each design, and with a random allocation the standard error
+<code>se</code> of the rate at the point of <code>theta</code> with the largest rate (<code>NA</code>
+for the exact rate of the fixed design with two strata).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -308,8 +311,8 @@ bound, which the type I error rate cannot exceed anywhere in the rectangle. The 
 design is certified in the same way.</p>
 <p>With three or more strata the type I error rate of the re-estimation design is estimated
 at each point from <code>nsim</code> simulated trials, with the random numbers of R, and that
-of the fixed design is computed exactly.</p>
-<p>With a random allocation (two strata only) the allocation sequences are drawn as in
+of the fixed design with the fixed allocation is computed exactly.</p>
+<p>With a random allocation and two strata the allocation sequences are drawn as in
 <code><a href="StratPowerBSSR.html">StratPowerBSSR</a></code>. Given a sequence the type I error rate is a polynomial
 as above, and the rate of the re-estimation design is the average of these polynomials
 over <code>nseq</code> sequences, itself a polynomial, whose largest value is certified as
@@ -319,6 +322,10 @@ sequences; the attribute <code>max</code> gives it at the point of <code>theta</
 largest rate. The rate of the fixed design with the planned total and the same
 allocation is exact: the sum over the stratum and group sizes of their probability
 times the polynomial of the fixed design they give.</p>
+<p>With a random allocation and three or more strata (<code>alloc = 'stratum'</code> or
+<code>'both'</code>) the allocation is simulated with the responses as in
+<code><a href="StratPowerBSSR.html">StratPowerBSSR</a></code>, and the rates of both designs are estimated at each point
+from <code>nsim</code> trials each.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

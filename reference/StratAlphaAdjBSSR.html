@@ -267,10 +267,11 @@ Default is <code>1e-5</code></p></dd>
 
 <dt id="arg-alloc">alloc<a class="anchor" aria-label="anchor" href="#arg-alloc"></a></dt>
 <dd><p>Allocation of the patients to the strata and the groups. <code>'fixed'</code>
-(default) uses the group sizes <code>N1</code> and <code>N2</code>. The others need two strata
-and make the sizes random, see Details: <code>'stratum'</code> (stratum sizes binomial,
-permuted blocks within the strata), <code>'group'</code> (stratum sizes fixed, group sizes
-binomial) and <code>'both'</code> (stratum and group sizes binomial)</p></dd>
+(default) uses the planned and interim group sizes. The others make the sizes random,
+see Details: <code>'stratum'</code> (stratum sizes random, permuted blocks within the
+strata) and <code>'both'</code> (stratum and group sizes random), with any number of
+strata, and <code>'group'</code> (stratum sizes in the fixed fractions, group sizes random),
+with two strata</p></dd>
 
 
 <dt id="arg-block">block<a class="anchor" aria-label="anchor" href="#arg-block"></a></dt>
@@ -286,8 +287,8 @@ allocation: <code>'observed'</code> (default), those of the interim patients, or
 
 
 <dt id="arg-nseq">nseq<a class="anchor" aria-label="anchor" href="#arg-nseq"></a></dt>
-<dd><p>Number of allocation sequences drawn with a random allocation. Default is
-100</p></dd>
+<dd><p>Number of allocation sequences drawn with a random allocation and two
+strata. Default is 100</p></dd>
 
 </dl></div>
     <div class="section level2">

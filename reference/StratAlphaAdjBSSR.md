@@ -219,11 +219,11 @@ StratAlphaAdjBSSR(
 - alloc:
 
   Allocation of the patients to the strata and the groups. `'fixed'`
-  (default) uses the group sizes `N1` and `N2`. The others need two
-  strata and make the sizes random, see Details: `'stratum'` (stratum
-  sizes binomial, permuted blocks within the strata), `'group'` (stratum
-  sizes fixed, group sizes binomial) and `'both'` (stratum and group
-  sizes binomial)
+  (default) uses the planned and interim group sizes. The others make
+  the sizes random, see Details: `'stratum'` (stratum sizes random,
+  permuted blocks within the strata) and `'both'` (stratum and group
+  sizes random), with any number of strata, and `'group'` (stratum sizes
+  in the fixed fractions, group sizes random), with two strata
 
 - block:
 
@@ -239,8 +239,8 @@ StratAlphaAdjBSSR(
 
 - nseq:
 
-  Number of allocation sequences drawn with a random allocation. Default
-  is 100
+  Number of allocation sequences drawn with a random allocation and two
+  strata. Default is 100
 
 ## Value
 

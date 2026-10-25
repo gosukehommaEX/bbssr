@@ -120,6 +120,14 @@ version.
   exactly. The power and the type I error rate are averaged over `nseq`
   sequences drawn with the random numbers of R and reported with Monte
   Carlo standard errors, and the adjusted level controls this average.
+  With three or more strata,
+  [`StratPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md)
+  and
+  [`StratTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md)
+  accept `alloc = 'stratum'` and `'both'`, whose stratum sizes are
+  multinomial, and simulate the allocation with the responses; the fixed
+  design with the planned total and the same allocation is simulated as
+  well, with the standard error `se.TRAD`.
 
 - Paired binary data.
   [`PairedRR()`](https://gosukehommaex.github.io/bbssr/reference/PairedRR.md),

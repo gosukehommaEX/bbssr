@@ -182,11 +182,10 @@ StratBSSR(
 - alloc:
 
   Allocation of the patients to the strata and the groups. `'fixed'`
-  (default) uses the group sizes `N1` and `N2`. The others need two
-  strata and make the sizes random, see Details: `'stratum'` (stratum
-  sizes binomial, permuted blocks within the strata), `'group'` (stratum
-  sizes fixed, group sizes binomial) and `'both'` (stratum and group
-  sizes binomial)
+  (default) uses the group sizes. The others, `'stratum'`, `'group'` and
+  `'both'` of
+  [`StratPower`](https://gosukehommaex.github.io/bbssr/reference/StratPower.md),
+  make the sizes random and need two strata, see Details
 
 - block:
 
