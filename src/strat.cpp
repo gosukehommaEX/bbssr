@@ -528,7 +528,9 @@ List strat_seq_tie_coef(List seqs, int type, int alternative, int tsmethod, doub
 }
 
 // p-values of the test for observed data: row i gives, for each stratum, the group sizes
-// N1 and N2 and the numbers of responders x1 and x2 of the two groups
+// N1 and N2 and the numbers of responders x1 and x2 of the two groups. A group may have no
+// patients, and a stratum without patients is left out, as in strat::add_config_power();
+// every row must have patients
 // [[Rcpp::export]]
 NumericVector strat_pvalue_cases(IntegerMatrix N1, IntegerMatrix N2, IntegerMatrix x1,
                                  IntegerMatrix x2, int type, int alternative, int tsmethod) {
@@ -541,26 +543,35 @@ NumericVector strat_pvalue_cases(IntegerMatrix N1, IntegerMatrix N2, IntegerMatr
   int Tmax = 1;
   for (int i = 0; i < n; ++i) {
     int T = 0;
-    for (int j = 0; j < J; ++j) T += N1(i, j) + N2(i, j);
+    for (int j = 0; j < J; ++j) {
+      if (N1(i, j) == NA_INTEGER || N2(i, j) == NA_INTEGER || N1(i, j) < 0 ||
+          N2(i, j) < 0) {
+        stop("the group sizes must be non-negative");
+      }
+      T += N1(i, j) + N2(i, j);
+    }
+    if (T == 0) stop("every row must have patients");
     Tmax = std::max(Tmax, T);
   }
   const std::vector<double> lf = strat::log_factorials(Tmax);
   NumericVector out(n);
   strat::Design d;
-  d.N1.resize(J);
-  d.N2.resize(J);
-  std::vector<int> z(J);
+  std::vector<int> z;
   for (int i = 0; i < n; ++i) {
+    d.N1.clear();
+    d.N2.clear();
+    z.clear();
     int S = 0;
     for (int j = 0; j < J; ++j) {
-      d.N1[j] = N1(i, j);
-      d.N2[j] = N2(i, j);
-      if (d.N1[j] < 1 || d.N2[j] < 1) stop("the group sizes must be positive");
-      if (x1(i, j) < 0 || x1(i, j) > d.N1[j] || x2(i, j) < 0 || x2(i, j) > d.N2[j]) {
+      const int a = N1(i, j), b = N2(i, j);
+      if (x1(i, j) < 0 || x1(i, j) > a || x2(i, j) < 0 || x2(i, j) > b) {
         stop("the numbers of responders must lie between 0 and the group sizes");
       }
-      z[j] = x1(i, j) + x2(i, j);
       S += x1(i, j);
+      if (a + b == 0) continue;
+      d.N1.push_back(a);
+      d.N2.push_back(b);
+      z.push_back(x1(i, j) + x2(i, j));
     }
     out[i] = strat::pvalue(d, t, z.data(), S, lf);
   }

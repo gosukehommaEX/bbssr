@@ -128,10 +128,11 @@ takes the fractions of the planned design, \code{(N1 + N2) / sum(N1 + N2)}}
 Default is \code{1e5}. Ignored with two strata}
 
 \item{alloc}{Allocation of the patients to the strata and the groups. \code{'fixed'}
-(default) uses the group sizes \code{N1} and \code{N2}. The others need two strata
-and make the sizes random, see Details: \code{'stratum'} (stratum sizes binomial,
-permuted blocks within the strata), \code{'group'} (stratum sizes fixed, group sizes
-binomial) and \code{'both'} (stratum and group sizes binomial)}
+(default) uses the planned and interim group sizes. The others make the sizes random,
+see Details: \code{'stratum'} (stratum sizes random, permuted blocks within the
+strata) and \code{'both'} (stratum and group sizes random), with any number of
+strata, and \code{'group'} (stratum sizes in the fixed fractions, group sizes random),
+with two strata}
 
 \item{block}{Size of the permuted blocks of \code{alloc = 'stratum'}. Each block holds
 \code{block r / (1 + r)} patients of group 1, which must be a whole number. Default
@@ -141,8 +142,8 @@ is 4}
 allocation: \code{'observed'} (default), those of the interim patients, or
 \code{'planned'}, those given by \code{frac}}
 
-\item{nseq}{Number of allocation sequences drawn with a random allocation. Default is
-100}
+\item{nseq}{Number of allocation sequences drawn with a random allocation and two
+strata. Default is 100}
 }
 \value{
 An object of class \code{bbssr_spowerbssr}, a data frame with one row for each
@@ -156,6 +157,8 @@ interval, containing:
 \item{E.N}{Expected final total sample size}
 \item{se.BSSR}{Monte Carlo standard error of \code{power.BSSR}, with three or more
 strata or with a random allocation}
+\item{se.TRAD}{Monte Carlo standard error of \code{power.TRAD}, with three or more
+strata and a random allocation}
 }
 The attribute \code{reestimation} holds, with two strata, the final group sizes for every
 pair of interim pooled numbers of responders, \code{N.dist} the distribution of the
@@ -198,9 +201,9 @@ conditional probability of rejection, computed exactly by enumeration in compile
 With three or more strata the number of interim outcomes grows as a product over the
 strata, and the power is estimated from \code{nsim} simulated trials, with the random
 numbers of R, so that \code{set.seed()} makes the results reproducible. The power of the
-fixed design is exact for any number of strata.
+fixed design with the fixed allocation is exact for any number of strata.
 
-With a random allocation (\code{alloc} other than \code{'fixed'}, two strata only) the
+With a random allocation (\code{alloc} other than \code{'fixed'}) and two strata the
 patients enter the strata and the groups as in \code{\link{StratPower}}, the interim
 analysis has the first \code{sum(n1 + n2)} patients of the interim sizes above, and the
 final analysis the first \code{N} patients, where \code{N} is the re-estimated total.
@@ -215,6 +218,18 @@ is the average over \code{nseq} sequences drawn with the random numbers of R, so
 deviation of the powers of the sequences divided by \code{sqrt(nseq)}. The power of the
 fixed design with the planned total and the same allocation is exact. A sequence
 without interim patients in a stratum is drawn again.
+
+With a random allocation and three or more strata (\code{alloc = 'stratum'} or
+\code{'both'}) the allocation is simulated with the responses, in \code{nsim} trials.
+The strata of the first \code{sum(n1 + n2)} patients are multinomial with the
+probabilities \code{frac}, drawn again until every stratum has one of them, and their
+groups follow the allocation within the strata. The total is re-estimated as with two
+strata, and the strata and the groups of the remaining patients continue the
+allocation, the permuted blocks of \code{alloc = 'stratum'} included. The power of the
+fixed design with the planned total and the same allocation is estimated from
+\code{nsim} other trials, with the standard error \code{se.TRAD}. A group without
+patients is allowed in both designs, and the fixed design is analysed without a
+stratum that has no patients.
 }
 \examples{
 res <- StratPowerBSSR(p = rbind(c(0.3, 0.5), c(0.4, 0.6)), Delta.A = 0.2,

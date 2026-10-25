@@ -31,8 +31,12 @@ print.bbssr_stie <- function(x, digits = 6, ...) {
   alloc <- attr(x, 'alloc')
   if (!is.null(alloc) && alloc != 'fixed') {
     cat(sprintf('  Allocation       : %s\n', strat_alloc_label(alloc, attr(x, 'block'))))
-    cat(sprintf('  Sequences        : %d, interim analysis of the first %d patients\n',
-                attr(x, 'nseq'), attr(x, 'n.interim')))
+    if (is.null(attr(x, 'nseq'))) {
+      cat(sprintf('  Interim analysis : first %d patients\n', attr(x, 'n.interim')))
+    } else {
+      cat(sprintf('  Sequences        : %d, interim analysis of the first %d patients\n',
+                  attr(x, 'nseq'), attr(x, 'n.interim')))
+    }
   }
   cat(sprintf('  Points           : %d\n', nrow(x)))
   cat(sprintf('  Maximum          : %s\n', maximize_label(x)))

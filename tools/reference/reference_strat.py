@@ -1000,3 +1000,109 @@ def blocks_alloc_seq(emit, reported_level):
         emit(f, f"type I error rate given the sequences {test}",
              [seq_power(sq, 12, th, th, test, "greater", "minlike", 0.05)
               for sq in (SEQ_A, SEQ_B) for th in ([0.3, 0.6], [0.7, 0.2])])
+
+
+# ---------------------------------------------------------------------------------------
+# Random stratum and group sizes with three or more strata (simulated in the package)
+# Observed data with empty groups and a stratum without patients, (N1, N2, x1, x2)
+EMPTY_ROWS = [((0, 3, 2), (2, 0, 3), (0, 2, 1), (1, 0, 2)),
+              ((3, 0, 2), (2, 0, 3), (2, 0, 1), (1, 0, 0)),
+              ((1, 4, 0), (0, 3, 2), (1, 3, 0), (0, 1, 2)),
+              ((2, 3, 4), (3, 2, 1), (2, 1, 3), (0, 1, 0))]
+EMPTY_TESTS = [("CMH", "greater", "minlike"), ("CMH-cc", "two.sided", "minlike"),
+               ("Cochran", "less", "minlike"), ("Strat-Fisher", "greater", "minlike"),
+               ("Strat-Fisher", "two.sided", "minlike"),
+               ("Strat-Fisher", "two.sided", "central"),
+               ("Strat-Fisher", "two.sided", "blaker"),
+               ("Unstrat-Chisq", "greater", "minlike"),
+               ("Unstrat-Fisher", "two.sided", "minlike")]
+
+
+def pvalue_cases(test, alt, ts, N1, N2, x1, x2):
+    """p-value of observed data in which a group may be empty; a stratum without patients
+    is left out."""
+    keep = [j for j in range(len(N1)) if N1[j] + N2[j] > 0]
+    sel = lambda v: [v[j] for j in keep]
+    return pvalue(test, alt, ts, sel(N1), sel(N2), sel(x1), sel(x2))
+
+
+def compositions(N, J):
+    """Every vector of J non-negative integers summing to N."""
+    if J == 1:
+        yield (N,)
+        return
+    for k in range(N + 1):
+        for rest in compositions(N - k, J - 1):
+            yield (k,) + rest
+
+
+def mult_pmf(n, frac):
+    """Multinomial probability of the counts n with the probabilities frac."""
+    N = sum(n)
+    lp = gammaln(N + 1) - sum(gammaln(k + 1) for k in n)
+    lp += sum(k * math.log(f) for k, f in zip(n, frac) if k > 0)
+    return float(math.exp(lp))
+
+
+def stratum_sizes(N, frac, n_int=0):
+    """Distribution of the stratum sizes of the first N patients, whose strata are drawn
+    with the probabilities frac, given at least one patient in every stratum among the
+    first n_int patients (no condition when n_int is 0)."""
+    J = len(frac)
+    if n_int == 0:
+        return {n: mult_pmf(n, frac) for n in compositions(N, J)}
+    out, tot = {}, 0.0
+    for m in compositions(n_int, J):
+        if min(m) == 0:
+            continue
+        wm = mult_pmf(m, frac)
+        tot += wm
+        for e in compositions(N - n_int, J):
+            M = tuple(a + b for a, b in zip(m, e))
+            out[M] = out.get(M, 0.0) + wm * mult_pmf(e, frac)
+    return {M: w / tot for M, w in out.items()}
+
+
+def alloc_power_strata(N, frac, b, model, p1, p2, test, alt, ts, alpha, B=4, n_int=0):
+    """Exact rejection probability of the fixed design of the first N patients of J strata
+    with the stratum sizes of stratum_sizes() and the group sizes of alloc_group_sizes()
+    ('stratum' or 'both'). Given the stratum sizes, the size of group 1 of a stratum
+    depends only on the size of that stratum, also with permuted blocks, whose sequence
+    within a stratum does not depend on the strata of the other patients. A stratum
+    without patients is left out of the design."""
+    J = len(frac)
+    total = 0.0
+    for n, wn in stratum_sizes(N, frac, n_int).items():
+        keep = [j for j in range(J) if n[j] > 0]
+        dists = [list(alloc_group_sizes(model, n[j], b[j], B).items()) for j in keep]
+        for ms in itertools.product(*dists):
+            w = wn
+            for _, wj in ms:
+                w *= wj
+            N1 = [m for m, _ in ms]
+            N2 = [n[j] - m for j, (m, _) in zip(keep, ms)]
+            total += w * power(N1, N2, [p1[j] for j in keep], [p2[j] for j in keep], test,
+                               alt, ts, alpha)
+    return total
+
+
+def blocks_alloc_sim(emit, reported_level):
+    f = "test-strat_pvalue_cases.R"
+    for test, alt, ts in EMPTY_TESTS:
+        emit(f, f"p-values with empty groups and strata {test} {alt} {ts}",
+             [pvalue_cases(test, alt, ts, *row) for row in EMPTY_ROWS])
+    # Three strata with the fractions (0.3, 0.3, 0.4) and r = 1 (blocks of 4 with 2
+    # patients of group 1): the fixed design of 10 patients, and the design whose final
+    # analysis has the first 10 patients and whose interim analysis has the first 6, which
+    # are drawn again until every stratum has one of them; the true probabilities
+    # (0.55, 0.65, 0.75) and (0.25, 0.35, 0.45), and theta = 0.3 and 0.6 in every stratum
+    f = "test-strat_alloc_simulate.R"
+    frac = (0.3, 0.3, 0.4)
+    sc = [((0.55, 0.65, 0.75), (0.25, 0.35, 0.45)), ((0.3,) * 3, (0.3,) * 3),
+          ((0.6,) * 3, (0.6,) * 3)]
+    for model in ("stratum", "both"):
+        for n_int, lab in ((0, "fixed design of 10"),
+                           (6, "final total 10 after 6 interim patients")):
+            emit(f, f"three strata, {lab}, {model} CMH",
+                 [alloc_power_strata(10, frac, (0.5,) * 3, model, p1, p2, "CMH", "greater",
+                                     "minlike", 0.05, n_int=n_int) for p1, p2 in sc])

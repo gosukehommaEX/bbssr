@@ -145,10 +145,11 @@ level controls the type I error rate over the whole rectangle spanned by
 Default is \code{1e-5}}
 
 \item{alloc}{Allocation of the patients to the strata and the groups. \code{'fixed'}
-(default) uses the group sizes \code{N1} and \code{N2}. The others need two strata
-and make the sizes random, see Details: \code{'stratum'} (stratum sizes binomial,
-permuted blocks within the strata), \code{'group'} (stratum sizes fixed, group sizes
-binomial) and \code{'both'} (stratum and group sizes binomial)}
+(default) uses the planned and interim group sizes. The others make the sizes random,
+see Details: \code{'stratum'} (stratum sizes random, permuted blocks within the
+strata) and \code{'both'} (stratum and group sizes random), with any number of
+strata, and \code{'group'} (stratum sizes in the fixed fractions, group sizes random),
+with two strata}
 
 \item{block}{Size of the permuted blocks of \code{alloc = 'stratum'}. Each block holds
 \code{block r / (1 + r)} patients of group 1, which must be a whole number. Default
@@ -158,8 +159,8 @@ is 4}
 allocation: \code{'observed'} (default), those of the interim patients, or
 \code{'planned'}, those given by \code{frac}}
 
-\item{nseq}{Number of allocation sequences drawn with a random allocation. Default is
-100}
+\item{nseq}{Number of allocation sequences drawn with a random allocation and two
+strata. Default is 100}
 }
 \value{
 An object of class \code{bbssr_alphaadj}, a data frame with one row for the

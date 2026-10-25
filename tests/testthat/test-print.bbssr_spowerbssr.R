@@ -44,3 +44,17 @@ test_that("print.bbssr_spowerbssr describes a random allocation", {
   expect_true(any(grepl('se.BSSR', out, fixed = TRUE)))
   expect_false(any(grepl('Interim sizes', out, fixed = TRUE)))
 })
+
+test_that("print.bbssr_spowerbssr describes a simulated random allocation", {
+  set.seed(23)
+  res <- StratPowerBSSR(p = c(0.4, 0.5, 0.6), Delta.A = 0.3, Delta.T = 0.3,
+                        N1 = c(2, 2, 1), N2 = c(2, 2, 1), omega = 0.5, r = 1, alpha = 0.05,
+                        tar.power = 0.8, Test = 'CMH', ss.method = 'standard',
+                        frac = c(0.3, 0.3, 0.4), N.max = 20, alloc = 'stratum',
+                        nsim = 500)
+  out <- capture.output(print(res))
+  expect_true(any(grepl('Interim analysis : first 6 patients', out, fixed = TRUE)))
+  expect_false(any(grepl('allocation sequences', out, fixed = TRUE)))
+  expect_true(any(grepl('Simulation       : 500 trials per scenario', out, fixed = TRUE)))
+  expect_true(any(grepl('se.TRAD', out, fixed = TRUE)))
+})

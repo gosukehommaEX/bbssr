@@ -19,3 +19,12 @@ test_that("check_strat_alloc checks its arguments", {
   expect_error(check_strat_alloc('stratum', 20, c(1, 1), 2, 4), 'whole numbers')
   expect_error(check_strat_alloc('stratum', 20, c(1, 1), 1, 1), 'at least 2')
 })
+
+test_that("check_strat_alloc accepts three or more strata except for alloc = 'group'", {
+  al <- check_strat_alloc('stratum', NULL, c(1, 1, 2), 1, 4, 3)
+  expect_equal(al$frac, c(0.25, 0.25, 0.5))
+  expect_identical(al$g, c(2L, 2L, 2L))
+  expect_equal(check_strat_alloc('both', NULL, c(1, 1, 2), 3, 4, 3)$b, rep(0.75, 3))
+  expect_error(check_strat_alloc('group', NULL, c(1, 1, 2), 1, 4, 3), 'two strata')
+  expect_error(check_strat_alloc('both', NULL, c(1, 1), 1, 4, 3), 'one element per stratum')
+})

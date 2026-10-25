@@ -134,10 +134,11 @@ it is the largest value at the points of \code{theta}}
 is \code{1e5}. Ignored with two strata}
 
 \item{alloc}{Allocation of the patients to the strata and the groups. \code{'fixed'}
-(default) uses the group sizes \code{N1} and \code{N2}. The others need two strata
-and make the sizes random, see Details: \code{'stratum'} (stratum sizes binomial,
-permuted blocks within the strata), \code{'group'} (stratum sizes fixed, group sizes
-binomial) and \code{'both'} (stratum and group sizes binomial)}
+(default) uses the planned and interim group sizes. The others make the sizes random,
+see Details: \code{'stratum'} (stratum sizes random, permuted blocks within the
+strata) and \code{'both'} (stratum and group sizes random), with any number of
+strata, and \code{'group'} (stratum sizes in the fixed fractions, group sizes random),
+with two strata}
 
 \item{block}{Size of the permuted blocks of \code{alloc = 'stratum'}. Each block holds
 \code{block r / (1 + r)} patients of group 1, which must be a whole number. Default
@@ -147,18 +148,20 @@ is 4}
 allocation: \code{'observed'} (default), those of the interim patients, or
 \code{'planned'}, those given by \code{frac}}
 
-\item{nseq}{Number of allocation sequences drawn with a random allocation. Default is
-100}
+\item{nseq}{Number of allocation sequences drawn with a random allocation and two
+strata. Default is 100}
 }
 \value{
 An object of class \code{bbssr_stie}, a data frame with one row per point,
 containing the probabilities \code{theta.S1, theta.S2, ...}, the type I error rates
 \code{TIE.BSSR} and \code{TIE.TRAD} of the designs with re-estimation and without it,
 and, with three or more strata or a random allocation, the Monte Carlo standard error
-\code{se.BSSR}. The attribute \code{max} is a data frame with the location, the value
-and, with \code{maximize = 'certified'}, the upper bound \code{bound} of the largest
-rate of each design, and with a random allocation the standard error \code{se} of
-the rate of the BSSR design at the point of \code{theta} with the largest rate.
+\code{se.BSSR}, and with three or more strata and a random allocation \code{se.TRAD}
+for \code{TIE.TRAD}. The attribute \code{max} is a data frame with the location, the
+value and, with \code{maximize = 'certified'}, the upper bound \code{bound} of the
+largest rate of each design, and with a random allocation the standard error
+\code{se} of the rate at the point of \code{theta} with the largest rate (\code{NA}
+for the exact rate of the fixed design with two strata).
 }
 \description{
 Calculates the type I error rate of a two-arm trial with a binary endpoint, stratified
@@ -184,9 +187,9 @@ design is certified in the same way.
 
 With three or more strata the type I error rate of the re-estimation design is estimated
 at each point from \code{nsim} simulated trials, with the random numbers of R, and that
-of the fixed design is computed exactly.
+of the fixed design with the fixed allocation is computed exactly.
 
-With a random allocation (two strata only) the allocation sequences are drawn as in
+With a random allocation and two strata the allocation sequences are drawn as in
 \code{\link{StratPowerBSSR}}. Given a sequence the type I error rate is a polynomial
 as above, and the rate of the re-estimation design is the average of these polynomials
 over \code{nseq} sequences, itself a polynomial, whose largest value is certified as
@@ -196,6 +199,11 @@ sequences; the attribute \code{max} gives it at the point of \code{theta} with t
 largest rate. The rate of the fixed design with the planned total and the same
 allocation is exact: the sum over the stratum and group sizes of their probability
 times the polynomial of the fixed design they give.
+
+With a random allocation and three or more strata (\code{alloc = 'stratum'} or
+\code{'both'}) the allocation is simulated with the responses as in
+\code{\link{StratPowerBSSR}}, and the rates of both designs are estimated at each point
+from \code{nsim} trials each.
 }
 \examples{
 tie <- StratTypeIErrorBSSR(Delta.A = 0.2, N1 = c(20, 20), N2 = c(20, 20), omega = 0.5,

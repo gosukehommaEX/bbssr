@@ -160,6 +160,43 @@ test_that("StratPowerBSSR checks the settings of a random allocation", {
   expect_error(do.call(StratPowerBSSR, c(args, list(nseq = 1))), 'nseq')
   expect_error(do.call(StratPowerBSSR, c(args, list(N.max = 10))), 'N.max')
   expect_error(do.call(StratPowerBSSR, c(args, list(block = 3))), 'whole numbers')
-  args3 <- modifyList(args, list(p = c(0.4, 0.5, 0.6), N1 = c(6, 6, 6), N2 = c(6, 6, 6)))
+  # alloc = 'group' needs two strata; 'stratum' and 'both' are simulated with three
+  args3 <- modifyList(args, list(p = c(0.4, 0.5, 0.6), N1 = c(6, 6, 6), N2 = c(6, 6, 6),
+                                 alloc = 'group'))
   expect_error(do.call(StratPowerBSSR, args3), 'two strata')
+})
+
+test_that("StratPowerBSSR simulates a random allocation with three strata", {
+  args <- list(p = c(0.4, 0.5, 0.6), Delta.A = 0.3, Delta.T = 0.3, N1 = c(2, 2, 1),
+               N2 = c(2, 2, 1), omega = 0.5, r = 1, alpha = 0.05, tar.power = 0.8,
+               Test = 'CMH', ss.method = 'standard', frac = c(0.3, 0.3, 0.4), N.min = 10,
+               N.max = 10, alloc = 'both', nsim = 2000)
+  set.seed(21)
+  res <- do.call(StratPowerBSSR, args)
+  expect_named(res, c('p.S1', 'p.S2', 'p.S3', 'p1.S1', 'p1.S2', 'p1.S3', 'p2.S1', 'p2.S2',
+                      'p2.S3', 'power.BSSR', 'power.TRAD', 'E.N', 'se.BSSR', 'se.TRAD'))
+  # The same draws as strat_alloc_simulate itself: 6 interim patients, a final total of
+  # 10 and the planned total of 10
+  pr <- function(v) as.numeric(unlist(res[1, paste0(v, '.S', 1:3)]))
+  a <- check_strat_args(rep(1, 3), rep(1, 3), 0.05, 'CMH', 'greater', 'minlike')
+  al <- check_strat_alloc('both', NULL, c(0.3, 0.3, 0.4), 1, 4, 3)
+  re.args <- list(Delta.A = 0.3, effect = 'RD', frac = c(0.3, 0.3, 0.4), r = c(1, 1, 1),
+                  ss.method = 'standard', ss.Test = 'CMH', ss.alpha = 0.05,
+                  tar.power = 0.8, search = 'crossing', search.limit = c(2, 50),
+                  ss.strata = 'stratified')
+  set.seed(21)
+  sim <- strat_alloc_simulate(6, 10, al, 'both', pr('p1'), pr('p2'), 2000, 0.05, a,
+                              re.args, 'observed', FALSE, 10, 10)
+  expect_equal(res$power.BSSR, mean(sim$reject))
+  expect_equal(res$power.TRAD, mean(sim$reject.trad))
+  expect_equal(res$se.TRAD, sqrt(res$power.TRAD * (1 - res$power.TRAD) / 2000))
+  expect_equal(res$E.N, 10)
+  expect_identical(attr(res, 'nsim'), 2000L)
+  expect_identical(attr(res, 'n.interim'), 6L)
+  expect_null(attr(res, 'nseq'))
+  expect_identical(attr(res, 'N.dist')$N, 10L)
+  expect_error(do.call(StratPowerBSSR, modifyList(args, list(alloc = 'group'))),
+               'two strata')
+  expect_error(do.call(StratPowerBSSR, modifyList(args, list(N.min = NULL, N.max = 5))),
+               'N.max')
 })

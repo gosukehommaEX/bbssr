@@ -201,3 +201,54 @@ test_that("the unstratified tests give the p-values of the table of totals", {
                           rbind(c(1L, 2L), c(0L, 3L)), a$type, a$alt, a$ts)
   expect_identical(p[1], p[2])
 })
+
+test_that("strat_pvalue_cases allows empty groups and leaves out empty strata", {
+  # Rows of three strata with empty groups, a stratum without patients (row 2) and none
+  # (row 4); reference values from tools/reference/reference_strat.py (pvalue_cases)
+  N1 <- rbind(c(0L, 3L, 2L), c(3L, 0L, 2L), c(1L, 4L, 0L), c(2L, 3L, 4L))
+  N2 <- rbind(c(2L, 0L, 3L), c(2L, 0L, 3L), c(0L, 3L, 2L), c(3L, 2L, 1L))
+  x1 <- rbind(c(0L, 2L, 1L), c(2L, 0L, 1L), c(1L, 3L, 0L), c(2L, 1L, 3L))
+  x2 <- rbind(c(1L, 0L, 2L), c(1L, 0L, 0L), c(0L, 1L, 2L), c(0L, 1L, 0L))
+  pv <- function(Test, alternative, tsmethod = 'minlike') {
+    a <- check_strat_args(rep(1, 3), rep(1, 3), 0.05, Test, alternative, tsmethod)
+    strat_pvalue_cases(N1, N2, x1, x2, a$type, a$alt, a$ts)
+  }
+  expect_equal(pv('CMH', 'greater'),
+               c(0.630558659818236, 0.150849791239174, 0.153717082963698,
+                 0.0512352174298747),
+               tolerance = 1e-10)
+  expect_equal(pv('CMH-cc', 'two.sided'),
+               c(0.738882680363527, 0.698535358303339, 0.759462865379933, 0.26157223601395),
+               tolerance = 1e-10)
+  expect_equal(pv('Cochran', 'less'),
+               c(0.354694057507113, 0.875893460505038, 0.864855307599151,
+                 0.966055422569085),
+               tolerance = 1e-10)
+  expect_equal(pv('Strat-Fisher', 'greater'),
+               c(0.9, 0.34, 0.371428571428571, 0.126),
+               tolerance = 1e-10)
+  expect_equal(pv('Strat-Fisher', 'two.sided'),
+               c(1, 0.52, 0.485714285714286, 0.144),
+               tolerance = 1e-10)
+  expect_equal(pv('Strat-Fisher', 'two.sided', 'central'),
+               c(1, 0.68, 0.742857142857143, 0.252),
+               tolerance = 1e-10)
+  expect_equal(pv('Strat-Fisher', 'two.sided', 'blaker'),
+               c(1, 0.52, 0.485714285714286, 0.144),
+               tolerance = 1e-10)
+  expect_equal(pv('Unstrat-Chisq', 'greater'),
+               c(0.5, 0.0983528012294734, 0.245076480207913, 0.0286119254388388),
+               tolerance = 1e-10)
+  expect_equal(pv('Unstrat-Fisher', 'two.sided'),
+               c(1, 0.523809523809524, 1, 0.118881118881119),
+               tolerance = 1e-10)
+  # The stratum without patients is left out of row 2
+  two <- strat_pvalue_cases(N1[2, c(1, 3), drop = FALSE], N2[2, c(1, 3), drop = FALSE],
+                            x1[2, c(1, 3), drop = FALSE], x2[2, c(1, 3), drop = FALSE], 0L,
+                            0L, 0L)
+  expect_identical(pv('CMH', 'greater')[2], two)
+  none <- matrix(0L, 1, 3)
+  expect_error(strat_pvalue_cases(none, none, none, none, 0L, 0L, 0L),
+               'every row must have patients')
+  expect_error(strat_pvalue_cases(N1 - 1L, N2, x1, x2, 0L, 0L, 0L), 'non-negative')
+})

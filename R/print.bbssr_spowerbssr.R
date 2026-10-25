@@ -40,8 +40,9 @@ print.bbssr_spowerbssr <- function(x, digits = 4, ...) {
   alloc <- attr(x, 'alloc')
   if (!is.null(alloc) && alloc != 'fixed') {
     cat(sprintf('  Allocation       : %s\n', strat_alloc_label(alloc, attr(x, 'block'))))
-    cat(sprintf('  Interim analysis : first %d patients, %d allocation sequences\n',
-                attr(x, 'n.interim'), attr(x, 'nseq')))
+    cat(sprintf('  Interim analysis : first %d patients%s\n', attr(x, 'n.interim'),
+                if (is.null(attr(x, 'nseq'))) ''
+                else sprintf(', %d allocation sequences', attr(x, 'nseq'))))
   } else {
     cat(sprintf('  Interim sizes    : %s\n', sizes(attr(x, 'n1.interim'),
                                                  attr(x, 'n2.interim'))))
@@ -56,7 +57,7 @@ print.bbssr_spowerbssr <- function(x, digits = 4, ...) {
   }
   cat('\n')
   tab <- data.frame(lapply(unclass(x), identity), check.names = FALSE)
-  for (v in c('power.BSSR', 'power.TRAD', 'se.BSSR')) {
+  for (v in c('power.BSSR', 'power.TRAD', 'se.BSSR', 'se.TRAD')) {
     if (!is.null(tab[[v]])) tab[[v]] <- round(tab[[v]], digits)
   }
   tab$E.N <- round(tab$E.N, 2)

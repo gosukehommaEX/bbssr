@@ -116,6 +116,36 @@ test_that("StratTypeIErrorBSSR checks the settings of a random allocation", {
   args <- list(Delta.A = 0.3, N1 = c(6, 6), N2 = c(6, 6), omega = 0.5, r = 1, alpha = 0.05,
                tar.power = 0.8, Test = 'CMH', ss.method = 'standard', alloc = 'stratum')
   expect_error(do.call(StratTypeIErrorBSSR, c(args, list(nseq = 1))), 'nseq')
-  args3 <- modifyList(args, list(N1 = c(6, 6, 6), N2 = c(6, 6, 6)))
+  args3 <- modifyList(args, list(N1 = c(6, 6, 6), N2 = c(6, 6, 6), alloc = 'group'))
   expect_error(do.call(StratTypeIErrorBSSR, args3), 'two strata')
+})
+
+test_that("StratTypeIErrorBSSR simulates a random allocation with three strata", {
+  set.seed(22)
+  res <- StratTypeIErrorBSSR(Delta.A = 0.3, N1 = c(2, 2, 1), N2 = c(2, 2, 1), omega = 0.5,
+                             r = 1, alpha = 0.05, tar.power = 0.8, Test = 'CMH',
+                             ss.method = 'standard', frac = c(0.3, 0.3, 0.4), N.max = 20,
+                             theta = c(0.3, 0.6), alloc = 'stratum', nsim = 2000)
+  expect_named(res, c('theta.S1', 'theta.S2', 'theta.S3', 'TIE.BSSR', 'TIE.TRAD',
+                      'se.BSSR', 'se.TRAD'))
+  # The same draws as strat_alloc_simulate itself, one point after the other
+  a <- check_strat_args(rep(1, 3), rep(1, 3), 0.05, 'CMH', 'greater', 'minlike')
+  al <- check_strat_alloc('stratum', NULL, c(0.3, 0.3, 0.4), 1, 4, 3)
+  re.args <- list(Delta.A = 0.3, effect = 'RD', frac = c(0.3, 0.3, 0.4), r = c(1, 1, 1),
+                  ss.method = 'standard', ss.Test = 'CMH', ss.alpha = 0.05,
+                  tar.power = 0.8, search = 'crossing', search.limit = c(2, 50),
+                  ss.strata = 'stratified')
+  set.seed(22)
+  sims <- lapply(c(0.3, 0.6), function(th) {
+    strat_alloc_simulate(6, 10, al, 'stratum', rep(th, 3), rep(th, 3), 2000, 0.05, a,
+                         re.args, 'observed', FALSE, NULL, 20)
+  })
+  expect_equal(res$TIE.BSSR, vapply(sims, function(s) mean(s$reject), numeric(1)))
+  expect_equal(res$TIE.TRAD, vapply(sims, function(s) mean(s$reject.trad), numeric(1)))
+  expect_equal(res$se.TRAD, sqrt(res$TIE.TRAD * (1 - res$TIE.TRAD) / 2000))
+  m <- attr(res, 'max')
+  expect_equal(m$se, c(res$se.BSSR[which.max(res$TIE.BSSR)],
+                       res$se.TRAD[which.max(res$TIE.TRAD)]))
+  expect_identical(attr(res, 'maximize'), 'grid')
+  expect_null(attr(res, 'nseq'))
 })

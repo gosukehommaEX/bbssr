@@ -75,7 +75,11 @@ Version 2.1.0 was not released, and its changes are included in this version.
   sequence, the strata and the groups of the patients in the order of enrolment, the
   design has fixed group sizes and is computed exactly. The power and the type I error
   rate are averaged over `nseq` sequences drawn with the random numbers of R and reported
-  with Monte Carlo standard errors, and the adjusted level controls this average.
+  with Monte Carlo standard errors, and the adjusted level controls this average. With
+  three or more strata, `StratPowerBSSR()` and `StratTypeIErrorBSSR()` accept
+  `alloc = 'stratum'` and `'both'`, whose stratum sizes are multinomial, and simulate the
+  allocation with the responses; the fixed design with the planned total and the same
+  allocation is simulated as well, with the standard error `se.TRAD`.
 
 * Paired binary data. `PairedRR()`, `PairedPower()`, `PairedSampleSize()`,
   `PairedPowerBSSR()`, `PairedBSSR()`, `PairedTypeIErrorBSSR()` and

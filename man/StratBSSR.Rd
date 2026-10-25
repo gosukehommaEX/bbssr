@@ -118,10 +118,9 @@ responders}
 \item{N.max}{Largest final total sample size, or \code{NULL} (default)}
 
 \item{alloc}{Allocation of the patients to the strata and the groups. \code{'fixed'}
-(default) uses the group sizes \code{N1} and \code{N2}. The others need two strata
-and make the sizes random, see Details: \code{'stratum'} (stratum sizes binomial,
-permuted blocks within the strata), \code{'group'} (stratum sizes fixed, group sizes
-binomial) and \code{'both'} (stratum and group sizes binomial)}
+(default) uses the group sizes. The others, \code{'stratum'}, \code{'group'} and
+\code{'both'} of \code{\link{StratPower}}, make the sizes random and need two
+strata, see Details}
 
 \item{block}{Size of the permuted blocks of \code{alloc = 'stratum'}. Each block holds
 \code{block r / (1 + r)} patients of group 1, which must be a whole number. Default

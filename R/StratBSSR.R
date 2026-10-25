@@ -15,6 +15,10 @@
 #' @param frac Fractions of the strata used to divide the re-estimated total sample size,
 #'   see \code{\link{StratSampleSize}}. Default is \code{NULL}, which takes the fractions
 #'   of the planned design
+#' @param alloc Allocation of the patients to the strata and the groups. \code{'fixed'}
+#'   (default) uses the group sizes. The others, \code{'stratum'}, \code{'group'} and
+#'   \code{'both'} of \code{\link{StratPower}}, make the sizes random and need two
+#'   strata, see Details
 #' @inheritParams StratPowerBSSR
 #'
 #' @return An object of class \code{bbssr_sbssr}, a data frame with one row per stratum

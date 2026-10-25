@@ -1369,3 +1369,4 @@ if __name__ == "__main__":
     reference_strat.blocks_crp(emit, reported_level)
     reference_strat.blocks_alloc(emit, reported_level)
     reference_strat.blocks_alloc_seq(emit, reported_level)
+    reference_strat.blocks_alloc_sim(emit, reported_level)
