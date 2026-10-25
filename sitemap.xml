@@ -36,6 +36,7 @@
 <url><loc>https://gosukehommaex.github.io/bbssr/reference/StratAlphaAdjBSSR.html</loc></url>
 <url><loc>https://gosukehommaex.github.io/bbssr/reference/StratBSSR.html</loc></url>
 <url><loc>https://gosukehommaex.github.io/bbssr/reference/StratCondRejectBSSR.html</loc></url>
+<url><loc>https://gosukehommaex.github.io/bbssr/reference/StratGridBSSR.html</loc></url>
 <url><loc>https://gosukehommaex.github.io/bbssr/reference/StratPower.html</loc></url>
 <url><loc>https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.html</loc></url>
 <url><loc>https://gosukehommaex.github.io/bbssr/reference/StratRR.html</loc></url>
@@ -51,6 +52,8 @@
 <url><loc>https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_ptie.html</loc></url>
 <url><loc>https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_rr.html</loc></url>
 <url><loc>https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_samplesize.html</loc></url>
+<url><loc>https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_sgrid.html</loc></url>
+<url><loc>https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_spowerbssr.html</loc></url>
 <url><loc>https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_stie.html</loc></url>
 <url><loc>https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_tie.html</loc></url>
 <url><loc>https://gosukehommaex.github.io/bbssr/reference/print.bbssr_alphaadj.html</loc></url>
@@ -76,5 +79,6 @@
 <url><loc>https://gosukehommaex.github.io/bbssr/reference/print.bbssr_tie.html</loc></url>
 <url><loc>https://gosukehommaex.github.io/bbssr/reference/summary.bbssr_grid.html</loc></url>
 <url><loc>https://gosukehommaex.github.io/bbssr/reference/summary.bbssr_powerbssr.html</loc></url>
+<url><loc>https://gosukehommaex.github.io/bbssr/reference/summary.bbssr_spowerbssr.html</loc></url>
 </urlset>
 

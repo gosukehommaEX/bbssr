@@ -76,6 +76,8 @@ two or more strata.
   : Sample Size of a Stratified Test
 - [`StratPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md)
   : Power of Blinded Sample Size Re-Estimation for a Stratified Design
+- [`StratGridBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratGridBSSR.md)
+  : Power and Sample Size of Several Stratified Re-estimation Designs
 - [`StratBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratBSSR.md)
   : Blinded Sample Size Re-Estimation for a Stratified Trial
 - [`StratTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md)
@@ -136,6 +138,8 @@ two or more strata.
   : Summary Method for bbssr_grid Objects
 - [`summary(`*`<bbssr_powerbssr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/summary.bbssr_powerbssr.md)
   : Summary Method for bbssr_powerbssr Objects
+- [`summary(`*`<bbssr_spowerbssr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/summary.bbssr_spowerbssr.md)
+  : Summary Method for bbssr_spowerbssr Objects
 - [`plot(`*`<bbssr_crp>`*`)`](https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_crp.md)
   : Plot Method for bbssr_crp Objects
 - [`plot(`*`<bbssr_grid>`*`)`](https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_grid.md)
@@ -152,6 +156,10 @@ two or more strata.
   : Plot a Rejection Region
 - [`plot(`*`<bbssr_samplesize>`*`)`](https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_samplesize.md)
   : Plot the Exact Power Curve around a Sample Size Solution
+- [`plot(`*`<bbssr_sgrid>`*`)`](https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_sgrid.md)
+  : Plot Method for bbssr_sgrid Objects
+- [`plot(`*`<bbssr_spowerbssr>`*`)`](https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_spowerbssr.md)
+  : Plot the Power of a Stratified BSSR Design against the Fixed Design
 - [`plot(`*`<bbssr_stie>`*`)`](https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_stie.md)
   : Plot Method for bbssr_stie Objects
 - [`plot(`*`<bbssr_tie>`*`)`](https://gosukehommaex.github.io/bbssr/reference/plot.bbssr_tie.md)

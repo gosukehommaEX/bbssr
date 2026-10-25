@@ -264,8 +264,11 @@ in the unit interval, containing:
 
 The attribute `reestimation` holds, with two strata, the final group
 sizes for every pair of interim pooled numbers of responders, `N.dist`
-the distribution of the final total sample size in each scenario, and
-the other attributes the design settings.
+the distribution of the final total sample size in each scenario,
+`scenario` the rows of `p` kept as scenarios, and the other attributes
+the design settings.
+[`summary.bbssr_spowerbssr`](https://gosukehommaex.github.io/bbssr/reference/summary.bbssr_spowerbssr.md)
+summarizes the distribution of the final total.
 
 ## Details
 
@@ -352,6 +355,7 @@ calculation. *Biometrical Journal*, 56(1), 129-140.
 
 ## See also
 
+[`StratGridBSSR`](https://gosukehommaex.github.io/bbssr/reference/StratGridBSSR.md),
 [`StratTypeIErrorBSSR`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md),
 [`StratBSSR`](https://gosukehommaex.github.io/bbssr/reference/StratBSSR.md)
 

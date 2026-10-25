@@ -28,6 +28,7 @@ and
 [`StratSampleSize()`](https://gosukehommaex.github.io/bbssr/reference/StratSampleSize.md)
 for the fixed design, and
 [`StratPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md),
+[`StratGridBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratGridBSSR.md),
 [`StratBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratBSSR.md),
 [`StratTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md)
 and
@@ -448,6 +449,49 @@ fixed group sizes, and the expected totals are 159.4 and 159.8, against
 the re-estimation design by less than 0.01 and its expected total by
 less than one patient. The default `nseq = 100` divides the standard
 errors by about 2.2.
+
+## Several designs
+
+[`StratGridBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratGridBSSR.md)
+evaluates several re-estimation designs over common scenarios, as
+[`BinaryGridBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryGridBSSR.md)
+does for two groups (see
+[`vignette('bbssr-design-grid')`](https://gosukehommaex.github.io/bbssr/articles/bbssr-design-grid.md)).
+Each row of a data frame is a design, whose columns are arguments of
+[`StratPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md);
+an argument with one value per stratum is given by the columns with the
+suffixes `.S1`, `.S2`, and so on, or as a vector shared by all designs.
+Below, two tests and two timings of the interim analysis are compared
+for the design of the section on the type I error rate, with the pooled
+response probability of stratum 2 varying between the scenarios.
+
+``` r
+
+design <- expand.grid(Test = c('CMH', 'Cochran'), omega = c(0.3, 0.5),
+                      stringsAsFactors = FALSE)
+q <- cbind(0.4, c(0.5, 0.6, 0.7))
+grid <- StratGridBSSR(design, p = q, Delta.A = 2.5, effect = 'OR', N1 = c(20, 20),
+                      N2 = c(20, 20), r = 1, alpha = 0.025, tar.power = 0.8,
+                      ss.method = 'standard', N.max = 160)
+summary(grid)[, c('Test', 'omega', 'power.BSSR.min', 'power.BSSR.max', 'E.N.max')]
+#>      Test omega power.BSSR.min power.BSSR.max  E.N.max
+#> 1     CMH   0.3      0.7761882      0.8008585 159.7052
+#> 2 Cochran   0.3      0.7804618      0.8036203 159.7052
+#> 3     CMH   0.5      0.7764089      0.7998569 159.7730
+#> 4 Cochran   0.5      0.7807565      0.8027385 159.7730
+```
+
+The summary gives the range of the power of each design over the
+scenarios and its largest expected total sample size. The plot draws the
+power against the probability that varies between the scenarios, here
+that of stratum 2, with the fixed design as dashed lines.
+
+``` r
+
+plot(grid, colour.by = 'Test', facet.by = 'omega')
+```
+
+![](bbssr-stratified_files/figure-html/grid-plot-1.png)
 
 ## Three or more strata
 

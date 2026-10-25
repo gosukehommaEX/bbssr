@@ -24,6 +24,7 @@ designs with three or more strata.
   [`StratPower()`](https://gosukehommaex.github.io/bbssr/reference/StratPower.md),
   [`StratSampleSize()`](https://gosukehommaex.github.io/bbssr/reference/StratSampleSize.md),
   [`StratPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md),
+  [`StratGridBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratGridBSSR.md),
   [`StratBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratBSSR.md),
   [`StratTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md)
   and
@@ -380,6 +381,7 @@ provide the same calculations for matched pairs, and the functions
 [`StratPower()`](https://gosukehommaex.github.io/bbssr/reference/StratPower.md),
 [`StratSampleSize()`](https://gosukehommaex.github.io/bbssr/reference/StratSampleSize.md),
 [`StratPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md),
+[`StratGridBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratGridBSSR.md),
 [`StratBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratBSSR.md),
 [`StratTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md)
 and

@@ -134,6 +134,27 @@ version.
   [`vignette('bbssr-stratified')`](https://gosukehommaex.github.io/bbssr/articles/bbssr-stratified.md)
   describes these designs.
 
+- [`StratGridBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratGridBSSR.md)
+  evaluates several stratified re-estimation designs, given as the rows
+  of a data frame, over common scenarios of the pooled response
+  probabilities of the strata, as
+  [`BinaryGridBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryGridBSSR.md)
+  does for two groups. An argument with one value per stratum is given
+  by the columns with the suffixes `.S1`, `.S2`, …, and the planned
+  group sizes can come from planning probabilities of the strata. Its
+  result has a [`plot()`](https://rdrr.io/r/graphics/plot.default.html)
+  method and the [`summary()`](https://rdrr.io/r/base/summary.html)
+  method of
+  [`BinaryGridBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryGridBSSR.md).
+  For the result of
+  [`StratPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md),
+  [`summary()`](https://rdrr.io/r/base/summary.html) gives the
+  distribution of the final total sample size and
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) the power of
+  both designs against a probability that varies between the scenarios;
+  [`StratPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md)
+  records the rows of `p` kept as scenarios.
+
 - Paired binary data.
   [`PairedRR()`](https://gosukehommaex.github.io/bbssr/reference/PairedRR.md),
   [`PairedPower()`](https://gosukehommaex.github.io/bbssr/reference/PairedPower.md),
