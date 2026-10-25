@@ -33,9 +33,16 @@ print.bbssr_sbssr <- function(x, digits = 4, ...) {
               if (identical(attr(x, 'ss.strata'), 'pooled')) ', strata pooled' else ''))
   cat(sprintf('  Effect           : %s, assumed %s\n', attr(x, 'effect'),
               format(attr(x, 'Delta.A'))))
+  alloc <- attr(x, 'alloc')
+  random <- !is.null(alloc) && alloc != 'fixed'
+  if (random) {
+    cat(sprintf('  Allocation       : %s\n', strat_alloc_label(alloc, attr(x, 'block'))))
+  }
   cat(sprintf('  Final total      : %d, power %s at the planning probabilities\n\n',
               attr(x, 'N.final'), format(round(attr(x, 'Power'), digits))))
   tab <- data.frame(lapply(unclass(x), identity), check.names = FALSE)
+  # With a random allocation only the total is re-estimated
+  if (random) tab[c('N1.final', 'N2.final', 'n1.stage2', 'n2.stage2')] <- NULL
   for (v in c('hat.p', 'hat.p1', 'hat.p2')) tab[[v]] <- round(tab[[v]], digits)
   print(tab, row.names = FALSE)
   invisible(x)

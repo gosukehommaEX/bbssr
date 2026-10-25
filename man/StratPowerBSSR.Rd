@@ -29,7 +29,11 @@ StratPowerBSSR(
   N.max = NULL,
   n.interim = NULL,
   frac = NULL,
-  nsim = 1e+05
+  nsim = 1e+05,
+  alloc = c("fixed", "stratum", "group", "both"),
+  block = 4,
+  ss.frac = c("observed", "planned"),
+  nseq = 100
 )
 }
 \arguments{
@@ -122,6 +126,23 @@ takes the fractions of the planned design, \code{(N1 + N2) / sum(N1 + N2)}}
 
 \item{nsim}{Number of simulated trials for each scenario with three or more strata.
 Default is \code{1e5}. Ignored with two strata}
+
+\item{alloc}{Allocation of the patients to the strata and the groups. \code{'fixed'}
+(default) uses the group sizes \code{N1} and \code{N2}. The others need two strata
+and make the sizes random, see Details: \code{'stratum'} (stratum sizes binomial,
+permuted blocks within the strata), \code{'group'} (stratum sizes fixed, group sizes
+binomial) and \code{'both'} (stratum and group sizes binomial)}
+
+\item{block}{Size of the permuted blocks of \code{alloc = 'stratum'}. Each block holds
+\code{block r / (1 + r)} patients of group 1, which must be a whole number. Default
+is 4}
+
+\item{ss.frac}{Fractions of the strata used by the re-estimation with a random
+allocation: \code{'observed'} (default), those of the interim patients, or
+\code{'planned'}, those given by \code{frac}}
+
+\item{nseq}{Number of allocation sequences drawn with a random allocation. Default is
+100}
 }
 \value{
 An object of class \code{bbssr_spowerbssr}, a data frame with one row for each
@@ -134,7 +155,7 @@ interval, containing:
 \item{power.TRAD}{Power of the fixed design with the planned group sizes}
 \item{E.N}{Expected final total sample size}
 \item{se.BSSR}{Monte Carlo standard error of \code{power.BSSR}, with three or more
-strata only}
+strata or with a random allocation}
 }
 The attribute \code{reestimation} holds, with two strata, the final group sizes for every
 pair of interim pooled numbers of responders, \code{N.dist} the distribution of the
@@ -178,6 +199,22 @@ With three or more strata the number of interim outcomes grows as a product over
 strata, and the power is estimated from \code{nsim} simulated trials, with the random
 numbers of R, so that \code{set.seed()} makes the results reproducible. The power of the
 fixed design is exact for any number of strata.
+
+With a random allocation (\code{alloc} other than \code{'fixed'}, two strata only) the
+patients enter the strata and the groups as in \code{\link{StratPower}}, the interim
+analysis has the first \code{sum(n1 + n2)} patients of the interim sizes above, and the
+final analysis the first \code{N} patients, where \code{N} is the re-estimated total.
+The re-estimation computes the total as above, for the fixed allocation, with the
+fractions of the strata among the interim patients (\code{ss.frac = 'observed'}) or
+those of \code{frac}, and takes the total of the group sizes it gives, within the same
+bounds; the allocation of the remaining patients is random. Given an allocation
+sequence, that is the strata and the groups of the patients in the order of enrolment,
+the design has fixed group sizes and its power is computed exactly as above. The power
+is the average over \code{nseq} sequences drawn with the random numbers of R, so that
+\code{set.seed()} makes the results reproducible, and \code{se.BSSR} is the standard
+deviation of the powers of the sequences divided by \code{sqrt(nseq)}. The power of the
+fixed design with the planned total and the same allocation is exact. A sequence
+without interim patients in a stratum is drawn again.
 }
 \examples{
 res <- StratPowerBSSR(p = rbind(c(0.3, 0.5), c(0.4, 0.6)), Delta.A = 0.2,

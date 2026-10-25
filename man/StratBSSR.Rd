@@ -27,7 +27,10 @@ StratBSSR(
   search = c("crossing", "smallest", "stable"),
   search.limit = c(2, 50),
   N.min = NULL,
-  N.max = NULL
+  N.max = NULL,
+  alloc = c("fixed", "stratum", "group", "both"),
+  block = 4,
+  ss.frac = c("observed", "planned")
 )
 }
 \arguments{
@@ -113,6 +116,20 @@ responders}
 \item{N.min}{Smallest final total sample size, or \code{NULL} (default)}
 
 \item{N.max}{Largest final total sample size, or \code{NULL} (default)}
+
+\item{alloc}{Allocation of the patients to the strata and the groups. \code{'fixed'}
+(default) uses the group sizes \code{N1} and \code{N2}. The others need two strata
+and make the sizes random, see Details: \code{'stratum'} (stratum sizes binomial,
+permuted blocks within the strata), \code{'group'} (stratum sizes fixed, group sizes
+binomial) and \code{'both'} (stratum and group sizes binomial)}
+
+\item{block}{Size of the permuted blocks of \code{alloc = 'stratum'}. Each block holds
+\code{block r / (1 + r)} patients of group 1, which must be a whole number. Default
+is 4}
+
+\item{ss.frac}{Fractions of the strata used by the re-estimation with a random
+allocation: \code{'observed'} (default), those of the interim patients, or
+\code{'planned'}, those given by \code{frac}}
 }
 \value{
 An object of class \code{bbssr_sbssr}, a data frame with one row per stratum
@@ -123,8 +140,9 @@ containing:
 \item{hat.p}{Blinded estimate of the pooled response probability}
 \item{hat.p1, hat.p2}{Planning probabilities of the two groups, truncated to the unit
 interval}
-\item{N1.final, N2.final}{Final group sizes}
-\item{n1.stage2, n2.stage2}{Numbers of patients still to be enrolled}
+\item{N1.final, N2.final}{Final group sizes, \code{NA} with a random allocation}
+\item{n1.stage2, n2.stage2}{Numbers of patients still to be enrolled, \code{NA} with
+a random allocation}
 }
 The attributes \code{n.raw} (unrounded total of the normal approximation),
 \code{N.final} (final total sample size) and \code{Power} (exact power of the final
@@ -144,6 +162,14 @@ assumed effect \code{Delta.A}, and the total sample size of \code{\link{StratSam
 for these probabilities is divided between the strata. The final group sizes are at
 least the interim sizes, at least the planned sizes when \code{restricted = TRUE}, and
 their total lies between \code{N.min} and \code{N.max}.
+
+With a random allocation (\code{alloc} other than \code{'fixed'}, two strata only) the
+re-estimation gives the final total sample size as in \code{\link{StratPowerBSSR}},
+with the fractions of the strata among the interim patients
+(\code{ss.frac = 'observed'}) or those of \code{frac}, and the remaining patients are
+allocated at random, so the final group sizes are \code{NA}. The attribute
+\code{Power} is then that of \code{\link{StratPower}} with the final total and the
+same allocation.
 }
 \examples{
 StratBSSR(n1 = c(15, 15), n2 = c(15, 15), S = c(12, 18), Delta.A = 0.2, r = 1,

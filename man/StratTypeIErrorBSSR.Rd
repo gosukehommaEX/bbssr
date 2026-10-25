@@ -29,7 +29,11 @@ StratTypeIErrorBSSR(
   frac = NULL,
   theta = seq(0, 1, by = 0.05),
   maximize = c("certified", "grid"),
-  nsim = 1e+05
+  nsim = 1e+05,
+  alloc = c("fixed", "stratum", "group", "both"),
+  block = 4,
+  ss.frac = c("observed", "planned"),
+  nseq = 100
 )
 }
 \arguments{
@@ -128,15 +132,33 @@ it is the largest value at the points of \code{theta}}
 
 \item{nsim}{Number of simulated trials at each point with three or more strata. Default
 is \code{1e5}. Ignored with two strata}
+
+\item{alloc}{Allocation of the patients to the strata and the groups. \code{'fixed'}
+(default) uses the group sizes \code{N1} and \code{N2}. The others need two strata
+and make the sizes random, see Details: \code{'stratum'} (stratum sizes binomial,
+permuted blocks within the strata), \code{'group'} (stratum sizes fixed, group sizes
+binomial) and \code{'both'} (stratum and group sizes binomial)}
+
+\item{block}{Size of the permuted blocks of \code{alloc = 'stratum'}. Each block holds
+\code{block r / (1 + r)} patients of group 1, which must be a whole number. Default
+is 4}
+
+\item{ss.frac}{Fractions of the strata used by the re-estimation with a random
+allocation: \code{'observed'} (default), those of the interim patients, or
+\code{'planned'}, those given by \code{frac}}
+
+\item{nseq}{Number of allocation sequences drawn with a random allocation. Default is
+100}
 }
 \value{
 An object of class \code{bbssr_stie}, a data frame with one row per point,
 containing the probabilities \code{theta.S1, theta.S2, ...}, the type I error rates
 \code{TIE.BSSR} and \code{TIE.TRAD} of the designs with re-estimation and without it,
-and, with three or more strata, the Monte Carlo standard error \code{se.BSSR}. The
-attribute \code{max} is a data frame with the location, the value and, with
-\code{maximize = 'certified'}, the upper bound \code{bound} of the largest rate of
-each design.
+and, with three or more strata or a random allocation, the Monte Carlo standard error
+\code{se.BSSR}. The attribute \code{max} is a data frame with the location, the value
+and, with \code{maximize = 'certified'}, the upper bound \code{bound} of the largest
+rate of each design, and with a random allocation the standard error \code{se} of
+the rate of the BSSR design at the point of \code{theta} with the largest rate.
 }
 \description{
 Calculates the type I error rate of a two-arm trial with a binary endpoint, stratified
@@ -163,6 +185,17 @@ design is certified in the same way.
 With three or more strata the type I error rate of the re-estimation design is estimated
 at each point from \code{nsim} simulated trials, with the random numbers of R, and that
 of the fixed design is computed exactly.
+
+With a random allocation (two strata only) the allocation sequences are drawn as in
+\code{\link{StratPowerBSSR}}. Given a sequence the type I error rate is a polynomial
+as above, and the rate of the re-estimation design is the average of these polynomials
+over \code{nseq} sequences, itself a polynomial, whose largest value is certified as
+above. The certificate holds for this average, and \code{se.BSSR} gives the Monte Carlo
+standard error of the average at each point, from the variation between the
+sequences; the attribute \code{max} gives it at the point of \code{theta} with the
+largest rate. The rate of the fixed design with the planned total and the same
+allocation is exact: the sum over the stratum and group sizes of their probability
+times the polynomial of the fixed design they give.
 }
 \examples{
 tie <- StratTypeIErrorBSSR(Delta.A = 0.2, N1 = c(20, 20), N2 = c(20, 20), omega = 0.5,

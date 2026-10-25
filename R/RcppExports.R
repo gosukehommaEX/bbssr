@@ -81,6 +81,18 @@ strat_random_power <- function(model, N, a1, nfix, b, block, g, p1, p2, type, al
     .Call(`_bbssr_strat_random_power`, model, N, a1, nfix, b, block, g, p1, p2, type, alternative, tsmethod, alpha, eps)
 }
 
+strat_random_tie_coef <- function(model, N, a1, nfix, b, block, g, type, alternative, tsmethod, alpha, eps) {
+    .Call(`_bbssr_strat_random_tie_coef`, model, N, a1, nfix, b, block, g, type, alternative, tsmethod, alpha, eps)
+}
+
+strat_seq_power <- function(seqs, p1, p2, type, alternative, tsmethod, alpha) {
+    .Call(`_bbssr_strat_seq_power`, seqs, p1, p2, type, alternative, tsmethod, alpha)
+}
+
+strat_seq_tie_coef <- function(seqs, type, alternative, tsmethod, alpha, theta1, theta2) {
+    .Call(`_bbssr_strat_seq_tie_coef`, seqs, type, alternative, tsmethod, alpha, theta1, theta2)
+}
+
 strat_pvalue_cases <- function(N1, N2, x1, x2, type, alternative, tsmethod) {
     .Call(`_bbssr_strat_pvalue_cases`, N1, N2, x1, x2, type, alternative, tsmethod)
 }

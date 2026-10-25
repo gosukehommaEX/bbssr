@@ -88,3 +88,34 @@ test_that("StratTypeIErrorBSSR simulates three strata in agreement with the exac
   expect_error(tie(N1 = c(6, 6, 6), N2 = c(6, 6, 6), maximize = 'certified'),
                'two strata')
 })
+
+test_that("StratTypeIErrorBSSR with a random allocation agrees with a fixed final total", {
+  # A fixed final total of 30, as in the test of StratPowerBSSR: the average rate over the
+  # sequences agrees with the exact rate of the fixed design of 30 patients
+  set.seed(12)
+  res <- StratTypeIErrorBSSR(Delta.A = 0.3, N1 = c(6, 6), N2 = c(6, 6), omega = 0.5, r = 1,
+                             alpha = 0.05, tar.power = 0.8, Test = 'CMH',
+                             ss.method = 'standard', N.min = 30, N.max = 30,
+                             theta = c(0.3, 0.6), alloc = 'both', nseq = 40)
+  pts <- as.matrix(res[, c('theta.S1', 'theta.S2')])
+  ex <- StratPower(pts, pts, alpha = 0.05, Test = 'CMH', alloc = 'both', N = 30,
+                   frac = c(0.5, 0.5))$Power
+  expect_true(all(abs(res$TIE.BSSR - ex) < 4 * res$se.BSSR + 1e-12))
+  # The fixed design with the planned total of 24 is exact
+  tr <- StratPower(pts, pts, alpha = 0.05, Test = 'CMH', alloc = 'both', N = 24,
+                   frac = c(0.5, 0.5))$Power
+  expect_equal(res$TIE.TRAD, tr, tolerance = 1e-10)
+  m <- attr(res, 'max')
+  expect_gte(m$TIE[m$Design == 'BSSR'], max(res$TIE.BSSR))
+  expect_gte(m$bound[1], m$TIE[1])
+  expect_equal(m$se[1], res$se.BSSR[which.max(res$TIE.BSSR)])
+  expect_identical(attr(res, 'nseq'), 40L)
+})
+
+test_that("StratTypeIErrorBSSR checks the settings of a random allocation", {
+  args <- list(Delta.A = 0.3, N1 = c(6, 6), N2 = c(6, 6), omega = 0.5, r = 1, alpha = 0.05,
+               tar.power = 0.8, Test = 'CMH', ss.method = 'standard', alloc = 'stratum')
+  expect_error(do.call(StratTypeIErrorBSSR, c(args, list(nseq = 1))), 'nseq')
+  args3 <- modifyList(args, list(N1 = c(6, 6, 6), N2 = c(6, 6, 6)))
+  expect_error(do.call(StratTypeIErrorBSSR, args3), 'two strata')
+})

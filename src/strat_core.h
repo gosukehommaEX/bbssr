@@ -1521,6 +1521,161 @@ inline void add_config_power(const AllocConfig& c, const Test& t, const double* 
   }
 }
 
+// Coefficients c of degree (d0, d1), stored c[i * (d1 + 1) + k], raised to degree
+// (D0, D1) with D0 >= d0 and D1 >= d1, by elevate_rows() along each variable
+inline std::vector<double> elevate2(const std::vector<double>& c, int d0, int d1, int D0,
+                                    int D1, const std::vector<double>& lf) {
+  std::vector<double> a;
+  if (D0 > d0) {
+    a.assign((D0 + 1) * (d1 + 1), 0.0);
+    elevate_rows(c, d0, D0, d1 + 1, d1 + 1, lf, a, d1 + 1);
+  } else {
+    a = c;
+  }
+  if (D1 == d1) return a;
+  // Along the second variable through the transposed array
+  std::vector<double> t((d1 + 1) * (D0 + 1));
+  for (int i = 0; i <= D0; ++i) {
+    for (int k = 0; k <= d1; ++k) t[k * (D0 + 1) + i] = a[i * (d1 + 1) + k];
+  }
+  std::vector<double> u((D1 + 1) * (D0 + 1), 0.0);
+  elevate_rows(t, d1, D1, D0 + 1, D0 + 1, lf, u, D0 + 1);
+  std::vector<double> out((D0 + 1) * (D1 + 1));
+  for (int k = 0; k <= D1; ++k) {
+    for (int i = 0; i <= D0; ++i) out[i * (D1 + 1) + k] = u[k * (D0 + 1) + i];
+  }
+  return out;
+}
+
+// Conditional rejection probabilities of a one-stratum design for every number of
+// responders z = 0, ..., N1 + N2 under the null hypothesis, the coefficients of its type I
+// error rate in the Bernstein basis of degree N1 + N2
+inline std::vector<double> crp_one(const Design& d, const Test& t,
+                                   const std::vector<double>& lf) {
+  const int n = d.total(0);
+  std::vector<double> out(n + 1, 0.0);
+  for (int z = 0; z <= n; ++z) {
+    const Crit c = critical(d, t, &z, lf);
+    const Dist h = hyper(d.N1[0], d.N2[0], z, lf);
+    for (std::size_t i = 0; i < h.p.size(); ++i) {
+      const int x = h.lo + static_cast<int>(i);
+      if (x <= c.lo || x >= c.hi) out[z] += h.p[i];
+    }
+  }
+  return out;
+}
+
+// Coefficients of the type I error rate of a fixed two-stratum design with random sizes,
+// in the Bernstein basis of degree (D0, D1), the largest stratum sizes of the
+// configurations. Configurations with the same stratum sizes share the degree, so their
+// coefficients are summed before being raised to (D0, D1)
+inline std::vector<double> random_tie_coef(const std::vector<AllocConfig>& cfg,
+                                           const Test& t, const std::vector<double>& lf,
+                                           int& D0, int& D1) {
+  std::map<int, std::vector<double>> acc;  // by n[0], of degree (n[0], n[1])
+  D0 = 0;
+  D1 = 0;
+  for (const AllocConfig& c : cfg) {
+    D0 = std::max(D0, c.n[0]);
+    D1 = std::max(D1, c.n[1]);
+    std::vector<double>& a = acc[c.n[0]];
+    a.resize((c.n[0] + 1) * (c.n[1] + 1), 0.0);
+    if (c.n[0] > 0 && c.n[1] > 0) {
+      std::vector<FinalDesign> ds(1);
+      ds[0].d.N1 = {c.m[0], c.m[1]};
+      ds[0].d.N2 = {c.n[0] - c.m[0], c.n[1] - c.m[1]};
+      critical_grid(ds[0].d, t, lf, ds[0].lo, ds[0].hi);
+      const std::vector<int> z0 = {0, 0}, id = {0};
+      int d0 = 0, d1 = 0;
+      const std::vector<double> q = tie_coef2(z0, z0, ds, id, d0, d1, lf);
+      for (std::size_t i = 0; i < q.size(); ++i) a[i] += c.w * q[i];
+    } else {
+      // One stratum without patients: a polynomial in the other stratum only
+      const int j = c.n[0] > 0 ? 0 : 1;
+      Design d;
+      d.N1 = {c.m[j]};
+      d.N2 = {c.n[j] - c.m[j]};
+      const std::vector<double> q = crp_one(d, t, lf);
+      for (std::size_t i = 0; i < q.size(); ++i) a[i] += c.w * q[i];
+    }
+  }
+  std::vector<double> out((D0 + 1) * (D1 + 1), 0.0);
+  for (const auto& kv : acc) {
+    const int n0 = kv.first, n1 = static_cast<int>(kv.second.size()) / (n0 + 1) - 1;
+    const std::vector<double> e = elevate2(kv.second, n0, n1, D0, D1, lf);
+    for (std::size_t i = 0; i < out.size(); ++i) out[i] += e[i];
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------------------
+// Two-stratum re-estimation designs with random stratum and group sizes, computed for a
+// sample of allocation sequences. A sequence gives the sizes of the four groups after
+// every number T of patients, counts[4 T + c], with c = 0 and 1 for groups 1 and 2 of
+// stratum 1 and c = 2 and 3 for stratum 2. The interim analysis has the first n patients
+// and the final analysis the first Nfin[i] patients, where Nfin[i] is the re-estimated
+// total of the interim cell i = s_1 + (n_S1 + 1) s_2. Given the sequence the design has
+// fixed group sizes, so bssr_power2() and tie_coef2() apply. Groups without patients are
+// allowed; a stratum without interim patients is not.
+
+struct SeqInput {
+  int n;
+  std::vector<int> counts;
+  std::vector<int> Nfin;
+};
+
+// Final designs with their critical values, kept while the number of stored vectors of
+// stratum totals stays below limit, and cleared otherwise
+class CritCache {
+ public:
+  CritCache(const Test& t, const std::vector<double>& lf, std::size_t limit)
+      : t_(t), lf_(lf), limit_(limit), cells_(0) {}
+  const FinalDesign& get(int a, int b, int c, int d) {
+    const std::vector<int> key = {a, b, c, d};
+    auto it = map_.find(key);
+    if (it != map_.end()) return it->second;
+    FinalDesign f;
+    f.d.N1 = {a, c};
+    f.d.N2 = {b, d};
+    const std::size_t k = f.d.cells();
+    if (cells_ + k > limit_) {
+      map_.clear();
+      cells_ = 0;
+    }
+    critical_grid(f.d, t_, lf_, f.lo, f.hi);
+    cells_ += k;
+    return map_.emplace(key, std::move(f)).first->second;
+  }
+
+ private:
+  Test t_;
+  const std::vector<double>& lf_;
+  std::size_t limit_, cells_;
+  std::map<std::vector<int>, FinalDesign> map_;
+};
+
+// Interim sizes, final designs and the design of every interim cell of a sequence
+inline void seq_layout(const SeqInput& s, CritCache& cache, std::vector<int>& n1,
+                       std::vector<int>& n2, std::vector<FinalDesign>& ds,
+                       std::vector<int>& id) {
+  const int* c = &s.counts[4 * s.n];
+  n1 = {c[0], c[2]};
+  n2 = {c[1], c[3]};
+  ds.clear();
+  id.assign(s.Nfin.size(), 0);
+  std::map<int, int> pos;
+  for (std::size_t i = 0; i < s.Nfin.size(); ++i) {
+    const int N = s.Nfin[i];
+    auto it = pos.find(N);
+    if (it == pos.end()) {
+      const int* f = &s.counts[4 * N];
+      ds.push_back(cache.get(f[0], f[1], f[2], f[3]));
+      it = pos.emplace(N, static_cast<int>(ds.size()) - 1).first;
+    }
+    id[i] = it->second;
+  }
+}
+
 }  // namespace strat
 
 #endif

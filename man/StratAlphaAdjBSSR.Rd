@@ -31,7 +31,11 @@ StratAlphaAdjBSSR(
   maximize = c("certified", "grid"),
   adjust = c("test", "both"),
   tol = 1e-08,
-  step = 1e-05
+  step = 1e-05,
+  alloc = c("fixed", "stratum", "group", "both"),
+  block = 4,
+  ss.frac = c("observed", "planned"),
+  nseq = 100
 )
 }
 \arguments{
@@ -139,6 +143,23 @@ level controls the type I error rate over the whole rectangle spanned by
 
 \item{step}{Decrement of the level in the search used when \code{adjust = 'both'}.
 Default is \code{1e-5}}
+
+\item{alloc}{Allocation of the patients to the strata and the groups. \code{'fixed'}
+(default) uses the group sizes \code{N1} and \code{N2}. The others need two strata
+and make the sizes random, see Details: \code{'stratum'} (stratum sizes binomial,
+permuted blocks within the strata), \code{'group'} (stratum sizes fixed, group sizes
+binomial) and \code{'both'} (stratum and group sizes binomial)}
+
+\item{block}{Size of the permuted blocks of \code{alloc = 'stratum'}. Each block holds
+\code{block r / (1 + r)} patients of group 1, which must be a whole number. Default
+is 4}
+
+\item{ss.frac}{Fractions of the strata used by the re-estimation with a random
+allocation: \code{'observed'} (default), those of the interim patients, or
+\code{'planned'}, those given by \code{frac}}
+
+\item{nseq}{Number of allocation sequences drawn with a random allocation. Default is
+100}
 }
 \value{
 An object of class \code{bbssr_alphaadj}, a data frame with one row for the
@@ -176,6 +197,16 @@ With \code{adjust = 'both'} the level is lowered from \code{alpha} in steps of
 \code{step} until the type I error rate is controlled. Each level requires the
 coefficients of the type I error rate of \code{\link{StratTypeIErrorBSSR}}, so the
 search takes about as long as that many evaluations of the type I error rate.
+
+With a random allocation (\code{alloc} other than \code{'fixed'}) the type I error
+rate of the design with re-estimation at each level is that of
+\code{\link{StratTypeIErrorBSSR}}, the average over the same \code{nseq} allocation
+sequences at every level, so each level takes about \code{nseq} times as long as with
+the fixed allocation. The adjusted level controls this average, whose Monte Carlo error
+it does not account for. The rate of the fixed design with the planned total and the
+same allocation is exact. Both levels are reported as the search found them, without
+the rounding to six significant digits, since the critical values differ between the
+allocation sequences and between the stratum and group sizes.
 }
 \examples{
 \donttest{

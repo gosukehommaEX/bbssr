@@ -37,8 +37,15 @@ print.bbssr_spowerbssr <- function(x, digits = 4, ...) {
               if (isTRUE(attr(x, 'restricted'))) 'restricted' else 'unrestricted',
               if (identical(attr(x, 'ss.strata'), 'pooled')) ', strata pooled' else ''))
   cat(sprintf('  Planned sizes    : %s\n', sizes(attr(x, 'N1'), attr(x, 'N2'))))
-  cat(sprintf('  Interim sizes    : %s\n', sizes(attr(x, 'n1.interim'),
-                                               attr(x, 'n2.interim'))))
+  alloc <- attr(x, 'alloc')
+  if (!is.null(alloc) && alloc != 'fixed') {
+    cat(sprintf('  Allocation       : %s\n', strat_alloc_label(alloc, attr(x, 'block'))))
+    cat(sprintf('  Interim analysis : first %d patients, %d allocation sequences\n',
+                attr(x, 'n.interim'), attr(x, 'nseq')))
+  } else {
+    cat(sprintf('  Interim sizes    : %s\n', sizes(attr(x, 'n1.interim'),
+                                                 attr(x, 'n2.interim'))))
+  }
   cat(sprintf('  Effect           : %s, assumed %s, true %s\n', attr(x, 'effect'),
               format(attr(x, 'Delta.A')),
               paste(format(attr(x, 'Delta.T')), collapse = ', ')))

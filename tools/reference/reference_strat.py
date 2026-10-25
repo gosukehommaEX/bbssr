@@ -948,3 +948,55 @@ def blocks_alloc(emit, reported_level):
     emit("test-StratSampleSize.R", "random allocation stratum and group CMH, crossing",
          [alloc_exact_n([0.6, 0.8], [0.2, 0.4], [0.5, 0.5], 1, 0.05, 0.8, "CMH", "greater",
                         model) for model in ("stratum", "group")], rtol=0)
+
+
+# ---------------------------------------------------------------------------------------
+# Re-estimation designs given an allocation sequence (two strata)
+# Two sequences of 26 patients, (stratum, group) in the order of enrolment; the first
+# has no patient of group 2 in stratum 2 among the first 12
+SEQ_A = [(1, 1), (2, 1), (1, 2), (2, 1), (1, 1), (1, 2), (2, 1), (1, 2), (2, 1), (1, 1),
+         (1, 2), (2, 1), (2, 2), (1, 1), (2, 2), (1, 2), (2, 2), (1, 1), (2, 1), (2, 2),
+         (1, 2), (1, 1), (2, 2), (2, 1), (1, 1), (2, 2)]
+SEQ_B = [(2, 2), (1, 1), (1, 2), (2, 1), (1, 1), (2, 1), (1, 2), (1, 2), (2, 2), (1, 1),
+         (2, 1), (1, 2), (2, 1), (1, 1), (2, 2), (2, 2), (1, 2), (2, 1), (1, 1), (2, 2),
+         (1, 1), (2, 1), (1, 2), (2, 2), (2, 1), (1, 2)]
+
+
+def seq_counts(seq):
+    """Sizes of the groups (N1 and N2 of stratum 1, N1 and N2 of stratum 2) after every
+    number of patients of a sequence of (stratum, group)."""
+    counts = [[0, 0, 0, 0]]
+    for st, g in seq:
+        c = list(counts[-1])
+        c[2 * (st - 1) + g - 1] += 1
+        counts.append(c)
+    return counts
+
+
+def seq_nfin(s):
+    """Final total of the interim cell s, the same rule for both sequences."""
+    return min(26, 14 + 2 * (s[0] % 3) + s[1])
+
+
+def seq_power(seq, n, p1, p2, test, alt, ts, alpha):
+    """Power of the re-estimation design whose interim analysis has the first n patients of
+    the sequence and whose final analysis has the first seq_nfin(s) patients."""
+    counts = seq_counts(seq)
+    c = counts[n]
+    fin = lambda s: ([counts[seq_nfin(s)][0], counts[seq_nfin(s)][2]],
+                     [counts[seq_nfin(s)][1], counts[seq_nfin(s)][3]])
+    return bssr_power([c[0], c[2]], [c[1], c[3]], fin, p1, p2, test, alt, ts, alpha)[0]
+
+
+def blocks_alloc_seq(emit, reported_level):
+    f = "test-strat_seq_power.R"
+    for test in ("CMH", "Strat-Fisher", "Unstrat-Chisq"):
+        emit(f, f"power given the sequences {test}",
+             [seq_power(sq, 12, p1, p2, test, "greater", "minlike", 0.05)
+              for sq in (SEQ_A, SEQ_B)
+              for p1, p2 in (([0.5, 0.8], [0.2, 0.4]), ([0.3, 0.6], [0.3, 0.6]))])
+    f = "test-strat_seq_tie_coef.R"
+    for test in ("CMH", "Strat-Fisher"):
+        emit(f, f"type I error rate given the sequences {test}",
+             [seq_power(sq, 12, th, th, test, "greater", "minlike", 0.05)
+              for sq in (SEQ_A, SEQ_B) for th in ([0.3, 0.6], [0.7, 0.2])])

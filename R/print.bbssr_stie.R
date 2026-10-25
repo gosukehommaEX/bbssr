@@ -28,6 +28,12 @@ print.bbssr_stie <- function(x, digits = 6, ...) {
   cat(sprintf('  Alternative      : %s\n', attr(x, 'alternative')))
   cat(sprintf('  Planned sizes    : (%s) and (%s)\n', paste(attr(x, 'N1'), collapse = ', '),
               paste(attr(x, 'N2'), collapse = ', ')))
+  alloc <- attr(x, 'alloc')
+  if (!is.null(alloc) && alloc != 'fixed') {
+    cat(sprintf('  Allocation       : %s\n', strat_alloc_label(alloc, attr(x, 'block'))))
+    cat(sprintf('  Sequences        : %d, interim analysis of the first %d patients\n',
+                attr(x, 'nseq'), attr(x, 'n.interim')))
+  }
   cat(sprintf('  Points           : %d\n', nrow(x)))
   cat(sprintf('  Maximum          : %s\n', maximize_label(x)))
   if (!is.null(attr(x, 'nsim'))) {
@@ -39,6 +45,7 @@ print.bbssr_stie <- function(x, digits = 6, ...) {
                     mx[grep('^theta', names(mx))], TIE = signif(mx$TIE, digits),
                     check.names = FALSE)
   if (any(!is.na(mx$bound))) tab$bound <- signif(mx$bound, digits)
+  if (!is.null(mx$se)) tab$se <- signif(mx$se, 2)
   print(tab, row.names = FALSE)
   invisible(x)
 }

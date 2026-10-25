@@ -24,10 +24,11 @@
 #' @return An object of class \code{bbssr_stie}, a data frame with one row per point,
 #'   containing the probabilities \code{theta.S1, theta.S2, ...}, the type I error rates
 #'   \code{TIE.BSSR} and \code{TIE.TRAD} of the designs with re-estimation and without it,
-#'   and, with three or more strata, the Monte Carlo standard error \code{se.BSSR}. The
-#'   attribute \code{max} is a data frame with the location, the value and, with
-#'   \code{maximize = 'certified'}, the upper bound \code{bound} of the largest rate of
-#'   each design.
+#'   and, with three or more strata or a random allocation, the Monte Carlo standard error
+#'   \code{se.BSSR}. The attribute \code{max} is a data frame with the location, the value
+#'   and, with \code{maximize = 'certified'}, the upper bound \code{bound} of the largest
+#'   rate of each design, and with a random allocation the standard error \code{se} of
+#'   the rate of the BSSR design at the point of \code{theta} with the largest rate.
 #'
 #' @details
 #' Under the null hypothesis both groups of stratum \code{j} respond with the probability
@@ -46,6 +47,17 @@
 #' With three or more strata the type I error rate of the re-estimation design is estimated
 #' at each point from \code{nsim} simulated trials, with the random numbers of R, and that
 #' of the fixed design is computed exactly.
+#'
+#' With a random allocation (two strata only) the allocation sequences are drawn as in
+#' \code{\link{StratPowerBSSR}}. Given a sequence the type I error rate is a polynomial
+#' as above, and the rate of the re-estimation design is the average of these polynomials
+#' over \code{nseq} sequences, itself a polynomial, whose largest value is certified as
+#' above. The certificate holds for this average, and \code{se.BSSR} gives the Monte Carlo
+#' standard error of the average at each point, from the variation between the
+#' sequences; the attribute \code{max} gives it at the point of \code{theta} with the
+#' largest rate. The rate of the fixed design with the planned total and the same
+#' allocation is exact: the sum over the stratum and group sizes of their probability
+#' times the polynomial of the fixed design they give.
 #'
 #' @examples
 #' tie <- StratTypeIErrorBSSR(Delta.A = 0.2, N1 = c(20, 20), N2 = c(20, 20), omega = 0.5,
@@ -68,7 +80,10 @@ StratTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.pow
                                 search.limit = c(2, 50), N.min = NULL, N.max = NULL,
                                 n.interim = NULL, frac = NULL,
                                 theta = seq(0, 1, by = 0.05),
-                                maximize = c('certified', 'grid'), nsim = 1e5) {
+                                maximize = c('certified', 'grid'), nsim = 1e5,
+                                alloc = c('fixed', 'stratum', 'group', 'both'),
+                                block = 4, ss.frac = c('observed', 'planned'),
+                                nseq = 100) {
   # Without an explicit choice, 'grid' is used with three or more strata
   maximize.given <- !missing(maximize)
   alternative <- match.arg(alternative)
@@ -78,10 +93,15 @@ StratTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.pow
   search <- match.arg(search)
   ss.strata <- match.arg(ss.strata)
   maximize <- match.arg(maximize)
+  alloc <- match.arg(alloc)
+  ss.frac <- match.arg(ss.frac)
   d <- strat_design(N1, N2, r, frac, omega, n.interim, alpha, Test, alternative, tsmethod,
                     ss.method, nsim)
   a <- d$a
   J <- d$J
+  if (alloc != 'fixed' && J != 2) {
+    stop('a random allocation is available for designs with two strata')
+  }
   if (J > 2 && !maximize.given) maximize <- 'grid'
   if (J > 2 && maximize == 'certified') {
     stop("maximize = 'certified' requires two strata; use maximize = 'grid'")
@@ -103,11 +123,23 @@ StratTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.pow
     list(x = pts[k, ], y = y[k], bound = NA_real_)
   }
   if (J == 2) {
-    sm <- strat_map(d$n1, d$n2, alpha, a$Test, a$alternative, a$tsmethod, re.args)
-    map <- sm$map
-    coef.bssr <- strat_tie_coef(d$n1, d$n2, sm$designs, sm$id)
-    crit <- get_strat_crit(a$N1, a$N2, alpha, a$Test, a$alternative, a$tsmethod)
-    coef.trad <- strat_tie_coef(c(0L, 0L), c(0L, 0L), list(crit), 0L)
+    if (alloc == 'fixed') {
+      sm <- strat_map(d$n1, d$n2, alpha, a$Test, a$alternative, a$tsmethod, re.args)
+      map <- sm$map
+      coef.bssr <- strat_tie_coef(d$n1, d$n2, sm$designs, sm$id)
+      crit <- get_strat_crit(a$N1, a$N2, alpha, a$Test, a$alternative, a$tsmethod)
+      coef.trad <- strat_tie_coef(c(0L, 0L), c(0L, 0L), list(crit), 0L)
+    } else {
+      st <- strat_alloc_setup(d, alloc, block, nseq, function(level) re.args, ss.frac,
+                              restricted, N.min, N.max)
+      lay <- st$layout(ss.alpha)
+      res <- strat_seq_tie_coef(lay$inputs, a$type, a$alt, a$ts, alpha, pts[, 1],
+                                pts[, 2])
+      coef.bssr <- res$coef
+      se.BSSR <- apply(res$values, 2, stats::sd) / sqrt(nseq)
+      coef.trad <- strat_alloc_tie_coef(st$N.plan, st$al, alloc, alpha, a$Test,
+                                        a$alternative, a$tsmethod)$coef
+    }
     tie.bssr <- strat_bern_eval(coef.bssr, pts[, 1], pts[, 2])
     tie.trad <- strat_bern_eval(coef.trad, pts[, 1], pts[, 2])
     locate <- function(coef, y) {
@@ -141,6 +173,7 @@ StratTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.pow
                    TIE = c(m.bssr$y, m.trad$y), bound = c(m.bssr$bound, m.trad$bound),
                    stringsAsFactors = FALSE)
   names(mx)[1 + seq_len(J)] <- colnames(pts)
+  if (alloc != 'fixed') mx$se <- c(se.BSSR[which.max(tie.bssr)], NA_real_)
   attr(out, 'max') <- mx
   attr(out, 'Test') <- a$Test
   attr(out, 'alternative') <- a$alternative
@@ -165,6 +198,13 @@ StratTypeIErrorBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.pow
   }
   attr(out, 'nsim') <- if (J > 2) d$nsim else NULL
   attr(out, 'reestimation') <- map
+  attr(out, 'alloc') <- alloc
+  if (alloc != 'fixed') {
+    attr(out, 'block') <- st$al$block
+    attr(out, 'ss.frac') <- ss.frac
+    attr(out, 'nseq') <- as.integer(nseq)
+    attr(out, 'n.interim') <- as.integer(st$n)
+  }
   class(out) <- c('bbssr_stie', 'data.frame')
   out
 }

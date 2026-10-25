@@ -30,3 +30,17 @@ test_that("print.bbssr_spowerbssr marks the re-estimation from the pooled estima
   expect_true(any(grepl('normal approximation (unrestricted, strata pooled)', out,
                         fixed = TRUE)))
 })
+
+test_that("print.bbssr_spowerbssr describes a random allocation", {
+  set.seed(6)
+  res <- StratPowerBSSR(p = c(0.4, 0.6), Delta.A = 0.3, Delta.T = 0.3, N1 = c(6, 6),
+                        N2 = c(6, 6), omega = 0.5, r = 1, alpha = 0.05, tar.power = 0.8,
+                        Test = 'CMH', ss.method = 'standard', N.max = 30,
+                        alloc = 'group', nseq = 5)
+  out <- capture.output(print(res))
+  expect_true(any(grepl('stratum sizes in the fixed fractions, random group sizes', out,
+                        fixed = TRUE)))
+  expect_true(any(grepl('first 12 patients, 5 allocation sequences', out, fixed = TRUE)))
+  expect_true(any(grepl('se.BSSR', out, fixed = TRUE)))
+  expect_false(any(grepl('Interim sizes', out, fixed = TRUE)))
+})

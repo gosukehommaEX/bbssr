@@ -314,3 +314,8 @@ test-StratPower.R	random allocation both Unstrat-Chisq	1e-10	0.407803164480989 0
 test-StratPower.R	random allocation stratum Strat-Fisher, frac (0.4, 0.6), r 3	1e-10	0.190973505647753
 test-StratPower.R	random allocation group Strat-Fisher, frac (0.4, 0.6), r 3	1e-10	0.16684528129529
 test-StratSampleSize.R	random allocation stratum and group CMH, crossing	0	36 37
+test-strat_seq_power.R	power given the sequences CMH	1e-10	0.496914979099771 0.0519055528697931 0.483993049138463 0.0508571256887412
+test-strat_seq_power.R	power given the sequences Strat-Fisher	1e-10	0.323853159204127 0.018306931098221 0.313380191202181 0.018604465633067
+test-strat_seq_power.R	power given the sequences Unstrat-Chisq	1e-10	0.545591222316565 0.0674361891351982 0.492680398724138 0.050987708156832
+test-strat_seq_tie_coef.R	type I error rate given the sequences CMH	1e-10	0.0519055528697931 0.0423666910114529 0.0508571256887412 0.0455905560693198
+test-strat_seq_tie_coef.R	type I error rate given the sequences Strat-Fisher	1e-10	0.018306931098221 0.0119451674496762 0.018604465633067 0.011912247243286

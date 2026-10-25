@@ -53,6 +53,16 @@
 #' coefficients of the type I error rate of \code{\link{StratTypeIErrorBSSR}}, so the
 #' search takes about as long as that many evaluations of the type I error rate.
 #'
+#' With a random allocation (\code{alloc} other than \code{'fixed'}) the type I error
+#' rate of the design with re-estimation at each level is that of
+#' \code{\link{StratTypeIErrorBSSR}}, the average over the same \code{nseq} allocation
+#' sequences at every level, so each level takes about \code{nseq} times as long as with
+#' the fixed allocation. The adjusted level controls this average, whose Monte Carlo error
+#' it does not account for. The rate of the fixed design with the planned total and the
+#' same allocation is exact. Both levels are reported as the search found them, without
+#' the rounding to six significant digits, since the critical values differ between the
+#' allocation sequences and between the stratum and group sizes.
+#'
 #' @examples
 #' \donttest{
 #' StratAlphaAdjBSSR(Delta.A = 0.25, N1 = c(15, 15), N2 = c(15, 15), omega = 0.5, r = 1,
@@ -76,7 +86,9 @@ StratAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.power
                               n.interim = NULL, frac = NULL,
                               theta = seq(0, 1, by = 0.05),
                               maximize = c('certified', 'grid'),
-                              adjust = c('test', 'both'), tol = 1e-8, step = 1e-5) {
+                              adjust = c('test', 'both'), tol = 1e-8, step = 1e-5,
+                              alloc = c('fixed', 'stratum', 'group', 'both'), block = 4,
+                              ss.frac = c('observed', 'planned'), nseq = 100) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
@@ -85,6 +97,8 @@ StratAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.power
   ss.strata <- match.arg(ss.strata)
   maximize <- match.arg(maximize)
   adjust <- match.arg(adjust)
+  alloc <- match.arg(alloc)
+  ss.frac <- match.arg(ss.frac)
   if (length(tol) != 1 || !is.numeric(tol) || is.na(tol) || tol <= 0 || tol >= 1) {
     stop('tol must be a single value in (0, 1)')
   }
@@ -151,12 +165,33 @@ StratAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.power
       v[v >= 0 & v <= 1]
     })
   }
+  # With a random allocation the rate of the re-estimation design is the average over the
+  # allocation sequences, recomputed at each level, and that of the fixed design the exact
+  # sum over the stratum and group sizes; the level of the bisection is reported as it is
+  if (alloc != 'fixed') {
+    st <- strat_alloc_setup(d, alloc, block, nseq, re.args, ss.frac, restricted, N.min,
+                            N.max)
+    poly_design <- function(coef) {
+      list(coef = coef, f = function(x, y) strat_bern_eval(coef, x, y))
+    }
+    make_seq <- function(lay, level) {
+      poly_design(strat_seq_tie_coef(lay$inputs, a$type, a$alt, a$ts, level, numeric(0),
+                                     numeric(0))$coef)
+    }
+  }
   # Fixed design
   plan <- list(list(N1 = a$N1, N2 = a$N2))
-  make_trad <- function(level) make_design(c(0L, 0L), c(0L, 0L), plan, 0L, level)
+  make_trad <- if (alloc == 'fixed') {
+    function(level) make_design(c(0L, 0L), c(0L, 0L), plan, 0L, level)
+  } else {
+    function(level) {
+      poly_design(strat_alloc_tie_coef(st$N.plan, st$al, alloc, level, a$Test,
+                                       a$alternative, a$tsmethod)$coef)
+    }
+  }
   res.trad <- bisect_level(make_trad, assess, certify, alpha, tol)
   # The level 0 of a bisection that found no level is reported as it is
-  if (res.trad$level > 0 && res.trad$level < alpha) {
+  if (alloc == 'fixed' && res.trad$level > 0 && res.trad$level < alpha) {
     res.trad$level <- report_level(brackets(plan, res.trad$level), res.trad$level)
   }
   # Design with re-estimation
@@ -168,14 +203,20 @@ StratAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.power
     list(sizes = sm$designs, id = sm$id)
   }
   if (adjust == 'test') {
-    lay <- layout_at(ss.alpha)
-    make_bssr <- function(level) make_design(d$n1, d$n2, lay$sizes, lay$id, level)
+    if (alloc == 'fixed') {
+      lay <- layout_at(ss.alpha)
+      make_bssr <- function(level) make_design(d$n1, d$n2, lay$sizes, lay$id, level)
+    } else {
+      lay <- st$layout(ss.alpha)
+      make_bssr <- function(level) make_seq(lay, level)
+    }
     res.bssr <- bisect_level(make_bssr, assess, certify, alpha, tol)
-    if (res.bssr$level > 0 && res.bssr$level < alpha) {
+    if (alloc == 'fixed' && res.bssr$level > 0 && res.bssr$level < alpha) {
       res.bssr$level <- report_level(brackets(lay$sizes, res.bssr$level), res.bssr$level)
     }
   } else {
     des_at <- function(level) {
+      if (alloc != 'fixed') return(make_seq(st$layout(level), level))
       lay <- layout_at(level)
       make_design(d$n1, d$n2, lay$sizes, lay$id, level)
     }
@@ -232,6 +273,12 @@ StratAlphaAdjBSSR <- function(Delta.A, N1, N2, omega = NULL, r, alpha, tar.power
   attr(out, 'search') <- search
   attr(out, 'margin') <- 0
   attr(out, 'margin.scale') <- 'RD'
+  attr(out, 'alloc') <- alloc
+  if (alloc != 'fixed') {
+    attr(out, 'block') <- st$al$block
+    attr(out, 'ss.frac') <- ss.frac
+    attr(out, 'nseq') <- as.integer(nseq)
+  }
   class(out) <- c('bbssr_alphaadj', 'data.frame')
   out
 }

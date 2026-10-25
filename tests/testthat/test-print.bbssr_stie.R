@@ -21,3 +21,15 @@ test_that("print.bbssr_stie prints a subset without its attributes as a data fra
   expect_false(any(grepl('Type I error rate of blinded', out)))
   expect_true(any(grepl('TIE.BSSR', out, fixed = TRUE)))
 })
+
+test_that("print.bbssr_stie describes a random allocation and the standard error", {
+  set.seed(7)
+  res <- StratTypeIErrorBSSR(Delta.A = 0.3, N1 = c(6, 6), N2 = c(6, 6), omega = 0.5, r = 1,
+                             alpha = 0.05, tar.power = 0.8, Test = 'CMH',
+                             ss.method = 'standard', N.max = 30, theta = c(0.3, 0.7),
+                             alloc = 'stratum', nseq = 5)
+  out <- capture.output(print(res))
+  expect_true(any(grepl('permuted blocks of 4 within the strata', out, fixed = TRUE)))
+  expect_true(any(grepl('Sequences        : 5', out, fixed = TRUE)))
+  expect_true(any(grepl(' se', out, fixed = TRUE)))
+})

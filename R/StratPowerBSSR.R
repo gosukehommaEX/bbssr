@@ -55,6 +55,12 @@
 #'   takes the fractions of the planned design, \code{(N1 + N2) / sum(N1 + N2)}
 #' @param nsim Number of simulated trials for each scenario with three or more strata.
 #'   Default is \code{1e5}. Ignored with two strata
+#' @param ss.frac Fractions of the strata used by the re-estimation with a random
+#'   allocation: \code{'observed'} (default), those of the interim patients, or
+#'   \code{'planned'}, those given by \code{frac}
+#' @param nseq Number of allocation sequences drawn with a random allocation. Default is
+#'   100
+#' @inheritParams StratPower
 #' @inheritParams StratRR
 #'
 #' @return An object of class \code{bbssr_spowerbssr}, a data frame with one row for each
@@ -67,7 +73,7 @@
 #'   \item{power.TRAD}{Power of the fixed design with the planned group sizes}
 #'   \item{E.N}{Expected final total sample size}
 #'   \item{se.BSSR}{Monte Carlo standard error of \code{power.BSSR}, with three or more
-#'     strata only}
+#'     strata or with a random allocation}
 #' }
 #' The attribute \code{reestimation} holds, with two strata, the final group sizes for every
 #' pair of interim pooled numbers of responders, \code{N.dist} the distribution of the
@@ -103,6 +109,22 @@
 #' numbers of R, so that \code{set.seed()} makes the results reproducible. The power of the
 #' fixed design is exact for any number of strata.
 #'
+#' With a random allocation (\code{alloc} other than \code{'fixed'}, two strata only) the
+#' patients enter the strata and the groups as in \code{\link{StratPower}}, the interim
+#' analysis has the first \code{sum(n1 + n2)} patients of the interim sizes above, and the
+#' final analysis the first \code{N} patients, where \code{N} is the re-estimated total.
+#' The re-estimation computes the total as above, for the fixed allocation, with the
+#' fractions of the strata among the interim patients (\code{ss.frac = 'observed'}) or
+#' those of \code{frac}, and takes the total of the group sizes it gives, within the same
+#' bounds; the allocation of the remaining patients is random. Given an allocation
+#' sequence, that is the strata and the groups of the patients in the order of enrolment,
+#' the design has fixed group sizes and its power is computed exactly as above. The power
+#' is the average over \code{nseq} sequences drawn with the random numbers of R, so that
+#' \code{set.seed()} makes the results reproducible, and \code{se.BSSR} is the standard
+#' deviation of the powers of the sequences divided by \code{sqrt(nseq)}. The power of the
+#' fixed design with the planned total and the same allocation is exact. A sequence
+#' without interim patients in a stratum is drawn again.
+#'
 #' @references
 #' Woolson RF, Bean JA, Rojas PB (1986). Sample size for case-control studies using
 #' Cochran's statistic. \emph{Biometrics}, 42(4), 927-932.
@@ -133,13 +155,17 @@ StratPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r, alpha, 
                            ss.strata = c('stratified', 'pooled'),
                            search = c('crossing', 'smallest', 'stable'),
                            search.limit = c(2, 50), N.min = NULL, N.max = NULL,
-                           n.interim = NULL, frac = NULL, nsim = 1e5) {
+                           n.interim = NULL, frac = NULL, nsim = 1e5,
+                           alloc = c('fixed', 'stratum', 'group', 'both'), block = 4,
+                           ss.frac = c('observed', 'planned'), nseq = 100) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
   ss.method <- match.arg(ss.method)
   search <- match.arg(search)
   ss.strata <- match.arg(ss.strata)
+  alloc <- match.arg(alloc)
+  ss.frac <- match.arg(ss.frac)
   d <- strat_design(N1, N2, r, frac, omega, n.interim, alpha, Test, alternative, tsmethod,
                     ss.method, nsim)
   a <- d$a
@@ -175,7 +201,28 @@ StratPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r, alpha, 
   K <- nrow(P)
   se.BSSR <- NULL
   map <- NULL
-  if (J == 2) {
+  if (alloc != 'fixed') {
+    st <- strat_alloc_setup(d, alloc, block, nseq, function(level) re.args, ss.frac,
+                            restricted, N.min, N.max)
+    lay <- st$layout(ss.alpha)
+    pw <- strat_seq_power(lay$inputs, p1, p2, a$type, a$alt, a$ts, alpha)
+    power.BSSR <- colMeans(pw)
+    se.BSSR <- apply(pw, 2, stats::sd) / sqrt(nseq)
+    # Probabilities of the interim cells of each sequence, s1 varying fastest
+    prob <- function(s, k) {
+      as.vector(outer(pooled_dist(s$n1[1], s$n2[1], p1[k, 1], p2[k, 1]),
+                      pooled_dist(s$n1[2], s$n2[2], p1[k, 2], p2[k, 2])))
+    }
+    E.N <- vapply(seq_len(K), function(k) {
+      mean(vapply(lay$inputs, function(s) sum(prob(s, k) * s$Nfin), numeric(1)))
+    }, numeric(1))
+    N.dist <- do.call(rbind, lapply(seq_len(K), function(k) {
+      w <- unlist(lapply(lay$inputs, function(s) prob(s, k))) / nseq
+      N <- unlist(lapply(lay$inputs, function(s) s$Nfin))
+      w <- rowsum(w, N, reorder = TRUE)[, 1]
+      data.frame(scenario = k, N = as.integer(names(w)), prob = unname(w))
+    }))
+  } else if (J == 2) {
     sm <- strat_map(d$n1, d$n2, alpha, a$Test, a$alternative, a$tsmethod, re.args)
     map <- sm$map
     power.BSSR <- strat_bssr_power(d$n1, d$n2, sm$designs, sm$id, p1, p2)
@@ -201,8 +248,12 @@ StratPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r, alpha, 
     }))
   }
   rownames(N.dist) <- NULL
-  power.TRAD <- strat_fixed_power(a$N1, a$N2, p1, p2, alpha, a$Test, a$alternative,
-                                  a$tsmethod)
+  power.TRAD <- if (alloc == 'fixed') {
+    strat_fixed_power(a$N1, a$N2, p1, p2, alpha, a$Test, a$alternative, a$tsmethod)
+  } else {
+    strat_alloc_power(st$N.plan, st$al, alloc, p1, p2, alpha, a$Test, a$alternative,
+                      a$tsmethod)$power
+  }
   out <- data.frame(P, p1, p2, power.BSSR = power.BSSR, power.TRAD = power.TRAD,
                     E.N = E.N)
   names(out)[seq_len(3 * J)] <- c(paste0('p.S', seq_len(J)), paste0('p1.S', seq_len(J)),
@@ -233,6 +284,13 @@ StratPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r, alpha, 
   attr(out, 'nsim') <- if (J > 2) d$nsim else NULL
   attr(out, 'reestimation') <- map
   attr(out, 'N.dist') <- N.dist
+  attr(out, 'alloc') <- alloc
+  if (alloc != 'fixed') {
+    attr(out, 'block') <- st$al$block
+    attr(out, 'ss.frac') <- ss.frac
+    attr(out, 'nseq') <- as.integer(nseq)
+    attr(out, 'n.interim') <- as.integer(st$n)
+  }
   class(out) <- c('bbssr_spowerbssr', 'data.frame')
   out
 }

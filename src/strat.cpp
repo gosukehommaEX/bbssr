@@ -269,17 +269,10 @@ NumericVector strat_bern_eval(NumericMatrix coef, NumericVector x, NumericVector
   return out;
 }
 
-// Exact power of a two-stratum design with random stratum and group sizes for each row of
-// p1 and p2, as the sum over the configurations of strat::alloc_configs() with
-// probability at least eps. model 1: stratum sizes multinomial with the probability a1 of
-// stratum 1, permuted blocks of size block with g[j] patients of group 1 in stratum j;
-// model 2: stratum sizes nfix, group 1 sizes binomial with the probabilities b; model 3:
-// stratum sizes multinomial, group 1 sizes binomial. skipped is the total probability of
-// the configurations left out, a bound on the error of the power
-// [[Rcpp::export]]
-List strat_random_power(int model, int N, double a1, IntegerVector nfix, NumericVector b,
-                        int block, IntegerVector g, NumericMatrix p1, NumericMatrix p2,
-                        int type, int alternative, int tsmethod, double alpha, double eps) {
+// The allocation of strat_random_power() and strat_random_tie_coef(), checked
+static strat::AllocSpec alloc_spec(int model, int N, double a1, const IntegerVector& nfix,
+                                   const NumericVector& b, int block,
+                                   const IntegerVector& g, double eps) {
   if (model < 1 || model > 3) stop("model must be 1, 2 or 3");
   if (N < 1) stop("N must be positive");
   if (nfix.size() != 2 || b.size() != 2 || g.size() != 2) {
@@ -316,6 +309,21 @@ List strat_random_power(int model, int N, double a1, IntegerVector nfix, Numeric
       if (!(b[j] > 0.0 && b[j] < 1.0)) stop("b must lie in (0, 1)");
     }
   }
+  return s;
+}
+
+// Exact power of a two-stratum design with random stratum and group sizes for each row of
+// p1 and p2, as the sum over the configurations of strat::alloc_configs() with
+// probability at least eps. model 1: stratum sizes multinomial with the probability a1 of
+// stratum 1, permuted blocks of size block with g[j] patients of group 1 in stratum j;
+// model 2: stratum sizes nfix, group 1 sizes binomial with the probabilities b; model 3:
+// stratum sizes multinomial, group 1 sizes binomial. skipped is the total probability of
+// the configurations left out, a bound on the error of the power
+// [[Rcpp::export]]
+List strat_random_power(int model, int N, double a1, IntegerVector nfix, NumericVector b,
+                        int block, IntegerVector g, NumericMatrix p1, NumericMatrix p2,
+                        int type, int alternative, int tsmethod, double alpha, double eps) {
+  const strat::AllocSpec s = alloc_spec(model, N, a1, nfix, b, block, g, eps);
   if (p1.ncol() != 2 || p2.ncol() != 2 || p1.nrow() != p2.nrow()) {
     stop("p1 and p2 must have one row per scenario and two columns");
   }
@@ -346,6 +354,177 @@ List strat_random_power(int model, int N, double a1, IntegerVector nfix, Numeric
   }
   return List::create(_["power"] = wrap(out), _["skipped"] = skipped,
                       _["configs"] = static_cast<int>(cfg.size()));
+}
+
+// Coefficients of the type I error rate of a two-stratum design with random stratum and
+// group sizes, see strat_random_power() for the arguments: a matrix with one row per
+// degree of the first stratum, and the total probability skipped of the configurations
+// left out
+// [[Rcpp::export]]
+List strat_random_tie_coef(int model, int N, double a1, IntegerVector nfix, NumericVector b,
+                           int block, IntegerVector g, int type, int alternative,
+                           int tsmethod, double alpha, double eps) {
+  const strat::AllocSpec s = alloc_spec(model, N, a1, nfix, b, block, g, eps);
+  const strat::Test t = make_test(type, alternative, tsmethod, alpha);
+  const std::vector<double> lf = strat::log_factorials(N);
+  double skipped = 0.0;
+  const std::vector<strat::AllocConfig> cfg = strat::alloc_configs(s, eps, lf, skipped);
+  int D0 = 0, D1 = 0;
+  std::vector<double> c;
+  try {
+    c = strat::random_tie_coef(cfg, t, lf, D0, D1);
+  } catch (const std::exception& e) {
+    stop(e.what());
+  }
+  NumericMatrix C(D0 + 1, D1 + 1);
+  for (int i = 0; i <= D0; ++i) {
+    for (int k = 0; k <= D1; ++k) C(i, k) = c[i * (D1 + 1) + k];
+  }
+  return List::create(_["coef"] = C, _["skipped"] = skipped);
+}
+
+// A sequence for strat::seq_layout() from an element of seqs: n, the interim total; counts,
+// an integer matrix with one row for each number of patients T = 0, ..., Tmax and the
+// columns N1 and N2 of stratum 1 and N1 and N2 of stratum 2; Nfin, the final total of
+// every interim cell s_1 + (n_S1 + 1) s_2
+static strat::SeqInput seq_input(List e, int& Tmax) {
+  strat::SeqInput s;
+  s.n = as<int>(e["n"]);
+  IntegerMatrix cnt = e["counts"];
+  IntegerVector Nfin = e["Nfin"];
+  if (cnt.ncol() != 4) stop("counts must have four columns");
+  const int T1 = cnt.nrow() - 1;
+  if (s.n < 1 || s.n > T1) stop("the interim total must lie between 1 and the last total");
+  s.counts.resize(4 * static_cast<std::size_t>(T1 + 1));
+  for (int T = 0; T <= T1; ++T) {
+    int tot = 0;
+    for (int c = 0; c < 4; ++c) {
+      const int v = cnt(T, c);
+      if (v == NA_INTEGER || v < 0 || (T > 0 && v < cnt(T - 1, c))) {
+        stop("counts must be non-negative and must not decrease");
+      }
+      s.counts[4 * static_cast<std::size_t>(T) + c] = v;
+      tot += v;
+    }
+    if (tot != T) stop("row T + 1 of counts must sum to T");
+  }
+  const int* c = &s.counts[4 * static_cast<std::size_t>(s.n)];
+  const int nS0 = c[0] + c[1], nS1 = c[2] + c[3];
+  if (nS0 < 1 || nS1 < 1) stop("every stratum must have interim patients");
+  if (Nfin.size() != static_cast<R_xlen_t>(nS0 + 1) * (nS1 + 1)) {
+    stop("Nfin must have one element per interim cell");
+  }
+  s.Nfin.assign(Nfin.begin(), Nfin.end());
+  for (int N : s.Nfin) {
+    if (N == NA_INTEGER || N < s.n || N > T1) {
+      stop("the final totals must lie between the interim total and the last total");
+    }
+  }
+  Tmax = std::max(Tmax, T1);
+  return s;
+}
+
+static std::vector<strat::SeqInput> seq_inputs(const List& seqs, int& Tmax) {
+  if (seqs.size() < 1) stop("seqs must hold at least one sequence");
+  std::vector<strat::SeqInput> out;
+  Tmax = 1;
+  for (R_xlen_t i = 0; i < seqs.size(); ++i) out.push_back(seq_input(seqs[i], Tmax));
+  return out;
+}
+
+// Stored vectors of stratum totals of the critical values of the final designs
+static const std::size_t SEQ_CACHE_CELLS = 20000000;
+
+// Power of a two-stratum re-estimation design given each allocation sequence of seqs, see
+// seq_input(), for each row of p1 and p2: a matrix with one row per sequence and one
+// column per scenario
+// [[Rcpp::export]]
+NumericMatrix strat_seq_power(List seqs, NumericMatrix p1, NumericMatrix p2, int type,
+                              int alternative, int tsmethod, double alpha) {
+  if (p1.ncol() != 2 || p2.ncol() != 2 || p1.nrow() != p2.nrow()) {
+    stop("p1 and p2 must have one row per scenario and two columns");
+  }
+  for (int k = 0; k < p1.nrow(); ++k) {
+    for (int j = 0; j < 2; ++j) {
+      if (!(p1(k, j) >= 0.0 && p1(k, j) <= 1.0 && p2(k, j) >= 0.0 && p2(k, j) <= 1.0)) {
+        stop("the response probabilities must lie in [0, 1]");
+      }
+    }
+  }
+  const strat::Test t = make_test(type, alternative, tsmethod, alpha);
+  int Tmax = 1;
+  const std::vector<strat::SeqInput> in = seq_inputs(seqs, Tmax);
+  const std::vector<double> lf = strat::log_factorials(Tmax);
+  strat::CritCache cache(t, lf, SEQ_CACHE_CELLS);
+  NumericMatrix out(static_cast<int>(in.size()), p1.nrow());
+  std::vector<int> n1, n2, id;
+  std::vector<strat::FinalDesign> ds;
+  try {
+    for (std::size_t i = 0; i < in.size(); ++i) {
+      Rcpp::checkUserInterrupt();
+      strat::seq_layout(in[i], cache, n1, n2, ds, id);
+      for (int k = 0; k < p1.nrow(); ++k) {
+        const double q1[2] = {p1(k, 0), p1(k, 1)}, q2[2] = {p2(k, 0), p2(k, 1)};
+        out(static_cast<int>(i), k) = strat::bssr_power2(n1, n2, ds, id, q1, q2, lf);
+      }
+    }
+  } catch (const std::exception& e) {
+    stop(e.what());
+  }
+  return out;
+}
+
+// Average over the allocation sequences of seqs of the coefficients of the type I error
+// rate in the Bernstein basis of degree (D0, D1), the largest final stratum totals, and
+// the type I error rate of every sequence at the points (theta1[p], theta2[p])
+// [[Rcpp::export]]
+List strat_seq_tie_coef(List seqs, int type, int alternative, int tsmethod, double alpha,
+                        NumericVector theta1, NumericVector theta2) {
+  if (theta1.size() != theta2.size()) stop("theta1 and theta2 must have the same length");
+  for (R_xlen_t p = 0; p < theta1.size(); ++p) {
+    if (!(theta1[p] >= 0.0 && theta1[p] <= 1.0 && theta2[p] >= 0.0 && theta2[p] <= 1.0)) {
+      stop("the points must lie in the unit square");
+    }
+  }
+  const strat::Test t = make_test(type, alternative, tsmethod, alpha);
+  int Tmax = 1;
+  const std::vector<strat::SeqInput> in = seq_inputs(seqs, Tmax);
+  const std::vector<double> lf = strat::log_factorials(Tmax);
+  int D0 = 0, D1 = 0;
+  for (const strat::SeqInput& s : in) {
+    for (int N : s.Nfin) {
+      const int* f = &s.counts[4 * static_cast<std::size_t>(N)];
+      D0 = std::max(D0, f[0] + f[1]);
+      D1 = std::max(D1, f[2] + f[3]);
+    }
+  }
+  strat::CritCache cache(t, lf, SEQ_CACHE_CELLS);
+  std::vector<double> coef((D0 + 1) * (D1 + 1), 0.0);
+  const int P = static_cast<int>(theta1.size());
+  NumericMatrix values(static_cast<int>(in.size()), P);
+  std::vector<int> n1, n2, id;
+  std::vector<strat::FinalDesign> ds;
+  const double w = 1.0 / static_cast<double>(in.size());
+  try {
+    for (std::size_t i = 0; i < in.size(); ++i) {
+      Rcpp::checkUserInterrupt();
+      strat::seq_layout(in[i], cache, n1, n2, ds, id);
+      strat::Poly2 Q;
+      Q.c = strat::tie_coef2(n1, n2, ds, id, Q.d1, Q.d2, lf);
+      for (int p = 0; p < P; ++p) {
+        values(static_cast<int>(i), p) = strat::eval2(Q, theta1[p], theta2[p], lf);
+      }
+      const std::vector<double> e = strat::elevate2(Q.c, Q.d1, Q.d2, D0, D1, lf);
+      for (std::size_t q = 0; q < coef.size(); ++q) coef[q] += w * e[q];
+    }
+  } catch (const std::exception& e) {
+    stop(e.what());
+  }
+  NumericMatrix C(D0 + 1, D1 + 1);
+  for (int i = 0; i <= D0; ++i) {
+    for (int k = 0; k <= D1; ++k) C(i, k) = coef[i * (D1 + 1) + k];
+  }
+  return List::create(_["coef"] = C, _["values"] = values);
 }
 
 // p-values of the test for observed data: row i gives, for each stratum, the group sizes

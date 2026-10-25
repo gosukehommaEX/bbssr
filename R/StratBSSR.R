@@ -25,8 +25,9 @@
 #'   \item{hat.p}{Blinded estimate of the pooled response probability}
 #'   \item{hat.p1, hat.p2}{Planning probabilities of the two groups, truncated to the unit
 #'     interval}
-#'   \item{N1.final, N2.final}{Final group sizes}
-#'   \item{n1.stage2, n2.stage2}{Numbers of patients still to be enrolled}
+#'   \item{N1.final, N2.final}{Final group sizes, \code{NA} with a random allocation}
+#'   \item{n1.stage2, n2.stage2}{Numbers of patients still to be enrolled, \code{NA} with
+#'     a random allocation}
 #' }
 #' The attributes \code{n.raw} (unrounded total of the normal approximation),
 #' \code{N.final} (final total sample size) and \code{Power} (exact power of the final
@@ -41,6 +42,14 @@
 #' for these probabilities is divided between the strata. The final group sizes are at
 #' least the interim sizes, at least the planned sizes when \code{restricted = TRUE}, and
 #' their total lies between \code{N.min} and \code{N.max}.
+#'
+#' With a random allocation (\code{alloc} other than \code{'fixed'}, two strata only) the
+#' re-estimation gives the final total sample size as in \code{\link{StratPowerBSSR}},
+#' with the fractions of the strata among the interim patients
+#' (\code{ss.frac = 'observed'}) or those of \code{frac}, and the remaining patients are
+#' allocated at random, so the final group sizes are \code{NA}. The attribute
+#' \code{Power} is then that of \code{\link{StratPower}} with the final total and the
+#' same allocation.
 #'
 #' @examples
 #' StratBSSR(n1 = c(15, 15), n2 = c(15, 15), S = c(12, 18), Delta.A = 0.2, r = 1,
@@ -59,13 +68,17 @@ StratBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test, restricted 
                       ss.Test = Test, ss.alpha = alpha,
                       ss.strata = c('stratified', 'pooled'),
                       search = c('crossing', 'smallest', 'stable'),
-                      search.limit = c(2, 50), N.min = NULL, N.max = NULL) {
+                      search.limit = c(2, 50), N.min = NULL, N.max = NULL,
+                      alloc = c('fixed', 'stratum', 'group', 'both'), block = 4,
+                      ss.frac = c('observed', 'planned')) {
   alternative <- match.arg(alternative)
   tsmethod <- match.arg(tsmethod)
   effect <- match.arg(effect)
   ss.method <- match.arg(ss.method)
   search <- match.arg(search)
   ss.strata <- match.arg(ss.strata)
+  alloc <- match.arg(alloc)
+  ss.frac <- match.arg(ss.frac)
   a <- check_strat_args(n1, n2, alpha, Test, alternative, tsmethod)
   J <- length(a$N1)
   if (!is.numeric(S) || length(S) != J || anyNA(S) || any(S != round(S)) || any(S < 0) ||
@@ -83,20 +96,46 @@ StratBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test, restricted 
     frac <- N1 + N2
   }
   fr <- check_strat_frac(frac, r, J)
-  re <- strat_reestimate(matrix(S, nrow = 1), a$N1, a$N2, Delta.A, effect, fr$frac, fr$r,
-                         ss.method, ss.Test, ss.alpha, tar.power, a$alternative,
-                         a$tsmethod, N1, N2, restricted, N.min, N.max, search,
-                         search.limit, ss.strata)
-  N1.final <- as.integer(re$N1[1, ])
-  N2.final <- as.integer(re$N2[1, ])
-  Power <- strat_fixed_power(N1.final, N2.final, re$hat.p1, re$hat.p2, alpha, a$Test,
-                             a$alternative, a$tsmethod)
+  if (alloc == 'fixed') {
+    re <- strat_reestimate(matrix(S, nrow = 1), a$N1, a$N2, Delta.A, effect, fr$frac,
+                           fr$r, ss.method, ss.Test, ss.alpha, tar.power, a$alternative,
+                           a$tsmethod, N1, N2, restricted, N.min, N.max, search,
+                           search.limit, ss.strata)
+    N1.final <- as.integer(re$N1[1, ])
+    N2.final <- as.integer(re$N2[1, ])
+    N.final <- as.integer(sum(N1.final) + sum(N2.final))
+    Power <- strat_fixed_power(N1.final, N2.final, re$hat.p1, re$hat.p2, alpha, a$Test,
+                               a$alternative, a$tsmethod)
+  } else {
+    al <- check_strat_alloc(alloc, NULL, fr$frac, fr$r, block)
+    if (restricted && is.null(N1)) {
+      stop('the planned sizes N1 and N2 must be supplied when restricted is TRUE')
+    }
+    N.plan <- if (is.null(N1)) NA_real_ else sum(N1 + N2)
+    re.args <- list(Delta.A = Delta.A, effect = effect, frac = fr$frac, r = fr$r,
+                    ss.method = ss.method, ss.Test = ss.Test, ss.alpha = ss.alpha,
+                    tar.power = tar.power, search = search, search.limit = search.limit,
+                    ss.strata = ss.strata)
+    res <- strat_alloc_reestimate(a$N1 + a$N2, re.args, ss.frac, N.plan, restricted,
+                                  N.min, N.max, a$alternative, a$tsmethod,
+                                  s = matrix(S, nrow = 1))
+    re <- res$re
+    if (is.na(re$n.re[1]) && is.null(N1)) {
+      stop('the recovered response probabilities show no effect in the direction of the ',
+           'alternative, so no sample size can be re-estimated; supply the planned sizes ',
+           'N1 and N2')
+    }
+    N1.final <- N2.final <- rep(NA_integer_, J)
+    N.final <- res$N
+    Power <- strat_alloc_power(N.final, al, alloc, re$hat.p1, re$hat.p2, alpha, a$Test,
+                               a$alternative, a$tsmethod)$power
+  }
   out <- data.frame(Stratum = seq_len(J), n1 = a$N1, n2 = a$N2, S = as.integer(S),
                     hat.p = re$hat.p[1, ], hat.p1 = re$hat.p1[1, ],
                     hat.p2 = re$hat.p2[1, ], N1.final = N1.final, N2.final = N2.final,
                     n1.stage2 = N1.final - a$N1, n2.stage2 = N2.final - a$N2)
   attr(out, 'n.raw') <- re$n.raw
-  attr(out, 'N.final') <- as.integer(sum(N1.final) + sum(N2.final))
+  attr(out, 'N.final') <- N.final
   attr(out, 'Power') <- Power
   attr(out, 'Test') <- a$Test
   attr(out, 'alternative') <- a$alternative
@@ -116,6 +155,11 @@ StratBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test, restricted 
   attr(out, 'search.limit') <- re$limit
   attr(out, 'N.min') <- N.min
   attr(out, 'N.max') <- N.max
+  attr(out, 'alloc') <- alloc
+  if (alloc != 'fixed') {
+    attr(out, 'block') <- al$block
+    attr(out, 'ss.frac') <- ss.frac
+  }
   class(out) <- c('bbssr_sbssr', 'data.frame')
   out
 }

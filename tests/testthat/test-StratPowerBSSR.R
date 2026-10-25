@@ -105,3 +105,61 @@ test_that("StratPowerBSSR satisfies the symmetry of the groups and the two-sided
   expect_equal(two$power.BSSR, greater$power.BSSR + rev$power.BSSR, tolerance = 1e-12)
   expect_equal(two$E.N, greater$E.N, tolerance = 1e-12)
 })
+
+test_that("StratPowerBSSR with a random allocation agrees with a fixed final total", {
+  # With N.min = N.max = 30 every interim outcome leads to 30 patients, so the design is the
+  # fixed design of 30 patients with the same allocation, whose power is exact; the average
+  # over the sequences must agree with it within its Monte Carlo error
+  for (alloc in c('stratum', 'group', 'both')) {
+    set.seed(11)
+    res <- StratPowerBSSR(p = c(0.4, 0.6), Delta.A = 0.3, Delta.T = 0.3, N1 = c(6, 6),
+                          N2 = c(6, 6), omega = 0.5, r = 1, alpha = 0.05, tar.power = 0.8,
+                          Test = 'CMH', ss.method = 'standard', N.min = 30, N.max = 30,
+                          alloc = alloc, nseq = 40)
+    ex <- StratPower(c(0.55, 0.75), c(0.25, 0.45), alpha = 0.05, Test = 'CMH',
+                     alloc = alloc, N = 30, frac = c(0.5, 0.5))$Power
+    expect_lt(abs(res$power.BSSR - ex), 4 * res$se.BSSR + 1e-12)
+    expect_gt(res$se.BSSR, 0)
+    expect_equal(res$E.N, 30)
+    expect_identical(attr(res, 'N.dist')$N, 30L)
+    # The fixed design has the planned total of 24 and the same allocation
+    expect_equal(res$power.TRAD,
+                 StratPower(c(0.55, 0.75), c(0.25, 0.45), alpha = 0.05, Test = 'CMH',
+                            alloc = alloc, N = 24, frac = c(0.5, 0.5))$Power)
+  }
+})
+
+test_that("StratPowerBSSR with a random allocation is reproducible and keeps settings", {
+  run <- function() {
+    StratPowerBSSR(p = rbind(c(0.4, 0.6), c(0.5, 0.5)), Delta.A = 0.3, Delta.T = 0.3,
+                   N1 = c(6, 6), N2 = c(6, 6), omega = 0.5, r = 1, alpha = 0.05,
+                   tar.power = 0.8, Test = 'Strat-Fisher', ss.method = 'standard',
+                   N.max = 40, alloc = 'stratum', nseq = 10)
+  }
+  set.seed(5)
+  a <- run()
+  set.seed(5)
+  b <- run()
+  expect_identical(a$power.BSSR, b$power.BSSR)
+  expect_named(a, c('p.S1', 'p.S2', 'p1.S1', 'p1.S2', 'p2.S1', 'p2.S2', 'power.BSSR',
+                    'power.TRAD', 'E.N', 'se.BSSR'))
+  expect_identical(attr(a, 'nseq'), 10L)
+  expect_identical(attr(a, 'n.interim'), 12L)
+  expect_identical(attr(a, 'block'), 4L)
+  expect_null(attr(a, 'reestimation'))
+  d <- attr(a, 'N.dist')
+  expect_equal(as.vector(tapply(d$prob, d$scenario, sum)), c(1, 1))
+  expect_true(all(d$N >= 12 & d$N <= 40))
+  expect_equal(a$E.N, as.vector(tapply(d$prob * d$N, d$scenario, sum)))
+})
+
+test_that("StratPowerBSSR checks the settings of a random allocation", {
+  args <- list(p = c(0.4, 0.6), Delta.A = 0.3, Delta.T = 0.3, N1 = c(6, 6), N2 = c(6, 6),
+               omega = 0.5, r = 1, alpha = 0.05, tar.power = 0.8, Test = 'CMH',
+               ss.method = 'standard', alloc = 'stratum')
+  expect_error(do.call(StratPowerBSSR, c(args, list(nseq = 1))), 'nseq')
+  expect_error(do.call(StratPowerBSSR, c(args, list(N.max = 10))), 'N.max')
+  expect_error(do.call(StratPowerBSSR, c(args, list(block = 3))), 'whole numbers')
+  args3 <- modifyList(args, list(p = c(0.4, 0.5, 0.6), N1 = c(6, 6, 6), N2 = c(6, 6, 6)))
+  expect_error(do.call(StratPowerBSSR, args3), 'two strata')
+})

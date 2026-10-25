@@ -59,3 +59,24 @@ test_that("StratAlphaAdjBSSR reports 0 with a warning when the bisection finds n
   expect_equal(res$max.TIE.adj, c(0, 0))
   expect_true(all(is.na(res$theta.S1.adj)))
 })
+
+test_that("StratAlphaAdjBSSR with a random allocation controls the average rate", {
+  set.seed(13)
+  res <- StratAlphaAdjBSSR(Delta.A = 0.3, N1 = c(6, 6), N2 = c(6, 6), omega = 0.5, r = 1,
+                           alpha = 0.05, tar.power = 0.8, Test = 'CMH',
+                           ss.method = 'standard', N.max = 30, theta = c(0.3, 0.7),
+                           alloc = 'stratum', nseq = 10)
+  expect_true(all(res$alpha.adj <= 0.05))
+  expect_true(all(res$max.TIE.adj <= 0.05 + 1e-12))
+  expect_identical(attr(res, 'nseq'), 10L)
+  expect_identical(attr(res, 'alloc'), 'stratum')
+  out <- capture.output(print(res))
+  expect_true(any(grepl('permuted blocks of 4 within the strata, 10 sequences', out,
+                        fixed = TRUE)))
+  # The fixed design with the planned total of 24: the rate at its adjusted level
+  al <- check_strat_alloc('stratum', 24, c(0.5, 0.5), 1, 4)
+  coef <- strat_alloc_tie_coef(24, al, 'stratum', res$alpha.adj[2], 'CMH', 'greater',
+                               'minlike')$coef
+  expect_lte(max(strat_bern_eval(coef, c(0.3, 0.7, 0.3, 0.7), c(0.3, 0.3, 0.7, 0.7))),
+             0.05 + 1e-12)
+})

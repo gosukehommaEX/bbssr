@@ -43,6 +43,11 @@ print.bbssr_alphaadj <- function(x, digits = 6, ...) {
     cat(sprintf('  Margin          : %s\n', margin))
   }
   cat(sprintf('  Maximum         : %s\n', maximize_label(x)))
+  alloc <- attr(x, 'alloc')
+  if (!is.null(alloc) && alloc != 'fixed') {
+    cat(sprintf('  Allocation      : %s, %d sequences\n',
+                strat_alloc_label(alloc, attr(x, 'block')), attr(x, 'nseq')))
+  }
   cat(sprintf('  Target level    : %s\n\n', format(x$alpha[1])))
   # Adjusted levels rounded down. The factor 1 + 1e-12 keeps a level that is already a
   # decimal of digits significant digits from dropping by one unit through rounding error
