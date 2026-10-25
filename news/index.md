@@ -130,7 +130,9 @@ version.
   accept `alloc = 'stratum'` and `'both'`, whose stratum sizes are
   multinomial, and simulate the allocation with the responses; the fixed
   design with the planned total and the same allocation is simulated as
-  well, with the standard error `se.TRAD`.
+  well, with the standard error `se.TRAD`. A section of
+  [`vignette('bbssr-stratified')`](https://gosukehommaex.github.io/bbssr/articles/bbssr-stratified.md)
+  describes these designs.
 
 - Paired binary data.
   [`PairedRR()`](https://gosukehommaex.github.io/bbssr/reference/PairedRR.md),

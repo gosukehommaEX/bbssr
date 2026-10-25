@@ -9,8 +9,10 @@ library(bbssr)
 
 A trial is stratified into $`J \ge 2`$ strata, for example by centre or
 by a baseline factor, and stratum $`j`$ has $`N_{1j}`$ patients in group
-1 and $`N_{2j}`$ in group 2, both fixed by the design. Let $`x_{1j}`$
-and $`x_{2j}`$ be the numbers of responders of the two groups and
+1 and $`N_{2j}`$ in group 2, both fixed by the design (random sizes are
+treated in [Random stratum and group
+sizes](#random-stratum-and-group-sizes)). Let $`x_{1j}`$ and $`x_{2j}`$
+be the numbers of responders of the two groups and
 $`z_j = x_{1j} + x_{2j}`$ the number of responders of the stratum. All
 tests of the `Strat*` functions use $`S = \sum_j x_{1j}`$, the number of
 responders of group 1 summed over the strata. Given
@@ -350,6 +352,90 @@ rbind(stratified = res$E.N, pooled = res.pooled$E.N)
 The rows give the expected final totals of the two estimates in the two
 scenarios of the previous section.
 
+## Random stratum and group sizes
+
+When the patients are enrolled one at a time, the size of each stratum
+is known only at the end of the enrolment, and the sizes of the groups
+within a stratum depend on the randomization. With two strata,
+[`StratPower()`](https://gosukehommaex.github.io/bbssr/reference/StratPower.md)
+describes such a design by its total `N`, the fractions of the strata
+`frac` and the allocation ratio `r`,
+[`StratSampleSize()`](https://gosukehommaex.github.io/bbssr/reference/StratSampleSize.md)
+searches the total for the same description, and `alloc` chooses how the
+sizes are drawn. With `alloc = 'stratum'` the size of stratum 1 is
+binomial with the probability `frac[1]`, and within each stratum the
+groups are allocated by permuted blocks of size `block`, as in
+stratified block randomization. With `'group'` the size of stratum 1 is
+fixed at `floor(N * frac[1])`, and each patient is in group 1 with the
+probability $`r / (1 + r)`$ (Jung, 2014, Section 3.2). With `'both'` the
+stratum sizes are binomial as well (Jung, 2014, Section 3.1). The power
+is the sum over the stratum and group sizes of their probability times
+the power of the fixed design they give. Sizes whose probability is
+below $`10^{-14}`$ are left out, and the attribute `skipped` gives their
+total probability, a bound on the error of the power.
+
+``` r
+
+alloc.power <- function(alloc) {
+  StratPower(p1, p2, alpha = 0.025, Test = 'CMH', alloc = alloc, N = plan$N,
+             frac = c(0.5, 0.5))$Power
+}
+pw <- c(fixed = StratPower(p1, p2, N1 = plan$N1, N2 = plan$N2, alpha = 0.025,
+                           Test = 'CMH')$Power,
+        stratum = alloc.power('stratum'), group = alloc.power('group'))
+round(pw, 4)
+#>   fixed stratum   group 
+#>  0.7963  0.7972  0.7970
+```
+
+For the planned design of the section on re-estimation, with 160
+patients and strata of equal expected size, the power of the CMH test is
+0.7963 with fixed group sizes, 0.7972 with permuted blocks in random
+strata and 0.7970 with random groups in fixed strata, so here the random
+sizes change the power by less than 0.001. The number of configurations
+of the sizes grows most quickly with `'both'`, and its power for this
+design takes minutes.
+
+[`StratPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md),
+[`StratTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md),
+[`StratAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratAlphaAdjBSSR.md)
+and
+[`StratBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratBSSR.md)
+take `alloc` and `block` as well. With two strata the interim analysis
+has the first patients enrolled, as many as the interim total of the
+design, and the final analysis the first `N` patients, where `N` is the
+total re-estimated from the interim data with the fractions of the
+strata among the interim patients (`ss.frac = 'observed'`, the default)
+or with those of the plan (`'planned'`). Given an allocation sequence,
+that is the strata and the groups of the patients in the order of
+enrolment, the design has fixed group sizes and is computed exactly. The
+power and the type I error rate are averaged over `nseq` sequences drawn
+with the random numbers of R, and `se.BSSR` is the Monte Carlo standard
+error of the average. The power of the fixed design with the same
+allocation is exact.
+
+``` r
+
+set.seed(2)
+res.alloc <- StratPowerBSSR(p = rbind(pooled, pooled + 0.1), Delta.A = 2.5,
+                            Delta.T = 2.5, N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
+                            alpha = 0.025, tar.power = 0.8, Test = 'CMH', effect = 'OR',
+                            ss.method = 'standard', N.max = 2 * plan$N,
+                            alloc = 'stratum', nseq = 20)
+res.alloc[, c('power.BSSR', 'se.BSSR', 'power.TRAD', 'E.N')]
+#>   power.BSSR      se.BSSR power.TRAD      E.N
+#> 1  0.8139076 0.0002536077  0.7972067 166.7610
+#> 2  0.8173957 0.0006629590  0.7808348 176.7769
+```
+
+With 20 sequences the power of the re-estimation design is 0.8139 and
+0.8174 in the two scenarios, with the standard errors 0.00025 and
+0.00066, against 0.8122 and 0.8145 with fixed group sizes. The expected
+final totals are 166.8 and 176.8, against 166.4 and 175.8 with fixed
+group sizes. For this design the random sizes change the power by less
+than 0.01 and the expected total by less than 3 patients. The default
+`nseq = 100` divides the standard errors by about 2.2.
+
 ## Three or more strata
 
 With three or more strata the number of interim outcomes grows as a
@@ -358,8 +444,11 @@ product over the strata, and
 and
 [`StratTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md)
 estimate the rates of the re-estimation design by simulation, with the
-random numbers of R and a Monte Carlo standard error. The rates of the
-fixed design remain exact.
+random numbers of R and a Monte Carlo standard error. With fixed group
+sizes the rates of the fixed design remain exact. With
+`alloc = 'stratum'` or `'both'` the strata and the groups of the
+patients are simulated with the responses, in the fixed design as well,
+whose standard error is `se.TRAD`. The model `'group'` needs two strata.
 
 ``` r
 

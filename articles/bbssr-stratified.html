@@ -101,7 +101,8 @@ has
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mrow><mn>1</mn><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">N_{1j}</annotation></semantics></math>
 patients in group 1 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mrow><mn>2</mn><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">N_{2j}</annotation></semantics></math>
-in group 2, both fixed by the design. Let
+in group 2, both fixed by the design (random sizes are treated in <a href="#random-stratum-and-group-sizes">Random stratum and group
+sizes</a>). Let
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mrow><mn>1</mn><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">x_{1j}</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mrow><mn>2</mn><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">x_{2j}</annotation></semantics></math>
@@ -437,15 +438,96 @@ interim responders. The final analysis is still the test given by
 two scenarios of the previous section.</p>
 </div>
 <div class="section level2">
+<h2 id="random-stratum-and-group-sizes">Random stratum and group sizes<a class="anchor" aria-label="anchor" href="#random-stratum-and-group-sizes"></a>
+</h2>
+<p>When the patients are enrolled one at a time, the size of each
+stratum is known only at the end of the enrolment, and the sizes of the
+groups within a stratum depend on the randomization. With two strata,
+<code><a href="../reference/StratPower.html">StratPower()</a></code> describes such a design by its total
+<code>N</code>, the fractions of the strata <code>frac</code> and the
+allocation ratio <code>r</code>, <code><a href="../reference/StratSampleSize.html">StratSampleSize()</a></code> searches
+the total for the same description, and <code>alloc</code> chooses how
+the sizes are drawn. With <code>alloc = 'stratum'</code> the size of
+stratum 1 is binomial with the probability <code>frac[1]</code>, and
+within each stratum the groups are allocated by permuted blocks of size
+<code>block</code>, as in stratified block randomization. With
+<code>'group'</code> the size of stratum 1 is fixed at
+<code>floor(N * frac[1])</code>, and each patient is in group 1 with the
+probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">r / (1 + r)</annotation></semantics></math>
+(Jung, 2014, Section 3.2). With <code>'both'</code> the stratum sizes
+are binomial as well (Jung, 2014, Section 3.1). The power is the sum
+over the stratum and group sizes of their probability times the power of
+the fixed design they give. Sizes whose probability is below
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>14</mn></mrow></msup><annotation encoding="application/x-tex">10^{-14}</annotation></semantics></math>
+are left out, and the attribute <code>skipped</code> gives their total
+probability, a bound on the error of the power.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">alloc.power</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">alloc</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="../reference/StratPower.html">StratPower</a></span><span class="op">(</span><span class="va">p1</span>, <span class="va">p2</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>, Test <span class="op">=</span> <span class="st">'CMH'</span>, alloc <span class="op">=</span> <span class="va">alloc</span>, N <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N</span>,</span>
+<span>             frac <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">Power</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">pw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>fixed <span class="op">=</span> <span class="fu"><a href="../reference/StratPower.html">StratPower</a></span><span class="op">(</span><span class="va">p1</span>, <span class="va">p2</span>, N1 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N1</span>, N2 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N2</span>, alpha <span class="op">=</span> <span class="fl">0.025</span>,</span>
+<span>                           Test <span class="op">=</span> <span class="st">'CMH'</span><span class="op">)</span><span class="op">$</span><span class="va">Power</span>,</span>
+<span>        stratum <span class="op">=</span> <span class="fu">alloc.power</span><span class="op">(</span><span class="st">'stratum'</span><span class="op">)</span>, group <span class="op">=</span> <span class="fu">alloc.power</span><span class="op">(</span><span class="st">'group'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pw</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   fixed stratum   group </span></span>
+<span><span class="co">#&gt;  0.7963  0.7972  0.7970</span></span></code></pre></div>
+<p>For the planned design of the section on re-estimation, with 160
+patients and strata of equal expected size, the power of the CMH test is
+0.7963 with fixed group sizes, 0.7972 with permuted blocks in random
+strata and 0.7970 with random groups in fixed strata, so here the random
+sizes change the power by less than 0.001. The number of configurations
+of the sizes grows most quickly with <code>'both'</code>, and its power
+for this design takes minutes.</p>
+<p><code><a href="../reference/StratPowerBSSR.html">StratPowerBSSR()</a></code>, <code><a href="../reference/StratTypeIErrorBSSR.html">StratTypeIErrorBSSR()</a></code>,
+<code><a href="../reference/StratAlphaAdjBSSR.html">StratAlphaAdjBSSR()</a></code> and <code><a href="../reference/StratBSSR.html">StratBSSR()</a></code> take
+<code>alloc</code> and <code>block</code> as well. With two strata the
+interim analysis has the first patients enrolled, as many as the interim
+total of the design, and the final analysis the first <code>N</code>
+patients, where <code>N</code> is the total re-estimated from the
+interim data with the fractions of the strata among the interim patients
+(<code>ss.frac = 'observed'</code>, the default) or with those of the
+plan (<code>'planned'</code>). Given an allocation sequence, that is the
+strata and the groups of the patients in the order of enrolment, the
+design has fixed group sizes and is computed exactly. The power and the
+type I error rate are averaged over <code>nseq</code> sequences drawn
+with the random numbers of R, and <code>se.BSSR</code> is the Monte
+Carlo standard error of the average. The power of the fixed design with
+the same allocation is exact.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">res.alloc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/StratPowerBSSR.html">StratPowerBSSR</a></span><span class="op">(</span>p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">pooled</span>, <span class="va">pooled</span> <span class="op">+</span> <span class="fl">0.1</span><span class="op">)</span>, Delta.A <span class="op">=</span> <span class="fl">2.5</span>,</span>
+<span>                            Delta.T <span class="op">=</span> <span class="fl">2.5</span>, N1 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N1</span>, N2 <span class="op">=</span> <span class="va">plan</span><span class="op">$</span><span class="va">N2</span>, omega <span class="op">=</span> <span class="fl">0.5</span>, r <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>                            alpha <span class="op">=</span> <span class="fl">0.025</span>, tar.power <span class="op">=</span> <span class="fl">0.8</span>, Test <span class="op">=</span> <span class="st">'CMH'</span>, effect <span class="op">=</span> <span class="st">'OR'</span>,</span>
+<span>                            ss.method <span class="op">=</span> <span class="st">'standard'</span>, N.max <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">plan</span><span class="op">$</span><span class="va">N</span>,</span>
+<span>                            alloc <span class="op">=</span> <span class="st">'stratum'</span>, nseq <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
+<span><span class="va">res.alloc</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'power.BSSR'</span>, <span class="st">'se.BSSR'</span>, <span class="st">'power.TRAD'</span>, <span class="st">'E.N'</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;   power.BSSR      se.BSSR power.TRAD      E.N</span></span>
+<span><span class="co">#&gt; 1  0.8139076 0.0002536077  0.7972067 166.7610</span></span>
+<span><span class="co">#&gt; 2  0.8173957 0.0006629590  0.7808348 176.7769</span></span></code></pre></div>
+<p>With 20 sequences the power of the re-estimation design is 0.8139 and
+0.8174 in the two scenarios, with the standard errors 0.00025 and
+0.00066, against 0.8122 and 0.8145 with fixed group sizes. The expected
+final totals are 166.8 and 176.8, against 166.4 and 175.8 with fixed
+group sizes. For this design the random sizes change the power by less
+than 0.01 and the expected total by less than 3 patients. The default
+<code>nseq = 100</code> divides the standard errors by about 2.2.</p>
+</div>
+<div class="section level2">
 <h2 id="three-or-more-strata">Three or more strata<a class="anchor" aria-label="anchor" href="#three-or-more-strata"></a>
 </h2>
 <p>With three or more strata the number of interim outcomes grows as a
 product over the strata, and <code><a href="../reference/StratPowerBSSR.html">StratPowerBSSR()</a></code> and
 <code><a href="../reference/StratTypeIErrorBSSR.html">StratTypeIErrorBSSR()</a></code> estimate the rates of the
 re-estimation design by simulation, with the random numbers of R and a
-Monte Carlo standard error. The rates of the fixed design remain
-exact.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+Monte Carlo standard error. With fixed group sizes the rates of the
+fixed design remain exact. With <code>alloc = 'stratum'</code> or
+<code>'both'</code> the strata and the groups of the patients are
+simulated with the responses, in the fixed design as well, whose
+standard error is <code>se.TRAD</code>. The model <code>'group'</code>
+needs two strata.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">q2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.35</span>, <span class="fl">0.5</span><span class="op">)</span></span>
 <span><span class="va">q1</span> <span class="op">&lt;-</span> <span class="va">q2</span> <span class="op">*</span> <span class="fl">2.5</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">q2</span> <span class="op">+</span> <span class="va">q2</span> <span class="op">*</span> <span class="fl">2.5</span><span class="op">)</span></span>
