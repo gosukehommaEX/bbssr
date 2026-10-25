@@ -85,7 +85,9 @@
 #' }
 #' The attribute \code{reestimation} holds, with two strata, the final group sizes for every
 #' pair of interim pooled numbers of responders, \code{N.dist} the distribution of the
-#' final total sample size in each scenario, and the other attributes the design settings.
+#' final total sample size in each scenario, \code{scenario} the rows of \code{p} kept as
+#' scenarios, and the other attributes the design settings.
+#' \code{\link{summary.bbssr_spowerbssr}} summarizes the distribution of the final total.
 #'
 #' @details
 #' In stratum \code{j} the blinded estimate of the pooled response probability is the
@@ -163,7 +165,8 @@
 #' print(res)
 #'
 #' @author Gosuke Homma (\email{my.name.is.gosuke@@gmail.com})
-#' @seealso \code{\link{StratTypeIErrorBSSR}}, \code{\link{StratBSSR}}
+#' @seealso \code{\link{StratGridBSSR}}, \code{\link{StratTypeIErrorBSSR}},
+#'   \code{\link{StratBSSR}}
 #' @export
 StratPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r, alpha, tar.power,
                            Test, restricted = FALSE,
@@ -326,6 +329,7 @@ StratPowerBSSR <- function(p, Delta.A, Delta.T, N1, N2, omega = NULL, r, alpha, 
   attr(out, 'nsim') <- if (J > 2) d$nsim else NULL
   attr(out, 'reestimation') <- map
   attr(out, 'N.dist') <- N.dist
+  attr(out, 'scenario') <- which(keep)
   attr(out, 'alloc') <- alloc
   if (alloc != 'fixed') {
     attr(out, 'block') <- st$al$block

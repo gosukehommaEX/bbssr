@@ -39,6 +39,7 @@ reference:
       - StratPower
       - StratSampleSize
       - StratPowerBSSR
+      - StratGridBSSR
       - StratBSSR
       - StratTypeIErrorBSSR
       - StratAlphaAdjBSSR

@@ -200,3 +200,10 @@ test_that("StratPowerBSSR simulates a random allocation with three strata", {
   expect_error(do.call(StratPowerBSSR, modifyList(args, list(N.min = NULL, N.max = 5))),
                'N.max')
 })
+
+test_that("StratPowerBSSR records the rows of p that give the scenarios", {
+  # The second row gives p2 = -0.05 in stratum 1 and is dropped
+  res <- pb(p = rbind(c(0.4, 0.6), c(0.1, 0.6), c(0.5, 0.5)), Delta.T = 0.3)
+  expect_identical(attr(res, 'scenario'), c(1L, 3L))
+  expect_identical(attr(pb(p = c(0.4, 0.6), Delta.T = 0.3), 'scenario'), 1L)
+})

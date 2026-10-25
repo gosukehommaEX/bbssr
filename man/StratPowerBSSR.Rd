@@ -162,7 +162,9 @@ strata and a random allocation}
 }
 The attribute \code{reestimation} holds, with two strata, the final group sizes for every
 pair of interim pooled numbers of responders, \code{N.dist} the distribution of the
-final total sample size in each scenario, and the other attributes the design settings.
+final total sample size in each scenario, \code{scenario} the rows of \code{p} kept as
+scenarios, and the other attributes the design settings.
+\code{\link{summary.bbssr_spowerbssr}} summarizes the distribution of the final total.
 }
 \description{
 Calculates the power and the distribution of the final total sample size of a two-arm
@@ -250,7 +252,8 @@ Jung SH (2014). Stratified Fisher's exact test and its sample size calculation.
 \emph{Biometrical Journal}, 56(1), 129-140.
 }
 \seealso{
-\code{\link{StratTypeIErrorBSSR}}, \code{\link{StratBSSR}}
+\code{\link{StratGridBSSR}}, \code{\link{StratTypeIErrorBSSR}},
+\code{\link{StratBSSR}}
 }
 \author{
 Gosuke Homma (\email{my.name.is.gosuke@gmail.com})

@@ -34,12 +34,12 @@ designs with three or more strata.
 ## What is new since version 2.0.0
 
 - Stratified designs: `StratRR()`, `StratPower()`, `StratSampleSize()`,
-  `StratPowerBSSR()`, `StratBSSR()`, `StratTypeIErrorBSSR()` and
-  `StratAlphaAdjBSSR()` with the Cochran-Mantel-Haenszel test, Cochran’s
-  test and the stratified exact conditional test, the sample size
-  formulas of Woolson, Bean and Rojas (1986) and Nam (1992), and a
-  certified largest type I error rate over the response probabilities of
-  two strata.
+  `StratPowerBSSR()`, `StratGridBSSR()`, `StratBSSR()`,
+  `StratTypeIErrorBSSR()` and `StratAlphaAdjBSSR()` with the
+  Cochran-Mantel-Haenszel test, Cochran’s test and the stratified exact
+  conditional test, the sample size formulas of Woolson, Bean and
+  Rojas (1986) and Nam (1992), and a certified largest type I error rate
+  over the response probabilities of two strata.
 - Paired binary data: `PairedRR()`, `PairedPower()`,
   `PairedSampleSize()`, `PairedPowerBSSR()`, `PairedBSSR()`,
   `PairedTypeIErrorBSSR()` and `PairedAlphaAdjBSSR()` with five tests
@@ -359,8 +359,9 @@ The functions `PairedRR()`, `PairedPower()`, `PairedSampleSize()`,
 `PairedPowerBSSR()`, `PairedBSSR()`, `PairedTypeIErrorBSSR()` and
 `PairedAlphaAdjBSSR()` provide the same calculations for matched pairs,
 and the functions `StratRR()`, `StratPower()`, `StratSampleSize()`,
-`StratPowerBSSR()`, `StratBSSR()`, `StratTypeIErrorBSSR()` and
-`StratAlphaAdjBSSR()` for stratified designs.
+`StratPowerBSSR()`, `StratGridBSSR()`, `StratBSSR()`,
+`StratTypeIErrorBSSR()` and `StratAlphaAdjBSSR()` for stratified
+designs.
 
 Each returns a classed object with a `print()`, `summary()` or `plot()`
 method where one is useful.

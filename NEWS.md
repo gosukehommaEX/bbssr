@@ -84,6 +84,16 @@ Version 2.1.0 was not released, and its changes are included in this version.
   allocation is simulated as well, with the standard error `se.TRAD`. A section of
   `vignette('bbssr-stratified')` describes these designs.
 
+* `StratGridBSSR()` evaluates several stratified re-estimation designs, given as the rows
+  of a data frame, over common scenarios of the pooled response probabilities of the
+  strata, as `BinaryGridBSSR()` does for two groups. An argument with one value per
+  stratum is given by the columns with the suffixes `.S1`, `.S2`, ..., and the planned
+  group sizes can come from planning probabilities of the strata. Its result has a
+  `plot()` method and the `summary()` method of `BinaryGridBSSR()`. For the result of
+  `StratPowerBSSR()`, `summary()` gives the distribution of the final total sample size
+  and `plot()` the power of both designs against a probability that varies between the
+  scenarios; `StratPowerBSSR()` records the rows of `p` kept as scenarios.
+
 * Paired binary data. `PairedRR()`, `PairedPower()`, `PairedSampleSize()`,
   `PairedPowerBSSR()`, `PairedBSSR()`, `PairedTypeIErrorBSSR()` and
   `PairedAlphaAdjBSSR()` provide the fixed-design and re-estimation calculations for a

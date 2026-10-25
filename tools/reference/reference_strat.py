@@ -1106,3 +1106,73 @@ def blocks_alloc_sim(emit, reported_level):
             emit(f, f"three strata, {lab}, {model} CMH",
                  [alloc_power_strata(10, frac, (0.5,) * 3, model, p1, p2, "CMH", "greater",
                                      "minlike", 0.05, n_int=n_int) for p1, p2 in sc])
+
+
+# ---------------------------------------------------------------------------------------
+# Distribution of the final total sample size (summary.bbssr_spowerbssr, StratGridBSSR)
+def final_total_summary(n1, n2, fin, p1, p2, probs=(0.25, 0.5, 0.75)):
+    """Expected value, standard deviation, quantiles and the probability of the largest
+    reachable value of the final total sample size of a re-estimation design: fin(s) gives
+    the final group sizes for the interim pooled responders s, whose distribution in each
+    stratum is the convolution of the binomial distributions of the interim groups. The
+    largest reachable value is the largest final total over every interim outcome, and the
+    quantile of level a is the smallest total whose distribution function is at least a."""
+    J = len(n1)
+    dist = [np.convolve(binom.pmf(np.arange(n1[j] + 1), n1[j], p1[j]),
+                        binom.pmf(np.arange(n2[j] + 1), n2[j], p2[j])) for j in range(J)]
+    prob = {}
+    for s in itertools.product(*[range(n1[j] + n2[j] + 1) for j in range(J)]):
+        w = 1.0
+        for j in range(J):
+            w *= float(dist[j][s[j]])
+        N1, N2 = fin(s)
+        N = sum(N1) + sum(N2)
+        prob[N] = prob.get(N, 0.0) + w
+    Ns = sorted(prob)
+    pr = [prob[N] for N in Ns]
+    E = sum(N * q for N, q in zip(Ns, pr))
+    SD = math.sqrt(sum((N - E) ** 2 * q for N, q in zip(Ns, pr)))
+    cdf = np.cumsum(pr)
+    quant = [Ns[int(np.argmax(cdf >= a - 1e-12))] for a in probs]
+    return [E, SD] + quant + [prob[Ns[-1]]]
+
+
+SUMMARY_DESIGNS = {
+    "CMH standard": dict(n1=[5, 5], n2=[5, 5], N1p=[10, 10], N2p=[10, 10], frac=[0.5, 0.5],
+                         r=[1, 1], DA=0.3, effect="RD", test="CMH", alt="greater",
+                         ts="minlike", method="standard", alpha=0.05),
+    "Fisher exact": dict(n1=[4, 5], n2=[4, 5], N1p=[8, 10], N2p=[8, 10], frac=[8, 10],
+                         r=[1, 1], DA=0.4, effect="RD", test="Strat-Fisher", alt="greater",
+                         ts="minlike", method="exact", alpha=0.1, Nmax=48),
+}
+
+
+def blocks_summary_sbssr(emit, reported_level):
+    # The designs of blocks_bssr: pooled probabilities (0.4, 0.6), with the true effect 0.3
+    # (p1 = (0.55, 0.75), p2 = (0.25, 0.45)) and without it
+    res = {}
+    for key, d in SUMMARY_DESIGNS.items():
+        fin = (lambda s, d=d: reestimate(s, d["n1"], d["n2"], d["DA"], d["effect"],
+                                         d["frac"], d["r"], d["method"], d["test"],
+                                         d["alpha"], 0.8, d["alt"], d["ts"], d["N1p"],
+                                         d["N2p"], Nmax=d.get("Nmax")))
+        out = []
+        for p1, p2 in (([0.55, 0.75], [0.25, 0.45]), ([0.4, 0.6], [0.4, 0.6])):
+            out += final_total_summary(d["n1"], d["n2"], fin, p1, p2)
+        emit("test-summary.bbssr_spowerbssr.R", "summary of the final total " + key, out)
+        pw, EN = bssr_power(d["n1"], d["n2"], fin, [0.55, 0.75], [0.25, 0.45], d["test"],
+                            d["alt"], d["ts"], d["alpha"])
+        res[key] = [pw] + out[:6]
+    # StratGridBSSR with the two designs as its rows and Delta.T = 0.3: power.BSSR, E.N,
+    # SD.N, N.q25, N.q50, N.q75 and P.N.max of the first design, then of the second
+    emit("test-StratGridBSSR.R", "grid of the two designs of blocks_bssr",
+         res["CMH standard"] + res["Fisher exact"])
+    # Planned sizes from the planning probabilities by the normal approximation (pooled
+    # 0.3 and 0.5, risk difference 0.4, fractions (0.4, 0.6), r = 1, one-sided 0.025,
+    # power 0.8, CMH): N1.S1, N1.S2, N2.S1, N2.S2
+    p1 = [0.5, 0.7]
+    p2 = [0.1, 0.3]
+    frac = [0.4, 0.6]
+    n = max(1, ceil_tol(raw_n(p1, p2, frac, [1, 1], 0.025, 0.8, "greater", False, False)))
+    a, b = sizes(n, frac, [1, 1])
+    emit("test-StratGridBSSR.R", "planned sizes from p.plan, CMH standard", a + b, rtol=0)

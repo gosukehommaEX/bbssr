@@ -332,3 +332,7 @@ test-strat_alloc_simulate.R	three strata, fixed design of 10, stratum CMH	1e-10	
 test-strat_alloc_simulate.R	three strata, final total 10 after 6 interim patients, stratum CMH	1e-10	0.230776654915696 0.0449512053534727 0.0510778201204156
 test-strat_alloc_simulate.R	three strata, fixed design of 10, both CMH	1e-10	0.190441306733802 0.0403084968958065 0.0445455664549969
 test-strat_alloc_simulate.R	three strata, final total 10 after 6 interim patients, both CMH	1e-10	0.190561177909111 0.0408275669101311 0.0450138837018902
+test-summary.bbssr_spowerbssr.R	summary of the final total CMH standard	1e-10	59.740212490731 7.12815613980113 56 60 64 0.198521899360162 59.1902574387838 7.52672540880168 56 60 64 0.185660316278052
+test-summary.bbssr_spowerbssr.R	summary of the final total Fisher exact	1e-10	32.6818367739194 2.4998983667878 32 34 34 5.90356207233369e-05 32.6534657362278 2.63854503937714 32 34 34 0.000107352592482304
+test-StratGridBSSR.R	grid of the two designs of blocks_bssr	1e-10	0.770441457550367 59.740212490731 7.12815613980113 56 60 64 0.198521899360162 0.567315336728504 32.6818367739194 2.4998983667878 32 34 34 5.90356207233369e-05
+test-StratGridBSSR.R	planned sizes from p.plan, CMH standard	0	9 14 9 14
