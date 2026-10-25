@@ -81,7 +81,8 @@ Version 2.1.0 was not released, and its changes are included in this version.
   three or more strata, `StratPowerBSSR()` and `StratTypeIErrorBSSR()` accept
   `alloc = 'stratum'` and `'both'`, whose stratum sizes are multinomial, and simulate the
   allocation with the responses; the fixed design with the planned total and the same
-  allocation is simulated as well, with the standard error `se.TRAD`.
+  allocation is simulated as well, with the standard error `se.TRAD`. A section of
+  `vignette('bbssr-stratified')` describes these designs.
 
 * Paired binary data. `PairedRR()`, `PairedPower()`, `PairedSampleSize()`,
   `PairedPowerBSSR()`, `PairedBSSR()`, `PairedTypeIErrorBSSR()` and
