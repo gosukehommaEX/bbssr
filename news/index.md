@@ -104,7 +104,10 @@ version.
   total probability is reported as a bound on the error. The sample
   sizes of the columns ‘n fixed’ and ‘random’ of Table 4 of Jung (2014)
   are compared with the published values in
-  `inst/reproduce/reproduce-published.R`. The re-estimation functions
+  `inst/reproduce/reproduce-published.R`, and so is the simulated power
+  of the unstratified Fisher test in Table 3, which agrees with random
+  stratum and group sizes within the Monte Carlo error. The
+  re-estimation functions
   [`StratPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md),
   [`StratTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md),
   [`StratAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratAlphaAdjBSSR.md)
