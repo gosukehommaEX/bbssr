@@ -377,24 +377,26 @@ total probability, a bound on the error of the power.
 ``` r
 
 alloc.power <- function(alloc) {
-  StratPower(p1, p2, alpha = 0.025, Test = 'CMH', alloc = alloc, N = plan$N,
+  StratPower(p1, p2, alpha = 0.025, Test = 'CMH', alloc = alloc, N = 80,
              frac = c(0.5, 0.5))$Power
 }
-pw <- c(fixed = StratPower(p1, p2, N1 = plan$N1, N2 = plan$N2, alpha = 0.025,
+pw <- c(fixed = StratPower(p1, p2, N1 = c(20, 20), N2 = c(20, 20), alpha = 0.025,
                            Test = 'CMH')$Power,
         stratum = alloc.power('stratum'), group = alloc.power('group'))
 round(pw, 4)
 #>   fixed stratum   group 
-#>  0.7963  0.7972  0.7970
+#>  0.5171  0.5183  0.4979
 ```
 
-For the planned design of the section on re-estimation, with 160
-patients and strata of equal expected size, the power of the CMH test is
-0.7963 with fixed group sizes, 0.7972 with permuted blocks in random
-strata and 0.7970 with random groups in fixed strata, so here the random
-sizes change the power by less than 0.001. The number of configurations
-of the sizes grows most quickly with `'both'`, and its power for this
-design takes minutes.
+For the design of the section on the type I error rate, with 20 patients
+in each group and stratum and 80 in all, the power of the CMH test with
+the planning probabilities is 0.5171 with fixed group sizes, 0.5183 with
+permuted blocks in random strata and 0.4979 with random groups in fixed
+strata. Permuted blocks keep the power within 0.002 of that with fixed
+sizes, while binomial group sizes, which vary around the planned sizes,
+lower it by about 0.02. The number of configurations of the sizes grows
+most quickly with `'both'`, whose power takes far longer to compute than
+with the other models.
 
 [`StratPowerBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratPowerBSSR.md),
 [`StratTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/StratTypeIErrorBSSR.md),
@@ -416,25 +418,36 @@ allocation is exact.
 
 ``` r
 
+bssr.small <- function(...) {
+  StratPowerBSSR(p = rbind(pooled, pooled + 0.1), Delta.A = 2.5, Delta.T = 2.5,
+                 N1 = c(20, 20), N2 = c(20, 20), omega = 0.5, r = 1, alpha = 0.025,
+                 tar.power = 0.8, Test = 'CMH', effect = 'OR', ss.method = 'standard',
+                 N.max = 160, ...)
+}
+res.small <- bssr.small()
 set.seed(2)
-res.alloc <- StratPowerBSSR(p = rbind(pooled, pooled + 0.1), Delta.A = 2.5,
-                            Delta.T = 2.5, N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
-                            alpha = 0.025, tar.power = 0.8, Test = 'CMH', effect = 'OR',
-                            ss.method = 'standard', N.max = 2 * plan$N,
-                            alloc = 'stratum', nseq = 20)
+res.alloc <- bssr.small(alloc = 'stratum', nseq = 20)
+res.small[, c('power.BSSR', 'power.TRAD', 'E.N')]
+#>   power.BSSR power.TRAD      E.N
+#> 1  0.7946358  0.5171358 159.2986
+#> 2  0.7819219  0.4832641 159.7109
 res.alloc[, c('power.BSSR', 'se.BSSR', 'power.TRAD', 'E.N')]
 #>   power.BSSR      se.BSSR power.TRAD      E.N
-#> 1  0.8139076 0.0002536077  0.7972067 166.7610
-#> 2  0.8173957 0.0006629590  0.7808348 176.7769
+#> 1  0.7954675 0.0004363258  0.5182658 159.3638
+#> 2  0.7798800 0.0008324083  0.4879723 159.7567
 ```
 
-With 20 sequences the power of the re-estimation design is 0.8139 and
-0.8174 in the two scenarios, with the standard errors 0.00025 and
-0.00066, against 0.8122 and 0.8145 with fixed group sizes. The expected
-final totals are 166.8 and 176.8, against 166.4 and 175.8 with fixed
-group sizes. For this design the random sizes change the power by less
-than 0.01 and the expected total by less than 3 patients. The default
-`nseq = 100` divides the standard errors by about 2.2.
+With fixed group sizes the re-estimation raises the power from 0.5171,
+that of the fixed design with 80 patients, to 0.7946 in the first
+scenario, with an expected total of 159.3 close to the bound of 160.
+With permuted blocks in random strata and 20 sequences, the power of the
+re-estimation design is 0.7955 and 0.7799 in the two scenarios, with the
+standard errors 0.00044 and 0.00083, against 0.7946 and 0.7819 with
+fixed group sizes, and the expected totals are 159.4 and 159.8, against
+159.3 and 159.7. For this design the random sizes change the power of
+the re-estimation design by less than 0.01 and its expected total by
+less than one patient. The default `nseq = 100` divides the standard
+errors by about 2.2.
 
 ## Three or more strata
 
