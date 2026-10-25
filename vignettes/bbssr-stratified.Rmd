@@ -164,30 +164,34 @@ When the patients are enrolled one at a time, the size of each stratum is known 
 
 ```{r alloc}
 alloc.power <- function(alloc) {
-  StratPower(p1, p2, alpha = 0.025, Test = 'CMH', alloc = alloc, N = plan$N,
+  StratPower(p1, p2, alpha = 0.025, Test = 'CMH', alloc = alloc, N = 80,
              frac = c(0.5, 0.5))$Power
 }
-pw <- c(fixed = StratPower(p1, p2, N1 = plan$N1, N2 = plan$N2, alpha = 0.025,
+pw <- c(fixed = StratPower(p1, p2, N1 = c(20, 20), N2 = c(20, 20), alpha = 0.025,
                            Test = 'CMH')$Power,
         stratum = alloc.power('stratum'), group = alloc.power('group'))
 round(pw, 4)
 ```
 
-For the planned design of the section on re-estimation, with `r plan$N` patients and strata of equal expected size, the power of the CMH test is `r sprintf('%.4f', pw[['fixed']])` with fixed group sizes, `r sprintf('%.4f', pw[['stratum']])` with permuted blocks in random strata and `r sprintf('%.4f', pw[['group']])` with random groups in fixed strata, so here the random sizes change the power by less than 0.001. The number of configurations of the sizes grows most quickly with `'both'`, and its power for this design takes minutes.
+For the design of the section on the type I error rate, with 20 patients in each group and stratum and 80 in all, the power of the CMH test with the planning probabilities is `r sprintf('%.4f', pw[['fixed']])` with fixed group sizes, `r sprintf('%.4f', pw[['stratum']])` with permuted blocks in random strata and `r sprintf('%.4f', pw[['group']])` with random groups in fixed strata. Permuted blocks keep the power within 0.002 of that with fixed sizes, while binomial group sizes, which vary around the planned sizes, lower it by about 0.02. The number of configurations of the sizes grows most quickly with `'both'`, whose power takes far longer to compute than with the other models.
 
 `StratPowerBSSR()`, `StratTypeIErrorBSSR()`, `StratAlphaAdjBSSR()` and `StratBSSR()` take `alloc` and `block` as well. With two strata the interim analysis has the first patients enrolled, as many as the interim total of the design, and the final analysis the first `N` patients, where `N` is the total re-estimated from the interim data with the fractions of the strata among the interim patients (`ss.frac = 'observed'`, the default) or with those of the plan (`'planned'`). Given an allocation sequence, that is the strata and the groups of the patients in the order of enrolment, the design has fixed group sizes and is computed exactly. The power and the type I error rate are averaged over `nseq` sequences drawn with the random numbers of R, and `se.BSSR` is the Monte Carlo standard error of the average. The power of the fixed design with the same allocation is exact.
 
 ```{r bssr-alloc}
+bssr.small <- function(...) {
+  StratPowerBSSR(p = rbind(pooled, pooled + 0.1), Delta.A = 2.5, Delta.T = 2.5,
+                 N1 = c(20, 20), N2 = c(20, 20), omega = 0.5, r = 1, alpha = 0.025,
+                 tar.power = 0.8, Test = 'CMH', effect = 'OR', ss.method = 'standard',
+                 N.max = 160, ...)
+}
+res.small <- bssr.small()
 set.seed(2)
-res.alloc <- StratPowerBSSR(p = rbind(pooled, pooled + 0.1), Delta.A = 2.5,
-                            Delta.T = 2.5, N1 = plan$N1, N2 = plan$N2, omega = 0.5, r = 1,
-                            alpha = 0.025, tar.power = 0.8, Test = 'CMH', effect = 'OR',
-                            ss.method = 'standard', N.max = 2 * plan$N,
-                            alloc = 'stratum', nseq = 20)
+res.alloc <- bssr.small(alloc = 'stratum', nseq = 20)
+res.small[, c('power.BSSR', 'power.TRAD', 'E.N')]
 res.alloc[, c('power.BSSR', 'se.BSSR', 'power.TRAD', 'E.N')]
 ```
 
-With 20 sequences the power of the re-estimation design is `r sprintf('%.4f', res.alloc$power.BSSR[1])` and `r sprintf('%.4f', res.alloc$power.BSSR[2])` in the two scenarios, with the standard errors `r sprintf('%.5f', res.alloc$se.BSSR[1])` and `r sprintf('%.5f', res.alloc$se.BSSR[2])`, against `r sprintf('%.4f', res$power.BSSR[1])` and `r sprintf('%.4f', res$power.BSSR[2])` with fixed group sizes. The expected final totals are `r sprintf('%.1f', res.alloc$E.N[1])` and `r sprintf('%.1f', res.alloc$E.N[2])`, against `r sprintf('%.1f', res$E.N[1])` and `r sprintf('%.1f', res$E.N[2])` with fixed group sizes. For this design the random sizes change the power by less than 0.01 and the expected total by less than 3 patients. The default `nseq = 100` divides the standard errors by about 2.2.
+With fixed group sizes the re-estimation raises the power from `r sprintf('%.4f', res.small$power.TRAD[1])`, that of the fixed design with 80 patients, to `r sprintf('%.4f', res.small$power.BSSR[1])` in the first scenario, with an expected total of `r sprintf('%.1f', res.small$E.N[1])` close to the bound of 160. With permuted blocks in random strata and 20 sequences, the power of the re-estimation design is `r sprintf('%.4f', res.alloc$power.BSSR[1])` and `r sprintf('%.4f', res.alloc$power.BSSR[2])` in the two scenarios, with the standard errors `r sprintf('%.5f', res.alloc$se.BSSR[1])` and `r sprintf('%.5f', res.alloc$se.BSSR[2])`, against `r sprintf('%.4f', res.small$power.BSSR[1])` and `r sprintf('%.4f', res.small$power.BSSR[2])` with fixed group sizes, and the expected totals are `r sprintf('%.1f', res.alloc$E.N[1])` and `r sprintf('%.1f', res.alloc$E.N[2])`, against `r sprintf('%.1f', res.small$E.N[1])` and `r sprintf('%.1f', res.small$E.N[2])`. For this design the random sizes change the power of the re-estimation design by less than 0.01 and its expected total by less than one patient. The default `nseq = 100` divides the standard errors by about 2.2.
 
 ## Three or more strata
 
