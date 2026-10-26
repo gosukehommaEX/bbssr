@@ -517,9 +517,9 @@ with the contour of 80% in red.
 Smallest second-stage size $`n^{(2)}`$ with a conditional power of at
 least 0.8; the cells where no $`n^{(2)}`$ up to 70 attains it are grey.
 The article does not state the largest second-stage size, and the grey
-cells of the original agree with 70. 2 cells need exactly 70 further
-pairs and 3 exactly 71, so the largest sizes 69 and 71 would change
-these cells.
+cells of the original agree with 70. With the largest size 69, 2 more
+cells would be grey, those that need exactly 70 further pairs, and with
+71, 3 fewer.
 
 ## Agreement of the stored values with the package
 
