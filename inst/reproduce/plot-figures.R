@@ -452,22 +452,25 @@ plot_bs2003_figure2 <- function(dir = fig_dir()) {
 
 # Fagerland, Lydersen and Laake (2013) -------------------------------------------------
 # Line types of the original: the asymptotic test thick, the exact conditional test
-# dashed, the mid-p test thin, the exact unconditional test as vertical bars and the test
-# with continuity correction as diamonds
+# dashed, the mid-p test thin, the exact unconditional test hatched and the test with
+# continuity correction as diamonds. The hatched line is a thick dashed line with flat
+# ends, as in the original, so that its dashes are short bars across the curve
 fll_curves <- function(x, s, every.cc) {
   k <- seq(1, length(x), by = every.cc)
-  graphics::points(x, s$uncond, pch = '|', cex = 0.55)
+  graphics::lines(x, s$uncond, lwd = 4, lty = '11', lend = 'butt')
   graphics::lines(x, s$exact, lty = 2, lwd = 1.2)
   graphics::lines(x, s$midp, lwd = 0.7)
   graphics::lines(x, s$asymptotic, lwd = 2.5)
   graphics::points(x[k], s$cc[k], pch = 5, cex = 0.6)
 }
 fll_legend <- function() {
+  op <- graphics::par(lend = 'butt')
+  on.exit(graphics::par(op))
   graphics::legend('bottomright', inset = 0.03, cex = 0.6, bg = 'white',
                    legend = c('McNemar asymptotic', 'McNemar asymptotic w/CC',
                               'McNemar exact', 'McNemar mid-p', 'Exact unconditional'),
-                   lty = c(1, NA, 2, 1, NA), lwd = c(2.5, NA, 1.2, 0.7, NA),
-                   pch = c(NA, 5, NA, NA, 124), seg.len = 3)
+                   lty = c('solid', 'blank', 'dashed', 'solid', '11'),
+                   lwd = c(2.5, 1, 1.2, 0.7, 4), pch = c(NA, 5, NA, NA, NA), seg.len = 3)
 }
 
 plot_fll2013_figure1 <- function(dir = fig_dir()) {

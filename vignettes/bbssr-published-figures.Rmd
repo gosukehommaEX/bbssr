@@ -349,7 +349,7 @@ Conditional power with the fixed second-stage size $n^{(2)} = 38$ for $p_* = 0.5
 plot_schepers2026_figure2(dir)
 ```
 
-Smallest second-stage size $n^{(2)}$ with a conditional power of at least 0.8; the cells where no $n^{(2)}$ up to 70 attains it are grey. The article does not state the largest second-stage size, and the grey cells of the original agree with 70. `r sum(sc2$n2.min == 70, na.rm = TRUE)` cells need exactly 70 further pairs and `r sum(sc2$n2.min == 71, na.rm = TRUE)` exactly 71, so the largest sizes 69 and 71 would change these cells.
+Smallest second-stage size $n^{(2)}$ with a conditional power of at least 0.8; the cells where no $n^{(2)}$ up to 70 attains it are grey. The article does not state the largest second-stage size, and the grey cells of the original agree with 70. With the largest size 69, `r sum(sc2$n2.min == 70, na.rm = TRUE)` more cells would be grey, those that need exactly 70 further pairs, and with 71, `r sum(sc2$n2.min == 71, na.rm = TRUE)` fewer.
 
 ## Agreement of the stored values with the package
 
