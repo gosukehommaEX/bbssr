@@ -45,8 +45,9 @@ PairedSampleSize(
 
 - Test:
 
-  Type of statistical test. Options: `'McNemar'`, `'McNemar-exact'`,
-  `'McNemar-midP'`, `'McNemar-uncond'` or `'Paired-Score'`
+  Type of statistical test. Options: `'McNemar'`, `'McNemar-cc'`,
+  `'McNemar-exact'`, `'McNemar-midP'`, `'McNemar-uncond'` or
+  `'Paired-Score'`
 
 - alternative:
 
@@ -167,9 +168,11 @@ which the sum of the two approximate powers minus 1 attains the target
 power. The sum minus 1 is a lower bound of the approximate probability
 that both tests reject.
 
-The normal approximation is the starting point of the exact search for
-every test. The exact power is not monotone in the number of pairs, so
-the three searches can return different numbers, see
+The normal approximation does not depend on the test, and for
+`'McNemar-cc'` it leaves out the continuity correction. It is the
+starting point of the exact search for every test. The exact power is
+not monotone in the number of pairs, so the three searches can return
+different numbers, see
 [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md).
 
 ## References

@@ -35,8 +35,11 @@ for blinded sample size re-estimation.
 
 ## Tests
 
-Five tests are available. `'McNemar'` refers
-$`Z = (a - b) / \sqrt{a + b}`$ to the standard normal distribution.
+Six tests are available. `'McNemar'` refers
+$`Z = (a - b) / \sqrt{a + b}`$ to the standard normal distribution, and
+`'McNemar-cc'` refers $`(|a - b| - 1) / \sqrt{a + b}`$ to it, with the
+continuity correction of formula (2) of Fagerland et al. (2013), and
+$`(a - b - 1) / \sqrt{a + b}`$ for a one-sided alternative.
 `'McNemar-exact'` refers $`a`$ to the binomial distribution with
 $`a + b`$ trials and probability 1/2, and `'McNemar-midP'` is its mid-p
 version (Fagerland et al., 2013). `'McNemar-uncond'` orders the outcomes

@@ -7,10 +7,10 @@ supported, each available with a one-sided or a two-sided alternative.
 Two of them also test non-inferiority with a margin on the scale of the
 risk difference or the risk ratio, and the exact unconditional tests can
 be combined with the Berger-Boos procedure. The same calculations are
-available for matched-pairs designs, such as cross-over trials, with
-five tests based on the discordant pairs, and for designs stratified
-into two or more strata, with the Cochran-Mantel-Haenszel test,
-Cochran's test and the stratified exact conditional test.
+available for matched-pairs designs, such as cross-over trials, with six
+tests based on the discordant pairs, and for designs stratified into two
+or more strata, with the Cochran-Mantel-Haenszel test, Cochran's test
+and the stratified exact conditional test.
 
 ## Main functions
 

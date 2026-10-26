@@ -2,17 +2,19 @@
 
 ## Purpose
 
-This vignette redraws fifteen figures of four publications on binary
+This vignette redraws twenty figures of seven publications on binary
 endpoints, blinded sample size re-estimation and exact tests from values
 computed with bbssr: Figures 1 to 4 of Friede and Kieser (2004), Figures
 21.1 to 21.4 and 23.1 to 23.3 of Kieser (2020), Figures 1 to 3 of
 Friede, Mitchell and Mueller-Velten (2007) and Figure 2 of Boschloo
-(1970). A figure carries the operating characteristics of a design over
-a whole range of parameters, so its agreement with the original checks
-the package at many more points than the tables that
-`reproduce-published.R` compares (see the validation vignette). Where
-the text of a publication states values that are read from a figure,
-they are compared with the recomputed values.
+(1970) for two groups, and Figure 2 of Berger and Sidik (2003), Figures
+1 and 2 of Fagerland, Lydersen and Laake (2013) and Figures 1 and 2 of
+Schepers et al. (2026) for matched pairs. A figure carries the operating
+characteristics of a design over a whole range of parameters, so its
+agreement with the original checks the package at many more points than
+the tables that `reproduce-published.R` compares (see the validation
+vignette). Where the text of a publication states values that are read
+from a figure, they are compared with the recomputed values.
 
 The original figures are not reproduced here; they are to be compared
 with the publications. The axis ranges, tick marks, line types and
@@ -21,10 +23,11 @@ to its original. Each section states how the design was specified, what
 the publication leaves open, and where the figure departs from the
 original.
 
-The values take about half an hour to compute. They are computed by the
-script `reproduce-figures.R` and stored in the folder
-`extdata/published-figures` of the package, and the figures are drawn by
-the functions in `plot-figures.R`; both scripts are installed in the
+The values for two groups take about half an hour to compute. They are
+computed by the script `reproduce-figures.R`, those for matched pairs by
+`reproduce-figures-paired.R`, and both are stored in the folder
+`extdata/published-figures` of the package. The figures are drawn by the
+functions in `plot-figures.R`; the three scripts are installed in the
 folder given by `system.file('reproduce', package = 'bbssr')`. The last
 section recomputes some of the stored values with the installed version
 of the package.
@@ -413,15 +416,122 @@ figure agrees with the original. Rejecting with Fisher’s test at the
 level 0.09 is the same as rejecting with the Boschloo test at the level
 0.05, and `reproduce-figures.R` confirms that the two levels agree.
 
+## Berger and Sidik (2003)
+
+### Figure 2 (p. 105)
+
+![](bbssr-published-figures_files/figure-html/bs-fig2-1.png)
+
+Size functions of the tests of $`p_{10} \le p_{01}`$ against
+$`p_{10} > p_{01}`$ at the one-sided level 0.05 for $`n = 50`$ and
+$`n = 100`$ pairs, the rejection probabilities at
+$`p_{01} = p_{10} = p`$: the exact conditional test CB
+(`'McNemar-exact'`), the asymptotic McNemar test M (`'McNemar'`), the
+exact unconditional test Z (`'McNemar-uncond'`) and the same with the
+Berger-Boos procedure, $`Z_C`$ (`bb.gamma = 0.0005`), both with
+`ref.pvalue = TRUE`. The likelihood ratio tests L and $`L_C`$ of the
+article are not available in bbssr and are not drawn; the article states
+that they coincide with Z and $`Z_C`$ for $`n = 50`$. As in the
+original, the size function of M rises above 0.05 for both numbers of
+pairs, to 0.0595 and 0.0522, that of CB stays well below 0.05, and those
+of Z and $`Z_C`$ stay below 0.05 and close to it for $`n = 100`$. The
+largest values on the grid of the figure ($`p`$ in steps of 0.0025)
+differ from the exact sizes in Table 4 of the article by at most
+0.00006; `reproduce-published.R` reproduces that table with the maximum
+over all $`p`$.
+
+## Fagerland, Lydersen and Laake (2013)
+
+Both figures show the five tests of the article at the two-sided level
+0.05: the asymptotic McNemar test (`'McNemar'`), the same with the
+continuity correction of formula (2) of the article (`'McNemar-cc'`),
+the exact conditional test (`'McNemar-exact'`), its mid-p version
+(`'McNemar-midP'`) and the exact unconditional test (`'McNemar-uncond'`
+with `ref.pvalue = TRUE`). The article specifies a pair by the marginal
+success probabilities $`p_{1+}`$ and $`p_{+1}`$ and the odds ratio
+$`\theta = p_{11} p_{22} / (p_{12} p_{21})`$, but does not state how
+$`p_{11}`$ is obtained from them. The figures take $`p_{11}`$ as the
+root of $`p_{11} p_{22} = \theta p_{12} p_{21}`$ within the bounds given
+by the margins, so that $`p_{12} = p_{1+} - p_{11}`$ and
+$`p_{21} = p_{+1} - p_{11}`$. With this choice `reproduce-published.R`
+reproduces the summaries of the type I error rates in Table 4 of the
+article for the first four tests, but not all of those for the exact
+unconditional test, which the article computed with StatXact.
+
+### Figure 1 (p. 4)
+
+![](bbssr-published-figures_files/figure-html/fll-fig1-1.png)
+
+Type I error rates against $`p_{1+} = p_{+1}`$ for
+$`(N, \theta) = (20, 2)`$, $`(40, 1)`$, $`(70, 10)`$ and $`(100, 3)`$,
+the panels of the original, which the article does not list in the text.
+The curves and the diamonds agree with the original for all five tests.
+The largest type I error rate of the asymptotic test in the four panels
+is 0.0534, and that of the test with continuity correction 0.0327.
+
+### Figure 2 (p. 6)
+
+![](bbssr-published-figures_files/figure-html/fll-fig2-1.png)
+
+Power against the number of matched pairs $`N`$ for $`p_{1+} = 0.1`$,
+$`p_{+1} = 0.35`$ and $`\theta = 2`$, with the range $`35 \le N \le 60`$
+on the right. With 50 pairs the power is 0.9015 for the asymptotic test,
+0.8384 with continuity correction, 0.8541 for the exact conditional
+test, 0.8983 for the mid-p test and 0.8983 for the exact unconditional
+test. The curves agree with the original, except the exact unconditional
+test at $`N = 27`$, 32, 60, 76 and 85. At these numbers of pairs the
+original lies above the recomputed power, at about the power of the
+asymptotic or the mid-p test; at $`N = 60`$ the recomputed power is
+0.9289 and that of the mid-p test 0.9443. The exact unconditional test
+of the article thus rejects more often at some numbers of pairs, in the
+same direction as the means in Table 4 of the article that
+`reproduce-published.R` does not reproduce.
+
+## Schepers et al. (2026)
+
+Both figures use the two-sided exact conditional McNemar test at the
+level 0.05 and $`n^{(1)} = 38`$ interim pairs, of which $`n_d^{(1)}`$
+are discordant, and show the conditional power (4) of the article
+against $`p_*`$, the probability that a discordant pair favours
+treatment 1. The conditional power needs the probability $`\psi`$ of a
+discordant pair in the second stage. The article generated the figures
+with the assumptions of its motivating trial, among them $`\psi = 0.2`$,
+while its re-estimation rule (Section 2.4) uses the interim estimate
+$`\hat{\psi} = n_d^{(1)} / n^{(1)}`$. The figures are drawn with
+$`\psi = 0.2`$, with which they agree with the original. With the
+interim estimate, the contour of 80% would be crossed at
+$`n_d^{(1)} = 20`$ at $`p_* =`$ 0.73 instead of 0.78.
+
+### Figure 1 (p. 5)
+
+![](bbssr-published-figures_files/figure-html/sc-fig1-1.png)
+
+Conditional power with the fixed second-stage size $`n^{(2)} = 38`$ for
+$`p_* = 0.50, 0.51, \ldots, 0.90`$ and $`n_d^{(1)} = 0, 1, \ldots, 38`$,
+with the contour of 80% in red.
+
+### Figure 2 (p. 6)
+
+![](bbssr-published-figures_files/figure-html/sc-fig2-1.png)
+
+Smallest second-stage size $`n^{(2)}`$ with a conditional power of at
+least 0.8; the cells where no $`n^{(2)}`$ up to 70 attains it are grey.
+The article does not state the largest second-stage size, and the grey
+cells of the original agree with 70. 2 cells need exactly 70 further
+pairs and 3 exactly 71, so the largest sizes 69 and 71 would change
+these cells.
+
 ## Agreement of the stored values with the package
 
-The stored values were computed with bbssr by `reproduce-figures.R`. The
-code below recomputes some of them, from the designs that take little
-time, with the installed version of the package, and stops if a stored
-value differs from the recomputed one by more than $`10^{-10}`$. The
-designs of Friede et al. (2007) take several seconds each and are not
-recomputed here; the same computations reproduce Tables 2 and 3 of the
-article in `reproduce-published.R`.
+The stored values were computed with bbssr by `reproduce-figures.R` and
+`reproduce-figures-paired.R`. The code below recomputes some of them,
+from the designs that take little time, with the installed version of
+the package, and stops if a stored value differs from the recomputed one
+by more than $`10^{-10}`$. The designs of Friede et al. (2007) take
+several seconds each and are not recomputed here; the same computations
+reproduce Tables 2 and 3 of the article in `reproduce-published.R`. The
+conditional power of Schepers et al. (2026) is computed by an internal
+function of the package and is not recomputed here.
 
 ``` r
 
@@ -467,36 +577,58 @@ k23.res <- BinaryTypeIErrorBSSR(
 )
 # Boschloo (1970), Figure 2: p = 0.5
 bo.row <- bo[abs(bo$p - 0.5) < 1e-9, ]
+# Berger and Sidik (2003), Figure 2: n = 50 and p = 0.25
+bs.row <- bs[bs$n == 50 & abs(bs$p - 0.25) < 1e-9, ]
+# Fagerland et al. (2013), Figure 1: N = 40, theta = 1 and p1+ = p+1 = 0.5, so that
+# p11 = 0.25; Figure 2: N = 50, with p11 the root of p11 p22 = 2 p12 p21
+fll1.row <- fll1[fll1$N == 40 & abs(fll1$p - 0.5) < 1e-9, ]
+fll2.row <- fll2[fll2$N == 50, ]
+fll.b <- 1 + (2 - 1) * (0.1 + 0.35)
+fll.p11 <- 2 * 2 * 0.1 * 0.35 / (fll.b + sqrt(fll.b^2 + 4 * 2 * (1 - 2) * 0.1 * 0.35))
 check <- data.frame(
   Value = c('FK2004 Figure 1', 'FK2004 Figure 4', 'Kieser Figure 21.1, fixed',
             'Kieser Figure 21.1, recalculation', 'Kieser Figure 21.2, fixed',
             'Kieser Figure 21.2, recalculation', 'Kieser Figure 23.1, fixed',
             'Kieser Figure 23.1, recalculation', 'Boschloo Figure 2, alpha',
-            'Boschloo Figure 2, alpha_gamma'),
+            'Boschloo Figure 2, alpha_gamma', 'BS2003 Figure 2, Z',
+            'BS2003 Figure 2, Z_C', 'FLL2013 Figure 1, continuity correction',
+            'FLL2013 Figure 2, mid-p'),
   Stored = c(fk1$pilot.20[fk1$pi == 0.1 & fk1$n == 60], fk4.row$level, k1.row$fixed,
              k1.row$ips, k2.row$fixed, k2.row$recalculation, k23.row$fixed,
-             k23.row$recalculation, bo.row$alpha, bo.row$alpha.gamma),
+             k23.row$recalculation, bo.row$alpha, bo.row$alpha.gamma, bs.row$Z, bs.row$Z.C,
+             fll1.row$cc, fll2.row$midp),
   Recomputed = c(fk1.ips, fk4.ips, k1.res$power.TRAD, k1.res$power.BSSR,
                  k2.res$TIE.TRAD, k2.res$TIE.BSSR, k23.res$TIE.TRAD, k23.res$TIE.BSSR,
                  BinaryPower(0.5, 0.5, 15, 10, 0.05, 'Fisher')$Power,
-                 BinaryPower(0.5, 0.5, 15, 10, 0.09, 'Fisher')$Power)
+                 BinaryPower(0.5, 0.5, 15, 10, 0.09, 'Fisher')$Power,
+                 PairedPower(0.25, 0.25, 50, 0.05, 'McNemar-uncond',
+                             ref.pvalue = TRUE)$Power,
+                 PairedPower(0.25, 0.25, 50, 0.05, 'McNemar-uncond', bb.gamma = 5e-4,
+                             ref.pvalue = TRUE)$Power,
+                 PairedPower(0.25, 0.25, 40, 0.05, 'McNemar-cc', 'two.sided')$Power,
+                 PairedPower(0.1 - fll.p11, 0.35 - fll.p11, 50, 0.05, 'McNemar-midP',
+                             'two.sided')$Power)
 )
 check$Difference <- abs(check$Stored - check$Recomputed)
 knitr::kable(check, digits = 12)
 ```
 
-| Value                             |     Stored | Recomputed | Difference |
-|:----------------------------------|-----------:|-----------:|-----------:|
-| FK2004 Figure 1                   | 0.03686087 | 0.03686087 |          0 |
-| FK2004 Figure 4                   | 0.05009993 | 0.05009993 |          0 |
-| Kieser Figure 21.1, fixed         | 0.02142053 | 0.02142053 |          0 |
-| Kieser Figure 21.1, recalculation | 0.02130180 | 0.02130180 |          0 |
-| Kieser Figure 21.2, fixed         | 0.02679047 | 0.02679047 |          0 |
-| Kieser Figure 21.2, recalculation | 0.02710920 | 0.02710920 |          0 |
-| Kieser Figure 23.1, fixed         | 0.02376426 | 0.02376426 |          0 |
-| Kieser Figure 23.1, recalculation | 0.02644929 | 0.02644929 |          0 |
-| Boschloo Figure 2, alpha          | 0.02016771 | 0.02016771 |          0 |
-| Boschloo Figure 2, alpha_gamma    | 0.04336041 | 0.04336041 |          0 |
+| Value                                   |     Stored | Recomputed | Difference |
+|:----------------------------------------|-----------:|-----------:|-----------:|
+| FK2004 Figure 1                         | 0.03686087 | 0.03686087 |          0 |
+| FK2004 Figure 4                         | 0.05009993 | 0.05009993 |          0 |
+| Kieser Figure 21.1, fixed               | 0.02142053 | 0.02142053 |          0 |
+| Kieser Figure 21.1, recalculation       | 0.02130180 | 0.02130180 |          0 |
+| Kieser Figure 21.2, fixed               | 0.02679047 | 0.02679047 |          0 |
+| Kieser Figure 21.2, recalculation       | 0.02710920 | 0.02710920 |          0 |
+| Kieser Figure 23.1, fixed               | 0.02376426 | 0.02376426 |          0 |
+| Kieser Figure 23.1, recalculation       | 0.02644929 | 0.02644929 |          0 |
+| Boschloo Figure 2, alpha                | 0.02016771 | 0.02016771 |          0 |
+| Boschloo Figure 2, alpha_gamma          | 0.04336041 | 0.04336041 |          0 |
+| BS2003 Figure 2, Z                      | 0.04645488 | 0.04645488 |          0 |
+| BS2003 Figure 2, Z_C                    | 0.04868590 | 0.04868590 |          0 |
+| FLL2013 Figure 1, continuity correction | 0.02665621 | 0.02665621 |          0 |
+| FLL2013 Figure 2, mid-p                 | 0.89834090 | 0.89834090 |          0 |
 
 ``` r
 
@@ -505,9 +637,17 @@ stopifnot(max(check$Difference) < 1e-10)
 
 ## References
 
+Berger, R. L. and Sidik, K. (2003). Exact unconditional tests for a 2 x
+2 matched-pairs design. *Statistical Methods in Medical Research*, 12,
+91-108.
+
 Boschloo, R. D. (1970). Raised conditional level of significance for the
 2 × 2-table when testing the equality of two probabilities. *Statistica
 Neerlandica*, 24, 1-9.
+
+Fagerland, M. W., Lydersen, S. and Laake, P. (2013). The McNemar test
+for binary matched-pairs data: mid-p and asymptotic are better than
+exact conditional. *BMC Medical Research Methodology*, 13, 91.
 
 Farrington, C. P. and Manning, G. (1990). Test statistics and sample
 size formulae for comparative binomial trials with null hypothesis of
@@ -524,3 +664,7 @@ size reestimation in non-inferiority trials with binary endpoints.
 
 Kieser, M. (2020). *Methods and Applications of Sample Size Calculation
 and Recalculation in Clinical Trials*. Springer.
+
+Schepers, M., Brannath, W., Hoffmann, E., Stingl, J. and Schmidtmann, I.
+(2026). Blinded sample size review for McNemar’s test based on primary
+and surrogate endpoints. arXiv:2608.17784.

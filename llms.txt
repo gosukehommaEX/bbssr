@@ -42,7 +42,7 @@ designs with three or more strata.
   [`PairedTypeIErrorBSSR()`](https://gosukehommaex.github.io/bbssr/reference/PairedTypeIErrorBSSR.md)
   and
   [`PairedAlphaAdjBSSR()`](https://gosukehommaex.github.io/bbssr/reference/PairedAlphaAdjBSSR.md)
-  with five tests for matched pairs and the re-estimation from the
+  with six tests for matched pairs and the re-estimation from the
   blinded number of discordant pairs, including the conditional power
   rule of Schepers et al. (2026).
 - Tests of equivalence with `alternative = 'equivalence'` and two
@@ -422,7 +422,7 @@ the [package website](https://gosukehommaex.github.io/bbssr/).
 - `bbssr-statistical-methods`: the tests and the re-estimation
 - `bbssr-validation`: comparisons with other packages and with published
   results
-- `bbssr-published-figures`: fifteen published figures redrawn from
+- `bbssr-published-figures`: twenty published figures redrawn from
   values computed with the package
 
 ## Validation
@@ -447,9 +447,10 @@ designs those of Jung (2014), Nam (1992) and Woolson, Bean and Rojas
 implementations and with
 [`stats::mantelhaen.test`](https://rdrr.io/r/stats/mantelhaen.test.html).
 Details are in the validation vignette, and the
-`bbssr-published-figures` vignette redraws fifteen published figures of
+`bbssr-published-figures` vignette redraws twenty published figures of
 Friede and Kieser (2004), Kieser (2020), Friede, Mitchell and
-Mueller-Velten (2007) and Boschloo (1970).
+Mueller-Velten (2007), Boschloo (1970), Berger and Sidik (2003),
+Fagerland, Lydersen and Laake (2013) and Schepers et al. (2026).
 
 ## References
 

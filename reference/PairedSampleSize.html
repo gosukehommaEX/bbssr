@@ -102,8 +102,9 @@ from the exact power of the selected test or from the normal approximation.</p>
 
 
 <dt id="arg-test">Test<a class="anchor" aria-label="anchor" href="#arg-test"></a></dt>
-<dd><p>Type of statistical test. Options: <code>'McNemar'</code>, <code>'McNemar-exact'</code>,
-<code>'McNemar-midP'</code>, <code>'McNemar-uncond'</code> or <code>'Paired-Score'</code></p></dd>
+<dd><p>Type of statistical test. Options: <code>'McNemar'</code>, <code>'McNemar-cc'</code>,
+<code>'McNemar-exact'</code>, <code>'McNemar-midP'</code>, <code>'McNemar-uncond'</code> or
+<code>'Paired-Score'</code></p></dd>
 
 
 <dt id="arg-alternative">alternative<a class="anchor" aria-label="anchor" href="#arg-alternative"></a></dt>
@@ -213,9 +214,10 @@ obtained in the same way for its own margin, at the level <code>alpha</code>, an
 approximation is the smallest number of pairs at which the sum of the two approximate
 powers minus 1 attains the target power. The sum minus 1 is a lower bound of the
 approximate probability that both tests reject.</p>
-<p>The normal approximation is the starting point of the exact search for every test. The
-exact power is not monotone in the number of pairs, so the three searches can return
-different numbers, see <code><a href="BinarySampleSize.html">BinarySampleSize</a></code>.</p>
+<p>The normal approximation does not depend on the test, and for <code>'McNemar-cc'</code> it
+leaves out the continuity correction. It is the starting point of the exact search for
+every test. The exact power is not monotone in the number of pairs, so the three
+searches can return different numbers, see <code><a href="BinarySampleSize.html">BinarySampleSize</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

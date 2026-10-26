@@ -80,7 +80,7 @@
                         <h4 data-toc-skip class="author">Gosuke
 Homma</h4>
             
-            <h4 data-toc-skip class="date">2026-10-25</h4>
+            <h4 data-toc-skip class="date">2026-10-26</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/gosukehommaEX/bbssr/blob/main/vignettes/bbssr-published-figures.Rmd" class="external-link"><code>vignettes/bbssr-published-figures.Rmd</code></a></small>
       <div class="d-none name"><code>bbssr-published-figures.Rmd</code></div>
@@ -91,28 +91,33 @@ Homma</h4>
 <div class="section level2">
 <h2 id="purpose">Purpose<a class="anchor" aria-label="anchor" href="#purpose"></a>
 </h2>
-<p>This vignette redraws fifteen figures of four publications on binary
+<p>This vignette redraws twenty figures of seven publications on binary
 endpoints, blinded sample size re-estimation and exact tests from values
 computed with bbssr: Figures 1 to 4 of Friede and Kieser (2004), Figures
 21.1 to 21.4 and 23.1 to 23.3 of Kieser (2020), Figures 1 to 3 of
 Friede, Mitchell and Mueller-Velten (2007) and Figure 2 of Boschloo
-(1970). A figure carries the operating characteristics of a design over
-a whole range of parameters, so its agreement with the original checks
-the package at many more points than the tables that
-<code>reproduce-published.R</code> compares (see the validation
-vignette). Where the text of a publication states values that are read
-from a figure, they are compared with the recomputed values.</p>
+(1970) for two groups, and Figure 2 of Berger and Sidik (2003), Figures
+1 and 2 of Fagerland, Lydersen and Laake (2013) and Figures 1 and 2 of
+Schepers et al. (2026) for matched pairs. A figure carries the operating
+characteristics of a design over a whole range of parameters, so its
+agreement with the original checks the package at many more points than
+the tables that <code>reproduce-published.R</code> compares (see the
+validation vignette). Where the text of a publication states values that
+are read from a figure, they are compared with the recomputed
+values.</p>
 <p>The original figures are not reproduced here; they are to be compared
 with the publications. The axis ranges, tick marks, line types and
 symbols follow the original figures, so that a figure can be laid next
 to its original. Each section states how the design was specified, what
 the publication leaves open, and where the figure departs from the
 original.</p>
-<p>The values take about half an hour to compute. They are computed by
-the script <code>reproduce-figures.R</code> and stored in the folder
-<code>extdata/published-figures</code> of the package, and the figures
-are drawn by the functions in <code>plot-figures.R</code>; both scripts
-are installed in the folder given by
+<p>The values for two groups take about half an hour to compute. They
+are computed by the script <code>reproduce-figures.R</code>, those for
+matched pairs by <code>reproduce-figures-paired.R</code>, and both are
+stored in the folder <code>extdata/published-figures</code> of the
+package. The figures are drawn by the functions in
+<code>plot-figures.R</code>; the three scripts are installed in the
+folder given by
 <code>system.file('reproduce', package = 'bbssr')</code>. The last
 section recomputes some of the stored values with the installed version
 of the package.</p>
@@ -924,17 +929,193 @@ with the Boschloo test at the level 0.05, and
 </div>
 </div>
 <div class="section level2">
+<h2 id="berger-and-sidik-2003">Berger and Sidik (2003)<a class="anchor" aria-label="anchor" href="#berger-and-sidik-2003"></a>
+</h2>
+<div class="section level3">
+<h3 id="figure-2-p--105">Figure 2 (p. 105)<a class="anchor" aria-label="anchor" href="#figure-2-p--105"></a>
+</h3>
+<p><img src="bbssr-published-figures_files/figure-html/bs-fig2-1.png" class="r-plt" alt="" width="576" style="display: block; margin: auto;"></p>
+<p>Size functions of the tests of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>10</mn></msub><mo>≤</mo><msub><mi>p</mi><mn>01</mn></msub></mrow><annotation encoding="application/x-tex">p_{10} \le p_{01}</annotation></semantics></math>
+against
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>10</mn></msub><mo>&gt;</mo><msub><mi>p</mi><mn>01</mn></msub></mrow><annotation encoding="application/x-tex">p_{10} &gt; p_{01}</annotation></semantics></math>
+at the one-sided level 0.05 for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>50</mn></mrow><annotation encoding="application/x-tex">n = 50</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>100</mn></mrow><annotation encoding="application/x-tex">n = 100</annotation></semantics></math>
+pairs, the rejection probabilities at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>01</mn></msub><mo>=</mo><msub><mi>p</mi><mn>10</mn></msub><mo>=</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">p_{01} = p_{10} = p</annotation></semantics></math>:
+the exact conditional test CB (<code>'McNemar-exact'</code>), the
+asymptotic McNemar test M (<code>'McNemar'</code>), the exact
+unconditional test Z (<code>'McNemar-uncond'</code>) and the same with
+the Berger-Boos procedure,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Z</mi><mi>C</mi></msub><annotation encoding="application/x-tex">Z_C</annotation></semantics></math>
+(<code>bb.gamma = 0.0005</code>), both with
+<code>ref.pvalue = TRUE</code>. The likelihood ratio tests L and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>C</mi></msub><annotation encoding="application/x-tex">L_C</annotation></semantics></math>
+of the article are not available in bbssr and are not drawn; the article
+states that they coincide with Z and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Z</mi><mi>C</mi></msub><annotation encoding="application/x-tex">Z_C</annotation></semantics></math>
+for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>50</mn></mrow><annotation encoding="application/x-tex">n = 50</annotation></semantics></math>.
+As in the original, the size function of M rises above 0.05 for both
+numbers of pairs, to 0.0595 and 0.0522, that of CB stays well below
+0.05, and those of Z and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Z</mi><mi>C</mi></msub><annotation encoding="application/x-tex">Z_C</annotation></semantics></math>
+stay below 0.05 and close to it for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>100</mn></mrow><annotation encoding="application/x-tex">n = 100</annotation></semantics></math>.
+The largest values on the grid of the figure
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+in steps of 0.0025) differ from the exact sizes in Table 4 of the
+article by at most 0.00006; <code>reproduce-published.R</code>
+reproduces that table with the maximum over all
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="fagerland-lydersen-and-laake-2013">Fagerland, Lydersen and Laake (2013)<a class="anchor" aria-label="anchor" href="#fagerland-lydersen-and-laake-2013"></a>
+</h2>
+<p>Both figures show the five tests of the article at the two-sided
+level 0.05: the asymptotic McNemar test (<code>'McNemar'</code>), the
+same with the continuity correction of formula (2) of the article
+(<code>'McNemar-cc'</code>), the exact conditional test
+(<code>'McNemar-exact'</code>), its mid-p version
+(<code>'McNemar-midP'</code>) and the exact unconditional test
+(<code>'McNemar-uncond'</code> with <code>ref.pvalue = TRUE</code>). The
+article specifies a pair by the marginal success probabilities
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mrow><mn>1</mn><mo>+</mo></mrow></msub><annotation encoding="application/x-tex">p_{1+}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mrow><mi>+</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">p_{+1}</annotation></semantics></math>
+and the odds ratio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><msub><mi>p</mi><mn>11</mn></msub><msub><mi>p</mi><mn>22</mn></msub><mi>/</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>p</mi><mn>12</mn></msub><msub><mi>p</mi><mn>21</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\theta = p_{11} p_{22} / (p_{12} p_{21})</annotation></semantics></math>,
+but does not state how
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mn>11</mn></msub><annotation encoding="application/x-tex">p_{11}</annotation></semantics></math>
+is obtained from them. The figures take
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mn>11</mn></msub><annotation encoding="application/x-tex">p_{11}</annotation></semantics></math>
+as the root of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>11</mn></msub><msub><mi>p</mi><mn>22</mn></msub><mo>=</mo><mi>θ</mi><msub><mi>p</mi><mn>12</mn></msub><msub><mi>p</mi><mn>21</mn></msub></mrow><annotation encoding="application/x-tex">p_{11} p_{22} = \theta p_{12} p_{21}</annotation></semantics></math>
+within the bounds given by the margins, so that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>12</mn></msub><mo>=</mo><msub><mi>p</mi><mrow><mn>1</mn><mo>+</mo></mrow></msub><mo>−</mo><msub><mi>p</mi><mn>11</mn></msub></mrow><annotation encoding="application/x-tex">p_{12} = p_{1+} - p_{11}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>21</mn></msub><mo>=</mo><msub><mi>p</mi><mrow><mi>+</mi><mn>1</mn></mrow></msub><mo>−</mo><msub><mi>p</mi><mn>11</mn></msub></mrow><annotation encoding="application/x-tex">p_{21} = p_{+1} - p_{11}</annotation></semantics></math>.
+With this choice <code>reproduce-published.R</code> reproduces the
+summaries of the type I error rates in Table 4 of the article for the
+first four tests, but not all of those for the exact unconditional test,
+which the article computed with StatXact.</p>
+<div class="section level3">
+<h3 id="figure-1-p--4">Figure 1 (p. 4)<a class="anchor" aria-label="anchor" href="#figure-1-p--4"></a>
+</h3>
+<p><img src="bbssr-published-figures_files/figure-html/fll-fig1-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
+<p>Type I error rates against
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mrow><mn>1</mn><mo>+</mo></mrow></msub><mo>=</mo><msub><mi>p</mi><mrow><mi>+</mi><mn>1</mn></mrow></msub></mrow><annotation encoding="application/x-tex">p_{1+} = p_{+1}</annotation></semantics></math>
+for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>N</mi><mo>,</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>20</mn><mo>,</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(N, \theta) = (20, 2)</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>40</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(40, 1)</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>70</mn><mo>,</mo><mn>10</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(70, 10)</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>100</mn><mo>,</mo><mn>3</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(100, 3)</annotation></semantics></math>,
+the panels of the original, which the article does not list in the text.
+The curves and the diamonds agree with the original for all five tests.
+The largest type I error rate of the asymptotic test in the four panels
+is 0.0534, and that of the test with continuity correction 0.0327.</p>
+</div>
+<div class="section level3">
+<h3 id="figure-2-p--6">Figure 2 (p. 6)<a class="anchor" aria-label="anchor" href="#figure-2-p--6"></a>
+</h3>
+<p><img src="bbssr-published-figures_files/figure-html/fll-fig2-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
+<p>Power against the number of matched pairs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mrow><mn>1</mn><mo>+</mo></mrow></msub><mo>=</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">p_{1+} = 0.1</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mrow><mi>+</mi><mn>1</mn></mrow></msub><mo>=</mo><mn>0.35</mn></mrow><annotation encoding="application/x-tex">p_{+1} = 0.35</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">\theta = 2</annotation></semantics></math>,
+with the range
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>35</mn><mo>≤</mo><mi>N</mi><mo>≤</mo><mn>60</mn></mrow><annotation encoding="application/x-tex">35 \le N \le 60</annotation></semantics></math>
+on the right. With 50 pairs the power is 0.9015 for the asymptotic test,
+0.8384 with continuity correction, 0.8541 for the exact conditional
+test, 0.8983 for the mid-p test and 0.8983 for the exact unconditional
+test. The curves agree with the original, except the exact unconditional
+test at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mn>27</mn></mrow><annotation encoding="application/x-tex">N = 27</annotation></semantics></math>,
+32, 60, 76 and 85. At these numbers of pairs the original lies above the
+recomputed power, at about the power of the asymptotic or the mid-p
+test; at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mn>60</mn></mrow><annotation encoding="application/x-tex">N = 60</annotation></semantics></math>
+the recomputed power is 0.9289 and that of the mid-p test 0.9443. The
+exact unconditional test of the article thus rejects more often at some
+numbers of pairs, in the same direction as the means in Table 4 of the
+article that <code>reproduce-published.R</code> does not reproduce.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="schepers-et-al--2026">Schepers et al. (2026)<a class="anchor" aria-label="anchor" href="#schepers-et-al--2026"></a>
+</h2>
+<p>Both figures use the two-sided exact conditional McNemar test at the
+level 0.05 and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>n</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msup><mo>=</mo><mn>38</mn></mrow><annotation encoding="application/x-tex">n^{(1)} = 38</annotation></semantics></math>
+interim pairs, of which
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>n</mi><mi>d</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><annotation encoding="application/x-tex">n_d^{(1)}</annotation></semantics></math>
+are discordant, and show the conditional power (4) of the article
+against
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mo>*</mo></msub><annotation encoding="application/x-tex">p_*</annotation></semantics></math>,
+the probability that a discordant pair favours treatment 1. The
+conditional power needs the probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ψ</mi><annotation encoding="application/x-tex">\psi</annotation></semantics></math>
+of a discordant pair in the second stage. The article generated the
+figures with the assumptions of its motivating trial, among them
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ψ</mi><mo>=</mo><mn>0.2</mn></mrow><annotation encoding="application/x-tex">\psi = 0.2</annotation></semantics></math>,
+while its re-estimation rule (Section 2.4) uses the interim estimate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>ψ</mi><mo accent="true">̂</mo></mover><mo>=</mo><msubsup><mi>n</mi><mi>d</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mi>/</mi><msup><mi>n</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">\hat{\psi} = n_d^{(1)} / n^{(1)}</annotation></semantics></math>.
+The figures are drawn with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ψ</mi><mo>=</mo><mn>0.2</mn></mrow><annotation encoding="application/x-tex">\psi = 0.2</annotation></semantics></math>,
+with which they agree with the original. With the interim estimate, the
+contour of 80% would be crossed at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>n</mi><mi>d</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>=</mo><mn>20</mn></mrow><annotation encoding="application/x-tex">n_d^{(1)} = 20</annotation></semantics></math>
+at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mo>*</mo></msub><mo>=</mo></mrow><annotation encoding="application/x-tex">p_* =</annotation></semantics></math>
+0.73 instead of 0.78.</p>
+<div class="section level3">
+<h3 id="figure-1-p--5">Figure 1 (p. 5)<a class="anchor" aria-label="anchor" href="#figure-1-p--5"></a>
+</h3>
+<p><img src="bbssr-published-figures_files/figure-html/sc-fig1-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
+<p>Conditional power with the fixed second-stage size
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>n</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msup><mo>=</mo><mn>38</mn></mrow><annotation encoding="application/x-tex">n^{(2)} = 38</annotation></semantics></math>
+for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mo>*</mo></msub><mo>=</mo><mn>0.50</mn><mo>,</mo><mn>0.51</mn><mo>,</mo><mi>…</mi><mo>,</mo><mn>0.90</mn></mrow><annotation encoding="application/x-tex">p_* = 0.50, 0.51, \ldots, 0.90</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>n</mi><mi>d</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>=</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mn>38</mn></mrow><annotation encoding="application/x-tex">n_d^{(1)} = 0, 1, \ldots, 38</annotation></semantics></math>,
+with the contour of 80% in red.</p>
+</div>
+<div class="section level3">
+<h3 id="figure-2-p--6-1">Figure 2 (p. 6)<a class="anchor" aria-label="anchor" href="#figure-2-p--6-1"></a>
+</h3>
+<p><img src="bbssr-published-figures_files/figure-html/sc-fig2-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
+<p>Smallest second-stage size
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>n</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">n^{(2)}</annotation></semantics></math>
+with a conditional power of at least 0.8; the cells where no
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>n</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">n^{(2)}</annotation></semantics></math>
+up to 70 attains it are grey. The article does not state the largest
+second-stage size, and the grey cells of the original agree with 70. 2
+cells need exactly 70 further pairs and 3 exactly 71, so the largest
+sizes 69 and 71 would change these cells.</p>
+</div>
+</div>
+<div class="section level2">
 <h2 id="agreement-of-the-stored-values-with-the-package">Agreement of the stored values with the package<a class="anchor" aria-label="anchor" href="#agreement-of-the-stored-values-with-the-package"></a>
 </h2>
 <p>The stored values were computed with bbssr by
-<code>reproduce-figures.R</code>. The code below recomputes some of
-them, from the designs that take little time, with the installed version
-of the package, and stops if a stored value differs from the recomputed
-one by more than
+<code>reproduce-figures.R</code> and
+<code>reproduce-figures-paired.R</code>. The code below recomputes some
+of them, from the designs that take little time, with the installed
+version of the package, and stops if a stored value differs from the
+recomputed one by more than
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>10</mn></mrow></msup><annotation encoding="application/x-tex">10^{-10}</annotation></semantics></math>.
 The designs of Friede et al. (2007) take several seconds each and are
 not recomputed here; the same computations reproduce Tables 2 and 3 of
-the article in <code>reproduce-published.R</code>.</p>
+the article in <code>reproduce-published.R</code>. The conditional power
+of Schepers et al. (2026) is computed by an internal function of the
+package and is not recomputed here.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fk1</span> <span class="op">&lt;-</span> <span class="fu">read_fig</span><span class="op">(</span><span class="va">dir</span>, <span class="st">'friede-kieser-2004-figure1.csv'</span><span class="op">)</span></span>
 <span><span class="va">fk4</span> <span class="op">&lt;-</span> <span class="fu">read_fig</span><span class="op">(</span><span class="va">dir</span>, <span class="st">'friede-kieser-2004-figure4-recalculation.csv'</span><span class="op">)</span></span>
@@ -978,23 +1159,47 @@ the article in <code>reproduce-published.R</code>.</p>
 <span><span class="op">)</span></span>
 <span><span class="co"># Boschloo (1970), Figure 2: p = 0.5</span></span>
 <span><span class="va">bo.row</span> <span class="op">&lt;-</span> <span class="va">bo</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">bo</span><span class="op">$</span><span class="va">p</span> <span class="op">-</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">1e-9</span>, <span class="op">]</span></span>
+<span><span class="co"># Berger and Sidik (2003), Figure 2: n = 50 and p = 0.25</span></span>
+<span><span class="va">bs.row</span> <span class="op">&lt;-</span> <span class="va">bs</span><span class="op">[</span><span class="va">bs</span><span class="op">$</span><span class="va">n</span> <span class="op">==</span> <span class="fl">50</span> <span class="op">&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">bs</span><span class="op">$</span><span class="va">p</span> <span class="op">-</span> <span class="fl">0.25</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">1e-9</span>, <span class="op">]</span></span>
+<span><span class="co"># Fagerland et al. (2013), Figure 1: N = 40, theta = 1 and p1+ = p+1 = 0.5, so that</span></span>
+<span><span class="co"># p11 = 0.25; Figure 2: N = 50, with p11 the root of p11 p22 = 2 p12 p21</span></span>
+<span><span class="va">fll1.row</span> <span class="op">&lt;-</span> <span class="va">fll1</span><span class="op">[</span><span class="va">fll1</span><span class="op">$</span><span class="va">N</span> <span class="op">==</span> <span class="fl">40</span> <span class="op">&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">fll1</span><span class="op">$</span><span class="va">p</span> <span class="op">-</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">1e-9</span>, <span class="op">]</span></span>
+<span><span class="va">fll2.row</span> <span class="op">&lt;-</span> <span class="va">fll2</span><span class="op">[</span><span class="va">fll2</span><span class="op">$</span><span class="va">N</span> <span class="op">==</span> <span class="fl">50</span>, <span class="op">]</span></span>
+<span><span class="va">fll.b</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">+</span> <span class="op">(</span><span class="fl">2</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="fl">0.1</span> <span class="op">+</span> <span class="fl">0.35</span><span class="op">)</span></span>
+<span><span class="va">fll.p11</span> <span class="op">&lt;-</span> <span class="fl">2</span> <span class="op">*</span> <span class="fl">2</span> <span class="op">*</span> <span class="fl">0.1</span> <span class="op">*</span> <span class="fl">0.35</span> <span class="op">/</span> <span class="op">(</span><span class="va">fll.b</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">fll.b</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="fl">4</span> <span class="op">*</span> <span class="fl">2</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="fl">0.1</span> <span class="op">*</span> <span class="fl">0.35</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">check</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  Value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'FK2004 Figure 1'</span>, <span class="st">'FK2004 Figure 4'</span>, <span class="st">'Kieser Figure 21.1, fixed'</span>,</span>
 <span>            <span class="st">'Kieser Figure 21.1, recalculation'</span>, <span class="st">'Kieser Figure 21.2, fixed'</span>,</span>
 <span>            <span class="st">'Kieser Figure 21.2, recalculation'</span>, <span class="st">'Kieser Figure 23.1, fixed'</span>,</span>
 <span>            <span class="st">'Kieser Figure 23.1, recalculation'</span>, <span class="st">'Boschloo Figure 2, alpha'</span>,</span>
-<span>            <span class="st">'Boschloo Figure 2, alpha_gamma'</span><span class="op">)</span>,</span>
+<span>            <span class="st">'Boschloo Figure 2, alpha_gamma'</span>, <span class="st">'BS2003 Figure 2, Z'</span>,</span>
+<span>            <span class="st">'BS2003 Figure 2, Z_C'</span>, <span class="st">'FLL2013 Figure 1, continuity correction'</span>,</span>
+<span>            <span class="st">'FLL2013 Figure 2, mid-p'</span><span class="op">)</span>,</span>
 <span>  Stored <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">fk1</span><span class="op">$</span><span class="va">pilot.20</span><span class="op">[</span><span class="va">fk1</span><span class="op">$</span><span class="va">pi</span> <span class="op">==</span> <span class="fl">0.1</span> <span class="op">&amp;</span> <span class="va">fk1</span><span class="op">$</span><span class="va">n</span> <span class="op">==</span> <span class="fl">60</span><span class="op">]</span>, <span class="va">fk4.row</span><span class="op">$</span><span class="va">level</span>, <span class="va">k1.row</span><span class="op">$</span><span class="va">fixed</span>,</span>
 <span>             <span class="va">k1.row</span><span class="op">$</span><span class="va">ips</span>, <span class="va">k2.row</span><span class="op">$</span><span class="va">fixed</span>, <span class="va">k2.row</span><span class="op">$</span><span class="va">recalculation</span>, <span class="va">k23.row</span><span class="op">$</span><span class="va">fixed</span>,</span>
-<span>             <span class="va">k23.row</span><span class="op">$</span><span class="va">recalculation</span>, <span class="va">bo.row</span><span class="op">$</span><span class="va">alpha</span>, <span class="va">bo.row</span><span class="op">$</span><span class="va">alpha.gamma</span><span class="op">)</span>,</span>
+<span>             <span class="va">k23.row</span><span class="op">$</span><span class="va">recalculation</span>, <span class="va">bo.row</span><span class="op">$</span><span class="va">alpha</span>, <span class="va">bo.row</span><span class="op">$</span><span class="va">alpha.gamma</span>, <span class="va">bs.row</span><span class="op">$</span><span class="va">Z</span>, <span class="va">bs.row</span><span class="op">$</span><span class="va">Z.C</span>,</span>
+<span>             <span class="va">fll1.row</span><span class="op">$</span><span class="va">cc</span>, <span class="va">fll2.row</span><span class="op">$</span><span class="va">midp</span><span class="op">)</span>,</span>
 <span>  Recomputed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">fk1.ips</span>, <span class="va">fk4.ips</span>, <span class="va">k1.res</span><span class="op">$</span><span class="va">power.TRAD</span>, <span class="va">k1.res</span><span class="op">$</span><span class="va">power.BSSR</span>,</span>
 <span>                 <span class="va">k2.res</span><span class="op">$</span><span class="va">TIE.TRAD</span>, <span class="va">k2.res</span><span class="op">$</span><span class="va">TIE.BSSR</span>, <span class="va">k23.res</span><span class="op">$</span><span class="va">TIE.TRAD</span>, <span class="va">k23.res</span><span class="op">$</span><span class="va">TIE.BSSR</span>,</span>
 <span>                 <span class="fu"><a href="../reference/BinaryPower.html">BinaryPower</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">15</span>, <span class="fl">10</span>, <span class="fl">0.05</span>, <span class="st">'Fisher'</span><span class="op">)</span><span class="op">$</span><span class="va">Power</span>,</span>
-<span>                 <span class="fu"><a href="../reference/BinaryPower.html">BinaryPower</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">15</span>, <span class="fl">10</span>, <span class="fl">0.09</span>, <span class="st">'Fisher'</span><span class="op">)</span><span class="op">$</span><span class="va">Power</span><span class="op">)</span></span>
+<span>                 <span class="fu"><a href="../reference/BinaryPower.html">BinaryPower</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">15</span>, <span class="fl">10</span>, <span class="fl">0.09</span>, <span class="st">'Fisher'</span><span class="op">)</span><span class="op">$</span><span class="va">Power</span>,</span>
+<span>                 <span class="fu"><a href="../reference/PairedPower.html">PairedPower</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">0.25</span>, <span class="fl">50</span>, <span class="fl">0.05</span>, <span class="st">'McNemar-uncond'</span>,</span>
+<span>                             ref.pvalue <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">Power</span>,</span>
+<span>                 <span class="fu"><a href="../reference/PairedPower.html">PairedPower</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">0.25</span>, <span class="fl">50</span>, <span class="fl">0.05</span>, <span class="st">'McNemar-uncond'</span>, bb.gamma <span class="op">=</span> <span class="fl">5e-4</span>,</span>
+<span>                             ref.pvalue <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">Power</span>,</span>
+<span>                 <span class="fu"><a href="../reference/PairedPower.html">PairedPower</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">0.25</span>, <span class="fl">40</span>, <span class="fl">0.05</span>, <span class="st">'McNemar-cc'</span>, <span class="st">'two.sided'</span><span class="op">)</span><span class="op">$</span><span class="va">Power</span>,</span>
+<span>                 <span class="fu"><a href="../reference/PairedPower.html">PairedPower</a></span><span class="op">(</span><span class="fl">0.1</span> <span class="op">-</span> <span class="va">fll.p11</span>, <span class="fl">0.35</span> <span class="op">-</span> <span class="va">fll.p11</span>, <span class="fl">50</span>, <span class="fl">0.05</span>, <span class="st">'McNemar-midP'</span>,</span>
+<span>                             <span class="st">'two.sided'</span><span class="op">)</span><span class="op">$</span><span class="va">Power</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">check</span><span class="op">$</span><span class="va">Difference</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">check</span><span class="op">$</span><span class="va">Stored</span> <span class="op">-</span> <span class="va">check</span><span class="op">$</span><span class="va">Recomputed</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">check</span>, digits <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
-<table class="table">
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="54%">
+<col width="15%">
+<col width="15%">
+<col width="15%">
+</colgroup>
 <thead><tr class="header">
 <th align="left">Value</th>
 <th align="right">Stored</th>
@@ -1062,6 +1267,30 @@ the article in <code>reproduce-published.R</code>.</p>
 <td align="right">0.04336041</td>
 <td align="right">0</td>
 </tr>
+<tr class="odd">
+<td align="left">BS2003 Figure 2, Z</td>
+<td align="right">0.04645488</td>
+<td align="right">0.04645488</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">BS2003 Figure 2, Z_C</td>
+<td align="right">0.04868590</td>
+<td align="right">0.04868590</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">FLL2013 Figure 1, continuity correction</td>
+<td align="right">0.02665621</td>
+<td align="right">0.02665621</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">FLL2013 Figure 2, mid-p</td>
+<td align="right">0.89834090</td>
+<td align="right">0.89834090</td>
+<td align="right">0</td>
+</tr>
 </tbody>
 </table>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -1070,9 +1299,16 @@ the article in <code>reproduce-published.R</code>.</p>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
+<p>Berger, R. L. and Sidik, K. (2003). Exact unconditional tests for a 2
+x 2 matched-pairs design. <em>Statistical Methods in Medical
+Research</em>, 12, 91-108.</p>
 <p>Boschloo, R. D. (1970). Raised conditional level of significance for
 the 2 × 2-table when testing the equality of two probabilities.
 <em>Statistica Neerlandica</em>, 24, 1-9.</p>
+<p>Fagerland, M. W., Lydersen, S. and Laake, P. (2013). The McNemar test
+for binary matched-pairs data: mid-p and asymptotic are better than
+exact conditional. <em>BMC Medical Research Methodology</em>, 13,
+91.</p>
 <p>Farrington, C. P. and Manning, G. (1990). Test statistics and sample
 size formulae for comparative binomial trials with null hypothesis of
 non-zero risk difference or non-unity relative risk. <em>Statistics in
@@ -1085,6 +1321,9 @@ sample size reestimation in non-inferiority trials with binary
 endpoints. <em>Biometrical Journal</em>, 49, 903-916.</p>
 <p>Kieser, M. (2020). <em>Methods and Applications of Sample Size
 Calculation and Recalculation in Clinical Trials</em>. Springer.</p>
+<p>Schepers, M., Brannath, W., Hoffmann, E., Stingl, J. and Schmidtmann,
+I. (2026). Blinded sample size review for McNemar’s test based on
+primary and surrogate endpoints. arXiv:2608.17784.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

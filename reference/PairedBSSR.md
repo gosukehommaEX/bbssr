@@ -55,8 +55,9 @@ PairedBSSR(
 
 - Test:
 
-  Type of statistical test. Options: `'McNemar'`, `'McNemar-exact'`,
-  `'McNemar-midP'`, `'McNemar-uncond'` or `'Paired-Score'`
+  Type of statistical test. Options: `'McNemar'`, `'McNemar-cc'`,
+  `'McNemar-exact'`, `'McNemar-midP'`, `'McNemar-uncond'` or
+  `'Paired-Score'`
 
 - restricted:
 

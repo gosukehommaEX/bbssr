@@ -2,7 +2,7 @@
 
 Provides the rejection region of a test comparing two treatments on a
 binary endpoint in a matched-pairs design, such as a cross-over trial or
-a comparison of two diagnostic procedures on the same patients. Five
+a comparison of two diagnostic procedures on the same patients. Six
 tests are supported. Each can be applied with a one-sided or a two-sided
 alternative, and the score test also tests non-inferiority and
 equivalence with a margin on the scale of the difference of the response
@@ -35,8 +35,9 @@ PairedRR(
 
 - Test:
 
-  Type of statistical test. Options: `'McNemar'`, `'McNemar-exact'`,
-  `'McNemar-midP'`, `'McNemar-uncond'` or `'Paired-Score'`
+  Type of statistical test. Options: `'McNemar'`, `'McNemar-cc'`,
+  `'McNemar-exact'`, `'McNemar-midP'`, `'McNemar-uncond'` or
+  `'Paired-Score'`
 
 - alternative:
 
@@ -98,6 +99,12 @@ function supports the following tests:
   `Z = (a - b) / sqrt(a + b)` to the standard normal distribution
   without a continuity correction, with `Z = 0` when `a + b = 0`
 
+- The asymptotic McNemar test with a continuity correction (McNemar-cc),
+  formula (2) of Fagerland et al. (2013), which refers
+  `(|a - b| - 1) / sqrt(a + b)` to the standard normal distribution, and
+  `(a - b - 1) / sqrt(a + b)` for the alternative `'greater'`, with the
+  p-value 1 when `a + b = 0`
+
 - The exact conditional McNemar test (McNemar-exact), which refers `a`
   to the binomial distribution with `a + b` trials and probability 1/2
 
@@ -123,7 +130,13 @@ test is twice the smaller tail probability, at most 1, and the two-sided
 mid-p value follows formulae (5) and (6) of Fagerland et al. (2013). The
 two-sided versions of `'McNemar'`, `'McNemar-uncond'` and
 `'Paired-Score'` order the outcomes by the absolute value of the
-statistic.
+statistic. The two-sided p-value of `'McNemar-cc'` is twice the smaller
+of its two one-sided p-values, at most 1, which is the p-value of
+[`stats::mcnemar.test`](https://rdrr.io/r/stats/mcnemar.test.html) with
+`correct = TRUE`. Its one-sided p-value is the normal approximation with
+a continuity correction to the tail probability of the exact conditional
+test, and Fagerland et al. (2013) set the p-value to 1 when `a + b = 0`,
+where the statistic is not defined.
 
 The test `'McNemar-uncond'` maximizes the tail probability of each
 outcome, a polynomial of degree `N` in `psi`, over a grid of `n.grid`

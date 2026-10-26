@@ -167,7 +167,10 @@ version.
   provide the fixed-design and re-estimation calculations for a
   matched-pairs design, such as a cross-over trial, with the
   probabilities `p10` and `p01` of the two kinds of discordant pairs.
-  Five tests are available: the asymptotic McNemar test (`'McNemar'`),
+  Six tests are available: the asymptotic McNemar test (`'McNemar'`),
+  the same with the continuity correction of formula (2) of Fagerland et
+  al. (2013) (`'McNemar-cc'`), whose two-sided p-value is that of
+  [`stats::mcnemar.test()`](https://rdrr.io/r/stats/mcnemar.test.html),
   the exact conditional McNemar test (`'McNemar-exact'`), its mid-p
   version (`'McNemar-midP'`), the exact unconditional test of Suissa and
   Shuster (`'McNemar-uncond'`), with the Berger-Boos procedure and the
@@ -190,7 +193,13 @@ version.
   Nam (1997) and Tango (1998), the sample sizes of Connor (1987,
   Table 1) and Nam (1997, Table 3), and the exact sizes and average
   powers of Berger and Sidik (2003, Tables 4 and 5) are reproduced in
-  the tests. A new vignette,
+  the tests. `inst/reproduce/reproduce-published.R` also compares the
+  summaries of the type I error rates in Table 4 of Fagerland et
+  al. (2013) with the published values, and
+  [`vignette('bbssr-published-figures')`](https://gosukehommaex.github.io/bbssr/articles/bbssr-published-figures.md)
+  redraws Figure 2 of Berger and Sidik (2003), Figures 1 and 2 of
+  Fagerland et al. (2013) and Figures 1 and 2 of Schepers et al. (2026).
+  A new vignette,
   [`vignette('bbssr-paired')`](https://gosukehommaex.github.io/bbssr/articles/bbssr-paired.md),
   describes the functions.
 
@@ -545,11 +554,13 @@ version.
   `bbssr-non-inferiority` on the tests with a margin,
   `bbssr-design-grid` on the comparison of designs with
   [`BinaryGridBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryGridBSSR.md),
-  and `bbssr-published-figures`, which redraws fifteen figures of Friede
-  and Kieser (2004), Kieser (2020), Friede, Mitchell and
-  Mueller-Velten (2007) and Boschloo (1970) from values computed with
-  the package. Those values are computed by
-  `inst/reproduce/reproduce-figures.R` and stored in
+  and `bbssr-published-figures`, which redraws twenty figures of Friede
+  and Kieser (2004), Kieser (2020), Friede, Mitchell and Mueller-Velten
+  (2007), Boschloo (1970), Berger and Sidik (2003), Fagerland et
+  al. (2013) and Schepers et al. (2026) from values computed with the
+  package. Those values are computed by
+  `inst/reproduce/reproduce-figures.R`, and for matched pairs by
+  `inst/reproduce/reproduce-figures-paired.R`, and stored in
   `inst/extdata/published-figures/`, and the figures are drawn by
   `inst/reproduce/plot-figures.R`. The numbers quoted in the text are
   computed when the vignette is built.

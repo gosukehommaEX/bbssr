@@ -445,18 +445,18 @@ microbenchmark::microbenchmark(
   unit = 'ms'
 )
 #> Unit: milliseconds
-#>                   expr       min        lq       mean    median        uq
-#>                  Chisq  0.231884  0.251012  0.2550125  0.256090  0.258494
-#>                 Fisher  1.871487  1.914540  1.9472127  1.936488  1.974719
-#>                 Z-pool  3.007131  3.030125  3.0516141  3.048132  3.078096
-#>               Boschloo  4.808032  4.829775  4.8907510  4.860455  4.920389
-#>  Boschloo, Berger-Boos 10.044331 10.088366 10.2049857 10.132627 10.372017
-#>        max neval
-#>   0.276921    10
-#>   2.110981    10
-#>   3.095052    10
-#>   5.116720    10
-#>  10.518033    10
+#>                   expr      min       lq      mean   median       uq      max
+#>                  Chisq 0.160469 0.162172 0.1746494 0.174861 0.181771 0.190294
+#>                 Fisher 1.448159 1.473798 1.4939809 1.485015 1.504474 1.580597
+#>                 Z-pool 2.285488 2.302153 2.3361625 2.323265 2.352838 2.467209
+#>               Boschloo 3.689322 3.724253 3.7277549 3.727644 3.733588 3.759937
+#>  Boschloo, Berger-Boos 7.902935 7.910446 8.0310126 7.983359 8.025137 8.614596
+#>  neval
+#>     10
+#>     10
+#>     10
+#>     10
+#>     10
 options(old)
 ```
 
@@ -487,11 +487,11 @@ microbenchmark::microbenchmark(
 )
 #> Unit: milliseconds
 #>              expr        min         lq       mean     median         uq
-#>  bbssr.whole.grid   1.442941   1.617279   1.682654   1.638321   1.681695
-#>     Exact.one.row 196.206153 197.294487 199.591603 198.460137 200.378863
+#>  bbssr.whole.grid   1.138588   1.257345   1.361713   1.306378   1.343153
+#>     Exact.one.row 147.666858 147.739285 149.728332 149.180775 150.077493
 #>         max neval
-#>    2.033036     5
-#>  205.618376     5
+#>    1.763099     5
+#>  153.977248     5
 options(old)
 ```
 
@@ -781,7 +781,7 @@ independent computation in Python
 repository), which finds the restricted maximum likelihood estimates by
 bisection on the score equation rather than by formula (13) of the
 article. The vignette ‘Validation by Reproducing Published Figures’
-redraws fifteen figures of the same publications from values computed
+redraws twenty figures of the same publications from values computed
 with the package.
 
 The two-sided Fisher p-values of the conventions are compared with two
