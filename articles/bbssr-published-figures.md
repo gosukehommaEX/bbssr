@@ -637,7 +637,7 @@ stopifnot(max(check$Difference) < 1e-10)
 
 ## References
 
-Berger, R. L. and Sidik, K. (2003). Exact unconditional tests for a 2 x
+Berger, R. L. and Sidik, K. (2003). Exact unconditional tests for a 2 ×
 2 matched-pairs design. *Statistical Methods in Medical Research*, 12,
 91-108.
 

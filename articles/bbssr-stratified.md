@@ -525,12 +525,13 @@ res3[, c('power.BSSR', 'se.BSSR', 'power.TRAD', 'E.N')]
 
 ## References
 
-Jung SH (2014). Stratified Fisher’s exact test and its sample size
-calculation. *Biometrical Journal*, 56(1), 129-140.
+Jung, S. H. (2014). Stratified Fisher’s exact test and its sample size
+calculation. *Biometrical Journal*, 56, 129-140.
 
-Nam J (1992). Sample size determination for case-control studies and the
-comparison of stratified and unstratified analyses. *Biometrics*, 48(2),
-389-395.
+Nam, J. (1992). Sample size determination for case-control studies and
+the comparison of stratified and unstratified analyses. *Biometrics*,
+48, 389-395.
 
-Woolson RF, Bean JA, Rojas PB (1986). Sample size for case-control
-studies using Cochran’s statistic. *Biometrics*, 42(4), 927-932.
+Woolson, R. F., Bean, J. A. and Rojas, P. B. (1986). Sample size for
+case-control studies using Cochran’s statistic. *Biometrics*, 42,
+927-932.

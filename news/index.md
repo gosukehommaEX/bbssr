@@ -193,9 +193,11 @@ version.
   Nam (1997) and Tango (1998), the sample sizes of Connor (1987,
   Table 1) and Nam (1997, Table 3), and the exact sizes and average
   powers of Berger and Sidik (2003, Tables 4 and 5) are reproduced in
-  the tests. `inst/reproduce/reproduce-published.R` also compares the
-  summaries of the type I error rates in Table 4 of Fagerland et
-  al. (2013) with the published values, and
+  the tests. `inst/reproduce/reproduce-published.R` compares these
+  values with the published ones, together with Table I of Tango (1998),
+  the sample sizes of Connor (1987, p. 210), the summaries of the type I
+  error rates in Table 4 of Fagerland et al. (2013) and the sample sizes
+  of Tables 1 and 5 and Section 3.4 of Schepers et al. (2026), and
   [`vignette('bbssr-published-figures')`](https://gosukehommaex.github.io/bbssr/articles/bbssr-published-figures.md)
   redraws Figure 2 of Berger and Sidik (2003), Figures 1 and 2 of
   Fagerland et al. (2013) and Figures 1 and 2 of Schepers et al. (2026).

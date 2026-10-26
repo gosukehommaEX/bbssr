@@ -445,18 +445,18 @@ microbenchmark::microbenchmark(
   unit = 'ms'
 )
 #> Unit: milliseconds
-#>                   expr      min       lq      mean    median       uq      max
-#>                  Chisq 0.241066 0.267182 0.2789515 0.2809465 0.290107 0.311253
-#>                 Fisher 1.696044 1.704799 1.7737406 1.7360950 1.774270 2.094838
-#>                 Z-pool 2.485911 2.520113 2.5713413 2.5708410 2.623835 2.663593
-#>               Boschloo 4.135617 4.158779 4.1933575 4.1974415 4.218130 4.256175
-#>  Boschloo, Berger-Boos 8.981169 9.014428 9.1016419 9.0607000 9.114815 9.528505
-#>  neval
-#>     10
-#>     10
-#>     10
-#>     10
-#>     10
+#>                   expr       min        lq      mean     median        uq
+#>                  Chisq  0.293628  0.297154  0.313477  0.3127285  0.322933
+#>                 Fisher  2.499134  2.524111  2.533434  2.5336330  2.541353
+#>                 Z-pool  3.647497  3.676211  3.697271  3.6900355  3.721084
+#>               Boschloo  6.067693  6.073574  6.106665  6.0950245  6.110293
+#>  Boschloo, Berger-Boos 12.598170 12.621774 12.729991 12.6365215 12.766263
+#>        max neval
+#>   0.344013    10
+#>   2.575587    10
+#>   3.775786    10
+#>   6.226320    10
+#>  13.191808    10
 options(old)
 ```
 
@@ -486,12 +486,12 @@ microbenchmark::microbenchmark(
   unit = 'ms'
 )
 #> Unit: milliseconds
-#>              expr       min        lq       mean     median       uq       max
-#>  bbssr.whole.grid   1.40247   1.53842   1.582166   1.556108   1.5887   1.82513
-#>     Exact.one.row 185.65658 185.66221 186.965798 186.277575 187.5247 189.70797
-#>  neval
-#>      5
-#>      5
+#>              expr       min         lq       mean     median         uq
+#>  bbssr.whole.grid   1.96628   2.076435   2.135918   2.097013   2.118123
+#>     Exact.one.row 286.78126 287.018358 287.635905 287.126089 287.209064
+#>         max neval
+#>    2.421739     5
+#>  290.044756     5
 options(old)
 ```
 
@@ -646,10 +646,17 @@ recomputes the published numerical results of Berger and Boos (1994),
 Blackwelder (1982), Boschloo (1970), Farrington and Manning (1990), Fay
 and Hunsberger (2021), Friede and Kieser (2004), Friede, Mitchell and
 Mueller-Velten (2007), Kieser (2020) and Mehrotra, Chan and Berger
-(2003), and lists every published value next to the recomputed one. It
-is run from the root of the package source after `devtools::load_all()`,
-writes its results to the folder `reproduce-output`, and runs for
-several minutes. The values below are a selection that can be recomputed
+(2003), for matched pairs those of Berger and Sidik (2003), Connor
+(1987), Fagerland, Lydersen and Laake (2013), Nam (1997), Schepers et
+al. (2026) and Tango (1998), and for stratified designs those of Jung
+(2014), Nam (1992) and Woolson, Bean and Rojas (1986), and lists every
+published value next to the recomputed one. It is run from the root of
+the package source, after `devtools::load_all()` or with the installed
+package by `source(f, local = new.env(parent = asNamespace('bbssr')))`,
+where `f` is the path of the script. It writes its results to the folder
+`reproduce-output` and takes about an hour with the installed package,
+and longer after `devtools::load_all()`, whose compiled code is not
+optimized. The values below are a selection that can be recomputed
 quickly, each compared after rounding to the digits of the publication.
 
 ``` r
@@ -781,8 +788,8 @@ independent computation in Python
 repository), which finds the restricted maximum likelihood estimates by
 bisection on the score equation rather than by formula (13) of the
 article. The vignette ‘Validation by Reproducing Published Figures’
-redraws twenty figures of the same publications from values computed
-with the package.
+redraws twenty figures of seven of these publications from values
+computed with the package.
 
 The two-sided Fisher p-values of the conventions are compared with two
 published examples: 8 responders out of 14 against 1 out of 7 in Fay and
@@ -856,12 +863,23 @@ Berger, R. L. and Boos, D. D. (1994). P values maximized over a
 confidence set for the nuisance parameter. *Journal of the American
 Statistical Association*, 89, 1012-1016.
 
+Berger, R. L. and Sidik, K. (2003). Exact unconditional tests for a 2 ×
+2 matched-pairs design. *Statistical Methods in Medical Research*, 12,
+91-108.
+
 Blackwelder, W. C. (1982). “Proving the null hypothesis” in clinical
 trials. *Controlled Clinical Trials*, 3, 345-353.
 
 Boschloo, R. D. (1970). Raised conditional level of significance for the
 2 × 2-table when testing the equality of two probabilities. *Statistica
 Neerlandica*, 24, 1-9.
+
+Connor, R. J. (1987). Sample size for testing differences in proportions
+for the paired-sample design. *Biometrics*, 43, 207-211.
+
+Fagerland, M. W., Lydersen, S. and Laake, P. (2013). The McNemar test
+for binary matched-pairs data: mid-p and asymptotic are better than
+exact conditional. *BMC Medical Research Methodology*, 13, 91.
 
 Farrington, C. P. and Manning, G. (1990). Test statistics and sample
 size formulae for comparative binomial trials with null hypothesis of
@@ -879,9 +897,31 @@ Friede, T., Mitchell, C. and Mueller-Velten, G. (2007). Blinded sample
 size reestimation in non-inferiority trials with binary endpoints.
 *Biometrical Journal*, 49, 903-916.
 
+Jung, S. H. (2014). Stratified Fisher’s exact test and its sample size
+calculation. *Biometrical Journal*, 56, 129-140.
+
 Kieser, M. (2020). *Methods and Applications of Sample Size Calculation
 and Recalculation in Clinical Trials*. Springer.
 
 Mehrotra, D. V., Chan, I. S. F. and Berger, R. L. (2003). A cautionary
 note on exact unconditional inference for a difference between two
 independent binomial proportions. *Biometrics*, 59, 441-450.
+
+Nam, J. (1992). Sample size determination for case-control studies and
+the comparison of stratified and unstratified analyses. *Biometrics*,
+48, 389-395.
+
+Nam, J. (1997). Establishing equivalence of two treatments and sample
+size requirements in matched-pairs design. *Biometrics*, 53, 1422-1430.
+
+Schepers, M., Brannath, W., Hoffmann, E., Stingl, J. and Schmidtmann, I.
+(2026). Blinded sample size review for McNemar’s test based on primary
+and surrogate endpoints. arXiv:2608.17784.
+
+Tango, T. (1998). Equivalence test and confidence interval for the
+difference in proportions for the paired-sample design. *Statistics in
+Medicine*, 17, 891-908.
+
+Woolson, R. F., Bean, J. A. and Rojas, P. B. (1986). Sample size for
+case-control studies using Cochran’s statistic. *Biometrics*, 42,
+927-932.
