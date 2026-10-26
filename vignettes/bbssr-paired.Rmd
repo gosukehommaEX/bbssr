@@ -135,7 +135,7 @@ Formula (9) of Nam (1997) gives `r sprintf('%.1f', attr(ni, 'n.raw'))` pairs, an
 
 ## References
 
-Berger, R. L. and Sidik, K. (2003). Exact unconditional tests for a 2 x 2 matched-pairs design. *Statistical Methods in Medical Research*, 12, 91-108.
+Berger, R. L. and Sidik, K. (2003). Exact unconditional tests for a 2 &times; 2 matched-pairs design. *Statistical Methods in Medical Research*, 12, 91-108.
 
 Connor, R. J. (1987). Sample size for testing differences in proportions for the paired-sample design. *Biometrics*, 43, 207-211.
 

@@ -480,7 +480,7 @@ For both designs the two maxima differ by at most `r format(signif(max(abs(certi
 
 ## Reproduction of published results
 
-The script `reproduce-published.R`, installed with the package in the folder given by `system.file('reproduce', package = 'bbssr')`, recomputes the published numerical results of Berger and Boos (1994), Blackwelder (1982), Boschloo (1970), Farrington and Manning (1990), Fay and Hunsberger (2021), Friede and Kieser (2004), Friede, Mitchell and Mueller-Velten (2007), Kieser (2020) and Mehrotra, Chan and Berger (2003), and lists every published value next to the recomputed one. It is run from the root of the package source after `devtools::load_all()`, writes its results to the folder `reproduce-output`, and runs for several minutes. The values below are a selection that can be recomputed quickly, each compared after rounding to the digits of the publication.
+The script `reproduce-published.R`, installed with the package in the folder given by `system.file('reproduce', package = 'bbssr')`, recomputes the published numerical results of Berger and Boos (1994), Blackwelder (1982), Boschloo (1970), Farrington and Manning (1990), Fay and Hunsberger (2021), Friede and Kieser (2004), Friede, Mitchell and Mueller-Velten (2007), Kieser (2020) and Mehrotra, Chan and Berger (2003), for matched pairs those of Berger and Sidik (2003), Connor (1987), Fagerland, Lydersen and Laake (2013), Nam (1997), Schepers et al. (2026) and Tango (1998), and for stratified designs those of Jung (2014), Nam (1992) and Woolson, Bean and Rojas (1986), and lists every published value next to the recomputed one. It is run from the root of the package source, after `devtools::load_all()` or with the installed package by `source(f, local = new.env(parent = asNamespace('bbssr')))`, where `f` is the path of the script. It writes its results to the folder `reproduce-output` and takes about an hour with the installed package, and longer after `devtools::load_all()`, whose compiled code is not optimized. The values below are a selection that can be recomputed quickly, each compared after rounding to the digits of the publication.
 
 ```{r published}
 # Kieser (2020), Example 21.1: initial sample size by formula (21.3), and the largest
@@ -555,7 +555,7 @@ published$agrees <- abs(round(published$recomputed, published$digits) -
 published
 ```
 
-Of the `r nrow(published)` values above, `r sum(published$agrees)` agree with the publication after rounding. The script reports every value that it does not reproduce, together with the reason when one is known. For the relative risk, the sample sizes and true powers that the script computes for Tables I and II and the second example of Farrington and Manning (1990) agree with an independent computation in Python (`tools/reference/check_farrington_manning_1990_rr.py` in the source repository), which finds the restricted maximum likelihood estimates by bisection on the score equation rather than by formula (13) of the article. The vignette 'Validation by Reproducing Published Figures' redraws twenty figures of the same publications from values computed with the package.
+Of the `r nrow(published)` values above, `r sum(published$agrees)` agree with the publication after rounding. The script reports every value that it does not reproduce, together with the reason when one is known. For the relative risk, the sample sizes and true powers that the script computes for Tables I and II and the second example of Farrington and Manning (1990) agree with an independent computation in Python (`tools/reference/check_farrington_manning_1990_rr.py` in the source repository), which finds the restricted maximum likelihood estimates by bisection on the score equation rather than by formula (13) of the article. The vignette 'Validation by Reproducing Published Figures' redraws twenty figures of seven of these publications from values computed with the package.
 
 The two-sided Fisher p-values of the conventions are compared with two published examples: 8 responders out of 14 against 1 out of 7 in Fay and Hunsberger (2021, Section 8), and 8 out of 148 against 1 out of 132 in Mehrotra, Chan and Berger (2003, Section 3.1).
 
@@ -589,9 +589,15 @@ The Fisher exact test reproduces `stats::fisher.test` to machine precision, and 
 
 Berger, R. L. and Boos, D. D. (1994). P values maximized over a confidence set for the nuisance parameter. *Journal of the American Statistical Association*, 89, 1012-1016.
 
+Berger, R. L. and Sidik, K. (2003). Exact unconditional tests for a 2 &times; 2 matched-pairs design. *Statistical Methods in Medical Research*, 12, 91-108.
+
 Blackwelder, W. C. (1982). "Proving the null hypothesis" in clinical trials. *Controlled Clinical Trials*, 3, 345-353.
 
 Boschloo, R. D. (1970). Raised conditional level of significance for the 2 &times; 2-table when testing the equality of two probabilities. *Statistica Neerlandica*, 24, 1-9.
+
+Connor, R. J. (1987). Sample size for testing differences in proportions for the paired-sample design. *Biometrics*, 43, 207-211.
+
+Fagerland, M. W., Lydersen, S. and Laake, P. (2013). The McNemar test for binary matched-pairs data: mid-p and asymptotic are better than exact conditional. *BMC Medical Research Methodology*, 13, 91.
 
 Farrington, C. P. and Manning, G. (1990). Test statistics and sample size formulae for comparative binomial trials with null hypothesis of non-zero risk difference or non-unity relative risk. *Statistics in Medicine*, 9, 1447-1454.
 
@@ -601,6 +607,18 @@ Friede, T. and Kieser, M. (2004). Sample size recalculation for binary data in i
 
 Friede, T., Mitchell, C. and Mueller-Velten, G. (2007). Blinded sample size reestimation in non-inferiority trials with binary endpoints. *Biometrical Journal*, 49, 903-916.
 
+Jung, S. H. (2014). Stratified Fisher's exact test and its sample size calculation. *Biometrical Journal*, 56, 129-140.
+
 Kieser, M. (2020). *Methods and Applications of Sample Size Calculation and Recalculation in Clinical Trials*. Springer.
 
 Mehrotra, D. V., Chan, I. S. F. and Berger, R. L. (2003). A cautionary note on exact unconditional inference for a difference between two independent binomial proportions. *Biometrics*, 59, 441-450.
+
+Nam, J. (1992). Sample size determination for case-control studies and the comparison of stratified and unstratified analyses. *Biometrics*, 48, 389-395.
+
+Nam, J. (1997). Establishing equivalence of two treatments and sample size requirements in matched-pairs design. *Biometrics*, 53, 1422-1430.
+
+Schepers, M., Brannath, W., Hoffmann, E., Stingl, J. and Schmidtmann, I. (2026). Blinded sample size review for McNemar's test based on primary and surrogate endpoints. arXiv:2608.17784.
+
+Tango, T. (1998). Equivalence test and confidence interval for the difference in proportions for the paired-sample design. *Statistics in Medicine*, 17, 891-908.
+
+Woolson, R. F., Bean, J. A. and Rojas, P. B. (1986). Sample size for case-control studies using Cochran's statistic. *Biometrics*, 42, 927-932.

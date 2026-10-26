@@ -437,7 +437,7 @@ stopifnot(max(check$Difference) < 1e-10)
 
 ## References
 
-Berger, R. L. and Sidik, K. (2003). Exact unconditional tests for a 2 x 2 matched-pairs design. *Statistical Methods in Medical Research*, 12, 91-108.
+Berger, R. L. and Sidik, K. (2003). Exact unconditional tests for a 2 &times; 2 matched-pairs design. *Statistical Methods in Medical Research*, 12, 91-108.
 
 Boschloo, R. D. (1970). Raised conditional level of significance for the 2 &times; 2-table when testing the equality of two probabilities. *Statistica Neerlandica*, 24, 1-9.
 

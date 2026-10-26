@@ -37,10 +37,11 @@ designs with three or more strata.
   `StratPowerBSSR()`, `StratGridBSSR()`, `StratBSSR()`,
   `StratTypeIErrorBSSR()`, `StratAlphaAdjBSSR()` and
   `StratCondRejectBSSR()` with the Cochran-Mantel-Haenszel test,
-  Cochran’s test and the stratified exact conditional test, the sample
-  size formulas of Woolson, Bean and Rojas (1986) and Nam (1992), and a
-  certified largest type I error rate over the response probabilities of
-  two strata.
+  Cochran’s test and the stratified exact conditional test, three
+  unstratified tests for comparison, the sample size formulas of
+  Woolson, Bean and Rojas (1986) and Nam (1992), random stratum and
+  group sizes, and a certified largest type I error rate over the
+  response probabilities of two strata.
 - Paired binary data: `PairedRR()`, `PairedPower()`,
   `PairedSampleSize()`, `PairedPowerBSSR()`, `PairedBSSR()`,
   `PairedTypeIErrorBSSR()` and `PairedAlphaAdjBSSR()` with six tests for
@@ -415,12 +416,12 @@ and Sidik (2003), Connor (1987), Fagerland, Lydersen and Laake (2013),
 Nam (1997), Schepers et al. (2026) and Tango (1998), and for stratified
 designs those of Jung (2014), Nam (1992) and Woolson, Bean and Rojas
 (1986), and the unit tests compare the package with independent
-implementations and with `stats::mantelhaen.test`. Details are in the
-validation vignette, and the `bbssr-published-figures` vignette redraws
-twenty published figures of Friede and Kieser (2004), Kieser (2020),
-Friede, Mitchell and Mueller-Velten (2007), Boschloo (1970), Berger and
-Sidik (2003), Fagerland, Lydersen and Laake (2013) and Schepers et
-al. (2026).
+implementations and with `stats::mcnemar.test` and
+`stats::mantelhaen.test`. Details are in the validation vignette, and
+the `bbssr-published-figures` vignette redraws twenty published figures
+of Friede and Kieser (2004), Kieser (2020), Friede, Mitchell and
+Mueller-Velten (2007), Boschloo (1970), Berger and Sidik (2003),
+Fagerland, Lydersen and Laake (2013) and Schepers et al. (2026).
 
 ## References
 

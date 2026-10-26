@@ -24,8 +24,8 @@ Description: Tools for blinded sample size re-estimation (BSSR) in two-arm clini
     and the type I error rate of a re-estimation design are computed exactly, by 
     simulation for three or more strata, the significance level can be adjusted so that 
     the type I error rate is controlled, and the sample size can be re-estimated from 
-    the blinded data of a trial that is under way. Statistical methods based on Mehrotra et al. (2003) 
-    <doi:10.1111/1541-0420.00051>, Berger and Boos (1994) 
+    the blinded data of a trial that is under way. Statistical methods based on 
+    Mehrotra et al. (2003) <doi:10.1111/1541-0420.00051>, Berger and Boos (1994) 
     <doi:10.1080/01621459.1994.10476836>, Friede and Kieser (2004) 
     <doi:10.1002/pst.140>, Friede et al. (2007) <doi:10.1002/bimj.200610373> and 
     Kieser (2020) <doi:10.1007/978-3-030-49528-2_21>.
