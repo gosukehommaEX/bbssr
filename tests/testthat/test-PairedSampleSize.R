@@ -32,6 +32,17 @@ test_that("PairedSampleSize agrees with the reference values", {
   expect_equal(ex(0.3, 0.1, 0.025, 0.8, 'McNemar-midP', search = 'smallest'), 76)
 })
 
+test_that("PairedSampleSize of the continuity corrected test", {
+  # The normal approximation does not depend on the test
+  std <- function(Test) {
+    PairedSampleSize(0.3, 0.1, 0.025, 0.8, Test, method = 'standard')$N
+  }
+  expect_equal(std('McNemar-cc'), std('McNemar'))
+  expect_equal(c(PairedSampleSize(0.3, 0.1, 0.025, 0.8, 'McNemar-cc')$N,
+                 PairedSampleSize(0.2, 0.1, 0.05, 0.9, 'McNemar-cc', 'two.sided')$N),
+               c(84, 327))
+})
+
 test_that("PairedSampleSize returns the power at the number of pairs", {
   ss <- PairedSampleSize(0.3, 0.1, 0.025, 0.8, 'McNemar-exact')
   expect_s3_class(ss, 'bbssr_psamplesize')

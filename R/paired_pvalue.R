@@ -41,6 +41,20 @@ paired_pvalue <- function(N, Test, alternative, n.grid, bb.gamma, ref.pvalue, ma
     } else {
       pmin(2 * pnorm(abs(Z), lower.tail = FALSE), 1)
     }
+  } else if (Test == 'McNemar-cc') {
+    # Formula (2) of Fagerland et al. (2013): |a - b| - 1 in place of a - b, and p = 1
+    # without discordant pairs. The one-sided version refers (a - b - 1) / sqrt(a + b) to
+    # the standard normal distribution
+    d <- outer(0:N, 0:N, '-')
+    s <- sqrt(outer(0:N, 0:N, '+'))
+    P <- if (alternative == 'greater') {
+      pnorm((d - 1) / s, lower.tail = FALSE)
+    } else {
+      pmin(2 * pnorm((abs(d) - 1) / s, lower.tail = FALSE), 1)
+    }
+    P[1, 1] <- 1
+    P[outer(0:N, 0:N, '+') > N] <- NA
+    P
   } else if (Test %in% c('McNemar-exact', 'McNemar-midP')) {
     paired_cond_pvalue(N, alternative, midp = Test == 'McNemar-midP')
   } else {

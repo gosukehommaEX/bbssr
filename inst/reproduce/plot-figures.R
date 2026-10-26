@@ -1,9 +1,9 @@
-# Draws the published figures from the values that inst/reproduce/reproduce-figures.R
-# writes to inst/extdata/published-figures/. Each function reads its CSV files from the
-# folder dir and draws one figure on the current graphics device, with the axis ranges,
-# tick marks, line types and symbols of the original figure as far as base graphics allow.
-# The vignette 'Validation by reproducing published figures' sources this file;
-# write_figure_pngs() writes all figures as PNG files.
+# Draws the published figures from the values that inst/reproduce/reproduce-figures.R and
+# inst/reproduce/reproduce-figures-paired.R write to inst/extdata/published-figures/. Each
+# function reads its CSV files from the folder dir and draws one figure on the current
+# graphics device, with the axis ranges, tick marks, line types and symbols of the original
+# figure as far as base graphics allow. The vignette 'Validation by reproducing published
+# figures' sources this file; write_figure_pngs() writes all figures as PNG files.
 
 fig_dir <- function() system.file('extdata', 'published-figures', package = 'bbssr')
 read_fig <- function(dir, name) utils::read.csv(file.path(dir, name))
@@ -422,6 +422,172 @@ plot_boschloo1970_figure2 <- function(dir = fig_dir()) {
     italic(m) == 15, italic(n) == 10, italic(t) == 25, alpha == '.05', gamma == '.09'))
 }
 
+# Berger and Sidik (2003) --------------------------------------------------------------
+# The likelihood ratio tests L and L_C of the original are not drawn, since bbssr does not
+# provide them. CB is drawn as dots, every 0.01, as in the original
+plot_bs2003_figure2 <- function(dir = fig_dir()) {
+  restore <- fig_restore()
+  on.exit(restore())
+  d <- read_fig(dir, 'berger-sidik-2003-figure2.csv')
+  graphics::par(mfrow = c(2, 1), mar = c(4, 4.5, 2.5, 1))
+  for (n in c(50, 100)) {
+    s <- d[d$n == n, ]
+    plot(NA, xlim = c(0, 0.5), ylim = c(0, 0.06), axes = FALSE, xlab = 'p', ylab = 'size',
+         main = paste('The size function for n =', n), font.main = 2)
+    fig_axis(1, seq(0, 0.5, by = 0.1), sprintf('%.1f', seq(0, 0.5, by = 0.1)))
+    fig_axis(2, seq(0, 0.06, by = 0.01),
+             c('0.0', sprintf('%.2f', seq(0.01, 0.06, by = 0.01))))
+    graphics::box()
+    graphics::abline(h = 0.05)
+    k <- seq(1, nrow(s), by = 4)
+    graphics::points(s$p[k], s$CB[k], pch = 20, cex = 0.35)
+    graphics::lines(s$p, s$M, lty = 3)
+    graphics::lines(s$p, s$Z)
+    graphics::lines(s$p, s$Z.C, lty = 2)
+    graphics::legend('bottomright', inset = c(0.04, 0.06), cex = 0.75, bg = 'white',
+                     legend = expression(CB, M, Z, Z[C]), lty = c(NA, 3, 1, 2),
+                     pch = c(20, NA, NA, NA), pt.cex = 0.5, seg.len = 3)
+  }
+}
+
+# Fagerland, Lydersen and Laake (2013) -------------------------------------------------
+# Line types of the original: the asymptotic test thick, the exact conditional test
+# dashed, the mid-p test thin, the exact unconditional test as vertical bars and the test
+# with continuity correction as diamonds
+fll_curves <- function(x, s, every.cc) {
+  k <- seq(1, length(x), by = every.cc)
+  graphics::points(x, s$uncond, pch = '|', cex = 0.55)
+  graphics::lines(x, s$exact, lty = 2, lwd = 1.2)
+  graphics::lines(x, s$midp, lwd = 0.7)
+  graphics::lines(x, s$asymptotic, lwd = 2.5)
+  graphics::points(x[k], s$cc[k], pch = 5, cex = 0.6)
+}
+fll_legend <- function() {
+  graphics::legend('bottomright', inset = 0.03, cex = 0.6, bg = 'white',
+                   legend = c('McNemar asymptotic', 'McNemar asymptotic w/CC',
+                              'McNemar exact', 'McNemar mid-p', 'Exact unconditional'),
+                   lty = c(1, NA, 2, 1, NA), lwd = c(2.5, NA, 1.2, 0.7, NA),
+                   pch = c(NA, 5, NA, NA, 124), seg.len = 3)
+}
+
+plot_fll2013_figure1 <- function(dir = fig_dir()) {
+  restore <- fig_restore()
+  on.exit(restore())
+  d <- read_fig(dir, 'fagerland-2013-figure1.csv')
+  graphics::par(mfrow = c(2, 2), mar = c(4, 4.5, 2, 1), las = 1)
+  for (N in c(20, 40, 70, 100)) {
+    s <- d[d$N == N, ]
+    plot(NA, xlim = c(0, 1), ylim = c(0, 0.06), xaxs = 'i', yaxs = 'i', axes = FALSE,
+         xlab = expression(italic(p)[+1] == italic(p)[1 * '+']), ylab = 'Type I error rate',
+         main = bquote(N == .(N) ~~~~~ theta == .(sprintf('%.1f', s$theta[1]))),
+         font.main = 1)
+    fig_axis(1, seq(0, 1, by = 0.2), c('0', sprintf('%.1f', seq(0.2, 0.8, by = 0.2)), '1'))
+    fig_axis(2, seq(0, 0.06, by = 0.01),
+             c('0', sprintf('%.2f', seq(0.01, 0.06, by = 0.01))))
+    graphics::box()
+    graphics::abline(h = 0.05, lty = 3)
+    # Diamonds every 0.03, as in the original
+    fll_curves(s$p, s, every.cc = 6)
+    if (N == 100) fll_legend()
+  }
+}
+
+plot_fll2013_figure2 <- function(dir = fig_dir()) {
+  restore <- fig_restore()
+  on.exit(restore())
+  d <- read_fig(dir, 'fagerland-2013-figure2.csv')
+  d[-1] <- 100 * d[-1]
+  graphics::par(mfrow = c(1, 2), mar = c(4, 4.5, 1, 1), las = 1)
+  plot(NA, xlim = c(0, 100), ylim = c(0, 100), xaxs = 'i', yaxs = 'i', axes = FALSE,
+       xlab = 'Number of matched pairs', ylab = 'Power (%)')
+  fig_axis(1, seq(10, 100, by = 10))
+  fig_axis(2, seq(0, 100, by = 10))
+  graphics::box()
+  graphics::abline(h = c(80, 90), lty = 3)
+  fll_curves(d$N, d, every.cc = 3)
+  s <- d[d$N >= 35 & d$N <= 60, ]
+  plot(NA, xlim = c(35, 60), ylim = c(70, 95), xaxs = 'i', yaxs = 'i', axes = FALSE,
+       xlab = 'Number of matched pairs', ylab = 'Power (%)')
+  fig_axis(1, seq(35, 60, by = 5))
+  fig_axis(2, seq(70, 95, by = 5))
+  graphics::box()
+  graphics::abline(h = c(80, 90), lty = 3)
+  fll_curves(s$N, s, every.cc = 1)
+  fll_legend()
+}
+
+# Schepers et al. (2026) ---------------------------------------------------------------
+# The heat maps of the original are drawn with ggplot2: tiles centred on the grid of p*
+# and nd(1), the axes widened by 5 per cent of the range of the tiles, the viridis and
+# plasma palettes stretched over the range of the values, and a colour bar on the right
+sc_grid <- function(d, value) {
+  ps <- sort(unique(d$p.star))
+  nd <- sort(unique(d$nd))
+  z <- matrix(NA_real_, length(ps), length(nd))
+  z[cbind(match(d$p.star, ps), match(d$nd, nd))] <- d[[value]]
+  list(x = ps, y = nd, z = z)
+}
+sc_frame <- function(g, xlab) {
+  plot(NA, xlim = fig_expand(c(0.495, 0.905)), ylim = fig_expand(c(-0.5, 38.5)),
+       xaxs = 'i', yaxs = 'i', axes = FALSE, xlab = xlab, ylab = '')
+  graphics::title(ylab = expression(italic(n)[d]^'(1)'), line = 2.5)
+  graphics::abline(v = seq(0.5, 0.9, by = 0.05), h = seq(0, 40, by = 5), col = 'grey92')
+}
+# Colour bar in the second cell of the layout, with the title in one or two lines
+sc_colorbar <- function(cols, zlim, at, title) {
+  graphics::par(mar = c(9, 0.5, 9, 3.5))
+  z <- seq(zlim[1], zlim[2], length.out = length(cols))
+  graphics::image(c(0, 1), seq(zlim[1], zlim[2], length.out = length(cols) + 1),
+                  matrix(z, 1), col = cols, axes = FALSE, xlab = '', ylab = '')
+  graphics::axis(4, at = at, labels = format(at), las = 1, cex.axis = 0.75, tcl = -0.2)
+  for (k in seq_along(title)) {
+    graphics::mtext(title[k], side = 3, line = 0.4 + 1.1 * (length(title) - k), adj = 0,
+                    cex = 0.75)
+  }
+}
+
+plot_schepers2026_figure1 <- function(dir = fig_dir()) {
+  restore <- fig_restore()
+  on.exit(restore())
+  g <- sc_grid(read_fig(dir, 'schepers-2026-figure1.csv'), 'CP')
+  cols <- grDevices::hcl.colors(100, 'viridis')
+  graphics::layout(matrix(1:2, 1), widths = c(5, 1.3))
+  graphics::par(mar = c(4, 4.5, 4, 0.5), las = 1)
+  sc_frame(g, expression('Success Rate' ~ (italic(p)['*'])))
+  graphics::image(g$x, g$y, g$z, col = cols, zlim = range(g$z), add = TRUE)
+  graphics::contour(g$x, g$y, g$z, levels = 0.8, drawlabels = FALSE, col = 'red', lwd = 2,
+                    add = TRUE)
+  fig_axis(1, seq(0.5, 0.9, by = 0.1))
+  fig_axis(2, seq(0, 40, by = 10))
+  graphics::mtext('Conditional Power', side = 3, line = 2.2, adj = 0, cex = 1.1)
+  graphics::mtext(expression('Fixed second stage sample size' ~ (italic(n)^'(2)' == 38)),
+                  side = 3, line = 0.8, adj = 0, cex = 0.85)
+  sc_colorbar(cols, range(g$z), c(0.25, 0.5, 0.75), c('Probability of', 'Success (CP)'))
+}
+
+# Cells without a second-stage size of at most 70 that attains the conditional power 0.8
+# are grey; the stored sizes go up to 100
+plot_schepers2026_figure2 <- function(dir = fig_dir()) {
+  restore <- fig_restore()
+  on.exit(restore())
+  g <- sc_grid(read_fig(dir, 'schepers-2026-figure2.csv'), 'n2.min')
+  g$z[!is.na(g$z) & g$z > 70] <- NA
+  cols <- grDevices::hcl.colors(100, 'plasma')
+  graphics::layout(matrix(1:2, 1), widths = c(5, 1.3))
+  graphics::par(mar = c(4, 4.5, 4, 0.5), las = 1)
+  sc_frame(g, expression(italic(p)['*']))
+  graphics::image(g$x, g$y, matrix(0, length(g$x), length(g$y)), col = 'grey50',
+                  add = TRUE)
+  graphics::image(g$x, g$y, g$z, col = cols, zlim = range(g$z, na.rm = TRUE), add = TRUE)
+  fig_axis(1, seq(0.5, 0.9, by = 0.1))
+  fig_axis(2, seq(0, 40, by = 10))
+  graphics::mtext('Minimal second stage sample size', side = 3, line = 2.2, adj = 0,
+                  cex = 1.1)
+  graphics::mtext(expression('for Conditional Power' >= 0.8), side = 3, line = 0.8, adj = 0,
+                  cex = 1.1)
+  sc_colorbar(cols, range(g$z, na.rm = TRUE), c(0, 20, 40, 60), 'n2min')
+}
+
 # All figures as PNG files in the folder out.dir
 write_figure_pngs <- function(out.dir, dir = fig_dir()) {
   dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
@@ -441,7 +607,12 @@ write_figure_pngs <- function(out.dir, dir = fig_dir()) {
     'friede-2007-figure1' = list(plot_fmm2007_figure1, 1600, 850),
     'friede-2007-figure2' = list(plot_fmm2007_figure2, 1300, 950),
     'friede-2007-figure3' = list(plot_fmm2007_figure3, 1500, 1500),
-    'boschloo-1970-figure2' = list(plot_boschloo1970_figure2, 1400, 1000)
+    'boschloo-1970-figure2' = list(plot_boschloo1970_figure2, 1400, 1000),
+    'berger-sidik-2003-figure2' = list(plot_bs2003_figure2, 1200, 1700),
+    'fagerland-2013-figure1' = list(plot_fll2013_figure1, 1600, 1250),
+    'fagerland-2013-figure2' = list(plot_fll2013_figure2, 1800, 800),
+    'schepers-2026-figure1' = list(plot_schepers2026_figure1, 1400, 1000),
+    'schepers-2026-figure2' = list(plot_schepers2026_figure2, 1400, 1000)
   )
   for (nm in names(figs)) {
     grDevices::png(file.path(out.dir, paste0(nm, '.png')), width = figs[[nm]][[2]],

@@ -20,8 +20,9 @@ PairedRR(
 
 \item{alpha}{Level of significance for the alternative specified by \code{alternative}}
 
-\item{Test}{Type of statistical test. Options: \code{'McNemar'}, \code{'McNemar-exact'},
-\code{'McNemar-midP'}, \code{'McNemar-uncond'} or \code{'Paired-Score'}}
+\item{Test}{Type of statistical test. Options: \code{'McNemar'}, \code{'McNemar-cc'},
+\code{'McNemar-exact'}, \code{'McNemar-midP'}, \code{'McNemar-uncond'} or
+\code{'Paired-Score'}}
 
 \item{alternative}{Direction of the alternative hypothesis. Options: \code{'greater'}
 (default) for \code{p10 - p01 > -margin}, \code{'less'} for
@@ -61,7 +62,7 @@ settings as further attributes
 \description{
 Provides the rejection region of a test comparing two treatments on a binary endpoint
 in a matched-pairs design, such as a cross-over trial or a comparison of two diagnostic
-procedures on the same patients. Five tests are supported. Each can be applied with a
+procedures on the same patients. Six tests are supported. Each can be applied with a
 one-sided or a two-sided alternative, and the score test also tests non-inferiority and
 equivalence with a margin on the scale of the difference of the response probabilities.
 }
@@ -75,6 +76,10 @@ kinds of discordant pairs enter the tests. The function supports the following t
 \item The asymptotic McNemar test (McNemar), which refers
 \code{Z = (a - b) / sqrt(a + b)} to the standard normal distribution without a
 continuity correction, with \code{Z = 0} when \code{a + b = 0}
+\item The asymptotic McNemar test with a continuity correction (McNemar-cc), formula
+(2) of Fagerland et al. (2013), which refers \code{(|a - b| - 1) / sqrt(a + b)} to
+the standard normal distribution, and \code{(a - b - 1) / sqrt(a + b)} for the
+alternative \code{'greater'}, with the p-value 1 when \code{a + b = 0}
 \item The exact conditional McNemar test (McNemar-exact), which refers \code{a} to the
 binomial distribution with \code{a + b} trials and probability 1/2
 \item The mid-p version of the exact conditional test (McNemar-midP), formulae (5)
@@ -97,7 +102,12 @@ agree. The two-sided p-value of the exact conditional test is twice the smaller 
 probability, at most 1, and the two-sided mid-p value follows formulae (5) and (6) of
 Fagerland et al. (2013). The two-sided versions of \code{'McNemar'},
 \code{'McNemar-uncond'} and \code{'Paired-Score'} order the outcomes by the absolute
-value of the statistic.
+value of the statistic. The two-sided p-value of \code{'McNemar-cc'} is twice the
+smaller of its two one-sided p-values, at most 1, which is the p-value of
+\code{stats::mcnemar.test} with \code{correct = TRUE}. Its one-sided p-value is the
+normal approximation with a continuity correction to the tail probability of the exact
+conditional test, and Fagerland et al. (2013) set the p-value to 1 when
+\code{a + b = 0}, where the statistic is not defined.
 
 The test \code{'McNemar-uncond'} maximizes the tail probability of each outcome, a
 polynomial of degree \code{N} in \code{psi}, over a grid of \code{n.grid} points. The

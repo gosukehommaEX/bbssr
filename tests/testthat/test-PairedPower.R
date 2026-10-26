@@ -11,6 +11,12 @@ test_that("PairedPower agrees with the reference values", {
   expect_equal(pw(Test = 'McNemar-midP'),
                c(0.455567858074236, 0.0467111657893424, 0.0340906014809905,
                  0.273531450144572), tolerance = 1e-10)
+  expect_equal(pw(Test = 'McNemar-cc'),
+               c(0.348235072572542, 0.0276578546401005, 0.00716494790258658,
+                 0.153551734755933), tolerance = 1e-10)
+  expect_equal(pw(Test = 'McNemar-cc', alternative = 'two.sided'),
+               c(0.241258649191447, 0.0235977503363145, 0.00121296132209725,
+                 0.154757175258514), tolerance = 1e-10)
   expect_equal(pw(Test = 'McNemar-uncond', ref.pvalue = TRUE),
                c(0.425551746919397, 0.0368039092574043, 0.0340906014809905,
                  0.153551734755933), tolerance = 1e-9)

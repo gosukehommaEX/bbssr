@@ -17,6 +17,9 @@ test_that("PairedPowerBSSR agrees with the reference values", {
                          ss.method = 'conditional.power', N.max = 45)),
                c(0.787666291589832, 38.3941968884, 0.580758613628438, 43.35546875),
                tolerance = 1e-10)
+  expect_equal(get(pbssr(Test = 'McNemar-cc', ss.method = 'exact')),
+               c(0.77340819319093, 35.6456938805, 0.757314659877442, 53.8486328125),
+               tolerance = 1e-10)
   expect_equal(get(pbssr(Delta.T = 0, Delta.A = 0, Test = 'Paired-Score', margin = 0.2)),
                c(0.814580182356671, 50.9347553717, 0.795139257151903, 77.9501953125),
                tolerance = 1e-10)

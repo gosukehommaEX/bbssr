@@ -3,7 +3,8 @@
 # Kieser (2004), Figures 21.1 to 21.4 and 23.1 to 23.3 of Kieser (2020), Figures 1 to 3 of
 # Friede, Mitchell and Mueller-Velten (2007) and Figure 2 of Boschloo (1970). The designs
 # follow inst/reproduce/reproduce-published.R. The figures themselves are drawn by the
-# functions in inst/reproduce/plot-figures.R.
+# functions in inst/reproduce/plot-figures.R. The figures on matched pairs are computed by
+# inst/reproduce/reproduce-figures-paired.R.
 #
 # Run from the package root after devtools::load_all(); the computation for Figure 21.1
 # uses internal functions of the package. The values are written as CSV files to

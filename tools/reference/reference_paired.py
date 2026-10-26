@@ -14,7 +14,7 @@ import numpy as np
 from scipy.optimize import brentq, minimize_scalar
 from scipy.special import gammaln
 from scipy.stats import beta as beta_dist
-from scipy.stats import binom, norm
+from scipy.stats import binom, chi2, norm
 
 TOL = 1.4901161193847656e-08  # tolerance of fpCompare
 
@@ -98,6 +98,27 @@ def cond_pvalues(N, alt, midp):
     return P
 
 
+def cc_pvalues(N, alt):
+    """Continuity corrected McNemar test, formula (2) of Fagerland et al. (2013), with p = 1
+    when a + b = 0 (their p. 4). The one-sided p-value is the normal approximation with a
+    continuity correction to the upper tail P(A >= a) of A ~ Bin(a + b, 1/2); the two-sided
+    p-value is the chi-squared form (|a - b| - 1)^2 / (a + b) with one degree of freedom,
+    without the correction when a = b, as in stats::mcnemar.test."""
+    P = np.full((N + 1, N + 1), np.nan)
+    for a in range(N + 1):
+        for b in range(N + 1 - a):
+            D = a + b
+            if D == 0:
+                P[a, b] = 1.0
+            elif alt == "greater":
+                P[a, b] = norm.sf((a - 0.5 - D / 2) / math.sqrt(D / 4))
+            elif a == b:
+                P[a, b] = 1.0
+            else:
+                P[a, b] = chi2.sf((abs(a - b) - 1) ** 2 / D, 1)
+    return P
+
+
 def tail_sup(h, N, lo=0.0, hi=1.0, G=4001):
     """Supremum over psi in [lo, hi] of sum_D h[D] b(D; N, psi), by a fine grid and a local
     optimization around the largest grid values."""
@@ -154,6 +175,8 @@ def pvalues(N, test, alt, margin=0.0, gamma=0.0):
         return cond_pvalues(N, alt, False)
     if test == "midP":
         return cond_pvalues(N, alt, True)
+    if test == "cc":
+        return cc_pvalues(N, alt)
     return uncond_pvalues(N, alt, gamma)
 
 
@@ -508,3 +531,39 @@ def blocks(emit, reported_level):
     emit(f, "McNemar max at nominal level", [r[2] for r in res], rtol=1e-9)
     emit(f, "McNemar adjusted level", [r[0] for r in res], rtol=1e-12)
     emit(f, "McNemar max at adjusted level", [r[1] for r in res], rtol=1e-8)
+
+
+# ---------------------------------------------------------------------------------------
+def blocks_cc(emit, reported_level):
+    """Keys of the continuity corrected McNemar test 'McNemar-cc' of version 3.0.0, written
+    after the keys of the stratified designs."""
+    # p-values and numbers of rejected outcomes of PairedRR at N = 12
+    f = "test-PairedRR.R"
+    cells = [(5, 1), (6, 2), (3, 0), (0, 0), (2, 3), (4, 4)]
+    for key, alt in (("cc greater", "greater"), ("cc two-sided", "two.sided")):
+        P = pvalues_cached(12, "cc", alt)
+        emit(f, "p-values " + key, [P[a, b] for a, b in cells])
+    emit(f, "rejected cc greater and two-sided",
+         [int(reject(12, "cc", alt, 0.05).sum()) for alt in ("greater", "two.sided")],
+         rtol=0)
+
+    # Power at N = 25
+    f = "test-PairedPower.R"
+    pts = [(0.3, 0.1), (0.25, 0.25), (0.05, 0.0), (0.6, 0.4)]
+    for key, alt in (("cc", "greater"), ("cc two-sided", "two.sided")):
+        emit(f, "power " + key, [power(25, "cc", alt, 0.05, p, q) for p, q in pts])
+
+    # Exact numbers of pairs
+    emit("test-PairedSampleSize.R", "exact cc",
+         [exact_n(0.3, 0.1, 0.025, 0.8, "cc", "greater"),
+          exact_n(0.2, 0.1, 0.05, 0.9, "cc", "two.sided")], rtol=0)
+
+    # Re-estimation design of test-PairedPowerBSSR.R with the exact search: 10 interim
+    # pairs, 30 planned, assumed and true difference 0.25
+    sizes = final_sizes(10, 0.25, 30, 0.05, 0.8, "cc", "greater", "exact")
+    res = []
+    for psi in (0.3, 0.5):
+        p10, p01 = (psi + 0.25) / 2, (psi - 0.25) / 2
+        res += [bssr_power_bf(sizes, 10, "cc", "greater", 0.05, p10, p01),
+                expected_n(sizes, 10, psi)]
+    emit("test-PairedPowerBSSR.R", "power and E.N cc exact", res)

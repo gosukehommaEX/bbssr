@@ -58,9 +58,10 @@
 #' powers minus 1 attains the target power. The sum minus 1 is a lower bound of the
 #' approximate probability that both tests reject.
 #'
-#' The normal approximation is the starting point of the exact search for every test. The
-#' exact power is not monotone in the number of pairs, so the three searches can return
-#' different numbers, see \code{\link{BinarySampleSize}}.
+#' The normal approximation does not depend on the test, and for \code{'McNemar-cc'} it
+#' leaves out the continuity correction. It is the starting point of the exact search for
+#' every test. The exact power is not monotone in the number of pairs, so the three
+#' searches can return different numbers, see \code{\link{BinarySampleSize}}.
 #'
 #' @references
 #' Connor RJ (1987). Sample size for testing differences in proportions for the

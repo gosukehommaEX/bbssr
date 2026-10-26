@@ -1,7 +1,7 @@
 cells <- cbind(c(5, 6, 3, 0, 2, 4), c(1, 2, 0, 0, 3, 4)) + 1
 
 test_that("PairedRR returns a bbssr_prr object of the right shape", {
-  for (tst in c('McNemar', 'McNemar-exact', 'McNemar-midP', 'McNemar-uncond',
+  for (tst in c('McNemar', 'McNemar-cc', 'McNemar-exact', 'McNemar-midP', 'McNemar-uncond',
                 'Paired-Score')) {
     RR <- PairedRR(N = 8, alpha = 0.05, Test = tst, n.grid = 20)
     expect_s3_class(RR, 'bbssr_prr')
@@ -51,6 +51,19 @@ test_that("PairedRR agrees with the reference p-values and regions", {
         alternative = 'equivalence', margin = c(0.1, 0.15))
 })
 
+test_that("PairedRR agrees with the reference values of the continuity corrected test", {
+  RR <- lapply(c('greater', 'two.sided'), function(alt) {
+    PairedRR(12, 0.05, 'McNemar-cc', alt)
+  })
+  expect_equal(attr(RR[[1]], 'p.value')[cells],
+               c(0.110335680959923, 0.144422183173242, 0.124106539494962, 1,
+                 0.814453315238651, 0.638163195084118), tolerance = 1e-10)
+  expect_equal(attr(RR[[2]], 'p.value')[cells],
+               c(0.220671361919843, 0.288844366346482, 0.24821307898992, 1, 1, 1),
+               tolerance = 1e-10)
+  expect_equal(c(sum(RR[[1]]), sum(RR[[2]])), c(15, 24))
+})
+
 test_that("PairedRR reproduces the asymptotic McNemar p-values of Fagerland et al.", {
   # Table 6: two-sided p-values 0.0339 (N = 21, n12 = 1, n21 = 7) and 0.0330 (N = 161,
   # n12 = 6, n21 = 16)
@@ -58,6 +71,11 @@ test_that("PairedRR reproduces the asymptotic McNemar p-values of Fagerland et a
                0.0339)
   expect_equal(round(attr(PairedRR(161, 0.05, 'McNemar', 'two.sided'),
                           'p.value')[7, 17], 4), 0.0330)
+  # The test with continuity correction, formula (2): 0.0771 and 0.0550
+  expect_equal(round(attr(PairedRR(21, 0.05, 'McNemar-cc', 'two.sided'),
+                          'p.value')[2, 8], 4), 0.0771)
+  expect_equal(round(attr(PairedRR(161, 0.05, 'McNemar-cc', 'two.sided'),
+                          'p.value')[7, 17], 4), 0.0550)
 })
 
 test_that("PairedRR reproduces the example of Berger and Sidik (2003, Table 3)", {
@@ -74,7 +92,8 @@ test_that("PairedRR reproduces the example of Berger and Sidik (2003, Table 3)",
 
 test_that("PairedRR rejects only in the direction of the alternative", {
   d <- outer(0:10, 0:10, '-')
-  for (tst in c('McNemar', 'McNemar-exact', 'McNemar-midP', 'McNemar-uncond')) {
+  for (tst in c('McNemar', 'McNemar-cc', 'McNemar-exact', 'McNemar-midP',
+                'McNemar-uncond')) {
     expect_true(all(d[PairedRR(10, 0.1, tst, n.grid = 30)] > 0), info = tst)
     expect_true(all(d[PairedRR(10, 0.1, tst, 'less', n.grid = 30)] < 0), info = tst)
   }

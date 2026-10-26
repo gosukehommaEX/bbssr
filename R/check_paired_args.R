@@ -30,8 +30,8 @@
 #' @noRd
 check_paired_args <- function(N, alpha, Test, n.grid, bb.gamma, ref.pvalue, alternative,
                               margin) {
-  Test <- match.arg(Test, c('McNemar', 'McNemar-exact', 'McNemar-midP', 'McNemar-uncond',
-                            'Paired-Score'))
+  Test <- match.arg(Test, c('McNemar', 'McNemar-cc', 'McNemar-exact', 'McNemar-midP',
+                            'McNemar-uncond', 'Paired-Score'))
   if (length(N) != 1 || is.na(N) || N != round(N) || N < 1) {
     stop('N must be a single positive integer')
   }

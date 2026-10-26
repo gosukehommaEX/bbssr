@@ -36,3 +36,15 @@ test_that("check_paired_args rejects invalid arguments", {
                'in \\(0, 1\\)')
   expect_warning(ok(bb.gamma = 0.001), 'only to the McNemar-uncond')
 })
+
+test_that("check_paired_args accepts the continuity corrected test with a margin of 0", {
+  a <- check_paired_args(20, 0.05, 'McNemar-c', 50, 0, TRUE, 'two.sided', 0)
+  expect_identical(a$Test, 'McNemar-cc')
+  expect_false(a$ref.pvalue)
+  expect_identical(check_paired_args(20, 0.05, 'McNemar', 50, 0, FALSE, 'greater', 0)$Test,
+                   'McNemar')
+  expect_error(check_paired_args(20, 0.05, 'McNemar-cc', 50, 0, FALSE, 'greater', 0.1),
+               "requires Test = 'Paired-Score'")
+  expect_error(check_paired_args(20, 0.05, 'McNemar-cc', 50, 0, FALSE, 'equivalence', 0.1),
+               "'equivalence' requires Test = 'Paired-Score'")
+})

@@ -45,8 +45,9 @@ PairedPowerBSSR(
 
 \item{tar.power}{Target power of the re-estimation}
 
-\item{Test}{Type of statistical test. Options: \code{'McNemar'}, \code{'McNemar-exact'},
-\code{'McNemar-midP'}, \code{'McNemar-uncond'} or \code{'Paired-Score'}}
+\item{Test}{Type of statistical test. Options: \code{'McNemar'}, \code{'McNemar-cc'},
+\code{'McNemar-exact'}, \code{'McNemar-midP'}, \code{'McNemar-uncond'} or
+\code{'Paired-Score'}}
 
 \item{restricted}{Logical. If \code{TRUE}, the final number of pairs is at least
 \code{N}. Default is \code{FALSE}}

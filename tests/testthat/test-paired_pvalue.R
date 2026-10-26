@@ -1,5 +1,6 @@
 test_that("paired_pvalue obtains the alternative 'less' by exchanging the counts", {
-  for (tst in c('McNemar', 'McNemar-exact', 'McNemar-midP', 'McNemar-uncond')) {
+  for (tst in c('McNemar', 'McNemar-cc', 'McNemar-exact', 'McNemar-midP',
+                'McNemar-uncond')) {
     expect_equal(paired_pvalue(9, tst, 'less', 30, 0, FALSE, 0),
                  t(paired_pvalue(9, tst, 'greater', 30, 0, FALSE, 0)), info = tst)
   }
@@ -27,4 +28,31 @@ test_that("paired_pvalue of the asymptotic tests refers Z to the normal distribu
   # The score test with margin 0 is the McNemar test
   expect_equal(paired_pvalue(10, 'Paired-Score', 'greater', 30, 0, FALSE, 0),
                paired_pvalue(10, 'McNemar', 'greater', 30, 0, FALSE, 0))
+})
+
+test_that("paired_pvalue of the corrected McNemar test agrees with stats::mcnemar.test", {
+  N <- 15
+  P <- paired_pvalue(N, 'McNemar-cc', 'two.sided', 30, 0, FALSE, 0)
+  ref <- matrix(NA_real_, N + 1, N + 1)
+  for (a in 0:N) {
+    for (b in 0:(N - a)) {
+      # stats::mcnemar.test() gives NaN without discordant pairs
+      if (a + b > 0) {
+        ref[a + 1, b + 1] <- stats::mcnemar.test(matrix(c(0, a, b, 0), 2),
+                                                 correct = TRUE)$p.value
+      }
+    }
+  }
+  ok <- !is.na(ref)
+  expect_equal(sum(ok), (N + 1) * (N + 2) / 2 - 1)
+  expect_equal(P[ok], ref[ok], tolerance = 1e-10)
+  expect_equal(P[1, 1], 1)
+  expect_true(all(is.na(P[outer(0:N, 0:N, '+') > N])))
+  # The two-sided p-value is twice the smaller one-sided p-value, at most 1, and the
+  # one-sided p-value refers (a - b - 1) / sqrt(a + b) to the normal distribution
+  G <- paired_pvalue(N, 'McNemar-cc', 'greater', 30, 0, FALSE, 0)
+  L <- paired_pvalue(N, 'McNemar-cc', 'less', 30, 0, FALSE, 0)
+  expect_equal(P, pmin(2 * pmin(G, L), 1))
+  expect_equal(G[9, 3], stats::pnorm((8 - 2 - 1) / sqrt(10), lower.tail = FALSE))
+  expect_equal(G[1, 1], 1)
 })

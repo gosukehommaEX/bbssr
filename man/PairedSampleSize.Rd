@@ -29,8 +29,9 @@ PairedSampleSize(
 
 \item{tar.power}{Target power}
 
-\item{Test}{Type of statistical test. Options: \code{'McNemar'}, \code{'McNemar-exact'},
-\code{'McNemar-midP'}, \code{'McNemar-uncond'} or \code{'Paired-Score'}}
+\item{Test}{Type of statistical test. Options: \code{'McNemar'}, \code{'McNemar-cc'},
+\code{'McNemar-exact'}, \code{'McNemar-midP'}, \code{'McNemar-uncond'} or
+\code{'Paired-Score'}}
 
 \item{alternative}{Direction of the alternative hypothesis. Options: \code{'greater'}
 (default) for \code{p10 - p01 > -margin}, \code{'less'} for
@@ -115,9 +116,10 @@ approximation is the smallest number of pairs at which the sum of the two approx
 powers minus 1 attains the target power. The sum minus 1 is a lower bound of the
 approximate probability that both tests reject.
 
-The normal approximation is the starting point of the exact search for every test. The
-exact power is not monotone in the number of pairs, so the three searches can return
-different numbers, see \code{\link{BinarySampleSize}}.
+The normal approximation does not depend on the test, and for \code{'McNemar-cc'} it
+leaves out the continuity correction. It is the starting point of the exact search for
+every test. The exact power is not monotone in the number of pairs, so the three
+searches can return different numbers, see \code{\link{BinarySampleSize}}.
 }
 \examples{
 # Example of Connor (1987, p. 210): theta1 = 0.8, theta2 = 0.7 and psi = 0.3

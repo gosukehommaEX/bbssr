@@ -1371,3 +1371,5 @@ if __name__ == "__main__":
     reference_strat.blocks_alloc_seq(emit, reported_level)
     reference_strat.blocks_alloc_sim(emit, reported_level)
     reference_strat.blocks_summary_sbssr(emit, reported_level)
+    # Continuity corrected McNemar test, added in version 3.0.0
+    reference_paired.blocks_cc(emit, reported_level)

@@ -34,7 +34,7 @@ The `Paired*` functions follow the `Binary*` functions for two independent group
 
 ## Tests
 
-Five tests are available. `'McNemar'` refers $Z = (a - b) / \sqrt{a + b}$ to the standard normal distribution. `'McNemar-exact'` refers $a$ to the binomial distribution with $a + b$ trials and probability 1/2, and `'McNemar-midP'` is its mid-p version (Fagerland et al., 2013). `'McNemar-uncond'` orders the outcomes by $Z$ and maximizes the null tail probability over $\psi$ (Suissa and Shuster, 1991; Berger and Sidik, 2003), optionally with the Berger-Boos procedure. `'Paired-Score'` is the score test of Nam (1997) and Tango (1998) for the null hypothesis $\delta = -\text{margin}$, which reduces to `'McNemar'` with a margin of 0.
+Six tests are available. `'McNemar'` refers $Z = (a - b) / \sqrt{a + b}$ to the standard normal distribution, and `'McNemar-cc'` refers $(|a - b| - 1) / \sqrt{a + b}$ to it, with the continuity correction of formula (2) of Fagerland et al. (2013), and $(a - b - 1) / \sqrt{a + b}$ for a one-sided alternative. `'McNemar-exact'` refers $a$ to the binomial distribution with $a + b$ trials and probability 1/2, and `'McNemar-midP'` is its mid-p version (Fagerland et al., 2013). `'McNemar-uncond'` orders the outcomes by $Z$ and maximizes the null tail probability over $\psi$ (Suissa and Shuster, 1991; Berger and Sidik, 2003), optionally with the Berger-Boos procedure. `'Paired-Score'` is the score test of Nam (1997) and Tango (1998) for the null hypothesis $\delta = -\text{margin}$, which reduces to `'McNemar'` with a margin of 0.
 
 The example of Berger and Sidik (2003, Section 4) has $n = 30$ pairs with $x_{10} = 11$ and $x_{01} = 4$ and tests $p_{10} \le p_{01}$ against $p_{10} > p_{01}$.
 

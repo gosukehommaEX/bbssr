@@ -98,8 +98,10 @@ Version 2.1.0 was not released, and its changes are included in this version.
   `PairedPowerBSSR()`, `PairedBSSR()`, `PairedTypeIErrorBSSR()` and
   `PairedAlphaAdjBSSR()` provide the fixed-design and re-estimation calculations for a
   matched-pairs design, such as a cross-over trial, with the probabilities `p10` and
-  `p01` of the two kinds of discordant pairs. Five tests are available: the asymptotic
-  McNemar test (`'McNemar'`), the exact conditional McNemar test (`'McNemar-exact'`), its
+  `p01` of the two kinds of discordant pairs. Six tests are available: the asymptotic
+  McNemar test (`'McNemar'`), the same with the continuity correction of formula (2) of
+  Fagerland et al. (2013) (`'McNemar-cc'`), whose two-sided p-value is that of
+  `stats::mcnemar.test()`, the exact conditional McNemar test (`'McNemar-exact'`), its
   mid-p version (`'McNemar-midP'`), the exact unconditional test of Suissa and Shuster
   (`'McNemar-uncond'`), with the Berger-Boos procedure and the refinement of
   `ref.pvalue`, and the score test of Nam and Tango (`'Paired-Score'`), which also tests
@@ -116,7 +118,11 @@ Version 2.1.0 was not released, and its changes are included in this version.
   Berger and Sidik (2003), Fagerland et al. (2013), Nam (1997) and Tango (1998), the
   sample sizes of Connor (1987, Table 1) and Nam (1997, Table 3), and the exact sizes
   and average powers of Berger and Sidik (2003, Tables 4 and 5) are reproduced in the
-  tests. A new vignette, `vignette('bbssr-paired')`, describes the functions.
+  tests. `inst/reproduce/reproduce-published.R` also compares the summaries of the type I
+  error rates in Table 4 of Fagerland et al. (2013) with the published values, and
+  `vignette('bbssr-published-figures')` redraws Figure 2 of Berger and Sidik (2003),
+  Figures 1 and 2 of Fagerland et al. (2013) and Figures 1 and 2 of Schepers et al.
+  (2026). A new vignette, `vignette('bbssr-paired')`, describes the functions.
 
 * Tests of equivalence. `alternative = 'equivalence'` in `BinaryRR()`, `BinaryPower()`,
   `BinarySampleSize()`, `BinaryPowerBSSR()`, `BinaryBSSR()`, `BinaryTypeIErrorBSSR()` and
@@ -371,12 +377,14 @@ Version 2.1.0 was not released, and its changes are included in this version.
   the options of the re-estimation, `bbssr-type1-error` on the type I error rate and the
   adjusted level, `bbssr-non-inferiority` on the tests with a margin,
   `bbssr-design-grid` on the comparison of designs with `BinaryGridBSSR()`, and
-  `bbssr-published-figures`, which redraws fifteen figures of Friede and Kieser (2004),
-  Kieser (2020), Friede, Mitchell and Mueller-Velten (2007) and Boschloo (1970) from
-  values computed with the package. Those values are computed by
-  `inst/reproduce/reproduce-figures.R` and stored in `inst/extdata/published-figures/`,
-  and the figures are drawn by `inst/reproduce/plot-figures.R`. The numbers quoted in
-  the text are computed when the vignette is built.
+  `bbssr-published-figures`, which redraws twenty figures of Friede and Kieser (2004),
+  Kieser (2020), Friede, Mitchell and Mueller-Velten (2007), Boschloo (1970), Berger and
+  Sidik (2003), Fagerland et al. (2013) and Schepers et al. (2026) from values computed
+  with the package. Those values are computed by `inst/reproduce/reproduce-figures.R`,
+  and for matched pairs by `inst/reproduce/reproduce-figures-paired.R`, and stored in
+  `inst/extdata/published-figures/`, and the figures are drawn by
+  `inst/reproduce/plot-figures.R`. The numbers quoted in the text are computed when the
+  vignette is built.
 
 * The help page of `BinaryAlphaAdjBSSR()` and the `bbssr-type1-error` vignette describe
   how the type I error rate is controlled within a confidence interval for the nuisance

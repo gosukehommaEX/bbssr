@@ -27,8 +27,9 @@ PairedPower(
 
 \item{alpha}{Level of significance for the alternative specified by \code{alternative}}
 
-\item{Test}{Type of statistical test. Options: \code{'McNemar'}, \code{'McNemar-exact'},
-\code{'McNemar-midP'}, \code{'McNemar-uncond'} or \code{'Paired-Score'}}
+\item{Test}{Type of statistical test. Options: \code{'McNemar'}, \code{'McNemar-cc'},
+\code{'McNemar-exact'}, \code{'McNemar-midP'}, \code{'McNemar-uncond'} or
+\code{'Paired-Score'}}
 
 \item{alternative}{Direction of the alternative hypothesis. Options: \code{'greater'}
 (default) for \code{p10 - p01 > -margin}, \code{'less'} for

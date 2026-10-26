@@ -6,11 +6,11 @@
 # 6), Boschloo (1970, Sections 2, 3, 4 and 6), Mehrotra, Chan and Berger (2003, Section
 # 3.1 and Tables 1 and 3), Berger and Boos (1994, Example 2), Fay and Hunsberger (2021,
 # Section 8 and Table 1), and for paired data Berger and Sidik (2003, Tables 3 to 5),
-# Fagerland, Lydersen and Laake (2013, Table 6), Nam (1997, Section 5 and Table 3), Tango
-# (1998, Section 6 and Table I), Connor (1987, Table 1 and p. 210) and Schepers et al.
-# (2026, Tables 1 and 5 and Section 3.4), and for stratified data Woolson, Bean and Rojas
-# (1986, Table 1 and p. 929), Nam (1992, Section 2.1 and Tables 1 and 2) and Jung (2014,
-# Tables 2 to 4 and p. 139) with bbssr.
+# Fagerland, Lydersen and Laake (2013, Tables 4 and 6), Nam (1997, Section 5 and Table 3),
+# Tango (1998, Section 6 and Table I), Connor (1987, Table 1 and p. 210) and Schepers et
+# al. (2026, Tables 1 and 5 and Section 3.4), and for stratified data Woolson, Bean and
+# Rojas (1986, Table 1 and p. 929), Nam (1992, Section 2.1 and Tables 1 and 2) and Jung
+# (2014, Tables 2 to 4 and p. 139) with bbssr.
 # Run from the package root after devtools::load_all(); the levels of Figure 21.1 of
 # Kieser (2020) under the rule that stops after the pilot and the second example of
 # Farrington and Manning (1990) use internal functions of the package, and the
@@ -1347,20 +1347,88 @@ explain(c('BS2003 Table 5: average power of CB, n = 60',
 # exact unconditional p-value of the article is twice the one-sided p-value
 fl.src <- 'Fagerland, Lydersen and Laake (2013)'
 fl.case <- list(Bentur = c(21, 1, 7), Cavo = c(161, 6, 16))
-fl.pub <- list(Bentur = c(0.0339, 0.0703, 0.0391, 0.0353),
-               Cavo = c(0.0330, 0.0525, 0.0347, 0.0342))
+fl.pub <- list(Bentur = c(0.0339, 0.0771, 0.0703, 0.0391, 0.0353),
+               Cavo = c(0.0330, 0.0550, 0.0525, 0.0347, 0.0342))
 for (k in names(fl.case)) {
   N <- fl.case[[k]][1]
   ab <- fl.case[[k]][2:3] + 1
   rec <- c(pp(N, 'McNemar', 'two.sided')[ab[1], ab[2]],
+           pp(N, 'McNemar-cc', 'two.sided')[ab[1], ab[2]],
            pp(N, 'McNemar-exact', 'two.sided')[ab[1], ab[2]],
            pp(N, 'McNemar-midP', 'two.sided')[ab[1], ab[2]],
            2 * pp(N, 'McNemar-uncond', 'less', ref.pvalue = TRUE)[ab[1], ab[2]])
-  add(fl.src, paste0('FLL2013 Table 6: ', k, ', ', c('McNemar asymptotic', 'McNemar exact',
-                                                      'McNemar mid-p',
+  add(fl.src, paste0('FLL2013 Table 6: ', k, ', ', c('McNemar asymptotic',
+                                                      'McNemar asymptotic w/CC',
+                                                      'McNemar exact', 'McNemar mid-p',
                                                       'exact unconditional')),
       fl.pub[[k]], rec, 4)
 }
+
+# Fagerland, Lydersen and Laake (2013), Table 4: type I error rates of the five tests at the
+# two-sided level 0.05 in 9595 scenarios, N = 10, 15, ..., 100, theta = 1, 2, 3, 5, 10 and
+# p1+ = p+1 = 0, 0.01, ..., 1, summarized by the mean, the maximum and the proportions of
+# scenarios above 0.05 and below 0.03, over all scenarios and for 10 <= N <= 30,
+# 35 <= N <= 60 and 65 <= N <= 100. The article gives the cell probabilities by the margins
+# and theta = p11 p22 / (p12 p21); p11 is the root of p11 p22 = theta p12 p21 within the
+# bounds given by the margins, as in inst/reproduce/reproduce-figures-paired.R, and the
+# two discordant cells have the probability p1+ - p11 each. Under the null hypothesis the
+# type I error rate depends on the scenario only through N and the probability
+# 2 (p1+ - p11) of a discordant pair
+fl4.N <- seq(10, 100, by = 5)
+fl4.p <- round(seq(0, 1, by = 0.01), 2)
+fl4.q <- unlist(lapply(c(1, 2, 3, 5, 10), function(th) {
+  b <- 1 + 2 * (th - 1) * fl4.p
+  pmax(fl4.p - 2 * th * fl4.p^2 / (b + sqrt(b^2 + 4 * th * (1 - th) * fl4.p^2)), 0)
+}))
+fl4.tests <- c(`McNemar asymptotic` = 'McNemar', `McNemar asymptotic w/CC` = 'McNemar-cc',
+               `McNemar exact` = 'McNemar-exact', `McNemar mid-p` = 'McNemar-midP',
+               `Exact unconditional` = 'McNemar-uncond')
+fl4.regions <- list(`all 9595 scenarios` = fl4.N, `10 <= N <= 30` = fl4.N[fl4.N <= 30],
+                    `35 <= N <= 60` = fl4.N[fl4.N >= 35 & fl4.N <= 60],
+                    `65 <= N <= 100` = fl4.N[fl4.N >= 65])
+fl4.pub <- list(
+  `McNemar asymptotic` = c(0.0430, 0.0537, 0.294, 0.121,
+                           0.0352, 0.0529, 0.037, 0.281,
+                           0.0435, 0.0537, 0.210, 0.084,
+                           0.0476, 0.0535, 0.519, 0.049),
+  `McNemar asymptotic w/CC` = c(0.0190, 0.0357, 0.000, 0.889,
+                                0.0089, 0.0237, 0.000, 1.000,
+                                0.0196, 0.0306, 0.000, 0.991,
+                                0.0249, 0.0357, 0.000, 0.743),
+  `McNemar exact` = c(0.0201, 0.0367, 0.000, 0.880,
+                      0.0090, 0.0278, 0.000, 1.000,
+                      0.0210, 0.0306, 0.000, 0.989,
+                      0.0263, 0.0367, 0.000, 0.723),
+  `McNemar mid-p` = c(0.0349, 0.0495, 0.000, 0.260,
+                      0.0212, 0.0469, 0.000, 0.627,
+                      0.0374, 0.0474, 0.000, 0.176,
+                      0.0416, 0.0495, 0.000, 0.095),
+  `Exact unconditional` = c(0.0373, 0.0495, 0.000, 0.201,
+                            0.0251, 0.0488, 0.000, 0.541,
+                            0.0408, 0.0482, 0.000, 0.096,
+                            0.0423, 0.0495, 0.000, 0.066)
+)
+for (k in names(fl4.tests)) {
+  rate <- lapply(fl4.N, function(N) {
+    PairedPower(fl4.q, fl4.q, N, 0.05, fl4.tests[[k]], 'two.sided',
+                ref.pvalue = fl4.tests[[k]] == 'McNemar-uncond')$Power
+  })
+  rec <- unlist(lapply(fl4.regions, function(r) {
+    x <- unlist(rate[fl4.N %in% r])
+    c(mean(x), max(x), mean(x > 0.05), mean(x < 0.03))
+  }))
+  add(fl.src, sprintf('FLL2013 Table 4: %s, %s, %s', k, rep(names(fl4.regions), each = 4),
+                      c('mean', 'max', 'proportion above 0.05', 'proportion below 0.03')),
+      fl4.pub[[k]], rec, c(4, 4, 3, 3))
+}
+# Six values of the exact unconditional test stay FAILs: the means and the proportions
+# below 0.03 over all scenarios, for 35 <= N <= 60 and for 65 <= N <= 100 (for example the
+# mean 0.0393 against 0.0408 for 35 <= N <= 60). The other ten values of this test agree,
+# and so do all values of the other four tests. Twice the one-sided p-value maximized on a
+# grid of 4001 points with local refinement, coarse grids of 11 to 101 points without
+# refinement and the Berger-Boos procedure with gamma = 1e-6 and 0.001 all fail to give the
+# published means; the article computed this test with StatXact, and no reason has been
+# found
 
 # Nam (1997): example of Section 5 (n = 344, x10 = 32, x01 = 27, delta0 = -0.05) and the
 # column n_t of Table 3, formula (9) with z = 1.645 and 0.842 truncated to an integer
