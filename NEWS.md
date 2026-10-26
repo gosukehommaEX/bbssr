@@ -66,9 +66,10 @@ Version 2.1.0 was not released, and its changes are included in this version.
   probability below 1e-14 are left out, and their total probability is reported as a
   bound on the error. The sample sizes of the columns 'n fixed' and 'random' of Table 4
   of Jung (2014) are compared with the published values in
-  `inst/reproduce/reproduce-published.R`, and so is the simulated power of the
-  unstratified Fisher test in Table 3, which agrees with random stratum and group sizes
-  within the Monte Carlo error. The re-estimation functions `StratPowerBSSR()`,
+  `inst/reproduce/reproduce-published.R`, and so is the simulated power of the stratified
+  exact test, the unstratified Fisher test and the Mantel-Haenszel test in Table 3, which
+  agrees with random stratum and group sizes within the Monte Carlo error. The
+  re-estimation functions `StratPowerBSSR()`,
   `StratTypeIErrorBSSR()`, `StratAlphaAdjBSSR()` and `StratBSSR()` gain the arguments
   `alloc`, `block` and `ss.frac`, and the first three also `nseq`. The interim analysis
   has the first patients enrolled and the final analysis the first patients up to the
@@ -371,9 +372,10 @@ Version 2.1.0 was not released, and its changes are included in this version.
 
 ## Documentation
 
-* The vignettes are reorganized into nine. `bbssr-introduction`,
+* The vignettes are reorganized into eleven. `bbssr-introduction`,
   `bbssr-statistical-methods`, `bbssr-interim-reestimation` and `bbssr-validation`
-  cover the new tests and functions, and five are added: `bbssr-reestimation-rules` on
+  cover the new tests and functions, `bbssr-paired` and `bbssr-stratified` are described
+  above, and five more are added: `bbssr-reestimation-rules` on
   the options of the re-estimation, `bbssr-type1-error` on the type I error rate and the
   adjusted level, `bbssr-non-inferiority` on the tests with a margin,
   `bbssr-design-grid` on the comparison of designs with `BinaryGridBSSR()`, and

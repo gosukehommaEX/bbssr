@@ -4,7 +4,8 @@
 #   source('tools/run-checks.R')
 # for the quick run (documentation, timing of the load_all() build and unit tests),
 #   reproduce <- TRUE; source('tools/run-checks.R')
-# to add the reproduction of published results and the scripts in tools/validation/,
+# to add the reproduction of published results, run with an optimized installed build, and
+# the scripts in tools/validation/,
 #   docs <- TRUE; source('tools/run-checks.R')
 # to add README.md from README.Rmd, every vignette rendered in a separate R process with
 # its time, the spelling check and the pkgdown site in docs/, or
@@ -55,21 +56,32 @@ t1 <- system.time(timing_grid())[['elapsed']]
 t2 <- system.time(timing_grid())[['elapsed']]
 note(sprintf('timing, load_all() build without optimization: first run %.2f s, second run %.2f s',
              t1, t2))
-# The same timing with an optimized build, installed into a temporary library and run in
-# a separate R process, which is how the package is used after installation. The
-# installation runs R CMD INSTALL in its own process, because install.packages() on
-# Windows refuses to install a package that is loaded in the current session
-opt <- if (!run.full) 'skipped in the quick run' else tryCatch({
-  lib <- file.path(tempdir(), 'bbssr-timing-lib')
+# An optimized build, installed into a temporary library and used in separate R processes,
+# which is how the package is used after installation. It serves the timing below and the
+# reproduction of published results, whose compiled code runs several times faster than
+# in the load_all() build. The installation runs R CMD INSTALL in its own process, because
+# install.packages() on Windows refuses to install a package that is loaded in the current
+# session
+opt.err <- NULL
+opt.lib <- if (!(run.full || run.reproduce)) NULL else tryCatch({
+  lib <- file.path(tempdir(), 'bbssr-optimized-lib')
   dir.create(lib, showWarnings = FALSE)
   tarball <- pkgbuild::build(dest_path = tempdir(), vignettes = FALSE, quiet = TRUE)
   inst <- callr::rcmd('INSTALL', c(paste0('--library=', lib), tarball), fail_on_status = FALSE)
   if (inst$status != 0) stop('R CMD INSTALL failed: ', inst$stderr)
+  lib
+}, error = function(e) {
+  opt.err <<- cli::ansi_strip(conditionMessage(e))
+  NULL
+})
+opt <- if (!run.full) 'skipped in the quick run' else if (is.null(opt.lib)) {
+  paste('installation failed:', opt.err)
+} else tryCatch({
   callr::r(function(lib, f) {
     library(bbssr, lib.loc = lib)
     environment(f) <- globalenv()
     c(system.time(f())[['elapsed']], system.time(f())[['elapsed']])
-  }, args = list(lib = lib, f = timing_grid))
+  }, args = list(lib = opt.lib, f = timing_grid))
 }, error = function(e) cli::ansi_strip(conditionMessage(e)))
 if (is.numeric(opt)) {
   note(sprintf('timing, optimized installed build: first run %.2f s, second run %.2f s',
@@ -80,12 +92,23 @@ if (is.numeric(opt)) {
   note('timing, optimized installed build: ', opt)
 }
 
-# Reproduction of published results, written to reproduce-output/
-rep.res <- if (!run.reproduce) 'skipped' else tryCatch({
-  source(file.path('inst', 'reproduce', 'reproduce-published.R'), local = new.env())
+# Reproduction of published results, written to reproduce-output/, with the optimized
+# installed build in a separate R process started in the package root. The script calls
+# some internal functions of the package, which load_all() exports; here they are found
+# through an environment whose parent is the namespace of bbssr
+rep.res <- if (!run.reproduce) 'skipped' else if (is.null(opt.lib)) {
+  paste('ERROR: installation of the optimized build failed:', opt.err)
+} else tryCatch({
+  rep.time <- callr::r(function(lib, f) {
+    library(bbssr, lib.loc = lib)
+    system.time(source(f, local = new.env(parent = asNamespace('bbssr'))))[['elapsed']]
+  }, args = list(lib = opt.lib,
+                 f = file.path('inst', 'reproduce', 'reproduce-published.R')),
+  show = TRUE)
   tab <- utils::read.csv(file.path('reproduce-output', 'published-comparison.csv'))
   counts <- table(factor(tab$verdict, levels = c('PASS', 'EXPLAINED', 'FAIL', 'INFO')))
-  paste(names(counts), counts, collapse = ', ')
+  sprintf('%s (%.1f minutes, optimized installed build)',
+          paste(names(counts), counts, collapse = ', '), rep.time / 60)
 }, error = function(e) paste('ERROR:', cli::ansi_strip(conditionMessage(e))))
 note('reproduction: ', rep.res)
 

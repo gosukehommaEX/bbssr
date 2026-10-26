@@ -11,14 +11,16 @@
 # al. (2026, Tables 1 and 5 and Section 3.4), and for stratified data Woolson, Bean and
 # Rojas (1986, Table 1 and p. 929), Nam (1992, Section 2.1 and Tables 1 and 2) and Jung
 # (2014, Tables 2 to 4 and p. 139) with bbssr.
-# Run from the package root after devtools::load_all(); the levels of Figure 21.1 of
-# Kieser (2020) under the rule that stops after the pilot and the second example of
-# Farrington and Manning (1990) use internal functions of the package, and the
-# statement of Section 23.2.2 of Kieser (2020) is compared with the
-# levels that inst/reproduce/reproduce-figures.R stores for Figure 1 of Friede et al.
-# (2007). The results are written to reproduce-output/: published-comparison.csv lists
-# every published value next to the recomputed value with a verdict (PASS, EXPLAINED,
-# FAIL or INFO), and summary.md is generated from it. The full run takes several minutes.
+# Run from the package root after devtools::load_all(), or with the installed package in
+# an environment whose parent is the namespace of bbssr, as tools/run-checks.R does with
+# an optimized build; the levels of Figure 21.1 of Kieser (2020) under the rule that stops
+# after the pilot and the second example of Farrington and Manning (1990) use internal
+# functions of the package, and the statement of Section 23.2.2 of Kieser (2020) is
+# compared with the levels that inst/reproduce/reproduce-figures.R stores for Figure 1 of
+# Friede et al. (2007). The results are written to reproduce-output/:
+# published-comparison.csv lists every published value next to the recomputed value with
+# a verdict (PASS, EXPLAINED, FAIL or INFO), and summary.md is generated from it. The run
+# takes well over an hour after load_all(), whose compiled code is not optimized.
 
 out.dir <- 'reproduce-output'
 dir.create(out.dir, showWarnings = FALSE)
@@ -1679,8 +1681,8 @@ explain(c(paste0('Nam1992 Table 1: N, ', nam.lab1[st.cells$k == 4 & st.cells$c =
   '127.499), so its rounding depends on the precision of the quantiles behind the',
   'printed constants'))
 
-# Jung (2014): the example of Table 2, Table 4, the column UF of Table 3 and the design
-# example of p. 139
+# Jung (2014): the example of Table 2, Table 4, the columns SF, UF and MH of Table 3 and
+# the design example of p. 139
 jung.src <- 'Jung (2014)'
 jung.x <- list(N1 = c(11, 9, 8), N2 = c(13, 12, 10), x1 = c(10, 9, 8), x2 = c(12, 11, 7))
 jung_p <- function(Test) {
@@ -1767,12 +1769,15 @@ jung_rd <- function(i) {
 add(jung.src, paste('Jung2014 Table 4: N, random,', jung.lab), jung.rd,
     vapply(seq_len(nrow(jung.t4)), jung_rd, numeric(1)), 0,
     'Stratum and group sizes binomial; the printed N checked by the powers at N - 1 and N')
-# Table 3, column UF: empirical power of the unstratified Fisher test from B = 10,000
-# simulated trials with q1 = 0.1 and the one-sided level 0.05. The article does not state
-# how the simulation allocates the patients. The exact rejection probabilities with random
-# stratum and group sizes (Section 3.1, alloc = 'both') are compared with the published
-# values within the Monte Carlo error, and the numbers of values outside it with the
-# stratum sizes fixed (Section 3.2) and with both sizes fixed (Section 3.4) are INFO items
+# Table 3, columns SF, UF and MH: empirical power of the stratified exact test, the
+# unstratified Fisher test and the Mantel-Haenszel test from B = 10,000 simulated trials
+# with q1 = 0.1 and the one-sided level 0.05. The column MH is the test without continuity
+# correction, whose p-value of the example of Table 2 is the published one. The article
+# does not state how the simulation allocates the patients. The exact rejection
+# probabilities with random stratum and group sizes (Section 3.1, alloc = 'both') are
+# compared with the published values within the Monte Carlo error, and the numbers of
+# values outside it with the stratum sizes fixed (Section 3.2) and with both sizes fixed
+# (Section 3.4) are INFO items
 jung.t3 <- expand.grid(q2 = c(0.3, 0.7), b = 1:3, a1 = c(0.25, 0.5, 0.75),
                        N = c(25, 50, 75))
 jung.t3.b <- list(c(1, 3) / 4, c(1, 1) / 2, c(3, 1) / 4)
@@ -1834,7 +1839,119 @@ jung.t3.uf <- matrix(c(
   .002, .482, .736, .870,
   .000, .040, .158, .303
 ), ncol = 4, byrow = TRUE)
-jung_t3 <- function(i, alloc) {
+jung.t3.sf <- matrix(c(
+  .009, .481, .430, .347,
+  .015, .246, .256, .240,
+  .018, .616, .576, .467,
+  .016, .261, .291, .280,
+  .017, .445, .406, .335,
+  .006, .085, .107, .119,
+  .010, .375, .409, .386,
+  .016, .229, .285, .316,
+  .012, .485, .537, .505,
+  .016, .256, .344, .398,
+  .013, .326, .363, .347,
+  .005, .095, .155, .202,
+  .010, .283, .381, .438,
+  .012, .224, .332, .405,
+  .010, .357, .474, .555,
+  .010, .251, .398, .501,
+  .003, .190, .290, .348,
+  .002, .100, .198, .294,
+  .019, .827, .792, .685,
+  .023, .561, .570, .532,
+  .029, .934, .906, .834,
+  .022, .661, .686, .643,
+  .025, .827, .789, .679,
+  .017, .436, .465, .457,
+  .019, .734, .767, .742,
+  .023, .529, .611, .666,
+  .021, .855, .882, .861,
+  .024, .625, .736, .779,
+  .020, .719, .754, .733,
+  .014, .425, .549, .607,
+  .018, .602, .741, .788,
+  .020, .496, .663, .763,
+  .021, .730, .852, .898,
+  .021, .603, .789, .876,
+  .014, .577, .702, .760,
+  .008, .414, .610, .718,
+  .025, .955, .934, .876,
+  .028, .757, .769, .729,
+  .026, .992, .984, .956,
+  .029, .866, .873, .844,
+  .025, .955, .934, .870,
+  .023, .710, .731, .701,
+  .023, .904, .921, .906,
+  .027, .725, .807, .840,
+  .024, .966, .977, .969,
+  .028, .839, .910, .929,
+  .023, .898, .915, .903,
+  .021, .665, .779, .824,
+  .024, .806, .902, .928,
+  .024, .698, .853, .917,
+  .024, .909, .967, .983,
+  .025, .807, .935, .975,
+  .019, .797, .892, .926,
+  .017, .644, .830, .904
+), ncol = 4, byrow = TRUE)
+jung.t3.mh <- matrix(c(
+  .037, .681, .633, .539,
+  .057, .506, .501, .464,
+  .052, .760, .718, .626,
+  .049, .500, .520, .485,
+  .060, .645, .605, .522,
+  .031, .252, .293, .302,
+  .048, .590, .622, .592,
+  .067, .474, .537, .556,
+  .046, .665, .696, .669,
+  .051, .480, .560, .604,
+  .054, .539, .572, .558,
+  .025, .268, .367, .429,
+  .056, .504, .596, .648,
+  .067, .446, .562, .636,
+  .043, .548, .654, .714,
+  .048, .453, .595, .686,
+  .032, .392, .501, .565,
+  .016, .270, .410, .520,
+  .042, .907, .882, .795,
+  .053, .742, .743, .712,
+  .054, .966, .946, .898,
+  .046, .793, .806, .766,
+  .055, .905, .873, .790,
+  .047, .624, .643, .618,
+  .052, .846, .865, .837,
+  .059, .710, .773, .805,
+  .050, .917, .934, .917,
+  .053, .761, .840, .866,
+  .051, .828, .848, .838,
+  .041, .597, .702, .739,
+  .055, .749, .849, .882,
+  .062, .670, .804, .871,
+  .053, .828, .915, .943,
+  .052, .738, .876, .933,
+  .046, .712, .811, .857,
+  .032, .574, .742, .828,
+  .047, .978, .964, .925,
+  .055, .865, .871, .837,
+  .047, .996, .992, .973,
+  .052, .922, .924, .900,
+  .056, .976, .965, .920,
+  .047, .814, .823, .800,
+  .047, .947, .959, .949,
+  .055, .838, .895, .915,
+  .050, .982, .987, .981,
+  .054, .904, .950, .961,
+  .049, .941, .952, .941,
+  .048, .774, .862, .889,
+  .054, .884, .947, .963,
+  .057, .814, .921, .958,
+  .049, .949, .984, .991,
+  .053, .878, .963, .987,
+  .047, .867, .932, .958,
+  .041, .758, .900, .948
+), ncol = 4, byrow = TRUE)
+jung_t3 <- function(i, alloc, Test) {
   q <- c(0.1, jung.t3$q2[i])
   b <- jung.t3.b[[jung.t3$b[i]]]
   N <- jung.t3$N[i]
@@ -1844,38 +1961,48 @@ jung_t3 <- function(i, alloc) {
   if (alloc == 'fixed') {
     n1 <- floor(N * a[1] + 1e-9)
     m <- floor(N * a * b + 1e-9)
-    return(StratPower(p1, p2, m, c(n1, N - n1) - m, 0.05, 'Unstrat-Fisher')$Power)
+    return(StratPower(p1, p2, m, c(n1, N - n1) - m, 0.05, Test)$Power)
   }
-  StratPower(p1, p2, alpha = 0.05, Test = 'Unstrat-Fisher', alloc = alloc, N = N,
+  StratPower(p1, p2, alpha = 0.05, Test = Test, alloc = alloc, N = N,
              frac = a, r = b / (1 - b))$Power
 }
-jung.t3.ex <- lapply(c(both = 'both', group = 'group', fixed = 'fixed'), function(al) {
-  as.vector(vapply(seq_len(nrow(jung.t3)), function(i) jung_t3(i, al), numeric(4)))
-})
-jung.t3.lab <- sprintf('Jung2014 Table 3: UF, N = %d, a1 = %.2f, b = (%s), q2 = %.1f',
-                       as.integer(jung.t3$N), jung.t3$a1,
-                       c('1/4, 3/4', '1/2, 1/2', '3/4, 1/4')[jung.t3$b], jung.t3$q2)
-jung.t3.it <- as.vector(outer(c(', theta = (1, 1)', ', theta = (5, 10)',
-                                ', theta = (7.5, 7.5)', ', theta = (10, 5)'),
-                              jung.t3.lab, function(th, lab) paste0(lab, th)))
-jung.t3.pub <- as.vector(t(jung.t3.uf))
-add(jung.src, jung.t3.it, jung.t3.pub, jung.t3.ex$both, 3,
-    'Stratum and group sizes binomial; the published value is simulated')
+jung.t3.lab <- sprintf('N = %d, a1 = %.2f, b = (%s), q2 = %.1f', as.integer(jung.t3$N),
+                       jung.t3$a1, c('1/4, 3/4', '1/2, 1/2', '3/4, 1/4')[jung.t3$b],
+                       jung.t3$q2)
+jung.t3.lab <- as.vector(outer(c(', theta = (1, 1)', ', theta = (5, 10)',
+                                 ', theta = (7.5, 7.5)', ', theta = (10, 5)'),
+                               jung.t3.lab, function(th, lab) paste0(lab, th)))
 # Four Monte Carlo standard errors of the exact value with B = 10,000, and the rounding
 # to three decimals
 jung.t3.tol <- function(e) 4 * sqrt(e * (1 - e) / 1e4) + 5e-4
-for (k in seq_along(jung.t3.it)) {
-  explain(jung.t3.it[k], jung.t3.tol(jung.t3.ex$both[k]), paste(
-    'Simulated with B = 10,000 trials; within four Monte Carlo standard errors of the',
-    'exact value with random stratum and group sizes, plus 0.0005 for the rounding'))
+jung.t3.cols <- list(SF = list(Test = 'Strat-Fisher', pub = jung.t3.sf),
+                     UF = list(Test = 'Unstrat-Fisher', pub = jung.t3.uf),
+                     MH = list(Test = 'CMH', pub = jung.t3.mh))
+for (col in names(jung.t3.cols)) {
+  jung.t3.ex <- lapply(c(both = 'both', group = 'group', fixed = 'fixed'), function(al) {
+    as.vector(vapply(seq_len(nrow(jung.t3)), function(i) {
+      jung_t3(i, al, jung.t3.cols[[col]]$Test)
+    }, numeric(4)))
+  })
+  jung.t3.it <- paste0('Jung2014 Table 3: ', col, ', ', jung.t3.lab)
+  jung.t3.pub <- as.vector(t(jung.t3.cols[[col]]$pub))
+  add(jung.src, jung.t3.it, jung.t3.pub, jung.t3.ex$both, 3,
+      'Stratum and group sizes binomial; the published value is simulated')
+  for (k in seq_along(jung.t3.it)) {
+    explain(jung.t3.it[k], jung.t3.tol(jung.t3.ex$both[k]), paste(
+      'Simulated with B = 10,000 trials; within four Monte Carlo standard errors of the',
+      'exact value with random stratum and group sizes, plus 0.0005 for the rounding'))
+  }
+  jung.t3.out <- function(e) sum(abs(e - jung.t3.pub) > jung.t3.tol(e))
+  add(jung.src, paste0('Jung2014 Table 3: ', col,
+                       ', values outside the Monte Carlo error, n fixed'), NA,
+      jung.t3.out(jung.t3.ex$group), NA,
+      'INFO: of 216; stratum sizes rounded down and group sizes binomial (Section 3.2)')
+  add(jung.src, paste0('Jung2014 Table 3: ', col,
+                       ', values outside the Monte Carlo error, (m, n) fixed'), NA,
+      jung.t3.out(jung.t3.ex$fixed), NA,
+      'INFO: of 216; stratum and group sizes rounded down (Section 3.4)')
 }
-jung.t3.out <- function(e) sum(abs(e - jung.t3.pub) > jung.t3.tol(e))
-add(jung.src, 'Jung2014 Table 3: UF, values outside the Monte Carlo error, n fixed', NA,
-    jung.t3.out(jung.t3.ex$group), NA,
-    'INFO: of 216; stratum sizes rounded down and group sizes binomial (Section 3.2)')
-add(jung.src, 'Jung2014 Table 3: UF, values outside the Monte Carlo error, (m, n) fixed',
-    NA, jung.t3.out(jung.t3.ex$fixed), NA,
-    'INFO: of 216; stratum and group sizes rounded down (Section 3.4)')
 # Design example of p. 139: three strata of sizes (20, 20, 22) with half of each in group
 # 1, rounded down, q = (0.9, 0.75, 0.6), odds ratios (1, 30, 30), one-sided level 0.1
 jung.q <- c(0.9, 0.75, 0.6)
