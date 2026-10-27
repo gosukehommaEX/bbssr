@@ -1373,3 +1373,6 @@ if __name__ == "__main__":
     reference_strat.blocks_summary_sbssr(emit, reported_level)
     # Continuity corrected McNemar test, added in version 3.0.0
     reference_paired.blocks_cc(emit, reported_level)
+    # Continuity correction of the stratified tests at |S - E| = 1/2, added after the
+    # independent review of version 3.0.0
+    reference_strat.blocks_cc_boundary(emit, reported_level)

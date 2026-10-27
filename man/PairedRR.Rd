@@ -126,7 +126,9 @@ with the margin \code{upper}, each at the level \code{alpha}, and the p-value of
 outcome is the larger of the two one-sided p-values.
 
 The p-values are kept for the rest of the session and reused by later calls with the
-same number of pairs and test, see \code{\link{bbssr-package}}.
+same number of pairs and test, see \code{\link{bbssr-package}}. They form a matrix of
+\code{(N + 1)^2} values, which takes about 2 GB of memory for 16,000 pairs, so the
+memory and the time of the exact calculations grow with the square of \code{N}.
 }
 \examples{
 RR <- PairedRR(N = 20, alpha = 0.025, Test = 'McNemar-exact')

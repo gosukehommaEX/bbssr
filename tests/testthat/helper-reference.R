@@ -170,10 +170,10 @@ search_calls <- function(code) {
   testthat::local_mocked_bindings(
     ss_exact_search = function(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod,
                                n.grid, bb.gamma, ref.pvalue, margin, search = 'crossing',
-                               search.limit = c(2, 50), margin.scale) {
+                               search.limit = c(2, 50), margin.scale, n.max = Inf) {
       seen[nrow(seen) + 1L, ] <<- list(search, search.limit[1], search.limit[2])
       real(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod, n.grid, bb.gamma,
-           ref.pvalue, margin, search, search.limit, margin.scale)
+           ref.pvalue, margin, search, search.limit, margin.scale, n.max)
     }
   )
   force(code)

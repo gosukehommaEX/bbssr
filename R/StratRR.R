@@ -53,7 +53,9 @@
 #' \code{V = sum_j N1[j] N2[j] z_j (N_j - z_j) / (N_j^2 (N_j - 1))}, and Cochran's
 #' statistic uses the binomial variance \code{sum_j N1[j] N2[j] z_j (N_j - z_j) / N_j^3}
 #' instead. The continuity correction reduces \code{|S - E|} by 0.5 when it is at least 0.5,
-#' as in \code{\link[stats]{mantelhaen.test}}. Nam (1992) reduces \code{S - E} by 0.5 in
+#' as in \code{\link[stats]{mantelhaen.test}}; a deviation of exactly 0.5 is
+#' recognised although \code{E}, a sum over the strata, carries rounding errors. Nam
+#' (1992) reduces \code{S - E} by 0.5 in
 #' every outcome, which makes a difference only where \code{|S - E| < 0.5}. There \code{S}
 #' is the integer next to \code{E}, and since the hypergeometric variance is at least
 #' \code{f (1 - f)}, with \code{f} the fractional part of \code{E}, and the binomial

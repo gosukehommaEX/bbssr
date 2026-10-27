@@ -32,13 +32,15 @@ check_paired_args <- function(N, alpha, Test, n.grid, bb.gamma, ref.pvalue, alte
                               margin) {
   Test <- match.arg(Test, c('McNemar', 'McNemar-cc', 'McNemar-exact', 'McNemar-midP',
                             'McNemar-uncond', 'Paired-Score'))
-  if (length(N) != 1 || is.na(N) || N != round(N) || N < 1) {
+  if (length(N) != 1 || !is.numeric(N) || !is.finite(N) || N != round(N) || N < 1 ||
+      N > .Machine$integer.max) {
     stop('N must be a single positive integer')
   }
   if (length(alpha) != 1 || is.na(alpha) || alpha <= 0 || alpha >= 1) {
     stop('alpha must be a single value in (0, 1)')
   }
-  if (length(n.grid) != 1 || is.na(n.grid) || n.grid < 2) {
+  if (length(n.grid) != 1 || !is.numeric(n.grid) || !is.finite(n.grid) ||
+      n.grid != round(n.grid) || n.grid < 2 || n.grid > .Machine$integer.max) {
     stop('n.grid must be a single integer of at least 2')
   }
   if (length(bb.gamma) != 1 || is.na(bb.gamma) || bb.gamma < 0 || bb.gamma >= alpha) {

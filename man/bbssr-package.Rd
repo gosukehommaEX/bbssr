@@ -61,12 +61,17 @@ re-estimation design}
 \item{\code{\link{StratSampleSize}}}{Total sample size attaining a target power}
 \item{\code{\link{StratPowerBSSR}}}{Power and final sample size of a re-estimation
 design}
+\item{\code{\link{StratGridBSSR}}}{Power and final sample size of several
+re-estimation designs over common scenarios}
 \item{\code{\link{StratBSSR}}}{Re-estimation from the interim pooled numbers of
 responders of the strata}
 \item{\code{\link{StratTypeIErrorBSSR}}}{Type I error rate of a re-estimation
 design over the common response probabilities of the strata}
 \item{\code{\link{StratAlphaAdjBSSR}}}{Adjusted significance level of a
 re-estimation design with two strata}
+\item{\code{\link{StratCondRejectBSSR}}}{Conditional rejection probabilities of a
+re-estimation design with two strata, and its type I error rate decomposed by the
+interim outcome}
 }
 }
 

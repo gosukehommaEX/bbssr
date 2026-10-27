@@ -88,3 +88,28 @@ test_that("strat_reestimate agrees with the reference sizes of the pooled estima
   expect_error(re('CMH', 'by stratum'))
 })
 
+test_that("the exact search of strat_reestimate does not go beyond N.max", {
+  s <- as.matrix(expand.grid(0:8, 0:8))
+  args <- list(s = s, n1 = c(4L, 4L), n2 = c(4L, 4L), Delta.A = 2.5, effect = 'OR',
+               frac = c(0.5, 0.5), r = c(1, 1), ss.method = 'exact', ss.Test = 'CMH',
+               ss.alpha = 0.05, tar.power = 0.8, alternative = 'greater',
+               tsmethod = 'minlike', N1.plan = c(8L, 8L), N2.plan = c(8L, 8L),
+               restricted = FALSE, N.min = NULL, N.max = 60, search = 'crossing',
+               search.limit = c(2, 50))
+  re <- do.call(strat_reestimate, args)
+  hi <- strat_bounds(c(0.5, 0.5), c(1, 1), c(4, 4), c(4, 4), NULL, 60)[2]
+  ok <- !is.na(re$n.re)
+  expect_true(all(re$n.re[ok] <= hi))
+  # Where the normal approximation lies within the bound, the result is that of the
+  # search without a bound, capped at the bound
+  init <- strat_raw_n(re$hat.p1, re$hat.p2, c(0.5, 0.5), c(1, 1), 0.05, 0.8, 'greater',
+                      FALSE, FALSE)
+  inside <- ok & ceil_tol(init) <= hi
+  expect_gt(sum(inside), 0)
+  expect_gt(sum(ok & !inside), 0)
+  free <- strat_ss_search(re$hat.p1[inside, , drop = FALSE],
+                          re$hat.p2[inside, , drop = FALSE], c(0.5, 0.5), c(1, 1), 0.05,
+                          0.8, 'CMH', 'greater', 'minlike')$n
+  expect_equal(re$n.re[inside], pmin(free, hi))
+})
+

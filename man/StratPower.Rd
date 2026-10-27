@@ -100,7 +100,10 @@ With \code{alloc} other than \code{'fixed'} the design has two strata and a tota
 random. With \code{'group'} the stratum sizes are fixed at \code{n1 = floor(N frac[1])}
 and \code{n2 = N - n1}, and each patient of stratum \code{j} is in group 1 with the
 probability \code{r[j] / (1 + r[j])}, so that the size of group 1 is binomial (Jung,
-2014, Section 3.2). With \code{'both'} the size of stratum 1 is binomial as well, with
+2014, Section 3.2, where the size of stratum 1 is the round-off of \code{N frac[1]};
+the integer part used here reproduces all but one of the sample sizes of the column
+'n fixed' of Table 4 of the article). With \code{'both'} the size of stratum 1 is
+binomial as well, with
 the probability \code{frac[1]} (Jung, 2014, Section 3.1). With \code{'stratum'} the
 stratum sizes are binomial and the groups are allocated by permuted blocks of size
 \code{block} within each stratum: every complete block holds

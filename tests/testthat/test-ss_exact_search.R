@@ -70,3 +70,27 @@ test_that("the stable search checks its limit", {
     expect_error(run(bad), 'search.limit must be')
   }
 })
+
+test_that("the searches do not go beyond n.max", {
+  run <- function(p1, p2, search, n.max = Inf) {
+    ss_exact_search(p1, p2, 1, 0.025, 0.8, 'Chisq', 'greater', 'minlike', 100L, 0, FALSE,
+                    0, search, margin.scale = 'RD', n.max = n.max)
+  }
+  # The pair (0.6, 0.25) attains the target power below 40 per group, the pair
+  # (0.55, 0.45) only far above it
+  expect_lt(BinaryPower(0.55, 0.45, 40, 40, 0.025, 'Chisq')$Power, 0.8)
+  for (s in c('crossing', 'smallest')) {
+    free <- run(0.6, 0.25, s)$N2
+    expect_lt(free, 40)
+    expect_identical(run(c(0.6, 0.55), c(0.25, 0.45), s, 40)$N2, c(free, 40L), info = s)
+  }
+  st <- run(c(0.6, 0.55), c(0.25, 0.45), 'stable', 40)
+  # The limit of the stable search is lowered to n.max, and every size from the result up
+  # to it attains the target power
+  expect_identical(st$limit, c(40L, 40L))
+  expect_identical(st$N2[2], 40L)
+  pw <- vapply(st$N2[1]:40, function(n) {
+    BinaryPower(0.6, 0.25, n, n, 0.025, 'Chisq')$Power
+  }, numeric(1))
+  expect_true(all(pw >= 0.8 - 1e-8))
+})

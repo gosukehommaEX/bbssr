@@ -343,3 +343,10 @@ test-PairedPower.R	power cc	1e-10	0.348235072572542 0.0276578546401005 0.0071649
 test-PairedPower.R	power cc two-sided	1e-10	0.241258649191447 0.0235977503363145 0.00121296132209725 0.154757175258514
 test-PairedSampleSize.R	exact cc	0	84 327
 test-PairedPowerBSSR.R	power and E.N cc exact	1e-10	0.77340819319093 35.6456938805 0.757314659877442 53.8486328125
+test-strat_pvalue_cases.R	deviation of one half CMH-cc greater	1e-12	0.884930329778292 0.5 0.5 0.115069670221708
+test-strat_pvalue_cases.R	deviation of one half CMH-cc less	1e-12	0.115069670221708 0.5 0.5 0.884930329778292
+test-strat_pvalue_cases.R	deviation of one half CMH-cc two.sided	1e-12	0.230139340443417 1 1 0.230139340443417
+test-strat_pvalue_cases.R	deviation of one half Cochran-cc greater	1e-12	0.905666741160657 0.5 0.5 0.0943332588393426
+test-strat_pvalue_cases.R	deviation of one half Cochran-cc less	1e-12	0.0943332588393427 0.5 0.5 0.905666741160657
+test-strat_pvalue_cases.R	deviation of one half Cochran-cc two.sided	1e-12	0.188666517678685 1 1 0.188666517678685
+test-StratRR.R	critical values at a deviation of one half	0	0 3

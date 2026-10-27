@@ -43,3 +43,10 @@ test_that("check_strat_args returns the codes and flags of the unstratified test
   expect_identical(u('Unstrat-Fisher', 'greater')$tsmethod, 'minlike')
   expect_error(u('Unstrat'))
 })
+
+test_that("check_strat_args refuses infinite and too large sizes", {
+  expect_error(check_strat_args(c(5, Inf), c(4, 7), 0.05, 'CMH', 'greater', 'minlike'),
+               'positive integers')
+  expect_error(check_strat_args(c(5, 6), c(4, 2^31), 0.05, 'CMH', 'greater', 'minlike'),
+               'positive integers')
+})

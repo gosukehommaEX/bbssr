@@ -144,3 +144,11 @@ test_that("check_rr_args returns the two margins of a test of equivalence", {
   expect_error(check_rr_args(20, 20, 0.05, 'Fisher', 100, 0, FALSE, 'equivalence', 0.1,
                              'RD'), 'requires Test')
 })
+
+test_that("check_rr_args refuses infinite, fractional and too large sizes", {
+  expect_error(args_of(N1 = Inf), 'N1 and N2 must be positive integers')
+  expect_error(args_of(N2 = Inf), 'N1 and N2 must be positive integers')
+  expect_error(args_of(N1 = 2^31), 'N1 and N2 must be positive integers')
+  expect_error(args_of(n.grid = Inf), 'n.grid must be a single integer')
+  expect_error(args_of(n.grid = 2.5), 'n.grid must be a single integer')
+})

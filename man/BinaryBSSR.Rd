@@ -101,7 +101,8 @@ as in \code{\link{BinaryPowerBSSR}}}
 
 \item{search}{How the exact re-estimation chooses the sample size when
 \code{ss.method = 'exact'}: \code{'crossing'} (default), \code{'smallest'} or
-\code{'stable'}, as in \code{\link{BinarySampleSize}}. Ignored by the other methods}
+\code{'stable'}, as in \code{\link{BinarySampleSize}}, without going beyond the
+largest size that \code{N.max} allows. Ignored by the other methods}
 
 \item{search.limit}{Limit of the size of group 2 examined by \code{search = 'stable'},
 as in \code{\link{BinarySampleSize}}. Default is \code{c(2, 50)}}
@@ -155,7 +156,8 @@ An object of class \code{bbssr_bssr}, a data frame with one row containing:
 \item{hat.p1}{Recovered response probability of group 1}
 \item{hat.p2}{Recovered response probability of group 2}
 \item{N1.re}{Re-estimated total sample size of group 1}
-\item{N2.re}{Re-estimated total sample size of group 2}
+\item{N2.re}{Re-estimated total sample size of group 2, before the bounds; with
+\code{ss.method = 'exact'} at most the largest size that \code{N.max} allows}
 \item{N.re}{Re-estimated total sample size}
 \item{n1.stage2}{Number of additional patients to enrol in group 1}
 \item{n2.stage2}{Number of additional patients to enrol in group 2}

@@ -21,6 +21,11 @@
 #' a pair is computed by \code{power_from_rr}, so each pair receives the same sample size
 #' as a separate call of \code{\link{BinarySampleSize}} would give.
 #'
+#' With \code{n.max} the searches do not go beyond that size of group 2: \code{'crossing'}
+#' starts there when the normal approximation exceeds it, \code{'stable'} lowers its limit
+#' to it, and each search returns \code{n.max} when the target power is not attained up
+#' to it.
+#'
 #' @param p1 Response probabilities of group 1
 #' @param p2 Response probabilities of group 2, of the same length as \code{p1}, with no
 #'   element equal to the corresponding element of \code{p1}
@@ -41,6 +46,8 @@
 #' @param search.limit The factor \code{a} and the increment \code{b} of the limit of
 #'   \code{search = 'stable'}. Default is \code{c(2, 50)}
 #' @param margin.scale \code{'RD'} or \code{'RR'}, the scale of the margin
+#' @param n.max Largest size of group 2 examined, \code{Inf} (default) for none. A
+#'   re-estimation passes the largest size that its upper bound on the final total allows
 #'
 #' @return A list with the integer vectors \code{N2}, the sizes of group 2, and
 #'   \code{limit}, the limits of \code{search = 'stable'} (otherwise \code{NA})
@@ -51,7 +58,7 @@
 #' @importFrom stats qnorm dbinom
 ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsmethod,
                             n.grid, bb.gamma, ref.pvalue, margin, search = 'crossing',
-                            search.limit = c(2, 50), margin.scale) {
+                            search.limit = c(2, 50), margin.scale, n.max = Inf) {
   if (search == 'stable' &&
       (!is.numeric(search.limit) || length(search.limit) != 2 || anyNA(search.limit) ||
          any(!is.finite(search.limit)) || search.limit[1] < 1 || search.limit[2] < 0)) {
@@ -87,6 +94,7 @@ ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsme
     init.N2 <- ss_raw_n2(p1, p2, r, alpha, tar.power, alternative, 'standard', margin,
                          margin.scale)
   }
+  n.max <- max(1, n.max)
   out <- integer(length(p1))
   limit <- rep(NA_integer_, length(p1))
   for (k in seq_along(p1)) {
@@ -94,15 +102,21 @@ ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsme
     if (search == 'smallest') {
       # Smallest size attaining the target power, by a scan upwards from 1
       N2 <- 1
-      while (power_at(N2, k) %<<% tar.power) N2 <- N2 + 1
+      while (N2 < n.max && (power_at(N2, k) %<<% tar.power)) N2 <- N2 + 1
       out[k] <- as.integer(N2)
       next
     }
     if (search == 'stable') {
       # Smallest size from which every size up to the limit attains the target power, by a
-      # scan downwards from the limit
-      L <- max(ceiling(search.limit[1] * N2), ceiling(N2 + search.limit[2]))
+      # scan downwards from the limit, lowered to n.max
+      L0 <- max(ceiling(search.limit[1] * N2), ceiling(N2 + search.limit[2]))
+      L <- min(L0, n.max)
       if (power_at(L, k) %<<% tar.power) {
+        if (L < L0) {
+          out[k] <- as.integer(L)
+          limit[k] <- as.integer(L)
+          next
+        }
         stop('the size ', L, ' of group 2, the limit of the stable search, does not ',
              'attain the target power; raise search.limit')
       }
@@ -112,7 +126,8 @@ ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsme
       limit[k] <- as.integer(L)
       next
     }
-    # Step 1 (power calculation given the initial sample size)
+    # Step 1 (power calculation given the initial sample size, at most n.max)
+    N2 <- min(N2, n.max)
     Power <- power_at(N2, k)
     # Step 2 (sample size calculation via a grid search algorithm)
     if (Power %>=% tar.power) {
@@ -122,7 +137,7 @@ ss_exact_search <- function(p1, p2, r, alpha, tar.power, Test, alternative, tsme
       }
       if (Power %<<% tar.power) N2 <- N2 + 1
     } else {
-      while (Power %<<% tar.power) {
+      while ((Power %<<% tar.power) && (N2 < n.max)) {
         N2 <- N2 + 1
         Power <- power_at(N2, k)
       }

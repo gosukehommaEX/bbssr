@@ -29,3 +29,15 @@ test_that("paired_ss_search supports the three searches", {
                                 0, search = 'stable', search.limit = c(0.5, 10)),
                'search.limit')
 })
+
+test_that("paired_ss_search does not go beyond n.max", {
+  # (0.3, 0.1) attains the target power with 84 pairs, (0.2, 0.18) only far above 100
+  s <- paired_ss_search(c(0.3, 0.2), c(0.1, 0.18), 0.025, 0.8, 'McNemar-exact', 'greater',
+                        100, 0, FALSE, 0, n.max = 100)
+  expect_equal(s$N, c(84, 100))
+  rr <- get_paired_rr(100, 0.025, 'McNemar-exact', 'greater', 100, 0, FALSE, 0)
+  expect_lt(paired_power(rr, 0.2, 0.18), 0.8)
+  sm <- paired_ss_search(0.2, 0.18, 0.025, 0.8, 'McNemar-exact', 'greater', 100, 0, FALSE,
+                         0, search = 'smallest', n.max = 100)
+  expect_equal(sm$N, 100)
+})

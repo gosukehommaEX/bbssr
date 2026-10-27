@@ -252,3 +252,30 @@ test_that("strat_pvalue_cases allows empty groups and leaves out empty strata", 
                'every row must have patients')
   expect_error(strat_pvalue_cases(N1 - 1L, N2, x1, x2, 0L, 0L, 0L), 'non-negative')
 })
+
+test_that("the continuity correction applies at a deviation of exactly one half", {
+  # N1 = (4, 3, 2), N2 = (2, 3, 4) and one responder in each stratum give E = 3/2, which
+  # the sum over the strata misses by a rounding error; S = 1 and S = 2 deviate from E by
+  # exactly 1/2. Reference values computed with E as a fraction
+  N1 <- c(4L, 3L, 2L)
+  N2 <- c(2L, 3L, 4L)
+  x1 <- rbind(c(0L, 0L, 0L), c(1L, 0L, 0L), c(1L, 1L, 0L), c(1L, 1L, 1L))
+  x2 <- 1L - x1
+  pv3 <- function(Test, alternative) {
+    a <- check_strat_args(N1, N2, 0.05, Test, alternative, 'minlike')
+    strat_pvalue_cases(matrix(N1, 4, 3, byrow = TRUE), matrix(N2, 4, 3, byrow = TRUE), x1,
+                       x2, a$type, a$alt, a$ts)
+  }
+  expect_equal(pv3('CMH-cc', 'greater'),
+               c(0.884930329778292, 0.5, 0.5, 0.115069670221708), tolerance = 1e-12)
+  expect_equal(pv3('CMH-cc', 'less'),
+               c(0.115069670221708, 0.5, 0.5, 0.884930329778292), tolerance = 1e-12)
+  expect_equal(pv3('CMH-cc', 'two.sided'),
+               c(0.230139340443417, 1, 1, 0.230139340443417), tolerance = 1e-12)
+  expect_equal(pv3('Cochran-cc', 'greater'),
+               c(0.905666741160657, 0.5, 0.5, 0.0943332588393426), tolerance = 1e-12)
+  expect_equal(pv3('Cochran-cc', 'less'),
+               c(0.0943332588393427, 0.5, 0.5, 0.905666741160657), tolerance = 1e-12)
+  expect_equal(pv3('Cochran-cc', 'two.sided'),
+               c(0.188666517678685, 1, 1, 0.188666517678685), tolerance = 1e-12)
+})

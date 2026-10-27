@@ -34,7 +34,8 @@ StratBSSR(
 )
 }
 \arguments{
-\item{n1}{Numbers of patients of group 1 observed in the strata at the interim analysis}
+\item{n1}{Numbers of patients of group 1 observed in the strata at the interim analysis.
+With a random allocation a group may be empty in a stratum}
 
 \item{n2}{Numbers of patients of group 2 observed in the strata at the interim analysis}
 
@@ -108,7 +109,8 @@ patients for every stratum, as a re-estimation that ignores the strata would. Wi
 \code{'pooled'} the final group sizes depend only on the total number of interim
 responders}
 
-\item{search}{Search of the exact re-estimation, see \code{\link{StratSampleSize}}}
+\item{search}{Search of the exact re-estimation, see \code{\link{StratSampleSize}};
+it does not go beyond the largest size that \code{N.max} allows}
 
 \item{search.limit}{Limit of the search \code{'stable'}, see
 \code{\link{StratSampleSize}}}

@@ -34,9 +34,10 @@
 #' @return A data frame with one row for each element of \code{D1}, containing \code{D1},
 #'   \code{psi.hat}, \code{psi.plan}, \code{p10.plan}, \code{p01.plan}, the unrounded
 #'   normal approximation \code{n.raw} (\code{NA} unless \code{ss.method = 'standard'}),
-#'   the re-estimated number of pairs \code{N.re} before the bounds are applied (with
-#'   \code{ss.method = 'conditional.power'} the search is confined to the bounds, so
-#'   \code{N.re} already lies within them), and the final number of pairs \code{N}. The
+#'   the re-estimated number of pairs \code{N.re} before the bounds are applied (the
+#'   search of \code{ss.method = 'exact'} does not go beyond the upper bound, and that of
+#'   \code{'conditional.power'} is confined to the bounds), and the final number of pairs
+#'   \code{N}. The
 #'   attribute \code{N.limit} holds the limits of the search \code{'stable'}
 #'
 #' @references
@@ -104,7 +105,7 @@ paired_reestimate <- function(n1, D1, Delta.A, N, tar.power, restricted, alterna
     first <- which(!duplicated(key))
     s <- paired_ss_search(p10[first], p01[first], ss.alpha, tar.power, ss.Test,
                           alternative, n.grid, bb.gamma, ref.pvalue, margin, search,
-                          search.limit)
+                          search.limit, n.max = hi)
     idx <- match(key, key[first])
     N.re <- s$N[idx]
     limit <- s$limit[idx]

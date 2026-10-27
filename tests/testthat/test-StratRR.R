@@ -82,3 +82,12 @@ test_that("StratRR of the unstratified tests rejects as BinaryRR on the table of
   expect_identical(length(unique(rr$upper[i])), 1L)
 })
 
+test_that("StratRR applies the continuity correction at a deviation of exactly one half", {
+  # At the stratum totals (1, 1, 1), E = 3/2 is missed by the sum over the strata by a
+  # rounding error. The reference values follow from E as a fraction
+  less <- StratRR(c(4, 3, 2), c(2, 3, 4), 0.3, 'CMH-cc', 'less')
+  greater <- StratRR(c(4, 3, 2), c(2, 3, 4), 0.3, 'CMH-cc', 'greater')
+  k <- which(less$z.S1 == 1 & less$z.S2 == 1 & less$z.S3 == 1)
+  expect_equal(c(less$lower[k], greater$upper[k]), c(0, 3))
+})
+

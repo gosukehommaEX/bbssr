@@ -32,6 +32,10 @@ Draws the power of the design with blinded sample size re-estimation of
 the scenarios, as \code{\link{plot.bbssr_powerbssr}} does for two groups.
 }
 \details{
+The lines join the scenarios in the order of the horizontal axis, so the scenarios
+should differ in a single probability, or \code{x.by} should name a column in which
+they all differ; a warning is given when two scenarios share a value on the axis.
+
 The Monte Carlo standard errors of a simulated or averaged power (three or more strata,
 or a random allocation) are not drawn. With \code{Delta.T = 0} in
 \code{\link{StratPowerBSSR}} the curves are rejection probabilities under the null

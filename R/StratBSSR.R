@@ -4,7 +4,8 @@
 #' binary endpoint from the blinded data of an interim analysis: the numbers of patients
 #' and the pooled numbers of responders of the strata.
 #'
-#' @param n1 Numbers of patients of group 1 observed in the strata at the interim analysis
+#' @param n1 Numbers of patients of group 1 observed in the strata at the interim analysis.
+#'   With a random allocation a group may be empty in a stratum
 #' @param n2 Numbers of patients of group 2 observed in the strata at the interim analysis
 #' @param S Numbers of responders observed in the strata at the interim analysis, pooled
 #'   over both groups, one element per stratum
@@ -83,7 +84,21 @@ StratBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test, restricted 
   ss.strata <- match.arg(ss.strata)
   alloc <- match.arg(alloc)
   ss.frac <- match.arg(ss.frac)
-  a <- check_strat_args(n1, n2, alpha, Test, alternative, tsmethod)
+  if (alloc == 'fixed') {
+    a <- check_strat_args(n1, n2, alpha, Test, alternative, tsmethod)
+  } else {
+    # With a random allocation only the interim sizes of the strata enter the
+    # re-estimation, so a group may be empty in a stratum at the interim analysis
+    if (!is.numeric(n1) || !is.numeric(n2) || length(n1) != length(n2) ||
+        any(!is.finite(n1)) || any(!is.finite(n2)) || any(n1 < 0) || any(n2 < 0) ||
+        any(n1 != round(n1)) || any(n2 != round(n2)) || any(n1 + n2 < 1)) {
+      stop('n1 and n2 must be vectors of non-negative integers of the same length, with ',
+           'at least one patient in every stratum')
+    }
+    a <- check_strat_args(pmax(n1, 1), pmax(n2, 1), alpha, Test, alternative, tsmethod)
+    a$N1 <- as.integer(n1)
+    a$N2 <- as.integer(n2)
+  }
   J <- length(a$N1)
   if (!is.numeric(S) || length(S) != J || anyNA(S) || any(S != round(S)) || any(S < 0) ||
       any(S > a$N1 + a$N2)) {

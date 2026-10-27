@@ -86,10 +86,14 @@ def asym_p(N1, N2, z, S, test, alt):
     if V <= 0:
         return 1.0
     d = S - E
-    y = 0.5 if (test.endswith("-cc") and abs(d) >= 0.5) else 0.0
+    if test.endswith("-cc") and abs(abs(d) - 0.5) < 1e-6:
+        # Near the deviation 1/2 of the continuity correction, E as a fraction decides
+        d = S - sum(Fraction(N1[j] * z[j], N1[j] + N2[j]) for j in range(len(N1)))
+    y = Fraction(1, 2) if (test.endswith("-cc") and abs(d) >= Fraction(1, 2)) else 0
+    dev = float(abs(d) - y)
     if alt == "two.sided":
-        return min(1.0, 2 * norm.sf((abs(d) - y) / math.sqrt(V)))
-    Z = math.copysign(1.0, d) * (abs(d) - y) / math.sqrt(V) if d != 0 else 0.0
+        return min(1.0, 2 * norm.sf(dev / math.sqrt(V)))
+    Z = (dev if d > 0 else -dev) / math.sqrt(V) if d != 0 else 0.0
     return norm.sf(Z) if alt == "greater" else norm.cdf(Z)
 
 
@@ -264,16 +268,21 @@ def sizes(n, frac, r):
     return N1, N2
 
 
-def exact_n(p1, p2, frac, r, alpha, tp, test, alt, ts="minlike", search="crossing"):
+def exact_n(p1, p2, frac, r, alpha, tp, test, alt, ts="minlike", search="crossing",
+            n_hi=None):
+    """Exact search of the nominal size. The search does not go beyond n_hi: it starts
+    there when the normal approximation exceeds it, and returns n_hi when the target
+    power is not attained up to it."""
+    hi = math.inf if n_hi is None else max(1, n_hi)
     cc = test.endswith("-cc")
     n0 = max(1, ceil_tol(raw_n(p1, p2, frac, r, alpha, tp, alt, cc, test in UNSTRAT)))
     pw = lambda n: power(*sizes(n, frac, r), p1, p2, test, alt, ts, alpha)
     if search == "smallest":
         n = 1
-        while pw(n) < tp - TOL:
+        while n < hi and pw(n) < tp - TOL:
             n += 1
         return n
-    n = n0
+    n = min(n0, hi)
     P = pw(n)
     if P >= tp - TOL:
         while P >= tp - TOL and n > 1:
@@ -282,7 +291,7 @@ def exact_n(p1, p2, frac, r, alpha, tp, test, alt, ts="minlike", search="crossin
         if P < tp - TOL:
             n += 1
     else:
-        while P < tp - TOL:
+        while P < tp - TOL and n < hi:
             n += 1
             P = pw(n)
     return n
@@ -331,7 +340,13 @@ def reestimate(s, n1, n2, DA, effect, frac, r, method, test, alpha, tp, alt, ts,
         n = max(1, ceil_tol(nr)) if ok else None
     else:
         ok = math.isfinite(raw_n(q1, q2, frac, r, alpha, tp, alt, cc, un))
-        n = exact_n(q1, q2, frac, r, alpha, tp, test, alt, ts) if ok else None
+        # Largest nominal size within Nmax; the total of sizes(n) does not decrease in n
+        hi = None
+        if Nmax is not None:
+            hi = int(Nmax)
+            while hi > 1 and sum(sizes(hi, frac, r)[0]) + sum(sizes(hi, frac, r)[1]) > Nmax:
+                hi -= 1
+        n = exact_n(q1, q2, frac, r, alpha, tp, test, alt, ts, n_hi=hi) if ok else None
     low1 = [max(n1[j], N1p[j]) if restricted else n1[j] for j in range(J)]
     low2 = [max(n2[j], N2p[j]) if restricted else n2[j] for j in range(J)]
     if not ok:
@@ -1106,6 +1121,24 @@ def blocks_alloc_sim(emit, reported_level):
             emit(f, f"three strata, {lab}, {model} CMH",
                  [alloc_power_strata(10, frac, (0.5,) * 3, model, p1, p2, "CMH", "greater",
                                      "minlike", 0.05, n_int=n_int) for p1, p2 in sc])
+
+
+# ---------------------------------------------------------------------------------------
+# Continuity correction at a deviation of exactly one half (independent review, round 2,
+# finding L1): N1 = (4, 3, 2), N2 = (2, 3, 4) and one responder in each stratum give
+# E = 3/2, which the sum over the strata in floating point misses by a rounding error
+def blocks_cc_boundary(emit, reported_level):
+    N1, N2, z = (4, 3, 2), (2, 3, 4), (1, 1, 1)
+    f = "test-strat_pvalue_cases.R"
+    for test in ("CMH-cc", "Cochran-cc"):
+        for alt in ("greater", "less", "two.sided"):
+            emit(f, f"deviation of one half {test} {alt}",
+                 [asym_p(N1, N2, z, S, test, alt) for S in range(4)], rtol=1e-12)
+    # Critical values at the level 0.3 for the stratum totals z: the largest S rejected
+    # against 'less' and the smallest against 'greater'
+    lo = max(S for S in range(4) if asym_p(N1, N2, z, S, "CMH-cc", "less") < 0.3)
+    hi = min(S for S in range(4) if asym_p(N1, N2, z, S, "CMH-cc", "greater") < 0.3)
+    emit("test-StratRR.R", "critical values at a deviation of one half", [lo, hi], rtol=0)
 
 
 # ---------------------------------------------------------------------------------------

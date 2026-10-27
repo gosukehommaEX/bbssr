@@ -60,3 +60,19 @@ test_that("StratBSSR with a random allocation re-estimates the total", {
                          restricted = TRUE, ss.method = 'standard', alloc = 'stratum'),
                'planned sizes')
 })
+
+test_that("StratBSSR with a random allocation accepts a group without interim patients", {
+  run <- function(n1, n2, alloc = 'group') {
+    StratBSSR(n1 = n1, n2 = n2, S = c(4, 7), Delta.A = 0.3, r = 1, alpha = 0.05,
+              tar.power = 0.8, Test = 'CMH', N1 = c(12, 12), N2 = c(12, 12),
+              ss.method = 'standard', alloc = alloc)
+  }
+  a <- run(c(0, 5), c(11, 6))
+  b <- run(c(6, 5), c(5, 6))
+  # Only the interim sizes of the strata enter the re-estimation
+  expect_identical(attr(a, 'N.final'), attr(b, 'N.final'))
+  expect_equal(attr(a, 'Power'), attr(b, 'Power'))
+  expect_identical(a$n1, c(0L, 5L))
+  expect_error(run(c(0, 5), c(0, 6)), 'at least one patient in every stratum')
+  expect_error(run(c(0, 5), c(11, 6), 'fixed'), 'positive integers')
+})

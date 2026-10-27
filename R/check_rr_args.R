@@ -39,13 +39,16 @@ check_rr_args <- function(N1, N2, alpha, Test, n.grid, bb.gamma, ref.pvalue, alt
   Test <- match.arg(Test, c('Chisq', 'Fisher', 'Fisher-midP', 'Z-pool', 'Boschloo',
                             'Blackwelder', 'Farrington-Manning'))
   if (length(N1) != 1 || length(N2) != 1) stop('N1 and N2 must each be a single value')
-  if (is.na(N1) || is.na(N2) || N1 != round(N1) || N2 != round(N2) || N1 < 1 || N2 < 1) {
+  if (!is.numeric(N1) || !is.numeric(N2) || !is.finite(N1) || !is.finite(N2) ||
+      N1 != round(N1) || N2 != round(N2) || N1 < 1 || N2 < 1 ||
+      max(N1, N2) > .Machine$integer.max) {
     stop('N1 and N2 must be positive integers')
   }
   if (length(alpha) != 1 || is.na(alpha) || alpha <= 0 || alpha >= 1) {
     stop('alpha must be a single value in (0, 1)')
   }
-  if (length(n.grid) != 1 || is.na(n.grid) || n.grid < 2) {
+  if (length(n.grid) != 1 || !is.numeric(n.grid) || !is.finite(n.grid) ||
+      n.grid != round(n.grid) || n.grid < 2 || n.grid > .Machine$integer.max) {
     stop('n.grid must be a single integer of at least 2')
   }
   if (length(bb.gamma) != 1 || is.na(bb.gamma) || bb.gamma < 0 || bb.gamma >= alpha) {

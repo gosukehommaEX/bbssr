@@ -8,7 +8,9 @@
 #' one smaller does not; \code{'smallest'} scans upwards from 1; and \code{'stable'}
 #' scans downwards from the limit given by \code{search.limit}, so that every size from the
 #' result up to the limit attains the target power. Sizes that give the same design have
-#' the same power, so the result is the smallest nominal size of its design.
+#' the same power, so the result is the smallest nominal size of its design. With
+#' \code{n.max} the searches do not go beyond that nominal size, as in
+#' \code{ss_exact_search}.
 #'
 #' @param p1 Response probabilities of group 1, a matrix with one row per scenario and one
 #'   column per stratum
@@ -23,6 +25,7 @@
 #'   that of \code{strat_alloc_power}
 #' @inheritParams StratRR
 #' @param tar.power Target power
+#' @param n.max Largest nominal size examined, \code{Inf} (default) for none
 #'
 #' @return A list with the integer vectors \code{n} of nominal total sizes and
 #'   \code{limit} of limits of the search \code{'stable'} (otherwise \code{NA})
@@ -30,7 +33,8 @@
 #' @keywords internal
 #' @noRd
 strat_ss_search <- function(p1, p2, frac, r, alpha, tar.power, Test, alternative, tsmethod,
-                            search = 'crossing', search.limit = c(2, 50), alloc = NULL) {
+                            search = 'crossing', search.limit = c(2, 50), alloc = NULL,
+                            n.max = Inf) {
   if (search == 'stable' &&
       (!is.numeric(search.limit) || length(search.limit) != 2 || anyNA(search.limit) ||
          any(!is.finite(search.limit)) || search.limit[1] < 1 || search.limit[2] < 0)) {
@@ -55,6 +59,7 @@ strat_ss_search <- function(p1, p2, frac, r, alpha, tar.power, Test, alternative
     strat_fixed_power(sz$N1[1, ], sz$N2[1, ], p1[k, , drop = FALSE],
                       p2[k, , drop = FALSE], alpha, a$Test, a$alternative, a$tsmethod)
   }
+  n.max <- max(1, n.max)
   out <- integer(nrow(p1))
   limit <- rep(NA_integer_, nrow(p1))
   for (k in seq_len(nrow(p1))) {
@@ -63,7 +68,7 @@ strat_ss_search <- function(p1, p2, frac, r, alpha, tar.power, Test, alternative
     # the alternative reaches only if its power does not tend to 1
     cap <- max(100 * n, n + 1e4)
     up_to_target <- function(n) {
-      while (power_at(n, k) %<<% tar.power) {
+      while (n < n.max && (power_at(n, k) %<<% tar.power)) {
         n <- n + 1
         if (n > cap) {
           stop('the exact power does not attain the target power up to a total ',
@@ -77,8 +82,14 @@ strat_ss_search <- function(p1, p2, frac, r, alpha, tar.power, Test, alternative
       next
     }
     if (search == 'stable') {
-      L <- max(ceiling(search.limit[1] * n), ceiling(n + search.limit[2]))
+      L0 <- max(ceiling(search.limit[1] * n), ceiling(n + search.limit[2]))
+      L <- min(L0, n.max)
       if (power_at(L, k) %<<% tar.power) {
+        if (L < L0) {
+          out[k] <- as.integer(L)
+          limit[k] <- as.integer(L)
+          next
+        }
         stop('the total sample size ', L, ', the limit of the stable search, does not ',
              'attain the target power; raise search.limit')
       }
@@ -88,6 +99,7 @@ strat_ss_search <- function(p1, p2, frac, r, alpha, tar.power, Test, alternative
       limit[k] <- as.integer(L)
       next
     }
+    n <- min(n, n.max)
     Power <- power_at(n, k)
     if (Power %>=% tar.power) {
       while ((Power %>=% tar.power) && (n > 1)) {
@@ -95,7 +107,7 @@ strat_ss_search <- function(p1, p2, frac, r, alpha, tar.power, Test, alternative
         Power <- power_at(n, k)
       }
       if (Power %<<% tar.power) n <- n + 1
-    } else {
+    } else if (n < n.max) {
       n <- up_to_target(n + 1)
     }
     out[k] <- as.integer(n)

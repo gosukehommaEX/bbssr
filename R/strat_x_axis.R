@@ -12,6 +12,10 @@
 #' @param scenario Index of the scenarios, used for \code{x.by = 'scenario'} when
 #'   \code{x} has no column of that name
 #'
+#' A warning is given when two scenarios of a design (the column \code{design}, if any)
+#' share a value on the axis, since the lines of the plot join the scenarios in the order
+#' of the axis.
+#'
 #' @return A list with the values \code{x} on the axis, one per row of \code{x}, and the
 #'   label \code{xlab}
 #'
@@ -43,6 +47,12 @@ strat_x_axis <- function(x, x.by, xlab, scenario = NULL) {
     } else {
       x.by
     }
+  }
+  design <- if ('design' %in% names(x)) x$design else rep(1L, length(values))
+  if (anyDuplicated(data.frame(design, values)) > 0) {
+    warning('two scenarios of a design share the value of ', x.by, ' on the horizontal ',
+            'axis, so the lines join scenarios that differ in another probability; choose ',
+            'x.by, or plot scenarios in which a single probability varies', call. = FALSE)
   }
   list(x = values, xlab = xlab)
 }

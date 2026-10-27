@@ -13,9 +13,10 @@
 #' With \code{ss.method = 'standard'} the nominal total sample size is that of
 #' \code{strat_raw_n}, rounded up, with the probabilities before truncation to the unit
 #' interval, which keep an assumed risk difference. With \code{ss.method = 'exact'} it is
-#' the result of \code{strat_ss_search} for the truncated probabilities. The final group
-#' sizes are those of \code{strat_sizes} for the nominal size, kept within the range of
-#' \code{strat_bounds}: at least the interim sizes, at least the planned sizes when
+#' the result of \code{strat_ss_search} for the truncated probabilities, which does not
+#' search beyond the upper bound of \code{strat_bounds} or \code{search.max}. The final
+#' group sizes are those of \code{strat_sizes} for the nominal size, kept within the range
+#' of \code{strat_bounds}: at least the interim sizes, at least the planned sizes when
 #' \code{restricted = TRUE}, a total of at least \code{N.min} and at most \code{N.max}.
 #' A row whose probabilities show no effect in the direction of the alternative admits no
 #' sample size, and keeps the planned group sizes, raised to the interim sizes where
@@ -43,11 +44,14 @@
 #' @param search Search of \code{strat_ss_search}
 #' @param search.limit Limit of the search \code{'stable'}
 #' @param ss.strata \code{'stratified'} (default) or \code{'pooled'}
+#' @param search.max Largest nominal size examined by the exact search, or \code{NULL}
+#'   (default) for the upper bound of \code{strat_bounds}
 #'
 #' @return A list with the matrices \code{hat.p}, \code{hat.p1} and \code{hat.p2} of the
 #'   blinded estimates and of the truncated planning probabilities, the vectors
 #'   \code{n.raw} (normal approximation, \code{NA} under \code{ss.method = 'exact'}),
-#'   \code{n.re} (nominal size before the bounds, \code{NA} for a row without a sample
+#'   \code{n.re} (nominal size before the bounds, at most the largest size examined by the
+#'   exact search, \code{NA} for a row without a sample
 #'   size), \code{limit} (limit of the search \code{'stable'}, otherwise \code{NA}), and
 #'   the integer matrices \code{N1} and \code{N2} of the final group sizes
 #'
@@ -56,7 +60,7 @@
 strat_reestimate <- function(s, n1, n2, Delta.A, effect, frac, r, ss.method, ss.Test,
                              ss.alpha, tar.power, alternative, tsmethod, N1.plan, N2.plan,
                              restricted, N.min, N.max, search, search.limit,
-                             ss.strata = 'stratified') {
+                             ss.strata = 'stratified', search.max = NULL) {
   J <- length(n1)
   ss.strata <- match.arg(ss.strata, c('stratified', 'pooled'))
   s <- matrix(as.double(s), ncol = J)
@@ -81,6 +85,12 @@ strat_reestimate <- function(s, n1, n2, Delta.A, effect, frac, r, ss.method, ss.
   # The matrix comes first in pmin() and pmax(), which keep its dimensions
   hat.p1 <- pmin(pmax(sp1, 0), 1)
   hat.p2 <- pmin(pmax(sp2, 0), 1)
+  low1 <- if (restricted) pmax(n1, N1.plan) else n1
+  low2 <- if (restricted) pmax(n2, N2.plan) else n2
+  b <- strat_bounds(frac, r, low1, low2, N.min, N.max)
+  # The exact search does not go beyond the upper bound, so that a stratum whose planning
+  # probabilities are close to each other costs no more than the bound
+  if (is.null(search.max)) search.max <- b[2]
   n.raw <- rep(NA_real_, nrow(s))
   limit <- rep(NA_integer_, nrow(s))
   n.re <- rep(NA_real_, nrow(s))
@@ -97,7 +107,7 @@ strat_reestimate <- function(s, n1, n2, Delta.A, effect, frac, r, ss.method, ss.
     if (length(first) > 0) {
       res <- strat_ss_search(hat.p1[first, , drop = FALSE], hat.p2[first, , drop = FALSE],
                              frac, r, ss.alpha, tar.power, a$Test, a$alternative,
-                             a$tsmethod, search, search.limit)
+                             a$tsmethod, search, search.limit, n.max = search.max)
       idx <- match(key, key[first])
       n.re[ok] <- res$n[idx[ok]]
       limit[ok] <- res$limit[idx[ok]]
@@ -108,9 +118,6 @@ strat_reestimate <- function(s, n1, n2, Delta.A, effect, frac, r, ss.method, ss.
          'alternative, so no sample size can be re-estimated; supply the planned sizes ',
          'N1 and N2')
   }
-  low1 <- if (restricted) pmax(n1, N1.plan) else n1
-  low2 <- if (restricted) pmax(n2, N2.plan) else n2
-  b <- strat_bounds(frac, r, low1, low2, N.min, N.max)
   n.fin <- pmin(b[2], pmax(b[1], n.re))
   N1 <- matrix(NA_integer_, nrow(s), J)
   N2 <- matrix(NA_integer_, nrow(s), J)

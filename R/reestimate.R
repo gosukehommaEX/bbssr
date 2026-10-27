@@ -36,6 +36,8 @@
 #' @param search Search of \code{ss_exact_search} used under \code{method = 'exact'}
 #' @param search.limit Limit of \code{search = 'stable'}, see \code{ss_exact_search}
 #' @param margin.scale \code{'RD'} or \code{'RR'}, the scale of the margin
+#' @param N2.max Largest size of group 2 examined by the search of \code{method = 'exact'},
+#'   \code{Inf} (default) for none
 #'
 #' @return A data frame with columns \code{n.raw} (unrounded total, \code{NA} under
 #'   \code{method = 'exact'}), \code{N1.re}, \code{N2.re} and \code{N2.limit}, the
@@ -48,7 +50,7 @@
 reestimate <- function(hat.p1, hat.p2, r, alpha, tar.power, Test, alternative, tsmethod,
                        n.grid, bb.gamma, method, rounding, N1.plan, N2.plan, ref.pvalue,
                        margin, search = 'crossing', search.limit = c(2, 50),
-                       margin.scale) {
+                       margin.scale, N2.max = Inf) {
   equivalence <- alternative == 'equivalence'
   superiority <- !equivalence && margin.scale == 'RD' && margin == 0
   degenerate <- if (superiority) {
@@ -87,7 +89,7 @@ reestimate <- function(hat.p1, hat.p2, r, alpha, tar.power, Test, alternative, t
     # One search over all distinct pairs, sharing the power at every candidate size
     s <- ss_exact_search(hat.p1[first], hat.p2[first], r, alpha, tar.power, Test,
                          alternative, tsmethod, n.grid, bb.gamma, ref.pvalue, margin,
-                         search, search.limit, margin.scale)
+                         search, search.limit, margin.scale, n.max = N2.max)
     N2.u <- s$N2
     L.u <- s$limit
     N1.u <- as.integer(ceil_tol(r * N2.u))

@@ -29,6 +29,12 @@ Draws the power or the expected total sample size of the stratified designs of
 another column and, optionally, one panel per value of a third, as
 \code{\link{plot.bbssr_grid}} does for two groups.
 }
+\details{
+The lines join the scenarios of a design in the order of the horizontal axis, so the
+scenarios should differ in a single probability, or \code{x.by} should name a column
+in which they all differ; a warning is given when two scenarios of a design share a
+value on the axis.
+}
 \examples{
 design <- data.frame(Test = c('CMH', 'Strat-Fisher'))
 grid <- StratGridBSSR(design, p = rbind(c(0.3, 0.5), c(0.4, 0.6)), Delta.A = 0.3,

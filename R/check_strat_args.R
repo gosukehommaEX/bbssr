@@ -27,8 +27,9 @@ check_strat_args <- function(N1, N2, alpha, Test, alternative, tsmethod) {
              'Unstrat-Chisq-cc', 'Unstrat-Fisher')
   Test <- match.arg(Test, tests)
   if (!is.numeric(N1) || !is.numeric(N2) || length(N1) != length(N2) || length(N1) < 2 ||
-      anyNA(N1) || anyNA(N2) || any(N1 < 1) || any(N2 < 1) || any(N1 != round(N1)) ||
-      any(N2 != round(N2))) {
+      any(!is.finite(N1)) || any(!is.finite(N2)) || any(N1 < 1) || any(N2 < 1) ||
+      any(N1 != round(N1)) || any(N2 != round(N2)) ||
+      max(N1, N2) > .Machine$integer.max) {
     stop('N1 and N2 must be vectors of positive integers of the same length, at least ',
          '2, with one element per stratum')
   }

@@ -102,7 +102,8 @@ patients for every stratum, as a re-estimation that ignores the strata would. Wi
 \code{'pooled'} the final group sizes depend only on the total number of interim
 responders}
 
-\item{search}{Search of the exact re-estimation, see \code{\link{StratSampleSize}}}
+\item{search}{Search of the exact re-estimation, see \code{\link{StratSampleSize}};
+it does not go beyond the largest size that \code{N.max} allows}
 
 \item{search.limit}{Limit of the search \code{'stable'}, see
 \code{\link{StratSampleSize}}}

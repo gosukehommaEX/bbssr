@@ -30,3 +30,18 @@ test_that("strat_ss_search supports the stable search", {
   expect_error(strat_ss_search(p2, p2, c(0.5, 0.5), c(1, 1), 0.025, 0.8, 'CMH', 'greater',
                                'minlike'), 'no effect')
 })
+
+test_that("strat_ss_search does not go beyond n.max", {
+  # The first scenario attains the target power well below 120, the second only far above
+  p1 <- rbind(c(0.65, 0.8), c(0.52, 0.52))
+  p2 <- rbind(c(0.3, 0.45), c(0.5, 0.5))
+  free <- strat_ss_search(p1[1, , drop = FALSE], p2[1, , drop = FALSE], c(0.5, 0.5),
+                          c(1, 1), 0.025, 0.8, 'CMH', 'greater', 'minlike')$n
+  s <- strat_ss_search(p1, p2, c(0.5, 0.5), c(1, 1), 0.025, 0.8, 'CMH', 'greater',
+                       'minlike', n.max = 120)
+  expect_identical(s$n, c(free, 120L))
+  sz <- strat_sizes(120, c(0.5, 0.5), c(1, 1))
+  expect_lt(strat_fixed_power(sz$N1[1, ], sz$N2[1, ], p1[2, , drop = FALSE],
+                              p2[2, , drop = FALSE], 0.025, 'CMH', 'greater', 'minlike'),
+            0.8)
+})

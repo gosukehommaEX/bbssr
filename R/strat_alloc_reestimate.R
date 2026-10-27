@@ -42,6 +42,19 @@ strat_alloc_reestimate <- function(nS, re.args, ss.frac, N.plan, restricted, N.m
   args$frac <- fr
   args[c('N1.plan', 'N2.plan', 'N.min', 'N.max')] <- list(n1, n2, NULL, NULL)
   args$restricted <- FALSE
+  # The exact search goes up to the first nominal total whose final total exceeds the
+  # bound max(N.max, n) applied below, and no further
+  if (!is.null(N.max)) {
+    cap <- max(N.max, n)
+    tot <- function(m) {
+      sz <- strat_sizes(m, fr, re.args$r)
+      sum(sz$N1) + sum(sz$N2)
+    }
+    # The final total of a nominal total m is at least m and does not decrease in m
+    m <- max(1, floor(cap))
+    while (m > 1 && tot(m) > cap) m <- m - 1
+    args$search.max <- m + 1
+  }
   re <- do.call(strat_reestimate, c(list(s = s, n1 = n1, n2 = n2,
                                          alternative = alternative, tsmethod = tsmethod),
                                     args))

@@ -70,7 +70,8 @@ Details}
 
 \item{ss.alpha}{Level used in the re-estimation. Default is \code{alpha}}
 
-\item{search}{Search of the exact re-estimation, see \code{\link{PairedSampleSize}}}
+\item{search}{Search of the exact re-estimation, see \code{\link{PairedSampleSize}};
+it does not go beyond \code{N.max}}
 
 \item{search.limit}{Limit of the search \code{'stable'}, see
 \code{\link{PairedSampleSize}}}
@@ -99,8 +100,9 @@ An object of class \code{bbssr_pbssr}, a data frame with one row containing
 the interim data \code{n1} and \code{D1}, the blinded estimate \code{psi.hat} of the
 probability of a discordant pair, the value \code{psi.plan} used in the
 re-estimation, the planning probabilities \code{p10.plan} and \code{p01.plan}, the
-re-estimated number of pairs \code{N.re} before the bounds are applied (already
-within them with \code{ss.method = 'conditional.power'}), the number
+re-estimated number of pairs \code{N.re} before the bounds are applied (at most
+\code{N.max} with \code{ss.method = 'exact'}, whose search does not go beyond it, and
+within the bounds with \code{ss.method = 'conditional.power'}), the number
 \code{n.stage2} of pairs still to be enrolled, the final number of pairs
 \code{N.final}, the power \code{Power} of the final analysis with \code{N.final}
 pairs under the planning probabilities, and its conditional power \code{CP} given

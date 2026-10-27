@@ -108,7 +108,8 @@ patients for every stratum, as a re-estimation that ignores the strata would. Wi
 \code{'pooled'} the final group sizes depend only on the total number of interim
 responders}
 
-\item{search}{Search of the exact re-estimation, see \code{\link{StratSampleSize}}}
+\item{search}{Search of the exact re-estimation, see \code{\link{StratSampleSize}};
+it does not go beyond the largest size that \code{N.max} allows}
 
 \item{search.limit}{Limit of the search \code{'stable'}, see
 \code{\link{StratSampleSize}}}
@@ -191,7 +192,8 @@ interim patient responds, the planned group sizes are kept. A stratum whose pool
 estimate is close to 0 with \code{effect = 'RR'}, or close to 0 or 1 with
 \code{effect = 'OR'}, has planning probabilities close to each other, so the
 re-estimated size can be very large, and the time of the exact computation grows with
-it; an upper bound \code{N.max} keeps both in check.
+it. An upper bound \code{N.max} keeps both in check: the final total does not exceed it,
+and the exact search of \code{ss.method = 'exact'} does not go beyond it.
 
 With two strata the final group sizes depend on the interim data only through
 \code{(s_1, s_2)}. Given \code{s_j}, the number of interim responders of group 1 in

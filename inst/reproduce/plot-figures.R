@@ -530,10 +530,10 @@ sc_grid <- function(d, value) {
   z[cbind(match(d$p.star, ps), match(d$nd, nd))] <- d[[value]]
   list(x = ps, y = nd, z = z)
 }
-sc_frame <- function(g, xlab) {
+sc_frame <- function(g, xlab, ylab = expression(italic(n)[d]^'(1)')) {
   plot(NA, xlim = fig_expand(c(0.495, 0.905)), ylim = fig_expand(c(-0.5, 38.5)),
        xaxs = 'i', yaxs = 'i', axes = FALSE, xlab = xlab, ylab = '')
-  graphics::title(ylab = expression(italic(n)[d]^'(1)'), line = 2.5)
+  graphics::title(ylab = ylab, line = 2.5)
   graphics::abline(v = seq(0.5, 0.9, by = 0.05), h = seq(0, 40, by = 5), col = 'grey92')
 }
 # Colour bar in the second cell of the layout, with the title in one or two lines
@@ -556,7 +556,8 @@ plot_schepers2026_figure1 <- function(dir = fig_dir()) {
   cols <- grDevices::hcl.colors(100, 'viridis')
   graphics::layout(matrix(1:2, 1), widths = c(5, 1.3))
   graphics::par(mar = c(4, 4.5, 4, 0.5), las = 1)
-  sc_frame(g, expression('Success Rate' ~ (italic(p)['*'])))
+  sc_frame(g, expression('Success Rate' ~ (italic(p)['*'])),
+           expression('Stage 1 discordant pairs' ~ (italic(n)[d]^'(1)')))
   graphics::image(g$x, g$y, g$z, col = cols, zlim = range(g$z), add = TRUE)
   graphics::contour(g$x, g$y, g$z, levels = 0.8, drawlabels = FALSE, col = 'red', lwd = 2,
                     add = TRUE)

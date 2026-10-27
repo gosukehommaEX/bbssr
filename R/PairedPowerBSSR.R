@@ -23,7 +23,8 @@
 #'   Details
 #' @param ss.Test Test used in the re-estimation. Default is \code{Test}
 #' @param ss.alpha Level used in the re-estimation. Default is \code{alpha}
-#' @param search Search of the exact re-estimation, see \code{\link{PairedSampleSize}}
+#' @param search Search of the exact re-estimation, see \code{\link{PairedSampleSize}};
+#'   it does not go beyond \code{N.max}
 #' @param search.limit Limit of the search \code{'stable'}, see
 #'   \code{\link{PairedSampleSize}}
 #' @param N.min Smallest final number of pairs, or \code{NULL}

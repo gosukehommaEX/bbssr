@@ -197,17 +197,21 @@ inline void null_moments(const Design& d, const int* z, bool cochran, double& E,
 
 // p-value of an asymptotic test for the statistic S, given E and V. With the continuity
 // correction the deviation |S - E| is reduced by 0.5 when it is at least 0.5, as in
-// stats::mantelhaen.test(). A zero variance gives the p-value 1
+// stats::mantelhaen.test(). E is a sum over the strata with rounding errors, so a
+// deviation of exactly one half is recognised with a tolerance far above these errors,
+// and the reduced deviation is not allowed below 0. A zero variance gives the p-value 1
 inline double asymptotic_pvalue(double S, double E, double V, bool cc, int alternative) {
   if (!(V > 0.0)) return 1.0;
   const double delta = S - E;
-  const double yates = (cc && std::fabs(delta) >= 0.5) ? 0.5 : 0.0;
+  const double half_tol = 1e-12 * (1.0 + std::fabs(S));
+  const double yates = (cc && std::fabs(delta) >= 0.5 - half_tol) ? 0.5 : 0.0;
+  const double dev = std::max(0.0, std::fabs(delta) - yates);
   const double sd = std::sqrt(V);
   if (alternative == TWO_SIDED) {
-    return std::min(1.0, 2.0 * norm_upper((std::fabs(delta) - yates) / sd));
+    return std::min(1.0, 2.0 * norm_upper(dev / sd));
   }
   const double sgn = delta > 0.0 ? 1.0 : (delta < 0.0 ? -1.0 : 0.0);
-  const double Z = sgn * (std::fabs(delta) - yates) / sd;
+  const double Z = sgn * dev / sd;
   return alternative == GREATER ? norm_upper(Z) : norm_upper(-Z);
 }
 

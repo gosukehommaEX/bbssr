@@ -74,7 +74,8 @@ Details}
 
 \item{ss.alpha}{Level used in the re-estimation. Default is \code{alpha}}
 
-\item{search}{Search of the exact re-estimation, see \code{\link{PairedSampleSize}}}
+\item{search}{Search of the exact re-estimation, see \code{\link{PairedSampleSize}};
+it does not go beyond \code{N.max}}
 
 \item{search.limit}{Limit of the search \code{'stable'}, see
 \code{\link{PairedSampleSize}}}

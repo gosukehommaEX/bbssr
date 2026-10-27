@@ -8,10 +8,12 @@
 #' does not. The search \code{'smallest'} scans upwards from 1, and the search
 #' \code{'stable'} scans downwards from the limit given by \code{search.limit}. The
 #' rejection regions are computed once per search and shared by all pairs of
-#' probabilities.
+#' probabilities. With \code{n.max} the searches do not go beyond that number of pairs,
+#' as in \code{ss_exact_search}.
 #'
 #' @param p10 Probability that only treatment 1 responds, a vector
 #' @param p01 Probability that only treatment 2 responds, of the same length
+#' @param n.max Largest number of pairs examined, \code{Inf} (default) for none
 #' @inheritParams PairedSampleSize
 #'
 #' @return A list with the integer vector \code{N} of numbers of pairs and the integer
@@ -21,7 +23,7 @@
 #' @noRd
 paired_ss_search <- function(p10, p01, alpha, tar.power, Test, alternative, n.grid,
                              bb.gamma, ref.pvalue, margin, search = 'crossing',
-                             search.limit = c(2, 50)) {
+                             search.limit = c(2, 50), n.max = Inf) {
   if (search == 'stable' &&
       (!is.numeric(search.limit) || length(search.limit) != 2 || anyNA(search.limit) ||
          any(!is.finite(search.limit)) || search.limit[1] < 1 || search.limit[2] < 0)) {
@@ -42,19 +44,26 @@ paired_ss_search <- function(p10, p01, alpha, tar.power, Test, alternative, n.gr
   }
   power_at <- function(N, k) paired_power(rr_at(N), p10[k], p01[k])
   init <- paired_raw_n(p10, p01, alpha, tar.power, alternative, margin)
+  n.max <- max(1, n.max)
   out <- integer(length(p10))
   limit <- rep(NA_integer_, length(p10))
   for (k in seq_along(p10)) {
     N <- max(1, ceil_tol(init[k]))
     if (search == 'smallest') {
       N <- 1
-      while (power_at(N, k) %<<% tar.power) N <- N + 1
+      while (N < n.max && (power_at(N, k) %<<% tar.power)) N <- N + 1
       out[k] <- as.integer(N)
       next
     }
     if (search == 'stable') {
-      L <- max(ceiling(search.limit[1] * N), ceiling(N + search.limit[2]))
+      L0 <- max(ceiling(search.limit[1] * N), ceiling(N + search.limit[2]))
+      L <- min(L0, n.max)
       if (power_at(L, k) %<<% tar.power) {
+        if (L < L0) {
+          out[k] <- as.integer(L)
+          limit[k] <- as.integer(L)
+          next
+        }
         stop('the number of pairs ', L, ', the limit of the stable search, does not ',
              'attain the target power; raise search.limit')
       }
@@ -64,6 +73,7 @@ paired_ss_search <- function(p10, p01, alpha, tar.power, Test, alternative, n.gr
       limit[k] <- as.integer(L)
       next
     }
+    N <- min(N, n.max)
     Power <- power_at(N, k)
     if (Power %>=% tar.power) {
       while ((Power %>=% tar.power) && (N > 1)) {
@@ -72,7 +82,7 @@ paired_ss_search <- function(p10, p01, alpha, tar.power, Test, alternative, n.gr
       }
       if (Power %<<% tar.power) N <- N + 1
     } else {
-      while (Power %<<% tar.power) {
+      while ((Power %<<% tar.power) && (N < n.max)) {
         N <- N + 1
         Power <- power_at(N, k)
       }

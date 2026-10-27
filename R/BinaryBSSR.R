@@ -95,7 +95,8 @@
 #'   \item{hat.p1}{Recovered response probability of group 1}
 #'   \item{hat.p2}{Recovered response probability of group 2}
 #'   \item{N1.re}{Re-estimated total sample size of group 1}
-#'   \item{N2.re}{Re-estimated total sample size of group 2}
+#'   \item{N2.re}{Re-estimated total sample size of group 2, before the bounds; with
+#'     \code{ss.method = 'exact'} at most the largest size that \code{N.max} allows}
 #'   \item{N.re}{Re-estimated total sample size}
 #'   \item{n1.stage2}{Number of additional patients to enrol in group 1}
 #'   \item{n2.stage2}{Number of additional patients to enrol in group 2}
@@ -196,9 +197,11 @@ BinaryBSSR <- function(n1, n2, S, Delta.A, r, alpha, tar.power, Test,
   # The exact search needs probabilities inside the unit interval. The normal
   # approximation uses the untruncated probabilities, which keep the assumed effect
   ss.p <- if (ss.method == 'exact') list(p1 = hat.p1, p2 = hat.p2) else sp
+  # The exact search does not go beyond the largest final size of group 2 within N.max
+  N2.max <- if (ss.method == 'exact') group2_max(r, N.max) else Inf
   re <- reestimate(ss.p$p1, ss.p$p2, r, ss.alpha, tar.power, ss.Test, alternative,
                    tsmethod, n.grid, bb.gamma, ss.method, rounding, N1, N2, ref.pvalue,
-                   margin, search, search.limit, margin.scale)
+                   margin, search, search.limit, margin.scale, N2.max = N2.max)
   N1.re <- re$N1.re
   N2.re <- re$N2.re
   # Final sample sizes. Under the group rounding the final size of group 2 is fixed

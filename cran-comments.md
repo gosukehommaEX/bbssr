@@ -11,7 +11,8 @@ Cochran-Mantel-Haenszel test, Cochran's test and the stratified exact conditiona
 Jung (2014). For each design it provides the exact power and sample size, and for blinded
 sample size re-estimation the power, the type I error rate with a certified maximum over
 the nuisance parameters and the adjusted significance level that controls it; with three
-or more strata the rates of the re-estimation design are estimated by simulation. It also
+or more strata, and with random stratum and group sizes, the rates of the re-estimation
+design are estimated by simulation. It also
 adds functions for the rejection probabilities given the interim outcome and for the
 evaluation of several designs at once, together with further options for the
 re-estimation. `NEWS.md` lists every change, including the changes in behaviour.

@@ -48,3 +48,14 @@ test_that("check_paired_args accepts the continuity corrected test with a margin
   expect_error(check_paired_args(20, 0.05, 'McNemar-cc', 50, 0, FALSE, 'equivalence', 0.1),
                "'equivalence' requires Test = 'Paired-Score'")
 })
+
+test_that("check_paired_args refuses infinite, fractional and too large sizes", {
+  ok <- function(N = 20, n.grid = 50) {
+    check_paired_args(N, 0.05, 'McNemar', n.grid, 0, FALSE, 'greater', 0)
+  }
+  expect_error(ok(N = Inf), 'N must be a single positive integer')
+  expect_error(ok(N = 2^31), 'N must be a single positive integer')
+  expect_error(ok(n.grid = Inf), 'n.grid must be a single integer')
+  expect_error(ok(n.grid = 10.5), 'n.grid must be a single integer')
+  expect_no_error(ok())
+})

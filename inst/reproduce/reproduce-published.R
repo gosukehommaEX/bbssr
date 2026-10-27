@@ -1309,16 +1309,29 @@ bs.t4 <- list(
         0.0492, 0.0491, 0.0495, 0.0489, 0.0488)
 )
 bs.test <- c(CB = 'McNemar-exact', M = 'McNemar', Z = 'McNemar-uncond')
+bs.r4 <- list()
 for (k in names(bs.t4)) {
+  bs.r4[[k]] <- vapply(bs.n, psize, numeric(1), Test = bs.test[[k]])
   add(bs.src, sprintf('BS2003 Table 4: exact size of %s, n = %d', k, bs.n), bs.t4[[k]],
-      vapply(bs.n, psize, numeric(1), Test = bs.test[[k]]), 4)
+      bs.r4[[k]], 4)
 }
 explain('BS2003 Table 4: exact size of CB, n = 30', 5e-4, paste(
   'The conditional size of CB at n = 30 is largest with all 30 pairs discordant, where it',
   'is P(Bin(30, 1/2) <= 10) = 0.0494; every other number of discordant pairs gives less,',
   'so the printed 0.0498 is not attained by the test'))
 # The exact sizes of CB with n = 40 (0.0404) and of M with n = 80 (0.0523) are 0.0403 and
-# 0.0522 in the recomputation; they stay FAILs, since no reason has been found
+# 0.0522 in the recomputation, less than 5e-6 below the boundary for rounding to four
+# decimals: rounding to five decimals first gives the printed values, as in Table 5 below
+bs.half.up <- function(x, d) floor(x * 10^d + 0.5 + 1e-9) / 10^d
+bs.agree <- function(x) sum(abs(x - unlist(bs.t4)) < 1e-9)
+explain(c('BS2003 Table 4: exact size of CB, n = 40',
+          'BS2003 Table 4: exact size of M, n = 80'), 6e-5, paste(
+  'The recomputed size lies less than 5e-6 below the boundary for rounding to four',
+  'decimals, so that rounding to five decimals first gives the printed value. Rounding to',
+  sprintf('five decimals and then to four agrees with %d of the %d printed sizes of CB, M',
+          bs.agree(bs.half.up(bs.half.up(unlist(bs.r4), 5), 4)), length(unlist(bs.t4))),
+  sprintf('and Z, and ordinary rounding with %d of them, as in Table 5',
+          bs.agree(bs.half.up(unlist(bs.r4), 4)))))
 # Table 5: average power over 100 alternatives
 bs.alt <- do.call(rbind, lapply(seq(0.025, 0.475, by = 0.05), function(q) {
   data.frame(p01 = q, p10 = seq(q + 0.05, 1 - q + 1e-9, by = 0.05))
@@ -1430,7 +1443,11 @@ for (k in names(fl4.tests)) {
 # grid of 4001 points with local refinement, coarse grids of 11 to 101 points without
 # refinement and the Berger-Boos procedure with gamma = 1e-6 and 0.001 all fail to give the
 # published means; the article computed this test with StatXact, and no reason has been
-# found
+# found. An independent review of the package (2026) reported that the published values
+# of this test are obtained when the tail probabilities are maximized over psi in
+# [0, psi.max] with psi.max between 0.99 and 0.997 rather than over [0, 1]: for some N the
+# outcomes that decide the size are tables of discordant pairs only, whose tail
+# probability increases up to psi = 1. The search range of StatXact cannot be checked
 
 # Nam (1997): example of Section 5 (n = 344, x10 = 32, x01 = 27, delta0 = -0.05) and the
 # column n_t of Table 3, formula (9) with z = 1.645 and 0.842 truncated to an integer
@@ -1521,19 +1538,27 @@ add(sc.src, sprintf('Schepers2026 Table 5: fixed design n2, %s',
                       'Delta = 0.15, psi = 0.3, m1 = 38')),
     c(34, 22, 23, 54, 74),
     c(sc.fix[['a']] - c(38, 50), c(sc.fix[['d']], sc.fix[['e']], sc.fix[['f']]) - 38), 0)
-# Section 3.4: 25 interim pairs with 5 discordant. The second-stage size 51 follows with
-# psi = 0.2113 and p* = 0.8549, the conditional power 0.78 at 51 further pairs with
-# psi = 0.2
-sc.cp <- function(N, psi) {
+# Section 3.4: 25 interim pairs with 5 discordant. The article takes the 38 further pairs
+# of Figure 1 and the 13 patients with the surrogate endpoint only, 51 pairs, and reports
+# the conditional power 0.78 without stating psi and p*. Both values are INFO items: the
+# rule with psi = 0.2113 and p* = 0.8549 gives the second-stage size 51 as well, and the
+# conditional power 0.78 follows with psi = 0.2 and the same p*
+sc.cp <- function(N, psi, p.star = 0.854916) {
   rr <- bbssr:::get_paired_rr(N, 0.05, 'McNemar-exact', 'two.sided', 100, 0, FALSE, 0)
-  bbssr:::paired_cp(rr, 25L, 5L, psi, 0.854916)
+  bbssr:::paired_cp(rr, 25L, 5L, psi, p.star)
 }
 sc.n2 <- 0L
 while (sc.cp(25 + sc.n2, 0.211318) < 0.8) sc.n2 <- sc.n2 + 1L
 add(sc.src, 'Schepers2026 Section 3.4: second-stage size ignoring the surrogate', 51,
-    sc.n2, 0, 'Conditional power (4) with psi = 0.211318 and p* = 0.854916')
+    sc.n2, NA, paste('INFO: the article counts 38 + 13 pairs; recomputed as the smallest',
+                     'size at which the conditional power (4) with psi = 0.211318 and',
+                     'p* = 0.854916 reaches 0.8'))
 add(sc.src, 'Schepers2026 Section 3.4: conditional power with 51 further pairs', 0.78,
-    sc.cp(76, 0.2), 2, 'Conditional power (4) with psi = 0.2 and p* = 0.854916')
+    sc.cp(76, 0.2), NA,
+    paste('INFO: conditional power (4) with psi = 0.2 and p* = 0.854916; the article does',
+          sprintf('not state psi and p*, and psi = 0.211318 gives %.4f, psi = 0.2 with',
+                  sc.cp(76, 0.211318)),
+          sprintf('p* = 0.875 gives %.4f', sc.cp(76, 0.2, 0.875))))
 
 # Stratified designs: Woolson et al. (1986), Nam (1992) and Jung (2014) -------------------
 # Woolson et al. (1986), Table 1: total sample sizes N_B of formula (2.8) and N_U of
@@ -1769,6 +1794,12 @@ jung_rd <- function(i) {
 add(jung.src, paste('Jung2014 Table 4: N, random,', jung.lab), jung.rd,
     vapply(seq_len(nrow(jung.t4)), jung_rd, numeric(1)), 0,
     'Stratum and group sizes binomial; the printed N checked by the powers at N - 1 and N')
+# Three sizes of the columns n fixed and random, all with a1 = 0.5, are not reproduced and
+# stay FAILs: 72 (n fixed) for b = (0.25, 0.25) and theta = (7.5, 7.5), 54 (random) for
+# b = (0.5, 0.5) and theta = (5, 10), and 78 (random) for b = (0.75, 0.25) and
+# theta = (10, 5). An independent review of the package (2026) noted that each
+# recomputed size, 71, 56 and 76, is the printed size of the other of the two columns in
+# the same row, which suggests misprints; this cannot be confirmed
 # Table 3, columns SF, UF and MH: empirical power of the stratified exact test, the
 # unstratified Fisher test and the Mantel-Haenszel test from B = 10,000 simulated trials
 # with q1 = 0.1 and the one-sided level 0.05. The column MH is the test without continuity

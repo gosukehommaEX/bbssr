@@ -8,7 +8,9 @@ test_that("strat_x_axis takes the first probability that varies", {
   expect_identical(ax$x, x$p.S3)
   expect_identical(ax$xlab, 'Stratum 3')
   expect_identical(strat_x_axis(x, 'E.N', NULL)$xlab, 'E.N')
-  expect_identical(strat_x_axis(x, 'p.S1', NA)$xlab, NA)
+  # All the scenarios share the value of p.S1, which the warning reports
+  expect_warning(ax <- strat_x_axis(x, 'p.S1', NA), 'share the value of p.S1')
+  expect_identical(ax$xlab, NA)
 })
 
 test_that("strat_x_axis falls back on the scenarios", {
@@ -23,4 +25,13 @@ test_that("strat_x_axis falls back on the scenarios", {
   expect_error(strat_x_axis(x, 'foo', NULL), 'x.by must name a column')
   expect_error(strat_x_axis(x, c('p.S1', 'p.S2'), NULL), 'x.by must name a column')
   expect_error(strat_x_axis(x, 'Test', NULL), 'numeric column')
+})
+
+test_that("strat_x_axis warns when scenarios of a design share a value on the axis", {
+  x <- data.frame(design = c(1, 1, 1, 1, 2, 2), p.S1 = c(0.3, 0.4, 0.3, 0.4, 0.3, 0.4),
+                  p.S2 = c(0.5, 0.5, 0.6, 0.6, 0.5, 0.5))
+  expect_warning(strat_x_axis(x, NULL, NULL), 'share the value of p.S1')
+  # Scenarios of different designs may share a value
+  expect_no_warning(strat_x_axis(x[c(1, 2, 5, 6), ], NULL, NULL))
+  expect_no_warning(strat_x_axis(x, 'scenario', NULL, 1:6))
 })

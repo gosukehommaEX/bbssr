@@ -98,7 +98,8 @@ See Details}
 
 \item{search}{How the exact re-estimation chooses the sample size when
 \code{ss.method = 'exact'}: \code{'crossing'} (default), \code{'smallest'} or
-\code{'stable'}, as in \code{\link{BinarySampleSize}}. Ignored by the other methods}
+\code{'stable'}, as in \code{\link{BinarySampleSize}}, without going beyond the
+largest size that \code{N.max} allows. Ignored by the other methods}
 
 \item{search.limit}{Limit of the size of group 2 examined by \code{search = 'stable'},
 as in \code{\link{BinarySampleSize}}. Default is \code{c(2, 50)}}

@@ -20,7 +20,8 @@ get_strat_crit <- function(N1, N2, alpha, Test, alternative, tsmethod) {
   cells <- prod(as.double(a$N1 + a$N2 + 1))
   if (cells > 2e7) {
     stop('the design has too many vectors of stratum totals (', format(cells),
-         ') for its critical values to be stored')
+         ') for its critical values to be stored; in a re-estimation design, bound the ',
+         "final total with N.max or use ss.method = 'standard'")
   }
   compute <- function() {
     crit <- strat_crit(a$N1, a$N2, a$type, a$alt, a$ts, alpha)

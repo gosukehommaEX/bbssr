@@ -58,12 +58,7 @@ final_sizes <- function(re, n11, n12, r, rounding, restricted, N1.plan, N2.plan,
   if (rounding == 'group') {
     lo2 <- max(n12, if (restricted) N2.plan else 0,
                if (!is.null(N.min)) ceil_tol(N.min / (1 + r)) else 0)
-    hi2 <- Inf
-    if (!is.null(N.max)) {
-      hi2 <- floor(N.max / (1 + r))
-      while ((hi2 + 1) + ceil_tol(r * (hi2 + 1)) <= N.max) hi2 <- hi2 + 1
-      while (hi2 > 0 && hi2 + ceil_tol(r * hi2) > N.max) hi2 <- hi2 - 1
-    }
+    hi2 <- group2_max(r, N.max)
     if (hi2 < lo2) {
       stop('N.max is smaller than the smallest final sample size the design allows')
     }
