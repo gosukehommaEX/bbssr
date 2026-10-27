@@ -107,7 +107,8 @@ PairedBSSR(
 - search:
 
   Search of the exact re-estimation, see
-  [`PairedSampleSize`](https://gosukehommaex.github.io/bbssr/reference/PairedSampleSize.md)
+  [`PairedSampleSize`](https://gosukehommaex.github.io/bbssr/reference/PairedSampleSize.md);
+  it does not go beyond `N.max`
 
 - search.limit:
 
@@ -148,13 +149,14 @@ An object of class `bbssr_pbssr`, a data frame with one row containing
 the interim data `n1` and `D1`, the blinded estimate `psi.hat` of the
 probability of a discordant pair, the value `psi.plan` used in the
 re-estimation, the planning probabilities `p10.plan` and `p01.plan`, the
-re-estimated number of pairs `N.re` before the bounds are applied
-(already within them with `ss.method = 'conditional.power'`), the number
-`n.stage2` of pairs still to be enrolled, the final number of pairs
-`N.final`, the power `Power` of the final analysis with `N.final` pairs
-under the planning probabilities, and its conditional power `CP` given
-`D1`, computed with `ss.Test` at the level `ss.alpha`. The attributes
-hold the design settings.
+re-estimated number of pairs `N.re` before the bounds are applied (at
+most `N.max` with `ss.method = 'exact'`, whose search does not go beyond
+it, and within the bounds with `ss.method = 'conditional.power'`), the
+number `n.stage2` of pairs still to be enrolled, the final number of
+pairs `N.final`, the power `Power` of the final analysis with `N.final`
+pairs under the planning probabilities, and its conditional power `CP`
+given `D1`, computed with `ss.Test` at the level `ss.alpha`. The
+attributes hold the design settings.
 
 ## Details
 

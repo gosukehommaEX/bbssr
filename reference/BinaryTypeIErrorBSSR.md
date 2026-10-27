@@ -146,8 +146,9 @@ BinaryTypeIErrorBSSR(
   How the exact re-estimation chooses the sample size when
   `ss.method = 'exact'`: `'crossing'` (default), `'smallest'` or
   `'stable'`, as in
-  [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md).
-  Ignored by the other methods
+  [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md),
+  without going beyond the largest size that `N.max` allows. Ignored by
+  the other methods
 
 - search.limit:
 

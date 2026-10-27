@@ -167,7 +167,8 @@ StratPowerBSSR(
 - search:
 
   Search of the exact re-estimation, see
-  [`StratSampleSize`](https://gosukehommaex.github.io/bbssr/reference/StratSampleSize.md)
+  [`StratSampleSize`](https://gosukehommaex.github.io/bbssr/reference/StratSampleSize.md);
+  it does not go beyond the largest size that `N.max` allows
 
 - search.limit:
 
@@ -291,7 +292,9 @@ patient responds, the planned group sizes are kept. A stratum whose
 pooled estimate is close to 0 with `effect = 'RR'`, or close to 0 or 1
 with `effect = 'OR'`, has planning probabilities close to each other, so
 the re-estimated size can be very large, and the time of the exact
-computation grows with it; an upper bound `N.max` keeps both in check.
+computation grows with it. An upper bound `N.max` keeps both in check:
+the final total does not exceed it, and the exact search of
+`ss.method = 'exact'` does not go beyond it.
 
 With two strata the final group sizes depend on the interim data only
 through `(s_1, s_2)`. Given `s_j`, the number of interim responders of

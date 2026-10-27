@@ -80,7 +80,7 @@
                         <h4 data-toc-skip class="author">Gosuke
 Homma</h4>
             
-            <h4 data-toc-skip class="date">2026-10-26</h4>
+            <h4 data-toc-skip class="date">2026-10-27</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/gosukehommaEX/bbssr/blob/main/vignettes/bbssr-stratified.Rmd" class="external-link"><code>vignettes/bbssr-stratified.Rmd</code></a></small>
       <div class="d-none name"><code>bbssr-stratified.Rmd</code></div>
@@ -456,10 +456,13 @@ within each stratum the groups are allocated by permuted blocks of size
 <code>floor(N * frac[1])</code>, and each patient is in group 1 with the
 probability
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">r / (1 + r)</annotation></semantics></math>
-(Jung, 2014, Section 3.2). With <code>'both'</code> the stratum sizes
-are binomial as well (Jung, 2014, Section 3.1). The power is the sum
-over the stratum and group sizes of their probability times the power of
-the fixed design they give. Sizes whose probability is below
+(Jung, 2014, Section 3.2, where the size of stratum 1 is the round-off
+of <code>N * frac[1]</code>; the integer part used here reproduces all
+but one of the sample sizes of the column ‘n fixed’ of Table 4 of the
+article). With <code>'both'</code> the stratum sizes are binomial as
+well (Jung, 2014, Section 3.1). The power is the sum over the stratum
+and group sizes of their probability times the power of the fixed design
+they give. Sizes whose probability is below
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>14</mn></mrow></msup><annotation encoding="application/x-tex">10^{-14}</annotation></semantics></math>
 are left out, and the attribute <code>skipped</code> gives their total
 probability, a bound on the error of the power.</p>

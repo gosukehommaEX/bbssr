@@ -101,21 +101,23 @@ hypergeometric variance
 Cochran's statistic uses the binomial variance
 `sum_j N1[j] N2[j] z_j (N_j - z_j) / N_j^3` instead. The continuity
 correction reduces `|S - E|` by 0.5 when it is at least 0.5, as in
-[`mantelhaen.test`](https://rdrr.io/r/stats/mantelhaen.test.html). Nam
-(1992) reduces `S - E` by 0.5 in every outcome, which makes a difference
-only where `|S - E| < 0.5`. There `S` is the integer next to `E`, and
-since the hypergeometric variance is at least `f (1 - f)`, with `f` the
-fractional part of `E`, and the binomial variance at least half of it,
-the one-sided p-value of `'Cochran-cc'` exceeds 0.078. The two
-corrections therefore reject the same outcomes at one-sided levels up to
-0.078. The statistics are referred to the standard normal distribution,
-with the absolute value for a two-sided alternative, and an outcome
-whose variance is 0 is not rejected. The stratified exact conditional
-test uses the distribution of `S` given `z`, the convolution of the
-hypergeometric distributions of the strata. The two-sided p-value
-`'central'` is twice the smaller tail probability (Jung, 2014), and
-`'minlike'` and `'blaker'` order the values of `S` by their probability
-and by their smaller tail probability, with the ties of
+[`mantelhaen.test`](https://rdrr.io/r/stats/mantelhaen.test.html); a
+deviation of exactly 0.5 is recognised although `E`, a sum over the
+strata, carries rounding errors. Nam (1992) reduces `S - E` by 0.5 in
+every outcome, which makes a difference only where `|S - E| < 0.5`.
+There `S` is the integer next to `E`, and since the hypergeometric
+variance is at least `f (1 - f)`, with `f` the fractional part of `E`,
+and the binomial variance at least half of it, the one-sided p-value of
+`'Cochran-cc'` exceeds 0.078. The two corrections therefore reject the
+same outcomes at one-sided levels up to 0.078. The statistics are
+referred to the standard normal distribution, with the absolute value
+for a two-sided alternative, and an outcome whose variance is 0 is not
+rejected. The stratified exact conditional test uses the distribution of
+`S` given `z`, the convolution of the hypergeometric distributions of
+the strata. The two-sided p-value `'central'` is twice the smaller tail
+probability (Jung, 2014), and `'minlike'` and `'blaker'` order the
+values of `S` by their probability and by their smaller tail
+probability, with the ties of
 [`BinaryRR`](https://gosukehommaex.github.io/bbssr/reference/BinaryRR.md).
 As in the other functions of the package, a p-value is rejected when it
 is below `alpha` by more than about 1.49e-8.

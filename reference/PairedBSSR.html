@@ -163,7 +163,8 @@ Details</p></dd>
 
 
 <dt id="arg-search">search<a class="anchor" aria-label="anchor" href="#arg-search"></a></dt>
-<dd><p>Search of the exact re-estimation, see <code><a href="PairedSampleSize.html">PairedSampleSize</a></code></p></dd>
+<dd><p>Search of the exact re-estimation, see <code><a href="PairedSampleSize.html">PairedSampleSize</a></code>;
+it does not go beyond <code>N.max</code></p></dd>
 
 
 <dt id="arg-search-limit">search.limit<a class="anchor" aria-label="anchor" href="#arg-search-limit"></a></dt>
@@ -204,8 +205,9 @@ points, see Details. Default is <code>FALSE</code></p></dd>
 the interim data <code>n1</code> and <code>D1</code>, the blinded estimate <code>psi.hat</code> of the
 probability of a discordant pair, the value <code>psi.plan</code> used in the
 re-estimation, the planning probabilities <code>p10.plan</code> and <code>p01.plan</code>, the
-re-estimated number of pairs <code>N.re</code> before the bounds are applied (already
-within them with <code>ss.method = 'conditional.power'</code>), the number
+re-estimated number of pairs <code>N.re</code> before the bounds are applied (at most
+<code>N.max</code> with <code>ss.method = 'exact'</code>, whose search does not go beyond it, and
+within the bounds with <code>ss.method = 'conditional.power'</code>), the number
 <code>n.stage2</code> of pairs still to be enrolled, the final number of pairs
 <code>N.final</code>, the power <code>Power</code> of the final analysis with <code>N.final</code>
 pairs under the planning probabilities, and its conditional power <code>CP</code> given

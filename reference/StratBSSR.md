@@ -43,7 +43,7 @@ StratBSSR(
 - n1:
 
   Numbers of patients of group 1 observed in the strata at the interim
-  analysis
+  analysis. With a random allocation a group may be empty in a stratum
 
 - n2:
 
@@ -164,7 +164,8 @@ StratBSSR(
 - search:
 
   Search of the exact re-estimation, see
-  [`StratSampleSize`](https://gosukehommaex.github.io/bbssr/reference/StratSampleSize.md)
+  [`StratSampleSize`](https://gosukehommaex.github.io/bbssr/reference/StratSampleSize.md);
+  it does not go beyond the largest size that `N.max` allows
 
 - search.limit:
 

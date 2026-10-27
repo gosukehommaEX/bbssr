@@ -160,6 +160,9 @@ the p-value of an outcome is the larger of the two one-sided p-values.
 The p-values are kept for the rest of the session and reused by later
 calls with the same number of pairs and test, see
 [`bbssr-package`](https://gosukehommaex.github.io/bbssr/reference/bbssr-package.md).
+They form a matrix of `(N + 1)^2` values, which takes about 2 GB of
+memory for 16,000 pairs, so the memory and the time of the exact
+calculations grow with the square of `N`.
 
 ## References
 

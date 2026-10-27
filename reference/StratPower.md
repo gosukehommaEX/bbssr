@@ -138,23 +138,25 @@ of `N` patients, and the sizes of the strata and of the groups within
 them are random. With `'group'` the stratum sizes are fixed at
 `n1 = floor(N frac[1])` and `n2 = N - n1`, and each patient of stratum
 `j` is in group 1 with the probability `r[j] / (1 + r[j])`, so that the
-size of group 1 is binomial (Jung, 2014, Section 3.2). With `'both'` the
-size of stratum 1 is binomial as well, with the probability `frac[1]`
-(Jung, 2014, Section 3.1). With `'stratum'` the stratum sizes are
-binomial and the groups are allocated by permuted blocks of size `block`
-within each stratum: every complete block holds
-`block r[j] / (1 + r[j])` patients of group 1, and the number of
-patients of group 1 among the patients of the last, incomplete block is
-hypergeometric. The power is the sum over the stratum and group sizes of
-their probability times the power of the fixed design they give.
-Configurations with a probability below 1e-14 are left out, and their
-total probability, which bounds the error of the power, is returned in
-the attribute `skipped`. A group without patients in a stratum leaves
-that stratum without variation of `S`, and a stratum without patients
-leaves a design with one stratum. The number of configurations grows
-with `N` most quickly for `'both'`: at `N = 100` the power of one
-scenario takes a fraction of a second with `'stratum'`, about a second
-with `'group'` and tens of seconds with `'both'`.
+size of group 1 is binomial (Jung, 2014, Section 3.2, where the size of
+stratum 1 is the round-off of `N frac[1]`; the integer part used here
+reproduces all but one of the sample sizes of the column 'n fixed' of
+Table 4 of the article). With `'both'` the size of stratum 1 is binomial
+as well, with the probability `frac[1]` (Jung, 2014, Section 3.1). With
+`'stratum'` the stratum sizes are binomial and the groups are allocated
+by permuted blocks of size `block` within each stratum: every complete
+block holds `block r[j] / (1 + r[j])` patients of group 1, and the
+number of patients of group 1 among the patients of the last, incomplete
+block is hypergeometric. The power is the sum over the stratum and group
+sizes of their probability times the power of the fixed design they
+give. Configurations with a probability below 1e-14 are left out, and
+their total probability, which bounds the error of the power, is
+returned in the attribute `skipped`. A group without patients in a
+stratum leaves that stratum without variation of `S`, and a stratum
+without patients leaves a design with one stratum. The number of
+configurations grows with `N` most quickly for `'both'`: at `N = 100`
+the power of one scenario takes a fraction of a second with `'stratum'`,
+about a second with `'group'` and tens of seconds with `'both'`.
 
 ## References
 

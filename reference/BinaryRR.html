@@ -263,7 +263,10 @@ of the two one-sided regions and the p-value of an outcome is the larger of its 
 one-sided p-values. Tests of equivalence are available with the tests of Blackwelder
 and of Farrington and Manning.</p>
 <p>The p-values are kept for the rest of the session and reused by later calls with the
-same sample sizes and test, see <code><a href="bbssr-package.html">bbssr-package</a></code>.</p>
+same sample sizes and test, see <code><a href="bbssr-package.html">bbssr-package</a></code>. They form a matrix of
+<code>(N1 + 1) (N2 + 1)</code> values, which takes about 2 GB of memory for 16,000 patients
+per group, so the memory and the time of the exact calculations grow with the product
+of the group sizes.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

@@ -221,7 +221,8 @@ responders</p></dd>
 
 
 <dt id="arg-search">search<a class="anchor" aria-label="anchor" href="#arg-search"></a></dt>
-<dd><p>Search of the exact re-estimation, see <code><a href="StratSampleSize.html">StratSampleSize</a></code></p></dd>
+<dd><p>Search of the exact re-estimation, see <code><a href="StratSampleSize.html">StratSampleSize</a></code>;
+it does not go beyond the largest size that <code>N.max</code> allows</p></dd>
 
 
 <dt id="arg-search-limit">search.limit<a class="anchor" aria-label="anchor" href="#arg-search-limit"></a></dt>
@@ -330,7 +331,8 @@ interim patient responds, the planned group sizes are kept. A stratum whose pool
 estimate is close to 0 with <code>effect = 'RR'</code>, or close to 0 or 1 with
 <code>effect = 'OR'</code>, has planning probabilities close to each other, so the
 re-estimated size can be very large, and the time of the exact computation grows with
-it; an upper bound <code>N.max</code> keeps both in check.</p>
+it. An upper bound <code>N.max</code> keeps both in check: the final total does not exceed it,
+and the exact search of <code>ss.method = 'exact'</code> does not go beyond it.</p>
 <p>With two strata the final group sizes depend on the interim data only through
 <code>(s_1, s_2)</code>. Given <code>s_j</code>, the number of interim responders of group 1 in
 stratum <code>j</code> follows from the two binomial distributions of the stratum, and the

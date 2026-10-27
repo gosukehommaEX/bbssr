@@ -153,8 +153,9 @@ BinaryBSSR(
   How the exact re-estimation chooses the sample size when
   `ss.method = 'exact'`: `'crossing'` (default), `'smallest'` or
   `'stable'`, as in
-  [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md).
-  Ignored by the other methods
+  [`BinarySampleSize`](https://gosukehommaex.github.io/bbssr/reference/BinarySampleSize.md),
+  without going beyond the largest size that `N.max` allows. Ignored by
+  the other methods
 
 - search.limit:
 
@@ -252,7 +253,8 @@ An object of class `bbssr_bssr`, a data frame with one row containing:
 
 - N2.re:
 
-  Re-estimated total sample size of group 2
+  Re-estimated total sample size of group 2, before the bounds; with
+  `ss.method = 'exact'` at most the largest size that `N.max` allows
 
 - N.re:
 

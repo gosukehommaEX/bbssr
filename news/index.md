@@ -97,13 +97,15 @@ version.
   binomial distribution and allocates the groups by permuted blocks of
   size `block` within the strata, `'group'` keeps the stratum sizes
   fixed and draws the group sizes from binomial distributions (Jung,
-  2014, Section 3.2), and `'both'` draws both (Jung, 2014, Section 3.1).
-  The exact power is the sum over the configurations of stratum and
-  group sizes of the power of the fixed design they give; the
-  configurations with a probability below 1e-14 are left out, and their
-  total probability is reported as a bound on the error. The sample
-  sizes of the columns ‘n fixed’ and ‘random’ of Table 4 of Jung (2014)
-  are compared with the published values in
+  2014, Section 3.2, which rounds the size of stratum 1 off; the package
+  rounds it down, which reproduces all but one of the sizes of the
+  column ‘n fixed’ of Table 4 of the article), and `'both'` draws both
+  (Jung, 2014, Section 3.1). The exact power is the sum over the
+  configurations of stratum and group sizes of the power of the fixed
+  design they give; the configurations with a probability below 1e-14
+  are left out, and their total probability is reported as a bound on
+  the error. The sample sizes of the columns ‘n fixed’ and ‘random’ of
+  Table 4 of Jung (2014) are compared with the published values in
   `inst/reproduce/reproduce-published.R`, and so is the simulated power
   of the stratified exact test, the unstratified Fisher test and the
   Mantel-Haenszel test in Table 3, which agrees with random stratum and
@@ -334,7 +336,13 @@ version.
 
 - `N.min` and `N.max` bound the final total sample size of a
   re-estimation design, for example to cap it at twice the initial size
-  or to keep patients who are enrolled but not yet evaluated.
+  or to keep patients who are enrolled but not yet evaluated. The exact
+  search of `ss.method = 'exact'` does not go beyond the upper bound:
+  where the normal approximation exceeds it, the search starts at the
+  bound, and the bound is the result when the target power is not
+  attained below it. The bound thus also limits the time of the exact
+  re-estimation, which grows with the sample size. This applies to the
+  designs for two groups, for matched pairs and for stratified designs.
 
 - `n.interim` gives the interim sample sizes directly, as an alternative
   to `omega`.

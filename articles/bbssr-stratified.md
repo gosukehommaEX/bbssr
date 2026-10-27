@@ -368,12 +368,15 @@ binomial with the probability `frac[1]`, and within each stratum the
 groups are allocated by permuted blocks of size `block`, as in
 stratified block randomization. With `'group'` the size of stratum 1 is
 fixed at `floor(N * frac[1])`, and each patient is in group 1 with the
-probability $`r / (1 + r)`$ (Jung, 2014, Section 3.2). With `'both'` the
-stratum sizes are binomial as well (Jung, 2014, Section 3.1). The power
-is the sum over the stratum and group sizes of their probability times
-the power of the fixed design they give. Sizes whose probability is
-below $`10^{-14}`$ are left out, and the attribute `skipped` gives their
-total probability, a bound on the error of the power.
+probability $`r / (1 + r)`$ (Jung, 2014, Section 3.2, where the size of
+stratum 1 is the round-off of `N * frac[1]`; the integer part used here
+reproduces all but one of the sample sizes of the column ‘n fixed’ of
+Table 4 of the article). With `'both'` the stratum sizes are binomial as
+well (Jung, 2014, Section 3.1). The power is the sum over the stratum
+and group sizes of their probability times the power of the fixed design
+they give. Sizes whose probability is below $`10^{-14}`$ are left out,
+and the attribute `skipped` gives their total probability, a bound on
+the error of the power.
 
 ``` r
 

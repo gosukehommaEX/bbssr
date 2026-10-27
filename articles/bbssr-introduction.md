@@ -490,11 +490,15 @@ lowers the nominal level when the rate exceeds it.
   [`BinaryGridBSSR()`](https://gosukehommaex.github.io/bbssr/reference/BinaryGridBSSR.md).
 - `bbssr-non-inferiority` covers the tests with a margin and the
   re-estimation in non-inferiority trials.
+- `bbssr-paired` covers matched pairs, such as cross-over trials.
+- `bbssr-stratified` covers stratified designs with two or more strata.
 - `bbssr-type1-error` covers the type I error rate, the adjusted level
   and the conditional rejection probabilities.
 - `bbssr-statistical-methods` derives the tests and the re-estimation.
 - `bbssr-validation` compares the package with `stats`, `Exact`,
   `exact2x2` and published results, and reports timings.
+- `bbssr-published-figures` redraws published figures from values
+  computed with the package.
 
 ## References
 

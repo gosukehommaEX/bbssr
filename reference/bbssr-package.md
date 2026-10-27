@@ -104,6 +104,11 @@ and the stratified exact conditional test.
 
   Power and final sample size of a re-estimation design
 
+- [`StratGridBSSR`](https://gosukehommaex.github.io/bbssr/reference/StratGridBSSR.md):
+
+  Power and final sample size of several re-estimation designs over
+  common scenarios
+
 - [`StratBSSR`](https://gosukehommaex.github.io/bbssr/reference/StratBSSR.md):
 
   Re-estimation from the interim pooled numbers of responders of the
@@ -117,6 +122,11 @@ and the stratified exact conditional test.
 - [`StratAlphaAdjBSSR`](https://gosukehommaex.github.io/bbssr/reference/StratAlphaAdjBSSR.md):
 
   Adjusted significance level of a re-estimation design with two strata
+
+- [`StratCondRejectBSSR`](https://gosukehommaex.github.io/bbssr/reference/StratCondRejectBSSR.md):
+
+  Conditional rejection probabilities of a re-estimation design with two
+  strata, and its type I error rate decomposed by the interim outcome
 
 ## Reuse of computed p-values
 

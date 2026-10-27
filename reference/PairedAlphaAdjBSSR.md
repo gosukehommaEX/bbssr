@@ -114,7 +114,8 @@ PairedAlphaAdjBSSR(
 - search:
 
   Search of the exact re-estimation, see
-  [`PairedSampleSize`](https://gosukehommaex.github.io/bbssr/reference/PairedSampleSize.md)
+  [`PairedSampleSize`](https://gosukehommaex.github.io/bbssr/reference/PairedSampleSize.md);
+  it does not go beyond `N.max`
 
 - search.limit:
 

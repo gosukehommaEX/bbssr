@@ -235,6 +235,9 @@ Blackwelder and of Farrington and Manning.
 The p-values are kept for the rest of the session and reused by later
 calls with the same sample sizes and test, see
 [`bbssr-package`](https://gosukehommaex.github.io/bbssr/reference/bbssr-package.md).
+They form a matrix of `(N1 + 1) (N2 + 1)` values, which takes about 2 GB
+of memory for 16,000 patients per group, so the memory and the time of
+the exact calculations grow with the product of the group sizes.
 
 ## References
 

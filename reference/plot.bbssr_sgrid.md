@@ -43,6 +43,13 @@ plot(x, x.by = NULL, xlab = NULL, ...)
 
 A `ggplot` object
 
+## Details
+
+The lines join the scenarios of a design in the order of the horizontal
+axis, so the scenarios should differ in a single probability, or `x.by`
+should name a column in which they all differ; a warning is given when
+two scenarios of a design share a value on the axis.
+
 ## Examples
 
 ``` r

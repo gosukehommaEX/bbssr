@@ -47,6 +47,11 @@ A `ggplot` object
 
 ## Details
 
+The lines join the scenarios in the order of the horizontal axis, so the
+scenarios should differ in a single probability, or `x.by` should name a
+column in which they all differ; a warning is given when two scenarios
+share a value on the axis.
+
 The Monte Carlo standard errors of a simulated or averaged power (three
 or more strata, or a random allocation) are not drawn. With
 `Delta.T = 0` in

@@ -186,7 +186,10 @@ available also when the odds ratio or the risk difference is not common to the s
 random. With <code>'group'</code> the stratum sizes are fixed at <code>n1 = floor(N frac[1])</code>
 and <code>n2 = N - n1</code>, and each patient of stratum <code>j</code> is in group 1 with the
 probability <code>r[j] / (1 + r[j])</code>, so that the size of group 1 is binomial (Jung,
-2014, Section 3.2). With <code>'both'</code> the size of stratum 1 is binomial as well, with
+2014, Section 3.2, where the size of stratum 1 is the round-off of <code>N frac[1]</code>;
+the integer part used here reproduces all but one of the sample sizes of the column
+'n fixed' of Table 4 of the article). With <code>'both'</code> the size of stratum 1 is
+binomial as well, with
 the probability <code>frac[1]</code> (Jung, 2014, Section 3.1). With <code>'stratum'</code> the
 stratum sizes are binomial and the groups are allocated by permuted blocks of size
 <code>block</code> within each stratum: every complete block holds

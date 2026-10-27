@@ -152,7 +152,8 @@ StratCondRejectBSSR(
 - search:
 
   Search of the exact re-estimation, see
-  [`StratSampleSize`](https://gosukehommaex.github.io/bbssr/reference/StratSampleSize.md)
+  [`StratSampleSize`](https://gosukehommaex.github.io/bbssr/reference/StratSampleSize.md);
+  it does not go beyond the largest size that `N.max` allows
 
 - search.limit:
 

@@ -161,7 +161,9 @@ variance
 <code>V = sum_j N1[j] N2[j] z_j (N_j - z_j) / (N_j^2 (N_j - 1))</code>, and Cochran's
 statistic uses the binomial variance <code>sum_j N1[j] N2[j] z_j (N_j - z_j) / N_j^3</code>
 instead. The continuity correction reduces <code>|S - E|</code> by 0.5 when it is at least 0.5,
-as in <code><a href="https://rdrr.io/r/stats/mantelhaen.test.html" class="external-link">mantelhaen.test</a></code>. Nam (1992) reduces <code>S - E</code> by 0.5 in
+as in <code><a href="https://rdrr.io/r/stats/mantelhaen.test.html" class="external-link">mantelhaen.test</a></code>; a deviation of exactly 0.5 is
+recognised although <code>E</code>, a sum over the strata, carries rounding errors. Nam
+(1992) reduces <code>S - E</code> by 0.5 in
 every outcome, which makes a difference only where <code>|S - E| &lt; 0.5</code>. There <code>S</code>
 is the integer next to <code>E</code>, and since the hypergeometric variance is at least
 <code>f (1 - f)</code>, with <code>f</code> the fractional part of <code>E</code>, and the binomial

@@ -102,7 +102,10 @@ single <code>NA</code> drops it</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The Monte Carlo standard errors of a simulated or averaged power (three or more strata,
+    <p>The lines join the scenarios in the order of the horizontal axis, so the scenarios
+should differ in a single probability, or <code>x.by</code> should name a column in which
+they all differ; a warning is given when two scenarios share a value on the axis.</p>
+<p>The Monte Carlo standard errors of a simulated or averaged power (three or more strata,
 or a random allocation) are not drawn. With <code>Delta.T = 0</code> in
 <code><a href="StratPowerBSSR.html">StratPowerBSSR</a></code> the curves are rejection probabilities under the null
 hypothesis, and <code>ref.line</code> can be set to the level of significance.</p>
