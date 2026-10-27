@@ -160,10 +160,16 @@ for (t in test.res) {
 run.docs.steps <- run.docs
 if (run.docs) {
   inst.res <- tryCatch({
-    # reload = FALSE keeps the installed DLL out of this session. load_all() does not
-    # unload a DLL loaded from the library, and Windows refuses to overwrite a DLL in use,
-    # so a reloaded package makes the installation fail in a later run of this session
-    devtools::install(upgrade = FALSE, quiet = TRUE, reload = FALSE)
+    # The built package is installed by R CMD INSTALL in its own process, as
+    # devtools::install() does, but without its resolution of the dependencies by pak,
+    # which can fail outside the package (on 2026-10-27, in pkgdepends). The installed
+    # DLL stays out of this session: load_all() does not unload a DLL loaded from the
+    # library, and Windows refuses to overwrite a DLL in use, so a loaded package makes
+    # the installation fail in a later run of this session
+    tarball <- pkgbuild::build(dest_path = tempdir(), vignettes = FALSE, quiet = TRUE)
+    inst <- callr::rcmd('INSTALL', c(paste0('--library=', .libPaths()[1]), tarball),
+                        fail_on_status = FALSE)
+    if (inst$status != 0) stop('R CMD INSTALL failed: ', inst$stderr)
     paste('bbssr', callr::r(function() as.character(utils::packageVersion('bbssr'))),
           'installed')
   }, error = function(e) {

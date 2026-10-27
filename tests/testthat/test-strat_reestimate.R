@@ -89,8 +89,10 @@ test_that("strat_reestimate agrees with the reference sizes of the pooled estima
 })
 
 test_that("the exact search of strat_reestimate does not go beyond N.max", {
+  # With the assumed odds ratio 6 the normal approximation of some interim outcomes
+  # lies within the bound and that of others beyond it
   s <- as.matrix(expand.grid(0:8, 0:8))
-  args <- list(s = s, n1 = c(4L, 4L), n2 = c(4L, 4L), Delta.A = 2.5, effect = 'OR',
+  args <- list(s = s, n1 = c(4L, 4L), n2 = c(4L, 4L), Delta.A = 6, effect = 'OR',
                frac = c(0.5, 0.5), r = c(1, 1), ss.method = 'exact', ss.Test = 'CMH',
                ss.alpha = 0.05, tar.power = 0.8, alternative = 'greater',
                tsmethod = 'minlike', N1.plan = c(8L, 8L), N2.plan = c(8L, 8L),
