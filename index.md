@@ -15,7 +15,9 @@ the rejection region of a test to the enrolment decision at an interim
 analysis, for two independent groups, for matched pairs and for
 stratified designs. Power, sample sizes and type I error rates are
 computed exactly rather than by simulation, except for re-estimation
-designs with three or more strata.
+designs with three or more strata, which are simulated, and
+re-estimation designs with random stratum and group sizes, whose exact
+results are averaged over simulated allocation sequences.
 
 ## What is new since version 2.0.0
 

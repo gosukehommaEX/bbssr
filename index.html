@@ -85,7 +85,7 @@
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
 <p>A trial with a binary endpoint needs an assumed response probability in each group before the first patient is enrolled. If the pooled response probability turns out to differ from what was assumed, the trial ends up either underpowered or larger than it needed to be. Blinded sample size re-estimation looks at the pooled number of responders partway through the trial and adjusts the remaining enrolment, without ever splitting the data by treatment group.</p>
-<p><code>bbssr</code> covers the whole chain of calculations that this requires, from the rejection region of a test to the enrolment decision at an interim analysis, for two independent groups, for matched pairs and for stratified designs. Power, sample sizes and type I error rates are computed exactly rather than by simulation, except for re-estimation designs with three or more strata.</p>
+<p><code>bbssr</code> covers the whole chain of calculations that this requires, from the rejection region of a test to the enrolment decision at an interim analysis, for two independent groups, for matched pairs and for stratified designs. Power, sample sizes and type I error rates are computed exactly rather than by simulation, except for re-estimation designs with three or more strata, which are simulated, and re-estimation designs with random stratum and group sizes, whose exact results are averaged over simulated allocation sequences.</p>
 </div>
 <div class="section level2">
 <h2 id="what-is-new-since-version-200">What is new since version 2.0.0<a class="anchor" aria-label="anchor" href="#what-is-new-since-version-200"></a>
