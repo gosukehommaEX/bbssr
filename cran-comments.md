@@ -20,7 +20,7 @@ re-estimation. `NEWS.md` lists every change, including the changes in behaviour.
 ## Test environments
 
 * local R installation, R 4.6.1 on Windows 11
-* win-builder, R-devel (2026-10-23 r90760) and R-release (4.6.1)
+* win-builder, R-devel (2026-10-26 r90766) and R-release (4.6.1)
 * GitHub Actions, R-CMD-check on Ubuntu (devel, release, oldrel-1), macOS and Windows
 
 ## R CMD check results
@@ -33,15 +33,12 @@ win-builder (R-devel and R-release) gives 1 NOTE:
     Possibly misspelled words in DESCRIPTION:
       Blackwelder (14:20)
       Farrington (15:5)
-      Friede (29:43, 30:28)
+      Friede (30:43, 31:28)
       Haenszel (20:32)
       McNemar (18:68)
       Woolson (21:17)
 
 These are the surnames of the authors of the cited references and are spelled correctly.
-
-TODO: re-run the checks after the additions planned for this release and update the
-results above before the submission.
 
 ## Reverse dependencies
 
